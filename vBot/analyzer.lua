@@ -37,6 +37,285 @@ if skillConfig.skillName == "Magic Level" then
   skillConfig.skillName = "Distance"
 end
 
+storage.analyzerLayout = storage.analyzerLayout or {}
+local layoutConfig = storage.analyzerLayout
+layoutConfig.windows = layoutConfig.windows or {}
+local restoringLayout = false
+local useNativeMiniWindowLayout = true
+
+local analyzerPanels = {
+  right = "getRightPanel",
+  mainRight = "getMainRightPanel",
+  rightExtra = "getRightExtraPanel",
+  left = "getLeftPanel",
+  leftExtra = "getLeftExtraPanel"
+}
+
+local analyzerPanelIds = {
+  gameRightPanel = "right",
+  gameMainRightPanel = "mainRight",
+  gameRightExtraPanel = "rightExtra",
+  gameLeftPanel = "left",
+  gameLeftExtraPanel = "leftExtra"
+}
+
+local function getAnalyzerPanel(panelKey)
+  local getter = analyzerPanels[panelKey]
+  if not getter or not modules.game_interface or not modules.game_interface[getter] then return nil end
+
+  local ok, panel = pcall(function()
+    return modules.game_interface[getter]()
+  end)
+
+  if ok then return panel end
+  return nil
+end
+
+local function getAnalyzerPanelKey(parent)
+  if not parent then return nil end
+
+  for panelKey in pairs(analyzerPanels) do
+    if getAnalyzerPanel(panelKey) == parent then
+      return panelKey
+    end
+  end
+
+  local ok, parentId = pcall(function()
+    return parent:getId()
+  end)
+
+  if ok and parentId then
+    return analyzerPanelIds[parentId]
+  end
+
+  return nil
+end
+
+local function getAnalyzerPanelIndex(window)
+  if not window then return nil end
+
+  local okParent, parent = pcall(function()
+    return window:getParent()
+  end)
+  if not okParent or not parent then return nil end
+
+  local okIndex, index = pcall(function()
+    return parent:getChildIndex(window)
+  end)
+
+  if okIndex then return tonumber(index) end
+  return nil
+end
+
+local function saveAnalyzerWindowLayout(key, window)
+  if useNativeMiniWindowLayout then return end
+  if restoringLayout or not key or not window then return end
+
+  local data = layoutConfig.windows[key] or {}
+  local okParent, parent = pcall(function()
+    return window:getParent()
+  end)
+
+  if okParent and parent then
+    local panelKey = getAnalyzerPanelKey(parent)
+    if panelKey then data.panel = panelKey end
+
+    local okParentId, parentId = pcall(function()
+      return parent:getId()
+    end)
+    if okParentId and parentId then data.parentId = parentId end
+
+    local index = getAnalyzerPanelIndex(window)
+    if index then data.index = index end
+  end
+
+  local okPos, posData = pcall(function()
+    return window:getPosition()
+  end)
+  if okPos and posData and posData.x and posData.y then
+    data.x = math.floor(posData.x)
+    data.y = math.floor(posData.y)
+  end
+
+  local okVisible, visible = pcall(function()
+    return window:isVisible()
+  end)
+  if okVisible then
+    data.visible = visible == true
+  end
+
+  layoutConfig.windows[key] = data
+end
+
+local function applyAnalyzerWindowDock(key, window)
+  local data = layoutConfig.windows[key]
+  if type(data) ~= "table" or not window then return end
+
+  local targetPanel = getAnalyzerPanel(data.panel)
+  if not targetPanel and data.parentId and g_ui and g_ui.getRootWidget then
+    local rootWidget = g_ui.getRootWidget()
+    targetPanel = rootWidget and rootWidget:recursiveGetChildById(data.parentId) or nil
+  end
+  if not targetPanel then return end
+
+  local targetIndex = tonumber(data.index)
+  local okParent, currentParent = pcall(function()
+    return window:getParent()
+  end)
+  if not okParent then currentParent = nil end
+
+  if targetIndex then
+    local okCount, childCount = pcall(function()
+      return targetPanel:getChildCount()
+    end)
+    if okCount and childCount then
+      local maxIndex = childCount
+      if currentParent ~= targetPanel then maxIndex = maxIndex + 1 end
+      if targetIndex < 1 then targetIndex = 1 end
+      if targetIndex > maxIndex then targetIndex = maxIndex end
+    end
+  end
+
+  if currentParent ~= targetPanel then
+    local moved = false
+    if targetPanel.insertChild and targetIndex then
+      moved = pcall(function()
+        if currentParent and currentParent.removeChild then
+          currentParent:removeChild(window)
+        end
+        targetPanel:insertChild(targetIndex, window)
+      end)
+    end
+    if not moved and window.setParent then
+      pcall(function()
+        window:setParent(targetPanel)
+      end)
+    end
+  elseif targetIndex then
+    local moved = false
+    if targetPanel.moveChildToIndex then
+      moved = pcall(function()
+        targetPanel:moveChildToIndex(window, targetIndex)
+      end)
+    end
+    if not moved and targetPanel.removeChild and targetPanel.insertChild then
+      pcall(function()
+        targetPanel:removeChild(window)
+        targetPanel:insertChild(targetIndex, window)
+      end)
+    end
+  end
+
+  if targetPanel.fitAll then
+    pcall(function()
+      targetPanel:fitAll(window)
+    end)
+  end
+end
+
+local function restoreAnalyzerWindowLayout(key, window, restoreVisibility)
+  if useNativeMiniWindowLayout then return end
+  local data = layoutConfig.windows[key]
+  if type(data) ~= "table" or not window then return end
+
+  restoringLayout = true
+  applyAnalyzerWindowDock(key, window)
+
+  local okCurrentParent, currentParent = pcall(function()
+    return window:getParent()
+  end)
+  local dockedInPanel = data.panel or analyzerPanelIds[tostring(data.parentId or "")]
+  if okCurrentParent and getAnalyzerPanelKey(currentParent) then
+    dockedInPanel = true
+  end
+
+  if not dockedInPanel and data.x and data.y then
+    if window.move then
+      pcall(function() window:move(data.x, data.y) end)
+    elseif window.setPosition then
+      pcall(function() window:setPosition({x = data.x, y = data.y}) end)
+    end
+  end
+
+  if restoreVisibility == false then
+    restoringLayout = false
+    return
+  end
+
+  if data.visible == true then
+    pcall(function()
+      if key == "main" and window.open then
+        window:open()
+      else
+        window:show()
+      end
+    end)
+  else
+    pcall(function()
+      if key == "main" and window.close then
+        window:close()
+      else
+        window:hide()
+      end
+    end)
+  end
+  restoringLayout = false
+end
+
+local function trackAnalyzerWindow(key, window)
+  if not window then return end
+
+  local previousGeometryChange = window.onGeometryChange
+  window.onGeometryChange = function(widget, old, new)
+    if previousGeometryChange then previousGeometryChange(widget, old, new) end
+    if old and old.width == 0 and old.height == 0 then return end
+    saveAnalyzerWindowLayout(key, widget)
+  end
+
+  local previousVisibilityChange = window.onVisibilityChange
+  window.onVisibilityChange = function(widget, visible)
+    if previousVisibilityChange then previousVisibilityChange(widget, visible) end
+    saveAnalyzerWindowLayout(key, widget)
+  end
+
+  local previousDragLeave = window.onDragLeave
+  window.onDragLeave = function(widget, droppedWidget, mousePos)
+    local result = true
+    if previousDragLeave then
+      result = previousDragLeave(widget, droppedWidget, mousePos)
+    end
+
+    schedule(50, function()
+      saveAnalyzerWindowLayout(key, widget)
+    end)
+
+    return result
+  end
+end
+
+local function restoreAnalyzerWindowLayouts(windows, restoreVisibility)
+  local orderedWindows = {}
+
+  for _, tracked in ipairs(windows) do
+    local data = layoutConfig.windows[tracked.key]
+    table.insert(orderedWindows, {
+      key = tracked.key,
+      window = tracked.window,
+      panel = type(data) == "table" and tostring(data.panel or data.parentId or "") or "",
+      index = type(data) == "table" and (tonumber(data.index) or 999999) or 999999
+    })
+  end
+
+  table.sort(orderedWindows, function(a, b)
+    if a.panel == b.panel then return a.index < b.index end
+    return a.panel < b.panel
+  end)
+
+  for _, tracked in ipairs(orderedWindows) do
+    restoreAnalyzerWindowLayout(tracked.key, tracked.window, restoreVisibility)
+  end
+end
+
 local oldWindows = {
   "MainAnalyzerWindow",
   "HuntingAnalyzerWindow",
@@ -80,6 +359,34 @@ local itemCounterWindow = UI.createMiniWindow("ItemCounterAnalyzer")
 itemCounterWindow:hide()
 itemCounterWindow:setContentMaximumHeight(320)
 
+local function setupAnalyzerWindowOnStart(window)
+  if window and window.setupOnStart then
+    pcall(function()
+      window:setupOnStart()
+    end)
+  end
+end
+
+setupAnalyzerWindowOnStart(mainWindow)
+setupAnalyzerWindowOnStart(xpWindow)
+setupAnalyzerWindowOnStart(skillWindow)
+setupAnalyzerWindowOnStart(statsWindow)
+setupAnalyzerWindowOnStart(itemCounterWindow)
+
+trackAnalyzerWindow("main", mainWindow)
+trackAnalyzerWindow("xp", xpWindow)
+trackAnalyzerWindow("skill", skillWindow)
+trackAnalyzerWindow("stats", statsWindow)
+trackAnalyzerWindow("itemCounter", itemCounterWindow)
+
+local trackedAnalyzerWindows = {
+  {key = "main", window = mainWindow},
+  {key = "xp", window = xpWindow},
+  {key = "skill", window = skillWindow},
+  {key = "stats", window = statsWindow},
+  {key = "itemCounter", window = itemCounterWindow}
+}
+
 local keepButtons = {
   XPAnalyzer = true,
   SkillAnalyzer = true,
@@ -113,10 +420,22 @@ end
 
 local function toggleWindow(window)
   if window:isVisible() then
-    window:hide()
+    if window.close then
+      window:close()
+    else
+      window:hide()
+    end
   else
-    window:show()
+    if window.open then
+      window:open()
+    else
+      window:show()
+    end
   end
+  if window == xpWindow then saveAnalyzerWindowLayout("xp", window) end
+  if window == skillWindow then saveAnalyzerWindowLayout("skill", window) end
+  if window == statsWindow then saveAnalyzerWindowLayout("stats", window) end
+  if window == itemCounterWindow then saveAnalyzerWindowLayout("itemCounter", window) end
 end
 
 local function toggleMainWindow()
@@ -127,6 +446,7 @@ local function toggleMainWindow()
     if analyzerButton then analyzerButton:setOn(true) end
     mainWindow:open()
   end
+  saveAnalyzerWindowLayout("main", mainWindow)
 end
 
 local okButton, existingButton = pcall(function()
@@ -145,6 +465,7 @@ analyzerButton:setOn(false)
 
 mainWindow.onClose = function()
   if analyzerButton then analyzerButton:setOn(false) end
+  saveAnalyzerWindowLayout("main", mainWindow)
 end
 
 if mainWindow.contentsPanel.XPAnalyzer then
@@ -170,6 +491,23 @@ if mainWindow.contentsPanel.ItemCounter then
     toggleWindow(itemCounterWindow)
   end
 end
+
+restoreAnalyzerWindowLayouts(trackedAnalyzerWindows, true)
+if analyzerButton then analyzerButton:setOn(mainWindow:isVisible()) end
+
+for _, delayMs in ipairs({150, 500, 1000}) do
+  schedule(delayMs, function()
+    restoreAnalyzerWindowLayouts(trackedAnalyzerWindows, false)
+    if analyzerButton then analyzerButton:setOn(mainWindow:isVisible()) end
+  end)
+end
+
+macro(1000, function()
+  if restoringLayout then return end
+  for _, tracked in ipairs(trackedAnalyzerWindows) do
+    saveAnalyzerWindowLayout(tracked.key, tracked.window)
+  end
+end)
 
 local function clamp(value, minValue, maxValue)
   value = tonumber(value) or minValue

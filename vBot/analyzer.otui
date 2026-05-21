@@ -153,6 +153,7 @@ MainAnalyzerWindow < MiniWindow
   text: Analytics Selector
   height: 164
   icon: /images/topbuttons/analyzers
+  &save: true
 
   MiniWindowContents
     padding-left: 5
@@ -189,6 +190,7 @@ XPAnalyzer < MiniWindow
   text: XP Analyzer
   height: 150
   icon: /images/topbuttons/analyzers
+  &save: true
 
   MiniWindowContents
     padding-top: 3
@@ -199,6 +201,7 @@ SkillAnalyzer < MiniWindow
   text: Skill Analyzer
   height: 230
   icon: /images/topbuttons/analyzers
+  &save: true
 
   MiniWindowContents
     padding-top: 3
@@ -225,6 +228,7 @@ CaveBotStats < MiniWindow
   text: CaveBot Stats
   height: 200
   icon: /images/topbuttons/analyzers
+  &save: true
 
   MiniWindowContents
     padding-left: 3
@@ -237,6 +241,7 @@ ItemCounterAnalyzer < MiniWindow
   text: Item Counter
   height: 240
   icon: /images/topbuttons/analyzers
+  &save: true
 
   MiniWindowContents
     padding-left: 3
