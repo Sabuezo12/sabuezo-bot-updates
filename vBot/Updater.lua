@@ -9,7 +9,7 @@ config.version = config.version or "none"
 
 local ui = setupUI([[
 Panel
-  height: 55
+  height: 92
 
   Label
     id: title
@@ -46,7 +46,7 @@ Panel
     anchors.top: title.bottom
     anchors.left: parent.left
     anchors.right: parent.right
-    height: 33
+    height: 70
     margin-top: 4
     text-align: center
     font: verdana-11px-rounded
@@ -62,6 +62,36 @@ local lastManifest = nil
 local function setStatus(text, color)
   ui.status:setText(text)
   ui.status:setColor(color or "#cfd3d7")
+end
+
+local function formatSummary(manifest, maxLines)
+  local summary = manifest and manifest.summary
+  local lines = {}
+
+  if type(summary) == "table" then
+    for _, line in ipairs(summary) do
+      line = tostring(line or ""):gsub("^%s+", ""):gsub("%s+$", "")
+      if line:len() > 0 then table.insert(lines, line) end
+    end
+  elseif type(summary) == "string" then
+    for line in summary:gmatch("[^\n]+") do
+      line = tostring(line or ""):gsub("^%s+", ""):gsub("%s+$", "")
+      if line:len() > 0 then table.insert(lines, line) end
+    end
+  end
+
+  if #lines == 0 then return "" end
+
+  local limit = tonumber(maxLines) or 4
+  local visible = {}
+  for i = 1, math.min(#lines, limit) do
+    table.insert(visible, "- " .. lines[i])
+  end
+  if #lines > limit then
+    table.insert(visible, "+" .. (#lines - limit) .. " more")
+  end
+
+  return table.concat(visible, "\n")
 end
 
 local function httpGet(url, callback)
@@ -228,9 +258,19 @@ ui.check.onClick = function()
     local remoteVersion = tostring(manifest.version or "unknown")
     local localVersion = tostring(config.version or "none")
     if remoteVersion == localVersion then
-      setStatus("Already updated\n" .. localVersion, "#8cff9a")
+      local summary = formatSummary(manifest, 3)
+      if summary:len() > 0 then
+        setStatus("Already updated: " .. localVersion .. "\n" .. summary, "#8cff9a")
+      else
+        setStatus("Already updated\n" .. localVersion, "#8cff9a")
+      end
     else
-      setStatus("New version: " .. remoteVersion .. "\nInstalled: " .. localVersion, "#ffd166")
+      local summary = formatSummary(manifest, 4)
+      if summary:len() > 0 then
+        setStatus("New: " .. remoteVersion .. " | Installed: " .. localVersion .. "\n" .. summary, "#ffd166")
+      else
+        setStatus("New version: " .. remoteVersion .. "\nInstalled: " .. localVersion, "#ffd166")
+      end
     end
   end)
 end

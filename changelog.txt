@@ -1,3 +1,10 @@
+2026.05.20.2
+- Updater muestra resumen visual de cambios al presionar Check.
+- Icono Cave actualizado a item 12548.
+- Icono Target actualizado a item 7438.
+- Icono Ering actualizado a item 3088.
+- Se mantiene Dash fuera de los iconos.
+
 2026.05.20.1
 - Primera version del sistema de actualizaciones Sabuezo.
 - Agrega panel Updater en Main.
