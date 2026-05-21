@@ -41,7 +41,20 @@ storage.analyzerLayout = storage.analyzerLayout or {}
 local layoutConfig = storage.analyzerLayout
 layoutConfig.windows = layoutConfig.windows or {}
 local restoringLayout = false
-local useNativeMiniWindowLayout = true
+local useNativeMiniWindowLayout = false
+local ANALYZER_LAYOUT_VERSION = 6
+
+if layoutConfig.version ~= ANALYZER_LAYOUT_VERSION then
+  for _, data in pairs(layoutConfig.windows) do
+    if type(data) == "table" then
+      data.mode = "panel"
+      data.panel = "right"
+      data.parentId = nil
+      data.index = nil
+    end
+  end
+  layoutConfig.version = ANALYZER_LAYOUT_VERSION
+end
 
 local analyzerPanels = {
   right = "getRightPanel",
@@ -107,7 +120,7 @@ local function getAnalyzerPanelIndex(window)
   return nil
 end
 
-local function saveAnalyzerWindowLayout(key, window)
+local function saveAnalyzerWindowLayout(key, window, allowFloating)
   if useNativeMiniWindowLayout then return end
   if restoringLayout or not key or not window then return end
 
@@ -118,15 +131,23 @@ local function saveAnalyzerWindowLayout(key, window)
 
   if okParent and parent then
     local panelKey = getAnalyzerPanelKey(parent)
-    if panelKey then data.panel = panelKey end
-
     local okParentId, parentId = pcall(function()
       return parent:getId()
     end)
-    if okParentId and parentId then data.parentId = parentId end
 
-    local index = getAnalyzerPanelIndex(window)
-    if index then data.index = index end
+    if panelKey then
+      data.mode = "panel"
+      data.panel = panelKey
+      if okParentId and parentId then data.parentId = parentId end
+
+      local index = getAnalyzerPanelIndex(window)
+      if index then data.index = index end
+    elseif allowFloating then
+      data.mode = "free"
+      data.panel = nil
+      data.index = nil
+      if okParentId and parentId then data.parentId = parentId end
+    end
   end
 
   local okPos, posData = pcall(function()
@@ -151,11 +172,31 @@ local function applyAnalyzerWindowDock(key, window)
   local data = layoutConfig.windows[key]
   if type(data) ~= "table" or not window then return end
 
-  local targetPanel = getAnalyzerPanel(data.panel)
-  if not targetPanel and data.parentId and g_ui and g_ui.getRootWidget then
+  if data.mode == "free" and data.x and data.y and g_ui and g_ui.getRootWidget then
     local rootWidget = g_ui.getRootWidget()
-    targetPanel = rootWidget and rootWidget:recursiveGetChildById(data.parentId) or nil
+    local freeParent = rootWidget and rootWidget:recursiveGetChildById(data.parentId or "gameRootPanel") or nil
+    freeParent = freeParent or rootWidget
+
+    if freeParent and window.setParent then
+      pcall(function()
+        window:setParent(freeParent)
+      end)
+    end
+
+    if window.setPosition then
+      pcall(function()
+        window:setPosition({x = data.x, y = data.y})
+      end)
+    elseif window.move then
+      pcall(function()
+        window:move(data.x, data.y)
+      end)
+    end
+
+    return
   end
+
+  local targetPanel = getAnalyzerPanel(data.panel) or getAnalyzerPanel("right")
   if not targetPanel then return end
 
   local targetIndex = tonumber(data.index)
@@ -221,22 +262,6 @@ local function restoreAnalyzerWindowLayout(key, window, restoreVisibility)
   restoringLayout = true
   applyAnalyzerWindowDock(key, window)
 
-  local okCurrentParent, currentParent = pcall(function()
-    return window:getParent()
-  end)
-  local dockedInPanel = data.panel or analyzerPanelIds[tostring(data.parentId or "")]
-  if okCurrentParent and getAnalyzerPanelKey(currentParent) then
-    dockedInPanel = true
-  end
-
-  if not dockedInPanel and data.x and data.y then
-    if window.move then
-      pcall(function() window:move(data.x, data.y) end)
-    elseif window.setPosition then
-      pcall(function() window:setPosition({x = data.x, y = data.y}) end)
-    end
-  end
-
   if restoreVisibility == false then
     restoringLayout = false
     return
@@ -285,8 +310,11 @@ local function trackAnalyzerWindow(key, window)
       result = previousDragLeave(widget, droppedWidget, mousePos)
     end
 
-    schedule(50, function()
-      saveAnalyzerWindowLayout(key, widget)
+    schedule(200, function()
+      saveAnalyzerWindowLayout(key, widget, true)
+    end)
+    schedule(700, function()
+      saveAnalyzerWindowLayout(key, widget, true)
     end)
 
     return result
@@ -358,20 +386,6 @@ statsWindow:setContentMaximumHeight(105)
 local itemCounterWindow = UI.createMiniWindow("ItemCounterAnalyzer")
 itemCounterWindow:hide()
 itemCounterWindow:setContentMaximumHeight(320)
-
-local function setupAnalyzerWindowOnStart(window)
-  if window and window.setupOnStart then
-    pcall(function()
-      window:setupOnStart()
-    end)
-  end
-end
-
-setupAnalyzerWindowOnStart(mainWindow)
-setupAnalyzerWindowOnStart(xpWindow)
-setupAnalyzerWindowOnStart(skillWindow)
-setupAnalyzerWindowOnStart(statsWindow)
-setupAnalyzerWindowOnStart(itemCounterWindow)
 
 trackAnalyzerWindow("main", mainWindow)
 trackAnalyzerWindow("xp", xpWindow)

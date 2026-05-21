@@ -1,17 +1,9 @@
 {
     "name":  "Sabuezo Bot Updates",
     "channel":  "stable",
-    "version":  "2026.05.20.2",
+    "version":  "1.0.1",
     "updatedAt":  "2026-05-20",
-    "summary":  [
-                    "Updater muestra resumen visual al hacer Check",
-                    "Icono Cave cambiado a item 12548",
-                    "Icono Target cambiado a item 7438",
-                    "Icono Ering cambiado a item 3088",
-                    "Icono Dash sigue removido"
-                ],
     "manifestUrl":  "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/manifest.json",
-    "changelogUrl":  "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/changelog.txt",
     "files":  [
                   {
                       "path":  "vBot/TimerExecutor.lua",
@@ -160,8 +152,8 @@
                   {
                       "path":  "vBot/analyzer.lua",
                       "url":  "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/vBot/analyzer.lua",
-                      "size":  25716,
-                      "sha256":  "7577e46545a3f32d8074861925697b52a83a64abbcb7360894b0fd5db8a54a3e"
+                      "size":  35582,
+                      "sha256":  "3d17bfd28ffeb1f3153d8f6a86a7e8a87252f18e2d0466b0aeaf950a760b5bff"
                   },
                   {
                       "path":  "_Loader.lua",
