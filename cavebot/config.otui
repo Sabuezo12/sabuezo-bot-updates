@@ -1,0 +1,247 @@
+CaveBotConfigPanel < Panel
+  id: cavebotEditor
+  visible: false
+  
+  layout:
+    type: verticalBox
+    fit-children: true
+  
+  HorizontalSeparator
+    margin-top: 5
+
+  Label
+    text-align: center
+    text: CaveBot Config
+    margin-top: 5
+
+CaveBotConfigNumberValuePanel < Panel
+  height: 20
+  margin-top: 5
+  
+  BotTextEdit
+    id: value
+    anchors.right: parent.right
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    margin-right: 5
+    width: 50
+
+  Label
+    id: title
+    anchors.left: parent.left
+    anchors.verticalCenter: prev.verticalCenter
+    margin-left: 5
+
+CaveBotConfigBooleanValuePanel < Panel
+  height: 20
+  margin-top: 5
+  
+  BotSwitch
+    id: value
+    anchors.right: parent.right
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    margin-right: 5
+    width: 50
+    
+    $on:
+      text: On
+      
+    $!on:
+      text: Off
+
+  Label
+    id: title
+    anchors.left: parent.left
+    anchors.verticalCenter: prev.verticalCenter
+    margin-left: 5
+
+CaveBotConfigTextValuePanel < Panel
+  height: 20
+  margin-top: 5
+  
+  BotTextEdit
+    id: value
+    anchors.right: parent.right
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    margin-right: 5
+    width: 80
+
+  Label
+    id: title
+    anchors.left: parent.left
+    anchors.verticalCenter: prev.verticalCenter
+    margin-left: 5
+
+CaveBotConfigChoiceValuePanel < Panel
+  height: 20
+  margin-top: 5
+  
+  Button
+    id: value
+    anchors.right: parent.right
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    margin-right: 5
+    width: 80
+
+  Label
+    id: title
+    anchors.left: parent.left
+    anchors.verticalCenter: prev.verticalCenter
+    margin-left: 5
+
+CaveBotDeathSafetyPanel < Panel
+  id: deathSafety
+  margin-top: 7
+  layout:
+    type: verticalBox
+    fit-children: true
+
+  HorizontalSeparator
+    margin-top: 2
+    margin-bottom: 3
+
+  Label
+    id: title
+    text: Seguridad por muertes
+    text-align: center
+    margin-top: 2
+
+  Panel
+    id: statusRow
+    height: 22
+    margin-top: 4
+
+    Button
+      id: resetButton
+      text: Reset
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      margin-right: 5
+      width: 54
+
+    Label
+      id: deathCounterLabel
+      text: Muertes: 0
+      anchors.left: parent.left
+      anchors.right: resetButton.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 5
+      margin-right: 4
+
+  Panel
+    id: limitRow
+    height: 20
+    margin-top: 3
+
+    BotTextEdit
+      id: limitEdit
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      margin-right: 5
+      width: 50
+
+    Label
+      text: Limite
+      anchors.left: parent.left
+      anchors.verticalCenter: limitEdit.verticalCenter
+      margin-left: 5
+
+  Panel
+    id: actionRow
+    height: 22
+    margin-top: 3
+
+    Button
+      id: waitButton
+      text: Esperar
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      margin-right: 5
+      width: 52
+
+    Button
+      id: labelButton
+      text: Label
+      anchors.right: waitButton.left
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      margin-right: 3
+      width: 44
+
+    Button
+      id: stopButton
+      text: Stop
+      anchors.right: labelButton.left
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      margin-right: 3
+      width: 42
+
+  Panel
+    id: labelRow
+    height: 20
+    margin-top: 3
+
+    BotTextEdit
+      id: labelEdit
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      margin-right: 5
+      width: 100
+
+    Label
+      text: Label
+      anchors.left: parent.left
+      anchors.verticalCenter: labelEdit.verticalCenter
+      margin-left: 5
+
+  Panel
+    id: waitRow
+    height: 20
+    margin-top: 3
+
+    BotTextEdit
+      id: waitEdit
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      margin-right: 5
+      width: 50
+
+    Label
+      text: Espera min
+      anchors.left: parent.left
+      anchors.verticalCenter: waitEdit.verticalCenter
+      margin-left: 5
+
+  Panel
+    id: antiRedRow
+    height: 20
+    margin-top: 4
+
+    BotSwitch
+      id: antiRedSwitch
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      margin-right: 5
+      width: 50
+
+      $on:
+        text: On
+
+      $!on:
+        text: Off
+
+    Label
+      text: Anti Red
+      anchors.left: parent.left
+      anchors.verticalCenter: antiRedSwitch.verticalCenter
+      margin-left: 5

@@ -1,0 +1,5 @@
+2026.05.20.1
+- Primera version del sistema de actualizaciones Sabuezo.
+- Agrega panel Updater en Main.
+- Incluye bootstrap.lua para instalacion inicial por link.
+- Publica scripts base sin storage, configs privadas, backups ni scripts pagados.

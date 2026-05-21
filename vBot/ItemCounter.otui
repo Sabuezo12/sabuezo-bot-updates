@@ -1,0 +1,111 @@
+ItemCounterRow < Panel
+  height: 42
+
+  BotItem
+    id: item
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 2
+
+  Label
+    id: count
+    anchors.left: item.right
+    anchors.top: parent.top
+    margin-left: 6
+    margin-top: 3
+    width: 82
+    text-align: left
+    font: verdana-11px-rounded
+    color: #ffe66d
+    text: Actual: -
+
+  TextEdit
+    id: alias
+    anchors.left: count.right
+    anchors.right: remove.left
+    anchors.top: parent.top
+    margin-left: 4
+    margin-right: 4
+    height: 18
+    font: verdana-11px-rounded
+    text-align: left
+
+  Label
+    id: hint
+    anchors.left: alias.left
+    anchors.right: alias.right
+    anchors.top: alias.bottom
+    margin-top: 3
+    text-align: left
+    font: verdana-11px-rounded
+    color: #aaaaaa
+    text: Log name
+
+  Button
+    id: remove
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    width: 22
+    height: 20
+    text: X
+    tooltip: Remove item
+
+ItemCounterWindow < MainWindow
+  !text: tr('Item Counter')
+  size: 370 295
+  @onEscape: self:hide()
+
+  Label
+    id: header
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    text-align: center
+    font: verdana-11px-rounded
+    color: #9dd1ce
+    text: Items
+
+  ScrollablePanel
+    id: list
+    anchors.top: header.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: bottomSep.top
+    margin-top: 6
+    margin-bottom: 8
+    padding: 2
+    vertical-scrollbar: listScrollBar
+    layout: verticalBox
+
+  VerticalScrollBar
+    id: listScrollBar
+    anchors.top: list.top
+    anchors.bottom: list.bottom
+    anchors.right: list.right
+    step: 14
+    pixels-scroll: true
+
+  HorizontalSeparator
+    id: bottomSep
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: add.top
+    margin-bottom: 8
+
+  Button
+    id: add
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    width: 70
+    height: 21
+    text: New
+    tooltip: Add item
+
+  Button
+    id: closeButton
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    width: 55
+    height: 21
+    text: Close
+    @onClick: self:getParent():hide()

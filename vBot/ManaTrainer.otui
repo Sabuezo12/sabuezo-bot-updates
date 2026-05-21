@@ -1,0 +1,193 @@
+ManaTrainerSpellRow < Panel
+  height: 28
+  margin-top: 3
+  background-color: #00000022
+
+  CheckBox
+    id: enabled
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 4
+    width: 18
+    height: 18
+    tooltip: Enable this spell
+
+  TextEdit
+    id: spell
+    anchors.left: enabled.right
+    anchors.right: mana.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 5
+    margin-right: 5
+    height: 20
+    font: verdana-11px-rounded
+    tooltip: Spell words
+
+  SpinBox
+    id: mana
+    anchors.right: percent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 2
+    width: 50
+    height: 20
+    minimum: 1
+    maximum: 100
+    step: 1
+    editable: true
+    focusable: true
+    tooltip: Cast when mana is at or above this percent
+
+  Label
+    id: percent
+    anchors.right: remove.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 5
+    width: 12
+    text: %
+    font: verdana-11px-rounded
+
+  Button
+    id: remove
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 4
+    width: 22
+    height: 20
+    text: X
+    tooltip: Remove spell
+
+ManaTrainerWindow < MainWindow
+  !text: tr('Mana Trainer')
+  size: 430 405
+  padding: 12
+  @onEscape: self:hide()
+
+  Label
+    id: creaturesLabel
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 6
+    text: Creature names
+    font: verdana-11px-rounded
+    color: #9dd1ce
+
+  TextEdit
+    id: creatures
+    anchors.top: creaturesLabel.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 4
+    height: 22
+    font: verdana-11px-rounded
+    tooltip: Separate names with comma. Supports * wildcard.
+
+  Label
+    id: delayLabel
+    anchors.top: creatures.bottom
+    anchors.left: parent.left
+    margin-top: 10
+    width: 120
+    height: 20
+    text: Cast delay ms
+    font: verdana-11px-rounded
+
+  SpinBox
+    id: castDelay
+    anchors.left: delayLabel.right
+    anchors.verticalCenter: delayLabel.verticalCenter
+    width: 80
+    height: 20
+    minimum: 250
+    maximum: 60000
+    step: 250
+    editable: true
+    focusable: true
+
+  CheckBox
+    id: pauseAttackBot
+    anchors.left: castDelay.right
+    anchors.right: parent.right
+    anchors.verticalCenter: castDelay.verticalCenter
+    margin-left: 12
+    height: 18
+    text: Pause AttackBot
+    tooltip: Pause AttackBot while attacking a configured trainer target.
+
+  Label
+    id: spellsLabel
+    anchors.top: delayLabel.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 10
+    height: 18
+    text: Spells
+    text-align: center
+    font: verdana-11px-rounded
+    color: #9dd1ce
+
+  ScrollablePanel
+    id: spellList
+    anchors.top: spellsLabel.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: bottomSep.top
+    margin-top: 4
+    margin-bottom: 8
+    padding: 2
+    vertical-scrollbar: spellListScrollBar
+    layout: verticalBox
+
+  VerticalScrollBar
+    id: spellListScrollBar
+    anchors.top: spellList.top
+    anchors.bottom: spellList.bottom
+    anchors.right: spellList.right
+    step: 18
+    pixels-scroll: true
+
+  HorizontalSeparator
+    id: bottomSep
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: addSpell.top
+    margin-bottom: 8
+
+  Button
+    id: addSpell
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    width: 76
+    height: 21
+    text: New
+    tooltip: Add spell
+
+  Button
+    id: resetTimers
+    anchors.left: addSpell.right
+    anchors.bottom: parent.bottom
+    margin-left: 6
+    width: 82
+    height: 21
+    text: Reset
+    tooltip: Reset mana trainer delay
+
+  Label
+    id: summary
+    anchors.left: resetTimers.right
+    anchors.right: closeButton.left
+    anchors.verticalCenter: resetTimers.verticalCenter
+    margin-left: 8
+    margin-right: 8
+    text-align: center
+    font: verdana-11px-rounded
+    color: #cfd3d7
+
+  Button
+    id: closeButton
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    width: 55
+    height: 21
+    text: Close
+    @onClick: self:getParent():hide()

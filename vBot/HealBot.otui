@@ -1,0 +1,612 @@
+SettingCheckBox < CheckBox
+  text-wrap: true
+  text-auto-resize: true
+  margin-top: 3
+  font: verdana-11px-rounded
+
+SpellSourceBoxPopupMenu < ComboBoxPopupMenu
+SpellSourceBoxPopupMenuButton < ComboBoxPopupMenuButton
+SpellSourceBox < ComboBox
+  @onSetup: |
+    self:addOption("Current Mana")
+    self:addOption("Current Health")
+    self:addOption("Mana Percent")
+    self:addOption("Health Percent")
+    self:addOption("Burst Damage")
+
+SpellConditionBoxPopupMenu < ComboBoxPopupMenu
+SpellConditionBoxPopupMenuButton < ComboBoxPopupMenuButton
+SpellConditionBox < ComboBox
+  @onSetup: |
+    self:addOption("Below")
+    self:addOption("Above")
+    self:addOption("Equal To")
+
+HealRelationBoxPopupMenu < ComboBoxPopupMenu
+HealRelationBoxPopupMenuButton < ComboBoxPopupMenuButton
+HealRelationBox < ComboBox
+  @onSetup: |
+    self:addOption("and")
+    self:addOption("or")
+
+SpellEntry < Label
+  background-color: alpha
+  text-offset: 18 1
+  focusable: true
+  height: 16
+  font: verdana-11px-rounded
+
+  CheckBox
+    id: enabled
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    width: 15
+    height: 15
+    margin-top: 2
+    margin-left: 3
+
+  $focus:
+    background-color: #00000055
+
+  Button
+    id: remove
+    !text: tr('x')
+    anchors.right: parent.right
+    margin-right: 15
+    text-offset: 1 0
+    width: 15
+    height: 15   
+
+ItemEntry < Label
+  background-color: alpha
+  text-offset: 40 1
+  focusable: true
+  height: 16
+  font: verdana-11px-rounded
+
+  CheckBox
+    id: enabled
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    width: 15
+    height: 15
+    margin-top: 2
+    margin-left: 3
+
+  UIItem
+    id: id
+    anchors.left: prev.right
+    margin-left: 3
+    anchors.verticalCenter: parent.verticalCenter
+    size: 15 15
+    focusable: false
+
+  $focus:
+    background-color: #00000055
+
+  Button
+    id: remove
+    !text: tr('x')
+    anchors.right: parent.right
+    margin-right: 15
+    text-offset: 1 0
+    width: 15
+    height: 15               
+
+HealBotSpellHealingV3 < FlatPanel
+  size: 610 200
+
+  Label
+    id: title
+    anchors.top: parent.top
+    anchors.left: parent.left
+    margin-top: 5
+    margin-left: 5
+    text: Spell Healing List
+    color: #269e26
+    font: verdana-11px-rounded
+
+  TextList
+    id: spellList
+    anchors.top: title.bottom
+    anchors.left: parent.left
+    margin-top: 5
+    margin-left: 5
+    width: 280
+    height: 135
+    vertical-scrollbar: spellListScrollBar
+
+  VerticalScrollBar
+    id: spellListScrollBar
+    anchors.top: spellList.top
+    anchors.bottom: spellList.bottom
+    anchors.left: spellList.right
+    step: 14
+    pixels-scroll: true
+
+  Button
+    id: MoveUp
+    anchors.top: spellList.bottom
+    anchors.left: spellList.left
+    margin-top: 5
+    text: Move Up
+    size: 55 17
+    font: cipsoftFont
+
+  Button
+    id: MoveDown
+    anchors.top: spellList.bottom
+    anchors.left: prev.right
+    margin-left: 5
+    margin-top: 5
+    text: Move Down
+    size: 55 17
+    font: cipsoftFont
+
+  Label
+    id: rightTitle
+    anchors.top: title.top
+    anchors.left: spellListScrollBar.right
+    margin-left: 15
+    text: Add / Edit Spell
+    color: #269e26
+    font: verdana-11px-rounded
+
+  SpellSourceBox
+    id: spellSource
+    anchors.top: rightTitle.bottom
+    anchors.left: rightTitle.left
+    margin-top: 5
+    width: 125
+    font: verdana-11px-rounded
+
+  SpellConditionBox
+    id: spellCondition
+    anchors.top: spellSource.top
+    anchors.left: prev.right
+    margin-left: 4
+    width: 80
+    font: verdana-11px-rounded
+
+  TextEdit
+    id: spellValue
+    anchors.top: spellSource.top
+    anchors.left: prev.right
+    margin-left: 4
+    width: 55
+    font: verdana-11px-rounded
+    tooltip: Trigger value (e.g. 80)
+
+  TextEdit
+    id: spellFormula
+    anchors.top: spellSource.bottom
+    anchors.left: spellSource.left
+    margin-top: 6
+    width: 125
+    font: verdana-11px-rounded
+    tooltip: Spell words (e.g. exura med ico)
+
+  TextEdit
+    id: manaCost
+    anchors.top: prev.top
+    anchors.left: prev.right
+    margin-left: 4
+    width: 70
+    font: verdana-11px-rounded
+    tooltip: Mana cost (e.g. 90)
+
+  Label
+    id: spellCooldownLabel
+    anchors.verticalCenter: manaCost.verticalCenter
+    anchors.left: manaCost.right
+    margin-left: 6
+    text: CD
+    width: 18
+    font: verdana-11px-rounded
+    color: #aaaaaa
+
+  TextEdit
+    id: spellCooldown
+    anchors.top: manaCost.top
+    anchors.left: spellCooldownLabel.right
+    margin-left: 2
+    width: 55
+    font: verdana-11px-rounded
+    tooltip: Manual cooldown: 3m, 30s, 180000ms
+
+  // Interruptor de Condición Extra
+  CheckBox
+    id: spellAdvanced
+    anchors.top: spellFormula.bottom
+    anchors.left: spellFormula.left
+    margin-top: 10
+    width: 15
+    height: 15
+
+  Label
+    id: spellExtraLabel
+    anchors.verticalCenter: spellAdvanced.verticalCenter
+    anchors.left: spellAdvanced.right
+    margin-left: 5
+    text: Extra Condition:
+    font: verdana-11px-rounded
+    color: #aaaaaa
+    text-auto-resize: true
+
+  HealRelationBox
+    id: spellExtraRelation
+    anchors.verticalCenter: spellAdvanced.verticalCenter
+    anchors.left: spellExtraLabel.right
+    margin-left: 6
+    width: 50
+    font: verdana-11px-rounded
+
+  SpellSourceBox
+    id: spellExtraSource
+    anchors.top: spellAdvanced.bottom
+    anchors.left: spellAdvanced.left
+    margin-top: 6
+    width: 125
+    font: verdana-11px-rounded
+
+  SpellConditionBox
+    id: spellExtraCondition
+    anchors.top: prev.top
+    anchors.left: prev.right
+    margin-left: 4
+    width: 80
+    font: verdana-11px-rounded
+
+  TextEdit
+    id: spellExtraValue
+    anchors.top: prev.top
+    anchors.left: prev.right
+    margin-left: 4
+    width: 55
+    font: verdana-11px-rounded
+    tooltip: Extra trigger value
+
+  Button
+    id: addSpell
+    anchors.top: prev.bottom
+    anchors.right: prev.right
+    margin-top: 8
+    text: Add
+    size: 55 20
+    font: cipsoftFont
+    color: #77D390
+
+HealBotItemHealingV3 < FlatPanel
+  size: 610 200
+
+  Label
+    id: title
+    anchors.top: parent.top
+    anchors.left: parent.left
+    margin-top: 5
+    margin-left: 5
+    text: Item Healing List
+    color: #ff4513
+    font: verdana-11px-rounded
+
+  TextList
+    id: itemList
+    anchors.top: title.bottom
+    anchors.left: parent.left
+    margin-top: 5
+    margin-left: 5
+    width: 280
+    height: 135
+    vertical-scrollbar: itemListScrollBar
+
+  VerticalScrollBar
+    id: itemListScrollBar
+    anchors.top: itemList.top
+    anchors.bottom: itemList.bottom
+    anchors.left: itemList.right
+    step: 14
+    pixels-scroll: true
+
+  Button
+    id: MoveUp
+    anchors.top: itemList.bottom
+    anchors.left: itemList.left
+    margin-top: 5
+    text: Move Up
+    size: 55 17
+    font: cipsoftFont
+
+  Button
+    id: MoveDown
+    anchors.top: itemList.bottom
+    anchors.left: prev.right
+    margin-left: 5
+    margin-top: 5
+    text: Move Down
+    size: 55 17
+    font: cipsoftFont
+
+  Label
+    id: rightTitle
+    anchors.top: title.top
+    anchors.left: itemListScrollBar.right
+    margin-left: 15
+    text: Add / Edit Item
+    color: #ff4513
+    font: verdana-11px-rounded
+
+  SpellSourceBox
+    id: itemSource
+    anchors.top: rightTitle.bottom
+    anchors.left: rightTitle.left
+    margin-top: 5
+    width: 125
+    font: verdana-11px-rounded
+
+  SpellConditionBox
+    id: itemCondition
+    anchors.top: itemSource.top
+    anchors.left: prev.right
+    margin-left: 4
+    width: 80
+    font: verdana-11px-rounded
+
+  TextEdit
+    id: itemValue
+    anchors.top: itemSource.top
+    anchors.left: prev.right
+    margin-left: 4
+    width: 55
+    font: verdana-11px-rounded
+    tooltip: Trigger value (e.g. 80)
+
+  BotItem
+    id: itemId
+    anchors.top: itemSource.bottom
+    anchors.left: itemSource.left
+    margin-top: 6
+    tooltip: Drag and drop the item here
+
+  Label
+    id: itemCooldownLabel
+    anchors.verticalCenter: itemId.verticalCenter
+    anchors.left: itemId.right
+    margin-left: 8
+    text: CD
+    width: 18
+    font: verdana-11px-rounded
+    color: #aaaaaa
+
+  TextEdit
+    id: itemCooldown
+    anchors.top: itemId.top
+    anchors.left: itemCooldownLabel.right
+    margin-left: 2
+    width: 55
+    font: verdana-11px-rounded
+    tooltip: Manual cooldown: 3m, 30s, 180000ms
+
+  // Interruptor de Condición Extra Items
+  CheckBox
+    id: itemAdvanced
+    anchors.top: itemId.bottom
+    anchors.left: itemId.left
+    margin-top: 10
+    width: 15
+    height: 15
+
+  Label
+    id: itemExtraLabel
+    anchors.verticalCenter: itemAdvanced.verticalCenter
+    anchors.left: itemAdvanced.right
+    margin-left: 5
+    text: Extra Condition:
+    font: verdana-11px-rounded
+    color: #aaaaaa
+    text-auto-resize: true
+
+  HealRelationBox
+    id: itemExtraRelation
+    anchors.verticalCenter: itemAdvanced.verticalCenter
+    anchors.left: itemExtraLabel.right
+    margin-left: 6
+    width: 50
+    font: verdana-11px-rounded
+
+  SpellSourceBox
+    id: itemExtraSource
+    anchors.top: itemAdvanced.bottom
+    anchors.left: itemAdvanced.left
+    margin-top: 6
+    width: 125
+    font: verdana-11px-rounded
+
+  SpellConditionBox
+    id: itemExtraCondition
+    anchors.top: prev.top
+    anchors.left: prev.right
+    margin-left: 4
+    width: 80
+    font: verdana-11px-rounded
+
+  TextEdit
+    id: itemExtraValue
+    anchors.top: prev.top
+    anchors.left: prev.right
+    margin-left: 4
+    width: 55
+    font: verdana-11px-rounded
+    tooltip: Extra trigger value
+
+  Button
+    id: addItem
+    anchors.top: prev.bottom
+    anchors.right: prev.right
+    margin-top: 8
+    text: Add
+    size: 55 20
+    font: cipsoftFont
+    color: #77D390
+
+HealBotHealerPanelV3 < Panel
+  HealBotSpellHealingV3
+    id: spells
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+
+  HealBotItemHealingV3
+    id: items
+    anchors.top: spells.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 10
+
+HealBotSettingsPanelV3 < Panel
+  padding-top: 8
+
+  FlatPanel
+    id: list
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    width: 290
+    padding-left: 6
+    padding-right: 6
+    padding-top: 6
+    layout:
+      type: verticalBox
+
+    Label
+      text: Additional Settings
+      text-align: center
+      font: verdana-11px-rounded
+      
+    HorizontalSeparator
+
+    SettingCheckBox
+      id: Cooldown
+      text: Check spell cooldowns
+      margin-top: 10
+
+    SettingCheckBox
+      id: Visible
+      text: Items must be visible (recommended)
+
+    SettingCheckBox
+      id: Delay
+      text: Don't use items when interacting
+
+    SettingCheckBox
+      id: Interval
+      text: Additional delay when looting corpses
+
+    SettingCheckBox
+      id: Conditions
+      text: Also check conditions from RL Tibia
+
+    SettingCheckBox
+      id: MessageDelay
+      text: Cooldown based on "Aaaah..." message
+
+    SettingCheckBox
+      id: OldSchool
+      text: Old School Mode (No Hotkeys)
+
+  FlatPanel
+    id: profiles
+    anchors.top: parent.top
+    anchors.left: list.right
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    margin-left: 8
+    padding: 8
+
+    Label
+      text: Profile Settings
+      text-align: center
+      anchors.top: parent.top
+      anchors.left: parent.left
+      anchors.right: parent.right
+      font: verdana-11px-rounded
+
+    HorizontalSeparator
+      anchors.top: prev.bottom
+      anchors.left: parent.left
+      anchors.right: parent.right
+
+    Label
+      anchors.top: prev.bottom
+      margin-top: 30
+      anchors.left: parent.left
+      anchors.right: parent.right
+      text-align: center
+      font: verdana-11px-rounded
+      text: Profile Name:
+
+    TextEdit
+      id: Name
+      anchors.top: prev.bottom
+      margin-top: 3
+      anchors.left: parent.left
+      anchors.right: parent.right     
+
+    Button
+      id: ResetSettings
+      anchors.bottom: parent.bottom
+      anchors.horizontalCenter: parent.horizontalCenter
+      text: Reset Current Profile
+      color: #ff4513
+
+HealWindowV3 < MainWindow
+  !text: tr('Advanced HealBot Config - By:Sabuezo')
+  size: 640 510
+  @onEscape: self:hide()
+
+  Label
+    id: title
+    anchors.left: parent.left
+    anchors.top: parent.top
+    !text: tr('More important methods come first (Example: Exura gran above Exura)')
+    font: verdana-11px-rounded
+    color: #aeaeae  
+
+  HealBotHealerPanelV3
+    id: healer
+    anchors.top: title.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: separator.top
+    margin-top: 5
+
+  HealBotSettingsPanelV3
+    id: settings
+    anchors.top: title.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: separator.top
+    margin-top: 5
+    visible: false
+
+  HorizontalSeparator
+    id: separator
+    anchors.right: parent.right
+    anchors.left: parent.left
+    anchors.bottom: closeButton.top
+    margin-bottom: 8 
+
+  Button
+    id: closeButton
+    !text: tr('Close')
+    font: cipsoftFont
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 55 21
+
+  Button
+    id: settingsButton
+    !text: tr('Settings')
+    font: cipsoftFont
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    size: 65 21

@@ -1,0 +1,245 @@
+DualLabel < Label
+  height: 15
+  text-offset: 4 0
+  font: verdana-11px-rounded
+  text-align: left
+  width: 50
+
+  Label
+    id: value
+    anchors.right: parent.right
+    margin-right: 4
+    anchors.verticalCenter: parent.verticalCenter
+    width: 200
+    font: verdana-11px-rounded
+    text-align: right
+    text: 0
+
+AnalyzerSupplyHeader < Panel
+  height: 16
+  margin-top: 1
+
+  Label
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 36
+    width: 72
+    text: Actual
+    text-align: center
+    font: verdana-11px-rounded
+    color: #9dd1ce
+
+  Label
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 4
+    width: 72
+    text: Gastado
+    text-align: center
+    font: verdana-11px-rounded
+    color: #9dd1ce
+
+AnalyzerSupplyRow < Panel
+  height: 32
+  margin-top: 2
+
+  BotItem
+    id: item
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 2
+
+  Label
+    id: current
+    anchors.left: item.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 8
+    width: 72
+    text-align: center
+    font: verdana-11px-rounded
+    color: #ffffff
+    background: #20202088
+
+  Label
+    id: used
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 4
+    width: 72
+    text-align: center
+    font: verdana-11px-rounded
+    color: #ffd166
+    background: #20202088
+
+AnalyzerGraph < UIGraph
+  height: 140
+  capacity: 400
+  line-width: 1
+  color: red
+  margin-top: 5
+  margin-left: 5
+  margin-right: 5
+  background-color: #383636
+  padding: 5
+  font: verdana-11px-rounded
+  image-source: /images/ui/graph_background
+
+AnalyzerProgressBar < ProgressBar
+  background-color: green
+  height: 5
+  margin-top: 3
+  phantom: false
+  margin-left: 3
+  margin-right: 3
+  border: 1 black
+
+AnalyzerButton < Button
+  height: 22
+  margin-bottom: 2
+  font: verdana-11px-rounded
+  text-offset: 0 4
+
+AnalyzerItemCounterRow < Panel
+  height: 34
+  margin-top: 2
+
+  BotItem
+    id: item
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    width: 32
+    height: 32
+
+  Label
+    id: name
+    anchors.left: item.right
+    anchors.right: count.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 5
+    margin-right: 4
+    text-align: left
+    font: verdana-11px-rounded
+    color: #dddddd
+    text: Item
+
+  Label
+    id: count
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    width: 58
+    text-align: right
+    font: verdana-11px-rounded
+    color: #9dff9d
+    text: 0
+
+SkillAnalyzerSkillBoxPopupMenu < ComboBoxPopupMenu
+SkillAnalyzerSkillBoxPopupMenuButton < ComboBoxPopupMenuButton
+SkillAnalyzerSkillBox < ComboBox
+  height: 22
+  margin-left: 5
+  margin-right: 5
+  font: verdana-11px-rounded
+  @onSetup: |
+    self:addOption("Fist")
+    self:addOption("Club")
+    self:addOption("Sword")
+    self:addOption("Axe")
+    self:addOption("Distance")
+    self:addOption("Shielding")
+    self:addOption("Fishing")
+
+MainAnalyzerWindow < MiniWindow
+  id: MainAnalyzerWindow
+  text: Analytics Selector
+  height: 164
+  icon: /images/topbuttons/analyzers
+
+  MiniWindowContents
+    padding-left: 5
+    padding-right: 5
+    padding-top: 5
+    layout: verticalBox
+
+    AnalyzerButton
+      id: XPAnalyzer
+      text: XP Analyzer
+
+    AnalyzerButton
+      id: SkillAnalyzer
+      text: Skill Analyzer
+      color: #4fc3f7
+
+    AnalyzerButton
+      id: Stats
+      text: CaveBot Stats
+      color: #74B73E
+
+    AnalyzerButton
+      id: ItemCounter
+      text: Item Counter
+      color: #9dd1ce
+
+    AnalyzerButton
+      id: ResetSession
+      text: Reset Session
+      color: #FF0000
+
+XPAnalyzer < MiniWindow
+  id: XPAnalyzerWindow    
+  text: XP Analyzer
+  height: 150
+  icon: /images/topbuttons/analyzers
+
+  MiniWindowContents
+    padding-top: 3
+    layout: verticalBox
+
+SkillAnalyzer < MiniWindow
+  id: SkillAnalyzerWindow
+  text: Skill Analyzer
+  height: 230
+  icon: /images/topbuttons/analyzers
+
+  MiniWindowContents
+    padding-top: 3
+    padding-left: 3
+    padding-right: 3
+    layout: verticalBox
+
+    Label
+      text: Extra Skill
+      text-align: center
+      height: 15
+      font: verdana-11px-rounded
+
+    SkillAnalyzerSkillBox
+      id: skillBox
+
+    AnalyzerButton
+      id: ResetSkillSession
+      text: Reset Skill Sample
+      color: #ffaa00
+
+CaveBotStats < MiniWindow
+  id: CaveBotStats
+  text: CaveBot Stats
+  height: 200
+  icon: /images/topbuttons/analyzers
+
+  MiniWindowContents
+    padding-left: 3
+    padding-right: 3
+    padding-top: 1
+    layout: verticalBox
+
+ItemCounterAnalyzer < MiniWindow
+  id: ItemCounterAnalyzerWindow
+  text: Item Counter
+  height: 240
+  icon: /images/topbuttons/analyzers
+
+  MiniWindowContents
+    padding-left: 3
+    padding-right: 3
+    padding-top: 3
+    layout: verticalBox
