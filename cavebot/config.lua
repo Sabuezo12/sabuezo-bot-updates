@@ -55,6 +55,17 @@ local function trimText(value)
   return tostring(value or ""):gsub("^%s*(.-)%s*$", "%1")
 end
 
+local function isCaveBotActive()
+  if not CaveBot or not CaveBot.isOn then return false end
+
+  local ok, enabled = pcall(CaveBot.isOn)
+  return ok and enabled == true
+end
+
+local function hasActiveDeathWait()
+  return (tonumber(CaveBot.Config.safety.deathWaitUntil) or 0) > 0
+end
+
 CaveBot.Config.clearDeathPolicy = function()
   CaveBot.Config.safety.deathPolicyActive = false
   CaveBot.Config.safety.deathWaitUntil = 0
@@ -507,7 +518,15 @@ CaveBot.Config.set = function(id, value)
 end
 
 macro(500, function()
-  if processDeathWait() then return end
+  if hasActiveDeathWait() then
+    processDeathWait()
+    return
+  end
+
+  if not isCaveBotActive() then
+    CaveBot.Config.safety.wasDead = false
+    return
+  end
 
   local limit = tonumber(CaveBot.Config.values.deathLimit) or 0
   if limit <= 0 then return end
@@ -534,6 +553,7 @@ macro(500, function()
 end)
 
 onTextMessage(function(mode, text)
+  if not isCaveBotActive() then return end
   if not CaveBot.Config.values.antiRed then return end
   if type(text) ~= "string" or not text:find("Warning! The murder of", 1, true) then return end
 
