@@ -82,6 +82,32 @@ end
 
 config.guildName = cleanGuildName(config.guildName or defaultGuildName)
 
+local vocationAliases = {
+  knight = { "ek", "knight", "elite knight", "titan blader", "guardian" },
+  paladin = { "rp", "paladin", "royal paladin", "force archer", "champion" },
+  sorcerer = { "ms", "sorc", "sorcerer", "master sorcerer", "hell wizard", "mage", "wizard" },
+  druid = { "ed", "druid", "elder druid", "high saintes", "high saintess", "saintes", "saintess", "prophet" }
+}
+
+local function cleanVocationName(value)
+  local voc = normalizeName(value)
+  voc = voc:gsub("%b[]", " "):gsub("%b()", " "):gsub("[{}]", " ")
+  voc = trim(voc:gsub("%s+", " "))
+
+  while voc:find("^supreme%s+") do
+    voc = trim(voc:gsub("^supreme%s+", ""))
+  end
+
+  return voc
+end
+
+local function vocationMatches(voc, aliases)
+  for _, alias in ipairs(aliases) do
+    if voc == alias then return true end
+  end
+  return false
+end
+
 local function normalizeVocation(value)
   if type(value) == "number" then
     if value == 1 or value == 11 then return "knight" end
@@ -91,16 +117,11 @@ local function normalizeVocation(value)
     return nil
   end
 
-  local voc = normalizeName(value)
-  local plainVoc = trim(voc:gsub("%b[]", ""))
-  if voc == "ek" or voc == "knight" or voc == "elite knight" then return "knight" end
-  if voc == "rp" or voc == "paladin" or voc == "royal paladin" then return "paladin" end
-  if voc == "ms" or voc == "sorc" or voc == "sorcerer" or voc == "master sorcerer" or voc == "mage" then return "sorcerer" end
-  if voc == "ed" or voc == "druid" or voc == "elder druid" then return "druid" end
-  if plainVoc == "guardian" then return "knight" end
-  if plainVoc == "champion" then return "paladin" end
-  if plainVoc == "wizard" then return "sorcerer" end
-  if plainVoc == "prophet" then return "druid" end
+  local voc = cleanVocationName(value)
+  if vocationMatches(voc, vocationAliases.knight) then return "knight" end
+  if vocationMatches(voc, vocationAliases.paladin) then return "paladin" end
+  if vocationMatches(voc, vocationAliases.sorcerer) then return "sorcerer" end
+  if vocationMatches(voc, vocationAliases.druid) then return "druid" end
   return nil
 end
 
@@ -384,7 +405,6 @@ local function autoAddGuildMember(creature)
 
   local name = creature:getName()
   local voc = detectCreatureVocation(creature)
-  if not voc then return end
 
   addGuildFriend(name, voc)
 end
