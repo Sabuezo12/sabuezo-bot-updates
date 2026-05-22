@@ -1,0 +1,182 @@
+UpdaterListLabel < Label
+  height: 18
+  text-align: left
+  text-offset: 3 0
+  font: verdana-11px-rounded
+  color: #cfd3d7
+  text-wrap: true
+
+UpdaterWindow < MainWindow
+  !text: tr('Sabuezo Updater')
+  size: 500 405
+  @onEscape: self:hide()
+
+  Label
+    id: title
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    height: 20
+    text-align: center
+    font: verdana-11px-rounded
+    color: #9dd1ce
+    text: Update Center
+
+  Label
+    anchors.left: parent.left
+    anchors.top: title.bottom
+    margin-top: 8
+    width: 115
+    height: 18
+    font: verdana-11px-rounded
+    text: Installed
+
+  Label
+    id: installed
+    anchors.left: prev.right
+    anchors.right: parent.horizontalCenter
+    anchors.verticalCenter: prev.verticalCenter
+    margin-left: 6
+    margin-right: 10
+    height: 18
+    text-align: left
+    font: verdana-11px-rounded
+    color: #ffffff
+    background: #20202088
+    text: -
+
+  Label
+    anchors.left: parent.horizontalCenter
+    anchors.top: installed.top
+    margin-left: 10
+    width: 85
+    height: 18
+    font: verdana-11px-rounded
+    text: Available
+
+  Label
+    id: remote
+    anchors.left: prev.right
+    anchors.right: parent.right
+    anchors.verticalCenter: prev.verticalCenter
+    margin-left: 6
+    height: 18
+    text-align: left
+    font: verdana-11px-rounded
+    color: #ffffff
+    background: #20202088
+    text: -
+
+  Label
+    id: status
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: remote.bottom
+    margin-top: 7
+    height: 28
+    text-align: center
+    font: verdana-11px-rounded
+    color: #cfd3d7
+    background: #292A2A
+    text-wrap: true
+    text: Press Check to load update info
+
+  Label
+    id: changesTitle
+    anchors.left: parent.left
+    anchors.top: status.bottom
+    margin-top: 8
+    width: 180
+    height: 18
+    text-align: left
+    font: verdana-11px-rounded
+    color: #9dd1ce
+    text: Changes for you
+
+  ScrollablePanel
+    id: changesList
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: changesTitle.bottom
+    height: 112
+    margin-top: 3
+    padding: 2
+    vertical-scrollbar: changesScrollBar
+    layout: verticalBox
+    background: #20202066
+
+  VerticalScrollBar
+    id: changesScrollBar
+    anchors.top: changesList.top
+    anchors.bottom: changesList.bottom
+    anchors.right: changesList.right
+    step: 18
+    pixels-scroll: true
+
+  Label
+    id: filesTitle
+    anchors.left: parent.left
+    anchors.top: changesList.bottom
+    margin-top: 8
+    width: 180
+    height: 18
+    text-align: left
+    font: verdana-11px-rounded
+    color: #9dd1ce
+    text: Files to download
+
+  ScrollablePanel
+    id: filesList
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: filesTitle.bottom
+    anchors.bottom: bottomSep.top
+    margin-top: 3
+    margin-bottom: 8
+    padding: 2
+    vertical-scrollbar: filesScrollBar
+    layout: verticalBox
+    background: #20202066
+
+  VerticalScrollBar
+    id: filesScrollBar
+    anchors.top: filesList.top
+    anchors.bottom: filesList.bottom
+    anchors.right: filesList.right
+    step: 18
+    pixels-scroll: true
+
+  HorizontalSeparator
+    id: bottomSep
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: check.top
+    margin-bottom: 8
+
+  Button
+    id: check
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    width: 70
+    height: 21
+    text: Check
+    tooltip: Revisar actualizaciones
+
+  Button
+    id: install
+    anchors.left: check.right
+    anchors.bottom: parent.bottom
+    margin-left: 6
+    width: 78
+    height: 21
+    text: Update
+    tooltip: Descargar solo archivos pendientes
+
+  Button
+    id: closeButton
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    width: 55
+    height: 21
+    text: Close
+    @onClick: self:getParent():hide()
