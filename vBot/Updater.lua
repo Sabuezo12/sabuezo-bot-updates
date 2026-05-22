@@ -59,6 +59,39 @@ local function trim(text)
   return tostring(text or ""):gsub("^%s+", ""):gsub("%s+$", "")
 end
 
+local function wrapTextLine(text, maxLen)
+  text = tostring(text or "")
+  maxLen = tonumber(maxLen) or 64
+  if text:len() <= maxLen then return { text } end
+
+  local lead = text:match("^%s*") or ""
+  local isBullet = text:match("^%s*[-+]") ~= nil
+  local prefix = isBullet and (lead .. "- ") or lead
+  local continuation = isBullet and (lead .. "  ") or lead
+  local content = trim(text)
+  if isBullet then content = content:gsub("^[-+]%s*", "") end
+
+  local lines = {}
+  local current = ""
+  local currentPrefix = prefix
+
+  for word in content:gmatch("%S+") do
+    local limit = math.max(12, maxLen - currentPrefix:len())
+    if current == "" then
+      current = word
+    elseif current:len() + word:len() + 1 <= limit then
+      current = current .. " " .. word
+    else
+      table.insert(lines, currentPrefix .. current)
+      currentPrefix = continuation
+      current = word
+    end
+  end
+
+  if current ~= "" then table.insert(lines, currentPrefix .. current) end
+  return lines
+end
+
 local function setStatus(text, color)
   if ui.status then
     ui.status:setText(text)
@@ -287,7 +320,11 @@ local function fillList(parent, lines, emptyText)
     return
   end
   for _, line in ipairs(lines) do
-    addListLine(parent, line.text or line, line.color)
+    local text = line.text or line
+    local color = line.color
+    for _, wrapped in ipairs(wrapTextLine(text, 60)) do
+      addListLine(parent, wrapped, color)
+    end
   end
 end
 
@@ -361,19 +398,19 @@ local function refreshDetailsWindow(manifest)
   detailsWindow.installed:setText(localVersion)
   detailsWindow.remote:setText(remoteVersion)
 
-  fillList(detailsWindow.changesList, buildChangeLines(manifest or {}), "No update notes for this version.")
-  fillList(detailsWindow.filesList, buildFileLines(lastPendingFiles), "No files pending.")
+  fillList(detailsWindow.changesList, buildChangeLines(manifest or {}), "No hay notas para esta version.")
+  fillList(detailsWindow.filesList, buildFileLines(lastPendingFiles), "No hay archivos pendientes.")
 
   if manifest then
     if remoteVersion == localVersion and #lastPendingFiles == 0 then
-      detailsWindow.status:setText("Already updated")
+      detailsWindow.status:setText("Ultima version")
       detailsWindow.status:setColor("#8cff9a")
     else
-      detailsWindow.status:setText("Pending files: " .. #lastPendingFiles)
+      detailsWindow.status:setText("Archivos pendientes: " .. #lastPendingFiles)
       detailsWindow.status:setColor("#ffd166")
     end
   else
-    detailsWindow.status:setText("Press Check to load update info")
+    detailsWindow.status:setText("Usa Check para revisar actualizaciones")
     detailsWindow.status:setColor("#cfd3d7")
   end
 end
@@ -392,7 +429,7 @@ local function formatSummary(manifest, maxLines)
 end
 
 local function fetchManifest(callback)
-  setStatus("Checking updates...", "#ffd166")
+  setStatus("Version: " .. tostring(config.version or "none") .. "\nRevisando updates...", "#ffd166")
   httpGet(config.manifestUrl, function(data, err)
     if not data then
       setStatus("Manifest error: " .. tostring(err), "#ff8a8a")
@@ -425,7 +462,7 @@ local function finishInstall(manifest, installed, skipped)
   refreshDetailsWindow(manifest)
 
   local skippedText = skipped > 0 and (" | skipped " .. skipped) or ""
-  setStatus("Updated to " .. config.version .. "\nDownloaded " .. installed .. " files" .. skippedText, "#8cff9a")
+  setStatus("Version: " .. config.version .. "\nUltima version", "#8cff9a")
 end
 
 local function installFileList(manifest, files, index, installed, skipped)
@@ -483,7 +520,7 @@ local function installManifest(manifest)
     config.version = tostring(manifest.version or config.version)
     rememberExistingHashes(manifest)
     refreshDetailsWindow(manifest)
-    setStatus("Already updated\n" .. tostring(config.version or "none"), "#8cff9a")
+    setStatus("Version: " .. tostring(config.version or "none") .. "\nUltima version", "#8cff9a")
     return
   end
 
@@ -500,19 +537,9 @@ local function showManifestStatus(manifest)
 
   if remoteVersion == localVersion and #lastPendingFiles == 0 then
     rememberExistingHashes(manifest)
-    local summary = formatSummary(manifest, 3)
-    if summary:len() > 0 then
-      setStatus("Already updated: " .. localVersion .. "\n" .. summary, "#8cff9a")
-    else
-      setStatus("Already updated\n" .. localVersion, "#8cff9a")
-    end
+    setStatus("Version: " .. localVersion .. "\nUltima version", "#8cff9a")
   else
-    local summary = formatSummary(manifest, 4)
-    if summary:len() > 0 then
-      setStatus("New: " .. remoteVersion .. " | Installed: " .. localVersion .. "\nFiles: " .. #lastPendingFiles .. "\n" .. summary, "#ffd166")
-    else
-      setStatus("New version: " .. remoteVersion .. "\nInstalled: " .. localVersion .. "\nFiles: " .. #lastPendingFiles, "#ffd166")
-    end
+    setStatus("Instalada: " .. localVersion .. "\nDisponible: " .. remoteVersion .. "\nUpdate disponible", "#ffd166")
   end
 
   refreshDetailsWindow(manifest)
@@ -599,7 +626,7 @@ ui.open.onClick = function()
   end
 end
 
-setStatus("Installed: " .. tostring(config.version or "none"))
+setStatus("Version: " .. tostring(config.version or "none") .. "\nRevisando...")
 
 schedule(1500, function()
   if not installing then
