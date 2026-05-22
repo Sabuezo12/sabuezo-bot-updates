@@ -53,6 +53,7 @@ local installing = false
 local lastManifest = nil
 local lastPendingFiles = {}
 local detailsWindow = nil
+local ensureDetailsWindow
 
 local function trim(text)
   return tostring(text or ""):gsub("^%s+", ""):gsub("%s+$", "")
@@ -420,6 +421,7 @@ local function finishInstall(manifest, installed, skipped)
   config.version = tostring(manifest.version or config.version)
   rememberExistingHashes(manifest)
   lastPendingFiles = getPendingFiles(manifest)
+  if ensureDetailsWindow then ensureDetailsWindow() end
   refreshDetailsWindow(manifest)
 
   local skippedText = skipped > 0 and (" | skipped " .. skipped) or ""
@@ -544,39 +546,56 @@ local function runInstall()
   end)
 end
 
-local rootWidget = g_ui.getRootWidget()
-if rootWidget then
+local function bindDetailsWindow(window)
+  detailsWindow = window
+  detailsWindow:hide()
+
+  detailsWindow.check.onClick = function()
+    checkUpdates(false)
+  end
+
+  detailsWindow.install.onClick = function()
+    runInstall()
+  end
+
+  detailsWindow.closeButton.onClick = function()
+    detailsWindow:hide()
+  end
+
+  refreshDetailsWindow(nil)
+end
+
+ensureDetailsWindow = function()
+  if detailsWindow then return true end
+
+  local rootWidget = g_ui.getRootWidget()
+  if not rootWidget then return false end
+
+  local stylePath = "/bot/" .. getConfigName() .. "/vBot/Updater.otui"
+  pcall(function()
+    g_ui.importStyle(stylePath)
+  end)
+
   local ok, window = pcall(function()
     return UI.createWindow("UpdaterWindow", rootWidget)
   end)
-  if ok and window then
-    detailsWindow = window
-    detailsWindow:hide()
 
-    detailsWindow.check.onClick = function()
-      checkUpdates(false)
-    end
+  if not ok or not window then return false end
 
-    detailsWindow.install.onClick = function()
-      runInstall()
-    end
-
-    detailsWindow.closeButton.onClick = function()
-      detailsWindow:hide()
-    end
-
-    refreshDetailsWindow(nil)
-  end
+  bindDetailsWindow(window)
+  return true
 end
 
+ensureDetailsWindow()
+
 ui.open.onClick = function()
-  if detailsWindow then
+  if ensureDetailsWindow() then
     refreshDetailsWindow(lastManifest)
     detailsWindow:show()
     detailsWindow:raise()
     detailsWindow:focus()
   else
-    warn("Updater.otui not loaded. Reload the bot.")
+    setStatus("No se cargo Updater.otui\nRecarga el bot o actualiza de nuevo", "#ff8a8a")
   end
 end
 
