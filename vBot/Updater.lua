@@ -92,15 +92,22 @@ local function wrapTextLine(text, maxLen)
   return lines
 end
 
-local function setStatus(text, color)
+local function setPanelStatus(text, color)
   if ui.status then
     ui.status:setText(text)
     ui.status:setColor(color or "#cfd3d7")
   end
+end
+
+local function setDetailsStatus(text, color)
   if detailsWindow and detailsWindow.status then
     detailsWindow.status:setText(text)
     detailsWindow.status:setColor(color or "#cfd3d7")
   end
+end
+
+local function setStatus(text, color)
+  setDetailsStatus(text, color)
 end
 
 local function parseVersion(version)
@@ -429,9 +436,11 @@ local function formatSummary(manifest, maxLines)
 end
 
 local function fetchManifest(callback)
-  setStatus("Version: " .. tostring(config.version or "none") .. "\nRevisando updates...", "#ffd166")
+  setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nRevisando...", "#ffd166")
+  setStatus("Revisando actualizaciones...", "#ffd166")
   httpGet(config.manifestUrl, function(data, err)
     if not data then
+      setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nError al revisar", "#ff8a8a")
       setStatus("Manifest error: " .. tostring(err), "#ff8a8a")
       callback(nil)
       return
@@ -441,6 +450,7 @@ local function fetchManifest(callback)
       return json.decode(data)
     end)
     if not ok or type(manifest) ~= "table" or type(manifest.files) ~= "table" then
+      setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nManifest invalido", "#ff8a8a")
       setStatus("Invalid manifest", "#ff8a8a")
       callback(nil)
       return
@@ -462,7 +472,8 @@ local function finishInstall(manifest, installed, skipped)
   refreshDetailsWindow(manifest)
 
   local skippedText = skipped > 0 and (" | skipped " .. skipped) or ""
-  setStatus("Version: " .. config.version .. "\nUltima version", "#8cff9a")
+  setPanelStatus("Version: " .. config.version .. "\nUltima version", "#8cff9a")
+  setStatus("Actualizado a " .. config.version .. "\nArchivos: " .. installed .. skippedText, "#8cff9a")
 end
 
 local function installFileList(manifest, files, index, installed, skipped)
@@ -480,10 +491,12 @@ local function installFileList(manifest, files, index, installed, skipped)
     return
   end
 
-  setStatus("Downloading " .. index .. "/" .. #files .. "\n" .. path, "#cfd3d7")
+  setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nActualizando...", "#ffd166")
+  setStatus("Descargando " .. index .. "/" .. #files .. "\n" .. path, "#cfd3d7")
   httpGet(url, function(contents, err)
     if not contents then
       installing = false
+      setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nError al actualizar", "#ff8a8a")
       setStatus("Download failed:\n" .. path .. "\n" .. tostring(err), "#ff8a8a")
       return
     end
@@ -497,6 +510,7 @@ local function installFileList(manifest, files, index, installed, skipped)
     end)
     if not ok then
       installing = false
+      setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nError al actualizar", "#ff8a8a")
       setStatus("Write failed:\n" .. path .. "\n" .. tostring(writeErr), "#ff8a8a")
       return
     end
@@ -520,7 +534,8 @@ local function installManifest(manifest)
     config.version = tostring(manifest.version or config.version)
     rememberExistingHashes(manifest)
     refreshDetailsWindow(manifest)
-    setStatus("Version: " .. tostring(config.version or "none") .. "\nUltima version", "#8cff9a")
+    setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nUltima version", "#8cff9a")
+    setStatus("Ultima version", "#8cff9a")
     return
   end
 
@@ -537,9 +552,11 @@ local function showManifestStatus(manifest)
 
   if remoteVersion == localVersion and #lastPendingFiles == 0 then
     rememberExistingHashes(manifest)
-    setStatus("Version: " .. localVersion .. "\nUltima version", "#8cff9a")
+    setPanelStatus("Version: " .. localVersion .. "\nUltima version", "#8cff9a")
+    setStatus("Ultima version", "#8cff9a")
   else
-    setStatus("Instalada: " .. localVersion .. "\nDisponible: " .. remoteVersion .. "\nUpdate disponible", "#ffd166")
+    setPanelStatus("Instalada: " .. localVersion .. "\nDisponible: " .. remoteVersion .. "\nUpdate disponible", "#ffd166")
+    setStatus("Archivos pendientes: " .. #lastPendingFiles, "#ffd166")
   end
 
   refreshDetailsWindow(manifest)
@@ -622,11 +639,12 @@ ui.open.onClick = function()
     detailsWindow:raise()
     detailsWindow:focus()
   else
+    setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nError OTUI", "#ff8a8a")
     setStatus("No se cargo Updater.otui\nRecarga el bot o actualiza de nuevo", "#ff8a8a")
   end
 end
 
-setStatus("Version: " .. tostring(config.version or "none") .. "\nRevisando...")
+setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nRevisando...")
 
 schedule(1500, function()
   if not installing then

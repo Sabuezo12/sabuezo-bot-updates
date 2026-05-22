@@ -90,7 +90,7 @@ UpdaterWindow < MainWindow
     text-align: left
     font: verdana-11px-rounded
     color: #9dd1ce
-    text: Notas para ti
+    text: Notas del parche
 
   ScrollablePanel
     id: changesList
