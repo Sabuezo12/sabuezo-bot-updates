@@ -1,6 +1,8 @@
 setDefaultTab("Main")
 local regex = [["(.*?)"]]
 local panelName = "BOTserver"
+local DEFAULT_BOTSERVER_CHANNEL = "Slegna14325"
+local BOTSERVER_DEFAULTS_VERSION = 1
 local ui = setupUI([[
 Panel
   height: 18
@@ -26,7 +28,15 @@ if not storage[panelName] then
 end
 
 local config = storage[panelName]
-config.enabled = config.enabled == true
+if storage.BotServerDefaultsVersion ~= BOTSERVER_DEFAULTS_VERSION then
+  storage.BotServerChannel = DEFAULT_BOTSERVER_CHANNEL
+  config.enabled = true
+  storage.BotServerDefaultsVersion = BOTSERVER_DEFAULTS_VERSION
+elseif config.enabled == nil then
+  config.enabled = true
+else
+  config.enabled = config.enabled == true
+end
 if config.manaInfo == nil then config.manaInfo = true end
 if config.mwallInfo == nil then config.mwallInfo = true end
 if config.vocation == nil then config.vocation = true end
@@ -357,9 +367,8 @@ local function syncVocation(force)
   sendBotServer("voc", "yes")
 end
 
-if not storage.BotServerChannel then
-  math.randomseed(os.time())
-  storage.BotServerChannel = tostring(math.random(1000000000000,9999999999999))
+if not storage.BotServerChannel or storage.BotServerChannel == "" then
+  storage.BotServerChannel = DEFAULT_BOTSERVER_CHANNEL
 end
 
 if not storage.BotServerClientId then
