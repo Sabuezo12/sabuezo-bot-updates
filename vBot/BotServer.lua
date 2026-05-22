@@ -40,11 +40,59 @@ local botServerListenSocket = nil
 local lastVocationSync = 0
 local serverCount = {}
 local ServerMembers = nil
+local members = {}
+local lastPresenceSync = 0
+local MEMBER_TIMEOUT = 30000
 
 local function currentBotServerListeners(listenerSocket)
   return config.enabled and BotServer._websocket and
     BotServer._rodMasterMainGeneration == botServerListenGeneration and
     BotServer._websocket == listenerSocket
+end
+
+local function getSelfName()
+  local ok, value = pcall(function() return name() end)
+  if ok and value and value ~= "" then return value end
+
+  ok, value = pcall(function() return player:getName() end)
+  if ok and value and value ~= "" then return value end
+
+  return "Unknown"
+end
+
+local function touchMember(memberName)
+  if type(memberName) ~= "string" or memberName == "" then return end
+  members[memberName] = now or 0
+end
+
+local function pruneMembers()
+  local currentTime = now or 0
+  for memberName, lastSeen in pairs(members) do
+    if currentTime - lastSeen > MEMBER_TIMEOUT then
+      members[memberName] = nil
+    end
+  end
+
+  if config.enabled and BotServer._websocket then
+    touchMember(getSelfName())
+  end
+end
+
+local function getMemberCount()
+  local count = 0
+  for _ in pairs(members) do
+    count = count + 1
+  end
+  return count
+end
+
+local function getMembersTooltip()
+  local names = {}
+  for memberName in pairs(members) do
+    table.insert(names, memberName)
+  end
+  table.sort(names)
+  return table.concat(names, "\n")
 end
 
 local function pruneMwalls()
@@ -66,6 +114,16 @@ local function sendBotServer(topic, message)
     end
   end)
   return ok
+end
+
+local function publishPresence(force)
+  if not config.enabled or not BotServer._websocket then return end
+  if not force and now and now - lastPresenceSync < 5000 then return end
+
+  local selfName = getSelfName()
+  lastPresenceSync = now or 0
+  touchMember(selfName)
+  sendBotServer("presence", {name = selfName, voc = player:getVocation()})
 end
 
 local function syncVocation(force)
@@ -116,8 +174,11 @@ if rootWidget then
       botServerWindow.Data.Members:setTooltip('')
       ServerMembers = {}
       serverCount = {}
+      members = {}
+      lastPresenceSync = 0
     end
     initBotServerListenFunctions()
+    publishPresence(true)
     schedule(2000, updateStatusText)
   end
 
@@ -179,6 +240,34 @@ function initBotServerListenFunctions()
     if not currentBotServerListeners(listenerSocket) then return end
     serverCount = regexMatch(json.encode(data), regex)
     ServerMembers = json.encode(data)
+    if type(data) == "table" then
+      for memberName, value in pairs(data) do
+        if type(memberName) == "string" and memberName ~= "" and type(value) ~= "table" then
+          touchMember(memberName)
+        elseif type(value) == "string" then
+          touchMember(value)
+        elseif type(value) == "table" then
+          touchMember(value.name or value.player or value[1])
+        end
+      end
+    elseif type(data) == "string" then
+      touchMember(data)
+    end
+  end)
+
+  -- presence
+  BotServer.listen("presence", function(name, message)
+    if not currentBotServerListeners(listenerSocket) then return end
+
+    local memberName = name
+    if type(message) == "table" and type(message.name) == "string" and message.name ~= "" then
+      memberName = message.name
+    end
+
+    touchMember(memberName)
+    if type(message) == "table" and message.voc then
+      vBot.BotServerMembers[memberName] = message.voc
+    end
   end)
 
   -- mwalls
@@ -226,31 +315,18 @@ function initBotServerListenFunctions()
   end)
 
   syncVocation(true)
+  publishPresence(true)
 end
 initBotServerListenFunctions()
 
 function updateStatusText()
+  pruneMembers()
   if BotServer._websocket then
     botServerWindow.Data.ServerStatus:setText("CONNECTED")
     botServerWindow.Data.ServerStatus:setColor('#03AC13')
     ui.botServer:setColor('#03AC13')
-    if serverCount then
-      botServerWindow.Data.Participants:setText(#serverCount)
-      if ServerMembers then
-        local text = ""
-        local regex = [["([a-z 'A-z-]*)"*]]
-        local re = regexMatch(ServerMembers, regex)
-        --re[name][2]
-        for i=1,#re do
-          if i == 1 then
-            text = re[i][2]
-          else
-            text = text .. "\n" .. re[i][2]
-          end
-        end
-        botServerWindow.Data.Members:setTooltip(text)
-      end
-    end
+    botServerWindow.Data.Participants:setText(getMemberCount())
+    botServerWindow.Data.Members:setTooltip(getMembersTooltip())
   else
     if config.enabled then
       botServerWindow.Data.ServerStatus:setText("CONNECTING...")
@@ -268,18 +344,21 @@ end
 macro(500, function()
   if config.enabled and BotServer._websocket then
     initBotServerListenFunctions()
+    publishPresence()
     syncVocation()
   end
 end)
 
 macro(1000, function()
   pruneMwalls()
+  pruneMembers()
   if config.enabled and BotServer._websocket then
     initBotServerListenFunctions()
+    publishPresence(true)
     sendBotServer("list")
   end
   updateStatusText()
-  delay(9000)
+  delay(4000)
 end)
 
 ui.botServer.onClick = function(widget)
@@ -318,5 +397,6 @@ end)
 
 -- vocation
 syncVocation(true)
+publishPresence(true)
 
 addSeparator()
