@@ -99,6 +99,7 @@ local function cleanVocationName(value)
     local before = voc
     voc = trim(voc:gsub("^an%s+", ""))
     voc = trim(voc:gsub("^a%s+", ""))
+    voc = trim(voc:gsub("^the%s+", ""))
     voc = trim(voc:gsub("^supreme%s+", ""))
     changed = before ~= voc
   end
