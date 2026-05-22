@@ -871,6 +871,7 @@ xpGraph:setTitle("XP/h")
 drawGraph(xpGraph, 0)
 
 local totalRoundsLabel = UI.DualLabel("Rounds:", "0", {}, statsWindow.contentsPanel).right
+local deathCountLabel = UI.DualLabel("Muertes:", "0", {}, statsWindow.contentsPanel).right
 local avgRoundLabel = UI.DualLabel("Avg Round:", "00m 00s", {}, statsWindow.contentsPanel).right
 local totalRefillsLabel = UI.DualLabel("Refills:", "0", {}, statsWindow.contentsPanel).right
 local avgRefillLabel = UI.DualLabel("Avg Refill:", "00m 00s", {}, statsWindow.contentsPanel).right
@@ -886,6 +887,44 @@ supplyStatsEmpty:setFont("verdana-11px-rounded")
 supplyStatsEmpty:setColor("#cfd3d7")
 local supplyStatRows = {}
 local registeredSupplyStatItems = {}
+
+local function getDeathStats()
+  local deaths = 0
+  local limit = 0
+  if CaveBot and CaveBot.Config then
+    if CaveBot.Config.safety then
+      deaths = tonumber(CaveBot.Config.safety.deathCounter) or 0
+    end
+    if CaveBot.Config.values then
+      limit = tonumber(CaveBot.Config.values.deathLimit) or 0
+    end
+  end
+  return deaths, limit
+end
+
+local function getTrackedItemAmount(id)
+  id = tonumber(id)
+  if not id then return 0, "unknown" end
+
+  local visible = 0
+  if player and player.getItemsCount then
+    visible = tonumber(player:getItemsCount(id)) or 0
+  end
+
+  if vBot.ItemCounter and vBot.ItemCounter.getAmountInfo then
+    return vBot.ItemCounter.getAmountInfo(id, visible)
+  end
+  if itemAmount then
+    return tonumber(itemAmount(id)) or visible, visible > 0 and "visible" or "unknown"
+  end
+  return visible, visible > 0 and "visible" or "unknown"
+end
+
+local function getSourceText(source)
+  if source == "log" then return "server log" end
+  if source == "visible" then return "visual" end
+  return "sin dato"
+end
 
 local function getSupplyStatsItems()
   local items = {}
@@ -921,10 +960,12 @@ local function getSupplyStatsItems()
         end
       end
 
+      local current, source = getTrackedItemAmount(numericId)
       table.insert(items, {
         id = numericId,
         name = name,
-        current = tonumber(itemAmount(numericId)) or 0,
+        current = current,
+        source = source,
         used = used
       })
     end
@@ -969,8 +1010,9 @@ local function updateSupplyStatsRows()
 
     local row = supplyStatRows[key]
     row.item:setItemId(item.id)
-    row.item:setTooltip(item.name)
+    row.item:setTooltip(item.name .. "\nFuente: " .. getSourceText(item.source))
     row.current:setText(formatNumber(item.current))
+    row.current:setTooltip("Fuente: " .. getSourceText(item.source))
     row.used:setText(formatNumber(item.used))
   end
 
@@ -1009,11 +1051,8 @@ end
 local function getItemCounterAmount(entry)
   local id = tonumber(entry.id)
   if not id or id <= 100 then return 0 end
-  if itemAmount then return tonumber(itemAmount(id)) or 0 end
-  if vBot.ItemCounter and vBot.ItemCounter.get then
-    return tonumber(vBot.ItemCounter.get(id)) or 0
-  end
-  return 0
+  local amount = getTrackedItemAmount(id)
+  return amount or 0
 end
 
 local function getItemCounterEntries()
@@ -1144,12 +1183,14 @@ macro(1000, function()
   trimData(vBot.CaveBotData.time, CAVEBOT_DATA_LIMIT)
   trimData(vBot.CaveBotData.refillTime, CAVEBOT_DATA_LIMIT)
 
+  local deaths, deathLimit = getDeathStats()
   xpGainLabel:setText(formatNumber(expGained()))
   xpHourLabel:setText(expPerHour())
   nextLevelLabel:setText(timeToLevel())
   progressBar:setPercent(levelPercent())
 
   totalRoundsLabel:setText(formatNumber(vBot.CaveBotData.rounds or 0))
+  deathCountLabel:setText(deathLimit > 0 and (deaths .. "/" .. deathLimit) or tostring(deaths))
   avgRoundLabel:setText(formatDuration(avg(vBot.CaveBotData.time)))
   totalRefillsLabel:setText(formatNumber(vBot.CaveBotData.refills or 0))
   avgRefillLabel:setText(formatDuration(avg(vBot.CaveBotData.refillTime)))
@@ -1187,8 +1228,11 @@ Analyzer.getTimeToNextLevel = function()
 end
 
 Analyzer.getCaveBotStats = function()
+  local deaths, deathLimit = getDeathStats()
   return {
     rounds = vBot.CaveBotData.rounds or 0,
+    deaths = deaths,
+    deathLimit = deathLimit,
     avgRound = avg(vBot.CaveBotData.time),
     refills = vBot.CaveBotData.refills or 0,
     avgRefill = avg(vBot.CaveBotData.refillTime),

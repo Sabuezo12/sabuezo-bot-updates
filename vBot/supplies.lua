@@ -439,10 +439,16 @@ Supplies.hasEnough = function()
     id = tonumber(id)
     registerSupplyCounter(id, values)
     local minimum = tonumber(values.min) or 0
+    local visible = player and player:getItemsCount(id) or 0
     local current = tonumber(itemAmount(id)) or 0
+    local source = "unknown"
+    if vBot.ItemCounter and vBot.ItemCounter.getAmountInfo then
+      current, source = vBot.ItemCounter.getAmountInfo(id, visible)
+      current = tonumber(current) or 0
+    end
 
     if current < minimum then
-      return {id=id, amount=current}
+      return {id=id, amount=current, source=source}
     end
   end
 

@@ -223,7 +223,7 @@ SkillAnalyzer < MiniWindow
 CaveBotStats < MiniWindow
   id: CaveBotStats
   text: CaveBot Stats
-  height: 200
+  height: 215
   icon: /images/topbuttons/analyzers
 
   MiniWindowContents

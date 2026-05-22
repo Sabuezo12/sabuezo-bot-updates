@@ -32,12 +32,27 @@ local function normalizeItemCounterName(name)
     return name
 end
 
+local function addFuzzyItemCounterNameId(name, id)
+    if not name or name == "" or not id then return end
+
+    local existing = itemCounterFuzzyNames[name]
+    if type(existing) ~= "table" then
+        existing = existing and {existing} or {}
+        itemCounterFuzzyNames[name] = existing
+    end
+
+    for _, storedId in ipairs(existing) do
+        if tonumber(storedId) == tonumber(id) then return end
+    end
+    table.insert(existing, id)
+end
+
 local function registerItemCounterName(id, name, fuzzy)
     name = normalizeItemCounterName(name)
     if name == "" then return end
 
     itemCounterNames[name] = id
-    if fuzzy then itemCounterFuzzyNames[name] = id end
+    if fuzzy then addFuzzyItemCounterNameId(name, id) end
     if name:sub(-1) ~= "s" then
         itemCounterNames[name .. "s"] = id
     end
@@ -98,17 +113,49 @@ local function itemCounterFuzzyMatch(alias, logName)
     return #alias
 end
 
-local function findItemCounterIdByLogName(name)
+local function itemCounterAmountPenalty(id, logAmount)
+    logAmount = tonumber(logAmount)
+    if not id or not logAmount then return 100000 end
+
+    local key = tostring(id)
+    local entry = itemCounterStore.items[key] or {}
+    local supply = entry.supply or {}
+    local max = tonumber(supply.max)
+    local known = tonumber(entry.count)
+    local visible = id and player and player:getItemsCount(id) or 0
+
+    if visible and visible > 0 and (visible == logAmount or visible == logAmount - 1) then
+        return 0
+    end
+    if known and known > 0 and (known == logAmount or known == logAmount - 1) then
+        return 1
+    end
+    if max and max > 0 and logAmount <= max then
+        return 10 + (max - logAmount)
+    end
+
+    return 100000
+end
+
+local function findItemCounterIdByLogName(name, logAmount)
     local id = itemCounterNames[name]
     if id then return id end
 
     local bestId = nil
     local bestScore = 0
-    for alias, aliasId in pairs(itemCounterFuzzyNames) do
+    local bestPenalty = 100000
+    for alias, aliasIds in pairs(itemCounterFuzzyNames) do
         local score = itemCounterFuzzyMatch(alias, name)
-        if score > bestScore then
-            bestScore = score
-            bestId = aliasId
+        if score > 0 then
+            if type(aliasIds) ~= "table" then aliasIds = {aliasIds} end
+            for _, aliasId in ipairs(aliasIds) do
+                local penalty = itemCounterAmountPenalty(aliasId, logAmount)
+                if score > bestScore or (score == bestScore and penalty < bestPenalty) then
+                    bestScore = score
+                    bestPenalty = penalty
+                    bestId = aliasId
+                end
+            end
         end
     end
 
@@ -121,6 +168,10 @@ local function resolveItemCounterId(id)
     return itemCounterAliases[id] or id
 end
 
+local function isNumericItemCounterName(name)
+    return tostring(name or ""):match("^%d+$") ~= nil
+end
+
 vBot.ItemCounter = vBot.ItemCounter or {}
 
 function vBot.ItemCounter.register(id, name, aliases, keepOnUse)
@@ -130,7 +181,11 @@ function vBot.ItemCounter.register(id, name, aliases, keepOnUse)
     local key = tostring(id)
     itemCounterStore.items[key] = itemCounterStore.items[key] or {}
     if name and name ~= "" then
-        itemCounterStore.items[key].name = tostring(name)
+        local currentName = itemCounterStore.items[key].name
+        local hasExplicitAlias = type(aliases) == "table" and #aliases > 0
+        if hasExplicitAlias or not currentName or currentName == "" or isNumericItemCounterName(currentName) then
+            itemCounterStore.items[key].name = tostring(name)
+        end
     end
     if keepOnUse ~= nil then
         itemCounterStore.items[key].keepOnUse = keepOnUse and true or false
@@ -171,6 +226,9 @@ function vBot.ItemCounter.registerItemId(id)
     end
 
     vBot.ItemCounter.register(id, name or tostring(id))
+    if name and not isNumericItemCounterName(name) then
+        registerItemCounterName(id, name, true)
+    end
 end
 
 function vBot.ItemCounter.learnName(id, name)
@@ -182,7 +240,10 @@ function vBot.ItemCounter.learnName(id, name)
 
     local key = tostring(id)
     itemCounterStore.items[key] = itemCounterStore.items[key] or {}
-    itemCounterStore.items[key].name = name
+    local currentName = itemCounterStore.items[key].name
+    if not currentName or currentName == "" or isNumericItemCounterName(currentName) then
+        itemCounterStore.items[key].name = name
+    end
     registerItemCounterName(id, name, true)
 end
 
@@ -296,6 +357,28 @@ function vBot.ItemCounter.getAmount(id, visibleAmount)
     return visibleAmount
 end
 
+function vBot.ItemCounter.getAmountInfo(id, visibleAmount)
+    id = resolveItemCounterId(id)
+    visibleAmount = tonumber(visibleAmount) or 0
+    if not id then
+        return visibleAmount, visibleAmount > 0 and "visible" or "unknown"
+    end
+
+    local amount = vBot.ItemCounter.getAmount(id, visibleAmount)
+    local entry = itemCounterStore.items[tostring(id)]
+    local source = entry and entry.source or nil
+    if not source and visibleAmount > 0 then source = "visible" end
+    return amount, source or "unknown"
+end
+
+function vBot.ItemCounter.getSource(id)
+    id = resolveItemCounterId(id)
+    if not id then return "unknown" end
+
+    local entry = itemCounterStore.items[tostring(id)]
+    return entry and entry.source or "unknown"
+end
+
 function vBot.ItemCounter.format(id)
     local count = vBot.ItemCounter.get(id)
     if count == nil then return "?" end
@@ -309,7 +392,7 @@ function vBot.ItemCounter.parseLog(text)
     local amount, name = lowered:match("using one of%s+(%d+)%s+(.+)")
     if amount and name then
         name = normalizeItemCounterName(name)
-        local id = findItemCounterIdByLogName(name)
+        local id = findItemCounterIdByLogName(name, tonumber(amount))
         if not id then
             local logAmount = tonumber(amount)
             local bestId, bestScore
@@ -359,7 +442,7 @@ function vBot.ItemCounter.parseLog(text)
     name = lowered:match("using the last%s+(.+)")
     if name then
         name = normalizeItemCounterName(name)
-        local id = findItemCounterIdByLogName(name)
+        local id = findItemCounterIdByLogName(name, 1)
         if id then
             local entry = itemCounterStore.items[tostring(resolveItemCounterId(id))]
             vBot.ItemCounter.set(id, entry and entry.keepOnUse and 1 or 0, "log", entry and entry.keepOnUse and 0 or 1)
