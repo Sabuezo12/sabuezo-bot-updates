@@ -603,6 +603,7 @@ ui = UI.createWidget("AttackBotBotPanel")
 local setActiveProfile = function()
   local n = AttackBotConfig.currentBotProfile
   currentSettings = AttackBotConfig[panelName][n]
+  if currentSettings.ManualOverride == nil then currentSettings.ManualOverride = false end
 end
 setActiveProfile()
 
@@ -617,6 +618,10 @@ end
 -- small UI elements
 ui.title.onClick = function(widget)
   currentSettings.enabled = not currentSettings.enabled
+  currentSettings.ManualOverride = false
+  if currentSettings.enabled and TargetBot and TargetBot.isOff and TargetBot.isOff() then
+    currentSettings.ManualOverride = true
+  end
   local paused = AttackBot and AttackBot.isPaused and AttackBot.isPaused()
   widget:setOn(currentSettings.enabled and not paused)
   vBotConfigSave("atk")
@@ -1054,6 +1059,7 @@ end
     
     AttackBot.setOff = function()
       currentSettings.enabled = false
+      currentSettings.ManualOverride = false
       ui.title:setOn(currentSettings.enabled and not AttackBot.isPaused())
       vBotConfigSave("atk")
     end
@@ -1061,6 +1067,15 @@ end
     AttackBot.setOn = function()
       currentSettings.enabled = true
       ui.title:setOn(currentSettings.enabled and not AttackBot.isPaused())
+      vBotConfigSave("atk")
+    end
+
+    AttackBot.isManualOverride = function()
+      return currentSettings.ManualOverride == true
+    end
+
+    AttackBot.setManualOverride = function(enabled)
+      currentSettings.ManualOverride = enabled == true or nil
       vBotConfigSave("atk")
     end
     
@@ -1088,6 +1103,10 @@ end
         return
       end
       if AttackBot.isPaused() then
+        return
+      end
+
+      if currentSettings.ManualOverride and AttackBot.isOn() then
         return
       end
 
