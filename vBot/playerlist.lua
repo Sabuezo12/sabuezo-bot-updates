@@ -94,8 +94,13 @@ local function cleanVocationName(value)
   voc = voc:gsub("%b[]", " "):gsub("%b()", " "):gsub("[{}]", " ")
   voc = trim(voc:gsub("%s+", " "))
 
-  while voc:find("^supreme%s+") do
+  local changed = true
+  while changed do
+    local before = voc
+    voc = trim(voc:gsub("^an%s+", ""))
+    voc = trim(voc:gsub("^a%s+", ""))
     voc = trim(voc:gsub("^supreme%s+", ""))
+    changed = before ~= voc
   end
 
   return voc
@@ -491,10 +496,13 @@ local function parseLookText(text)
 
   local voc = text:match("[Yy]ou are an ([^%.]+)%.") or
               text:match("[Yy]ou are a ([^%.]+)%.") or
+              text:match("[Yy]ou are ([^%.]+)%.") or
               text:match("[Hh]e is an ([^%.]+)%.") or
               text:match("[Hh]e is a ([^%.]+)%.") or
+              text:match("[Hh]e is ([^%.]+)%.") or
               text:match("[Ss]he is an ([^%.]+)%.") or
-              text:match("[Ss]he is a ([^%.]+)%.")
+              text:match("[Ss]he is a ([^%.]+)%.") or
+              text:match("[Ss]he is ([^%.]+)%.")
   local guild = text:match("[Mm]ember of the ([^%.]+)%.") or
                 text:match("[Mm]ember of ([^%.]+)%.")
 
