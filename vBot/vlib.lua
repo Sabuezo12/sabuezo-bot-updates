@@ -16,9 +16,15 @@ local itemCounterStore = storage.itemCounter
 local itemCounterNames = {}
 local itemCounterFuzzyNames = {}
 local itemCounterAliases = {}
+local itemCounterRegisteredIds = {}
 
 local CUSTOM_COOLDOWN_LIMIT = 80
 local customCooldownOrder = {}
+
+if type(collectgarbage) == "function" then
+    pcall(collectgarbage, "setpause", 110)
+    pcall(collectgarbage, "setstepmul", 200)
+end
 
 local function normalizeItemCounterName(name)
     name = tostring(name or ""):lower()
@@ -214,6 +220,9 @@ function vBot.ItemCounter.registerItemId(id)
     id = tonumber(id)
     if not id or id <= 0 then return end
 
+    local key = tostring(id)
+    if itemCounterRegisteredIds[key] then return end
+
     local name = nil
     if Item and Item.create then
         local ok, item = pcall(Item.create, id)
@@ -229,6 +238,7 @@ function vBot.ItemCounter.registerItemId(id)
     if name and not isNumericItemCounterName(name) then
         registerItemCounterName(id, name, true)
     end
+    itemCounterRegisteredIds[key] = true
 end
 
 function vBot.ItemCounter.learnName(id, name)
@@ -483,6 +493,12 @@ end)
 function standTime()
     return now - vBot.standTime
 end
+
+macro(30000, function()
+    if type(collectgarbage) == "function" then
+        pcall(collectgarbage, "step", 400)
+    end
+end)
 
 function relogOnCharacter(charName)
     local characters = g_ui.getRootWidget().charactersWindow.characters

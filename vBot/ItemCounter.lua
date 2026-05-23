@@ -6,6 +6,7 @@ storage.itemCounter.enabled = true
 local settings = storage.itemCounter
 local watchItems = settings.watch
 local rowWidgets = {}
+local registeredEntrySignatures = {}
 
 local trim = function(text)
   return tostring(text or ""):gsub("^%s+", ""):gsub("%s+$", "")
@@ -50,12 +51,17 @@ local registerCounterEntry = function(entry)
   local id = tonumber(entry and entry.id)
   if not id or id <= 100 or not vBot.ItemCounter then return end
 
+  local signature = tostring(id) .. "|" .. tostring(entry.alias or "")
+  if registeredEntrySignatures[id] == signature then return end
+
   local aliases = getAliasList(entry.alias)
   if #aliases > 0 and vBot.ItemCounter.register then
     vBot.ItemCounter.register(id, aliases[1], aliases)
   elseif vBot.ItemCounter.registerItemId then
     vBot.ItemCounter.registerItemId(id)
   end
+
+  registeredEntrySignatures[id] = signature
 end
 
 local getCounterAmount = function(entry)
