@@ -13,89 +13,113 @@ local function loadScript(name)
   return dofile("/" .. name .. ".lua")
 end
 
--- Load order grouped by purpose. This test folder keeps shared scripts and
--- server-specific behavior, but follows the cleaner Torment Sabuezo layout.
-local luaFiles = {
-  -- Core libraries/config
-  "vBot/main",
-  ----"vbot/Inmortal",
-  "vBot/items",
-  "vBot/vlib",
-  "vBot/ItemCounter",
-  ----"vBot/exivalast", -- replaced by pvp_support + iconos in Pruebas
-  "vBot/new_cavebot_lib",
-  "vBot/configs", -- do not change this and above
-  "vBot/Updater",
-
-  -- Base panels and shared helpers
-  "vBot/extras",
-  "vBot/extrasPvp",
-  "vBot/cave_target_settings",
-
-  -- Main systems
-  "vBot/cavebot",
-  "vBot/playerlist",
-  ---"vBot/buffguild",
-  "vBot/alarms",
-  "vBot/AttackBot", -- last of major modules in this vBot branch
-  "vBot/BotServer",
-
-  -- PvP / combat / support
-  "vBot/combo_plus",
-  ----"vBot/combo", -- replaced by combo_plus
-  ----"vBot/superhealth",
-  "vBot/Conditions",
-  "vBot/Equipper",
-  "vBot/friend_healer",
-  ----"vBot/extrahealth",
-  "zFreeScripts/zAutoBuff",
-  "vBot/TimerExecutor",
-  "vBot/HealBot",
-  ----"vBot/zzzz_ComboAttack", -- replaced by combo_plus
-  "vBot/pushmax",
-  ----"vBot/sio",
-  ----"vBot/POT",
-  "vBot/recoge",
-  "vBot/pullitems",
-  -- "vBot/Heal-Old",
-  "vBot/antipush1",
-  "vBot/FireBomb",
-  "vBot/Ering",
-  ----"vBot/Dropper",
-
-  -- Party / containers / inventory
-  "zFreeScripts/z_Auto-Party",
-  "vBot/ContainerManager",
-  ----"vBot/quiver_manager",
-  ----"vBot/quiver_label",
-  "vBot/tools",
-  "vBot/magicbag",
-  -----"vBot/antiRs",
-  -----"vBot/depot_withdraw",
-  "vBot/equip",
-  "vBot/eat_food",
-  "vBot/ManaTrainer",
-  "vBot/exeta",
-
-  -- Analyzer / info / cave helpers
-  "vBot/analyzer",
-  "vBot/spy_level",
-  "vBot/supplies",
-  "vBot/depositer_config",
-  "vBot/npc_talk",
-  "vBot/xeno_menu",
-  "vBot/BugMapMouse",
-  "vBot/pvp_support",
-  "vBot/keepwall",
-  "vBot/dash",
-  "vBot/iconos",
-  "vBot/cavebot_control_panel",
-  "zFreeScripts/SkillsHUD",
-  "vBot/ingame_editor",
+-- Files are grouped by the tab where their visible panel belongs.
+-- Keep the relative order inside each group; that order defines the visual order in the bot.
+local loaderSections = {
+  {
+    name = "Core",
+    files = {
+      ----"vbot/Inmortal",
+      "vBot/items",
+      "vBot/vlib",
+      "vBot/ItemCounter",
+      ----"vBot/exivalast", -- replaced by pvp_support + iconos
+      "vBot/new_cavebot_lib",
+      "vBot/configs", -- do not change this and above
+    }
+  },
+  {
+    name = "Main",
+    files = {
+      "vBot/main",
+      "vBot/Updater",
+      "vBot/extras",
+      "vBot/extrasPvp",
+      "vBot/BotServer",
+      "vBot/combo_plus",
+      ----"vBot/combo", -- replaced by combo_plus
+      "vBot/TimerExecutor",
+      ----"vBot/zzzz_ComboAttack", -- replaced by combo_plus
+      "vBot/pushmax",
+      "vBot/magicbag",
+      "vBot/BugMapMouse",
+      "vBot/keepwall",
+      "vBot/ingame_editor",
+    }
+  },
+  {
+    name = "Tools",
+    files = {
+      "vBot/playerlist",
+      ---"vBot/buffguild",
+      "vBot/alarms",
+      "vBot/recoge",
+      "vBot/pullitems",
+      "vBot/antipush1",
+      "vBot/FireBomb",
+      "vBot/Ering",
+      ----"vBot/Dropper",
+      "zFreeScripts/z_Auto-Party",
+      "vBot/ContainerManager",
+      ----"vBot/quiver_manager",
+      ----"vBot/quiver_label",
+      "vBot/tools",
+      "vBot/spy_level",
+      "vBot/pvp_support",
+      "vBot/dash",
+      "zFreeScripts/SkillsHUD",
+    }
+  },
+  {
+    name = "Cave",
+    files = {
+      "vBot/cave_target_settings",
+      "vBot/cavebot",
+      "vBot/exeta",
+      "vBot/supplies",
+      "vBot/depositer_config",
+      "vBot/npc_talk",
+      "vBot/cavebot_control_panel",
+    }
+  },
+  {
+    name = "Target",
+    files = {
+      "vBot/AttackBot",
+    }
+  },
+  {
+    name = "HP",
+    files = {
+      ----"vBot/superhealth",
+      "vBot/Conditions",
+      "vBot/Equipper",
+      "vBot/friend_healer",
+      ----"vBot/extrahealth",
+      "zFreeScripts/zAutoBuff",
+      "vBot/HealBot",
+      -- "vBot/Heal-Old",
+      ----"vBot/sio",
+      ----"vBot/POT",
+      "vBot/equip",
+      "vBot/eat_food",
+      "vBot/ManaTrainer",
+    }
+  },
+  {
+    name = "Final",
+    files = {
+      "vBot/analyzer",
+      "vBot/xeno_menu",
+      "vBot/iconos",
+    }
+  }
 }
 
-for i, file in ipairs(luaFiles) do
-  loadScript(file)
+for _, section in ipairs(loaderSections) do
+  for _, file in ipairs(section.files) do
+    loadScript(file)
+  end
 end
 
 setDefaultTab("Main")
