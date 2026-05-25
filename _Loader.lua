@@ -67,7 +67,6 @@ local loaderSections = {
       "vBot/spy_level",
       "vBot/pvp_support",
       "vBot/dash",
-      "zFreeScripts/SkillsHUD",
     }
   },
   {
@@ -112,6 +111,7 @@ local loaderSections = {
       "vBot/analyzer",
       "vBot/xeno_menu",
       "vBot/iconos",
+      "zFreeScripts/CaveBotHUD",
     }
   }
 }

@@ -8,6 +8,14 @@ local ui = UI.createWidget("CaveBotPanel")
 
 ui.list = ui.listPanel.list -- shortcut
 CaveBot.actionList = ui.list
+CaveBot.Diagnostics = CaveBot.Diagnostics or {}
+CaveBot.Diagnostics.supplyStatus = CaveBot.Diagnostics.supplyStatus or "-"
+CaveBot.Diagnostics.supplyColor = CaveBot.Diagnostics.supplyColor or "#c8c8c8"
+
+CaveBot.Diagnostics.setSupplyStatus = function(text, color)
+  CaveBot.Diagnostics.supplyStatus = tostring(text or "-")
+  CaveBot.Diagnostics.supplyColor = color or "#ffffff"
+end
 
 if CaveBot.Editor then
   CaveBot.Editor.setup()
@@ -27,7 +35,7 @@ local prevActionResult = true
 
 local function canRunWhileTargeting(actionWidget)
   if not actionWidget then return false end
-  if actionWidget.action == "waitstamina" or actionWidget.action == "stepdirection" or actionWidget.action == "setprofile" or actionWidget.action == "sethealbot" then return true end
+  if actionWidget.action == "waitstamina" or actionWidget.action == "stepdirection" or actionWidget.action == "setprofile" then return true end
   if actionWidget.action ~= "function" then return false end
   if type(actionWidget.value) ~= "string" then return false end
 

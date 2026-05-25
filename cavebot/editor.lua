@@ -217,13 +217,6 @@ CaveBot.Editor.setup = function()
     multiline=false,
     validation="^\\s*([0-9]|[1-9][0-9]{1,2}|1[0-9]{3}|2[0-4][0-9]{2}|25[0-1][0-9]|2520)\\s*(,\\s*[0-9]+\\s*)?$"
   })
-  registerAction("sethealbot", "set healbot", {
-    value="on",
-    title="Set HealBot",
-    description="on,off or toggle",
-    multiline=false,
-    validation="^\\s*(on|off|toggle|switch|true|false|yes|no|1|0|enable|disable|enabled|disabled|activar|desactivar|prender|encender|apagar|cambiar)\\s*$"
-  })
   registerAction("stepdirection", "step direction", {
     value="sur,30,200",
     title="Step direction",

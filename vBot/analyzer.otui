@@ -22,8 +22,8 @@ AnalyzerSupplyHeader < Panel
   Label
     anchors.left: parent.left
     anchors.verticalCenter: parent.verticalCenter
-    margin-left: 36
-    width: 72
+    margin-left: 40
+    width: 62
     text: Actual
     text-align: center
     font: verdana-11px-rounded
@@ -33,7 +33,7 @@ AnalyzerSupplyHeader < Panel
     anchors.right: parent.right
     anchors.verticalCenter: parent.verticalCenter
     margin-right: 4
-    width: 72
+    width: 50
     text: Gastado
     text-align: center
     font: verdana-11px-rounded
@@ -48,27 +48,30 @@ AnalyzerSupplyRow < Panel
     anchors.left: parent.left
     anchors.verticalCenter: parent.verticalCenter
     margin-left: 2
-
-  Label
-    id: current
-    anchors.left: item.right
-    anchors.verticalCenter: parent.verticalCenter
-    margin-left: 8
-    width: 72
-    text-align: center
-    font: verdana-11px-rounded
-    color: #ffffff
-    background: #20202088
+    width: 32
+    height: 32
 
   Label
     id: used
     anchors.right: parent.right
     anchors.verticalCenter: parent.verticalCenter
     margin-right: 4
-    width: 72
+    width: 50
     text-align: center
     font: verdana-11px-rounded
     color: #ffd166
+    background: #20202088
+
+  Label
+    id: current
+    anchors.left: item.right
+    anchors.right: used.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 5
+    margin-right: 4
+    text-align: center
+    font: verdana-11px-rounded
+    color: #ffffff
     background: #20202088
 
 AnalyzerGraph < UIGraph

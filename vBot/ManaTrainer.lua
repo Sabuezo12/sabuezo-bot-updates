@@ -8,6 +8,7 @@ if config.enabled == nil then config.enabled = false end
 if type(config.creatures) ~= "string" or config.creatures:len() == 0 then config.creatures = "Treiner" end
 config.castDelay = tonumber(config.castDelay) or 1500
 if config.pauseAttackBot == nil then config.pauseAttackBot = true end
+if config.pauseHealBot == nil then config.pauseHealBot = false end
 
 local ui = setupUI([[
 Panel
@@ -51,6 +52,8 @@ local lastCast = 0
 
 storage._manaTrainerAttackBotPause = storage._manaTrainerAttackBotPause or {}
 local attackBotPause = storage._manaTrainerAttackBotPause
+storage._manaTrainerHealBotPause = storage._manaTrainerHealBotPause or {}
+local healBotPause = storage._manaTrainerHealBotPause
 
 local function trim(text)
   text = tostring(text or "")
@@ -128,6 +131,7 @@ end
 local function refreshParsed()
   config.castDelay = clamp(config.castDelay, 250, 60000, 1500)
   config.pauseAttackBot = config.pauseAttackBot == true
+  config.pauseHealBot = config.pauseHealBot == true
   normalizeRules()
   parseCreatures()
 
@@ -236,6 +240,45 @@ end
 
 setAttackBotPaused(false)
 
+local function setHealBotPaused(paused)
+  paused = paused == true and config.pauseHealBot == true
+
+  if not HealBot then
+    healBotPause.active = false
+    healBotPause.wasOn = nil
+    return
+  end
+
+  if paused then
+    if not healBotPause.active then
+      healBotPause.wasOn = HealBot.isOn and HealBot.isOn() or false
+    end
+
+    healBotPause.active = true
+    if HealBot.setOffSilent then
+      HealBot.setOffSilent()
+    elseif HealBot.setOff then
+      HealBot.setOff()
+    end
+    return
+  end
+
+  if healBotPause.active then
+    if healBotPause.wasOn then
+      if HealBot.setOnSilent then
+        HealBot.setOnSilent()
+      elseif HealBot.setOn then
+        HealBot.setOn()
+      end
+    end
+
+    healBotPause.active = false
+    healBotPause.wasOn = nil
+  end
+end
+
+setHealBotPaused(false)
+
 local function updateStatus(text, color)
   refreshParsed()
 
@@ -320,6 +363,7 @@ local function updateWindow()
   window.creatures:setText(config.creatures)
   window.castDelay:setValue(config.castDelay)
   window.pauseAttackBot:setChecked(config.pauseAttackBot)
+  window.pauseHealBot:setChecked(config.pauseHealBot)
   refreshRows()
 end
 
@@ -329,6 +373,7 @@ ui.title.onClick = function(widget)
   widget:setOn(config.enabled)
   if not config.enabled then
     setAttackBotPaused(false)
+    setHealBotPaused(false)
   else
     lastCast = 0
   end
@@ -360,6 +405,14 @@ window.pauseAttackBot.onClick = function(widget)
   end
 end
 
+window.pauseHealBot.onClick = function(widget)
+  config.pauseHealBot = not config.pauseHealBot
+  widget:setChecked(config.pauseHealBot)
+  if not config.pauseHealBot then
+    setHealBotPaused(false)
+  end
+end
+
 window.addSpell.onClick = function()
   normalizeRules()
   table.insert(config.rules, makeRule("", 90, true))
@@ -378,12 +431,14 @@ updateStatus()
 macro(250, function()
   if not config.enabled then
     setAttackBotPaused(false)
+    setHealBotPaused(false)
     return
   end
 
   refreshParsed()
   if #creatureList == 0 then
     setAttackBotPaused(false)
+    setHealBotPaused(false)
     updateStatus("No creatures", "#ff8a8a")
     return
   end
@@ -391,11 +446,13 @@ macro(250, function()
   local creature = getCurrentTarget()
   if not targetMatches(creature) then
     setAttackBotPaused(false)
+    setHealBotPaused(false)
     updateStatus("Waiting target", "#ffd166")
     return
   end
 
   setAttackBotPaused(true)
+  setHealBotPaused(true)
 
   if #spellRules == 0 then
     updateStatus("No active spells", "#ff8a8a")

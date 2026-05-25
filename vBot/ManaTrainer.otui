@@ -58,7 +58,7 @@ ManaTrainerSpellRow < Panel
 
 ManaTrainerWindow < MainWindow
   !text: tr('Mana Trainer')
-  size: 430 405
+  size: 430 425
   padding: 12
   @onEscape: self:hide()
 
@@ -106,17 +106,27 @@ ManaTrainerWindow < MainWindow
 
   CheckBox
     id: pauseAttackBot
-    anchors.left: castDelay.right
-    anchors.right: parent.right
-    anchors.verticalCenter: castDelay.verticalCenter
-    margin-left: 12
+    anchors.top: delayLabel.bottom
+    anchors.left: parent.left
+    margin-top: 10
+    width: 150
     height: 18
     text: Pause AttackBot
     tooltip: Pause AttackBot while attacking a configured trainer target.
 
+  CheckBox
+    id: pauseHealBot
+    anchors.left: pauseAttackBot.right
+    anchors.verticalCenter: pauseAttackBot.verticalCenter
+    margin-left: 16
+    width: 150
+    height: 18
+    text: Pause HealBot
+    tooltip: Pause HealBot while attacking a configured trainer target.
+
   Label
     id: spellsLabel
-    anchors.top: delayLabel.bottom
+    anchors.top: pauseAttackBot.bottom
     anchors.left: parent.left
     anchors.right: parent.right
     margin-top: 10

@@ -423,10 +423,6 @@ CaveBot.registerAction("waitstamina", "#55DDFF", function(value, retries, prev)
   return CaveBot.FunctionHelpers.waitStamina(minMinutes, waitMs)
 end)
 
-CaveBot.registerAction("sethealbot", "#33BBFF", function(value, retries, prev)
-  return CaveBot.FunctionHelpers.setHealBot(value)
-end)
-
 CaveBot.registerAction("stepdirection", "#55FF88", function(value, retries, prev)
   local data = string.split(value, ",")
   local direction = data[1] and data[1]:trim()

@@ -381,7 +381,7 @@ skillWindow:setContentMaximumHeight(240)
 
 local statsWindow = UI.createMiniWindow("CaveBotStats")
 statsWindow:hide()
-statsWindow:setContentMaximumHeight(105)
+statsWindow:setContentMaximumHeight(320)
 
 local itemCounterWindow = UI.createMiniWindow("ItemCounterAnalyzer")
 itemCounterWindow:hide()
