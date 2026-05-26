@@ -1,7 +1,6 @@
 Analyzer = Analyzer or {}
 
 local XP_HISTORY_LIMIT = 15 * 60
-local SKILL_HISTORY_LIMIT = 30 * 60
 local CAVEBOT_DATA_LIMIT = 200
 
 vBot.CaveBotData = vBot.CaveBotData or {
@@ -25,7 +24,9 @@ local skillHistory = {}
 local magicHistory = {}
 local startSkillName = ""
 local startSkillProgress = 0
+local startSkillTime = now
 local startMagicProgress = 0
+local startMagicTime = now
 local analyzerButton
 
 storage.skillAnalyzer = storage.skillAnalyzer or {
@@ -779,14 +780,16 @@ local function resetSkillAnalyzerSession()
   skillHistory = {}
   startSkillName = snapshot.name
   startSkillProgress = snapshot.progress
-  table.insert(skillHistory, {time = now, progress = snapshot.progress})
+  startSkillTime = now
+  table.insert(skillHistory, {time = startSkillTime, progress = startSkillProgress})
 end
 
 local function resetMagicAnalyzerSession()
   local snapshot = currentMagicSnapshot()
   magicHistory = {}
   startMagicProgress = snapshot.progress
-  table.insert(magicHistory, {time = now, progress = snapshot.progress})
+  startMagicTime = now
+  table.insert(magicHistory, {time = startMagicTime, progress = startMagicProgress})
 end
 
 local function pushSkillSample()
@@ -796,14 +799,14 @@ local function pushSkillSample()
     return
   end
 
-  table.insert(skillHistory, {time = now, progress = snapshot.progress})
-  trimData(skillHistory, SKILL_HISTORY_LIMIT)
+  skillHistory[1] = skillHistory[1] or {time = startSkillTime, progress = startSkillProgress}
+  skillHistory[2] = {time = now, progress = snapshot.progress}
 end
 
 local function pushMagicSample()
   local snapshot = currentMagicSnapshot()
-  table.insert(magicHistory, {time = now, progress = snapshot.progress})
-  trimData(magicHistory, SKILL_HISTORY_LIMIT)
+  magicHistory[1] = magicHistory[1] or {time = startMagicTime, progress = startMagicProgress}
+  magicHistory[2] = {time = now, progress = snapshot.progress}
 end
 
 local function skillPercentPerHour(raw)
