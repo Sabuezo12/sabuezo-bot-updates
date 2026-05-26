@@ -82,6 +82,18 @@ local function registerSupplyCounter(id, data)
   end
 end
 
+local function trimAlias(text)
+  return tostring(text or ""):gsub("^%s+", ""):gsub("%s+$", "")
+end
+
+local function updateAliasButton(widget, alias)
+  if not widget then return end
+  alias = trimAlias(alias)
+  widget._alias = alias
+  widget:setText(alias ~= "" and "Log*" or "Log")
+  widget:setTooltip(alias ~= "" and ("Server Log: " .. alias .. "\nClick para editar el nombre.") or "Click para poner el nombre del item en Server Log.")
+end
+
 vBotConfigSave("supply")
 
 if not config then
@@ -134,9 +146,12 @@ function addItemPanel()
   local min = panel.min
   local max = panel.max
   local avg = panel.avg
+  local alias = panel.alias
+  local aliasValue = panel.aliasValue
 
   panel:setId("blank")
   item:setShowCount(false)
+  updateAliasButton(alias, "")
 
   item.onItemChange = function(widget)
     local id = widget:getItemId()
@@ -146,6 +161,8 @@ function addItemPanel()
     if id < 100 then
       config.items[panelId] = nil
       panel:setId("blank")
+      aliasValue:setText("")
+      updateAliasButton(alias, "")
       clearEmptyPanels() -- clear empty panels if any
       return
     end
@@ -156,7 +173,7 @@ function addItemPanel()
     end
 
     -- check if isnt already added
-    if config[tostring(id)] then
+    if config.items[tostring(id)] then
       warn("vBot[Drop Tracker]: Item already added!")
       widget:setItemId(0)
       return
@@ -164,9 +181,43 @@ function addItemPanel()
 
     -- new item id
     config.items[tostring(id)] = config.items[tostring(id)] or {} -- min, max, avg
+    local aliasText = trimAlias(aliasValue:getText())
+    if aliasText ~= "" then
+      config.items[tostring(id)].alias = aliasText
+    end
     registerSupplyCounter(id, config.items[tostring(id)])
     panel:setId(id)
     addItemPanel() -- add new panel
+  end
+
+  aliasValue.onTextChange = function(widget, text)
+    local aliasText = trimAlias(text)
+    updateAliasButton(alias, aliasText)
+
+    local id = item:getItemId()
+    if id > 100 then
+      local key = tostring(id)
+      config.items[key] = config.items[key] or {}
+      config.items[key].alias = aliasText ~= "" and aliasText or nil
+      registerSupplyCounter(id, config.items[key])
+    end
+  end
+
+  alias.onClick = function()
+    if item:getItemId() <= 100 then return end
+    local window = modules.client_textedit.show(
+      aliasValue,
+      {
+        title = "Nombre en Server Log",
+        description = "Escribe como aparece este item en Server Log. Puedes poner varios separados por coma."
+      }
+    )
+    schedule(50, function()
+      if window then
+        window:raise()
+        window:focus()
+      end
+    end)
   end
 
   return panel
@@ -195,6 +246,8 @@ local function loadSettings()
     widget.min:setText(data.min)
     widget.max:setText(data.max)
     widget.avg:setText(data.avg)
+    widget.aliasValue:setText(data.alias or data.name or data.logName or "")
+    updateAliasButton(widget.alias, widget.aliasValue:getText())
   end
   addItemPanel() -- add empty panel
 
@@ -222,12 +275,18 @@ SuppliesWindow.onVisibilityChange = function(widget, visible)
         local min = panel.min:getValue()
         local max = panel.max:getValue()
         local avg = panel.avg:getValue()
+        local alias = trimAlias(panel.aliasValue and panel.aliasValue:getText() or "")
 
-        SuppliesConfig[panelName][currentProfile].items[id] = {
+        local itemData = {
           min = min,
           max = max,
           avg = avg
         }
+        if alias ~= "" then
+          itemData.alias = alias
+        end
+
+        SuppliesConfig[panelName][currentProfile].items[id] = itemData
       end
     end
 
@@ -408,13 +467,19 @@ Supplies.getItemsData = function()
       local min = panel.min:getValue()
       local max = panel.max:getValue()
       local avg = panel.avg:getValue()
+      local alias = trimAlias(panel.aliasValue and panel.aliasValue:getText() or "")
 
-      t[id] = {
+      local itemData = {
         min = min,
         max = max,
         avg = avg
       }
-      registerSupplyCounter(id, t[id])
+      if alias ~= "" then
+        itemData.alias = alias
+      end
+
+      t[id] = itemData
+      registerSupplyCounter(id, itemData)
     end
   end
 
@@ -467,14 +532,19 @@ Supplies.setAverageValues = function(data)
   end
 end
 
-Supplies.addSupplyItem = function(id, min, max, avg)
+Supplies.addSupplyItem = function(id, min, max, avg, alias)
   if not id then
     return
   end
   -- by F.Almeida
-  registerSupplyCounter(id, {min = min, max = max, avg = avg})
+  local itemData = {min = min, max = max, avg = avg}
+  alias = trimAlias(alias)
+  if alias ~= "" then
+    itemData.alias = alias
+  end
+  registerSupplyCounter(id, itemData)
   local pro = SuppliesConfig[panelName].currentProfile
-  SuppliesConfig[panelName][pro]["items"][tostring(id)] = {min = min, max = max, avg = avg}
+  SuppliesConfig[panelName][pro]["items"][tostring(id)] = itemData
   vBotConfigSave("supply")
   loadSettings()
   refreshProfileList()

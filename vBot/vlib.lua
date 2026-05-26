@@ -38,6 +38,21 @@ local function normalizeItemCounterName(name)
     return name
 end
 
+local function splitItemCounterAliases(text)
+    local aliases = {}
+    text = tostring(text or ""):gsub("^%s+", ""):gsub("%s+$", "")
+    if text == "" then return aliases end
+
+    for rawAlias in text:gmatch("[^,;]+") do
+        local alias = tostring(rawAlias or ""):gsub("^%s+", ""):gsub("%s+$", "")
+        if alias ~= "" then
+            table.insert(aliases, alias)
+        end
+    end
+
+    return aliases
+end
+
 local function addFuzzyItemCounterNameId(name, id)
     if not name or name == "" or not id then return end
 
@@ -269,6 +284,11 @@ function vBot.ItemCounter.registerSupplyItem(id, data)
     itemCounterStore.items[key] = itemCounterStore.items[key] or {}
 
     if type(data) == "table" then
+        local aliases = splitItemCounterAliases(data.alias or data.name or data.logName)
+        if #aliases > 0 then
+            vBot.ItemCounter.register(id, aliases[1], aliases)
+        end
+
         itemCounterStore.items[key].supply = itemCounterStore.items[key].supply or {}
         itemCounterStore.items[key].supply.min = tonumber(data.min) or itemCounterStore.items[key].supply.min
         itemCounterStore.items[key].supply.max = tonumber(data.max) or itemCounterStore.items[key].supply.max
@@ -348,6 +368,11 @@ function vBot.ItemCounter.resetUsed(id)
     itemCounterStore.items[key].used = 0
 end
 
+local function itemCounterKeepsKnownAmount(source)
+    source = tostring(source or "")
+    return source == "log" or source == "buy"
+end
+
 function vBot.ItemCounter.getAmount(id, visibleAmount)
     id = resolveItemCounterId(id)
     visibleAmount = tonumber(visibleAmount) or 0
@@ -358,7 +383,8 @@ function vBot.ItemCounter.getAmount(id, visibleAmount)
     if not entry then return visibleAmount end
 
     local known = tonumber(entry.count)
-    if visibleAmount > 0 and (not known or visibleAmount > known or entry.source ~= "log") then
+    local keepKnown = known ~= nil and itemCounterKeepsKnownAmount(entry.source)
+    if visibleAmount > 0 and not keepKnown and (not known or visibleAmount > known or entry.source ~= "log") then
         vBot.ItemCounter.set(id, visibleAmount, "visible")
         known = visibleAmount
     end

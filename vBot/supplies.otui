@@ -24,7 +24,7 @@ ProfileLabel < UIWidget
 SupplySpinBox < SpinBox
   height: 20
   margin-left: 3
-  width: 75
+  width: 65
   minimum: 0
   maximum: 9999
   text-align: center
@@ -53,12 +53,31 @@ ItemPanel < Panel
     id: avg
     anchors.left: prev.right
     anchors.bottom: parent.bottom
-    width: 50    
+    width: 45
+
+  Button
+    id: alias
+    anchors.left: prev.right
+    anchors.bottom: parent.bottom
+    margin-left: 3
+    width: 38
+    height: 20
+    text: Log
+    font: cipsoftFont
+    tooltip: Nombre del item como aparece en Server Log.
+
+  BotTextEdit
+    id: aliasValue
+    anchors.left: alias.left
+    anchors.top: alias.top
+    width: 1
+    height: 1
+    visible: false
 
   UIWidget
     anchors.left: min.left
     anchors.bottom: min.top
-    width: 75
+    width: 65
     text-align: center
     font: verdana-11px-rounded
     text: Min
@@ -67,7 +86,7 @@ ItemPanel < Panel
   UIWidget
     anchors.left: max.left
     anchors.bottom: max.top
-    width: 75
+    width: 65
     text-align: center
     font: verdana-11px-rounded
     text: Max
@@ -76,7 +95,7 @@ ItemPanel < Panel
   UIWidget
     anchors.left: avg.left
     anchors.bottom: avg.top
-    width: 55
+    width: 45
     text-align: center
     font: verdana-11px-rounded
     text: AVG
@@ -84,7 +103,7 @@ ItemPanel < Panel
 
 SuppliesWindow < MainWindow
   !text: tr('Supplies')
-  size: 430 330
+  size: 455 330
   @onEscape: self:hide()
 
   VerticalSeparator
