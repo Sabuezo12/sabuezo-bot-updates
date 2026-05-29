@@ -7,7 +7,7 @@ UpdaterListLabel < Label
 
 UpdaterWindow < MainWindow
   !text: tr('Sabuezo Updater')
-  size: 530 430
+  size: 650 520
   @onEscape: self:hide()
 
   Label
@@ -72,8 +72,9 @@ UpdaterWindow < MainWindow
     anchors.right: parent.right
     anchors.top: remote.bottom
     margin-top: 7
-    height: 28
-    text-align: center
+    height: 86
+    text-align: left
+    text-offset: 5 4
     font: verdana-11px-rounded
     color: #cfd3d7
     background: #292A2A
