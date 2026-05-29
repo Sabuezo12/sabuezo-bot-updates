@@ -73,14 +73,30 @@ local function httpGet(url, callback)
     return type(value) == "string" and value:match("^%s*[%{%[]")
   end
 
+  local function responseIsSuccess(value)
+    if type(value) ~= "table" then return false end
+
+    local err = value.error or value.err
+    if err ~= nil and tostring(err):len() > 0 then return false end
+
+    local status = tonumber(value.status or value.statusCode or value.code)
+    return status == nil or (status >= 200 and status < 300)
+  end
+
   local function tablePayload(value)
     if type(value) ~= "table" then return nil end
-    local keys = {"data", "body", "content", "response", "result", "text"}
+    local keys = {"body", "data", "content", "response", "result", "text"}
     for _, key in ipairs(keys) do
-      if looksLikeData(value[key]) then return value[key] end
+      if type(value[key]) == "string" and value[key]:len() > 0 and
+        (responseIsSuccess(value) or looksLikeData(value[key])) then
+        return value[key]
+      end
     end
     for _, item in pairs(value) do
-      if looksLikeData(item) then return item end
+      if type(item) == "string" and item:len() > 0 and
+        (responseIsSuccess(value) or looksLikeData(item)) then
+        return item
+      end
     end
     return nil
   end
@@ -140,14 +156,6 @@ local function httpGet(url, callback)
   end
 
   local function onResponse(first, second)
-    if looksLikeData(first) then
-      callback(first)
-      return
-    end
-    if looksLikeData(second) then
-      callback(second)
-      return
-    end
     local firstPayload = tablePayload(first)
     if firstPayload then
       callback(firstPayload)
@@ -156,6 +164,25 @@ local function httpGet(url, callback)
     local secondPayload = tablePayload(second)
     if secondPayload then
       callback(secondPayload)
+      return
+    end
+
+    if type(first) == "string" and first:len() > 0 and
+      (second == nil or tostring(second):len() == 0) then
+      callback(first)
+      return
+    end
+    if type(second) == "string" and second:len() > 0 and
+      (first == nil or tostring(first):len() == 0) then
+      callback(second)
+      return
+    end
+    if looksLikeData(first) then
+      callback(first)
+      return
+    end
+    if looksLikeData(second) then
+      callback(second)
       return
     end
 
