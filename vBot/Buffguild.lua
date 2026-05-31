@@ -14,7 +14,11 @@ if not storage[panelName] then
 end
 
 local config = storage[panelName]
-config.boostEnabled = true
+if config.simplifiedVersion ~= 24 then
+    config.boostEnabled = true
+    config.simplifiedVersion = 24
+end
+if config.boostEnabled == nil then config.boostEnabled = true end
 config.vorEnabled = nil
 if config.hasteEnabled and config.tempoEnabled then config.hasteEnabled = false end
 config.manaStop = tonumber(config.manaStop) or 30
@@ -115,19 +119,17 @@ Panel
     text-align: center
     font: verdana-11px-rounded
     color: #FFD700
-  Label
-    id: boostStatus
+  BotSwitch
+    id: switchBoost
     anchors.top: title.bottom
     anchors.left: parent.left
     anchors.right: parent.right
     margin-top: 3
     height: 18
-    text: ExuraBoost: ON
-    text-align: center
-    color: #00FF00
+    text: ExuraBoost
   BotSwitch
     id: switchHaste
-    anchors.top: boostStatus.bottom
+    anchors.top: switchBoost.bottom
     anchors.left: parent.left
     margin-top: 3
     width: 88
@@ -135,7 +137,7 @@ Panel
     text: ExuraHaste
   BotSwitch
     id: switchTempo
-    anchors.top: boostStatus.bottom
+    anchors.top: switchBoost.bottom
     anchors.right: parent.right
     margin-top: 3
     width: 88
@@ -162,11 +164,17 @@ Panel
     step: 1
 ]])
 
+ui.switchBoost:setOn(config.boostEnabled)
 ui.switchHaste:setOn(config.hasteEnabled)
 ui.switchTempo:setOn(config.tempoEnabled)
 
 local function updateManaLabel()
     ui.manaLabel:setText("Stop Mana <= " .. config.manaStop .. "%")
+end
+
+ui.switchBoost.onClick = function(widget)
+    config.boostEnabled = not config.boostEnabled
+    widget:setOn(config.boostEnabled)
 end
 
 ui.switchHaste.onClick = function(widget)
