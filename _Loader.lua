@@ -109,7 +109,7 @@ local loaderSections = {
     name = "Final",
     files = {
       "vBot/analyzer",
-      "vBot/xeno_menu",
+      ----"vBot/xeno_menu", -- disabled: unused contextual menu
       "vBot/iconos",
       "zFreeScripts/CaveBotHUD",
     }

@@ -1,0 +1,45 @@
+BugMapMouseWindow < MainWindow
+  !text: tr('BugMap Settings')
+  size: 210 135
+  @onEscape: self:hide()
+
+  Label
+    id: hotkeyLabel
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    text-align: center
+    text: Hold Hotkey
+
+  TextEdit
+    id: hotkey
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: hotkeyLabel.bottom
+    margin-top: 6
+    text-align: center
+
+  Label
+    id: defaultLabel
+    anchors.top: hotkey.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 8
+    text-align: center
+    text: Default: MouseMiddle
+
+  HorizontalSeparator
+    id: separator
+    anchors.right: parent.right
+    anchors.left: parent.left
+    anchors.bottom: closeButton.top
+    margin-bottom: 8
+
+  Button
+    id: closeButton
+    !text: tr('Close')
+    font: cipsoftFont
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 45 21
+    margin-right: 5

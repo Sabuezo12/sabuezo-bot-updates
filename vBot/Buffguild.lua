@@ -108,7 +108,7 @@ end
 UI.Separator()
 local ui = setupUI([[
 Panel
-  height: 88
+  height: 108
   margin-top: 2
   Label
     id: title
@@ -162,6 +162,16 @@ Panel
     minimum: 0
     maximum: 100
     step: 1
+
+  Label
+    id: boostStatus
+    anchors.top: manaStop.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 4
+    text-align: center
+    font: verdana-11px-rounded
+    color: #9DD1CE
 ]])
 
 ui.switchBoost:setOn(config.boostEnabled)
@@ -206,8 +216,38 @@ local function enoughMana()
     return manapercent() > (tonumber(config.manaStop) or 0)
 end
 
+local boostStatusText = ""
+local nextGuildBuffCastAt = 0
+local recentGuildBuffAttempt = nil
+local retryAfterExhaust = 450
+
+local function setBoostStatus(text)
+    if boostStatusText == text then return end
+    boostStatusText = text
+    ui.boostStatus:setText(text)
+    if ui.boostStatus.setTooltip then ui.boostStatus:setTooltip(text) end
+end
+
+local function getBuffSpectators()
+    local ok, spectators = pcall(function() return getSpectators() end)
+    if ok and type(spectators) == "table" then return spectators end
+    return g_map.getSpectators(player:getPosition(), false)
+end
+
+local function rememberGuildBuffAttempt(kind, name, globalCooldown)
+    recentGuildBuffAttempt = {kind = kind, name = name, at = now}
+    nextGuildBuffCastAt = now + globalCooldown
+end
+
+local function playerListMatches(c, method)
+    if not PlayerList or type(PlayerList[method]) ~= "function" then return false end
+    local ok, result = pcall(function() return PlayerList[method](c) end)
+    return ok and result == true
+end
+
 local function isGuildAlly(c)
     if not c or not c:isPlayer() or c == player then return false end
+    if playerListMatches(c, "isFriend") or playerListMatches(c, "isGuildMember") then return true end
     local ok, emblem = pcall(function() return c:getEmblem() end)
     return ok and emblem == 1
 end
@@ -216,28 +256,40 @@ end
 -- 4. LANZAMIENTO DE BOOST (Dueño de la prioridad)
 -- ==========================================================
 local function castBoost()
-    if not config.boostEnabled then return end
-    if not enoughMana() then return end
-    if now < lastGlobalBoost then return end 
+    if not config.boostEnabled then
+        setBoostStatus("Boost: OFF")
+        return false
+    end
+    if not enoughMana() then
+        setBoostStatus("Boost: mana bajo")
+        return false
+    end
 
     local targets = {}
-    for _, c in pairs(g_map.getSpectators(player:getPosition(), false)) do
+    for _, c in pairs(getBuffSpectators()) do
         if isGuildAlly(c) then
             local vocType = getVocType(c:getName())
             
-            local prio = 99
+            local prio = 5
             if vocType == "paladin" then prio = 1
             elseif vocType == "knight" then prio = 2
             elseif vocType == "sorcerer" then prio = 3
             elseif vocType == "druid" then prio = 4 end
 
-            if prio < 99 then
-                table.insert(targets, {c = c, prio = prio})
-            end
+            table.insert(targets, {c = c, prio = prio})
         end
     end
 
     table.sort(targets, function(a,b) return a.prio < b.prio end)
+
+    if #targets == 0 then
+        setBoostStatus("Boost: sin aliados")
+        return false
+    end
+    if now < nextGuildBuffCastAt or now < lastGlobalBoost then
+        setBoostStatus("Boost: espera | Aliados: " .. #targets)
+        return false
+    end
 
     for _, t in ipairs(targets) do
         local name = t.c:getName()
@@ -245,9 +297,14 @@ local function castBoost()
             say('exura boost "'..name..'"')
             lastCastBoost[name] = now + cdBoost
             lastGlobalBoost = now + globalCdBoost
-            return
+            rememberGuildBuffAttempt("boost", name, globalCdBoost)
+            setBoostStatus("Boost > " .. name)
+            return true
         end
     end
+
+    setBoostStatus("Boost: cooldown | Aliados: " .. #targets)
+    return false
 end
 
 -- ==========================================================
@@ -255,24 +312,12 @@ end
 -- ==========================================================
 local function castSpeed()
     local cfg = config
-    if not (cfg.hasteEnabled or cfg.tempoEnabled) then return end
-    if not enoughMana() then return end
-    if now < lastGlobalSpeed then return end
-
-    -- 🔥 SINCRONIZACIÓN DE EXHAUST (EL SECRETO) 🔥
-    local timeUntilBoost = lastGlobalBoost - now
-    
-    -- isSafeToSpeed será 'true' SOLO SI:
-    -- 1. Acabamos de castear Boost hace menos de 400ms (van pegados, Boost va primero)
-    -- 2. O Boost está listo y esperando, pero NADIE lo necesita en este momento.
-    local isSafeToSpeed = timeUntilBoost > 1800
-    
-    -- Si Boost está cargando y casi listo (ej. falta 1 segundo), nos esperamos. 
-    -- Si tiramos Speed ahora, le meteríamos 2 segundos de exhaust a Boost.
-    if not isSafeToSpeed then return end
+    if not (cfg.hasteEnabled or cfg.tempoEnabled) then return false end
+    if not enoughMana() then return false end
+    if now < nextGuildBuffCastAt or now < lastGlobalSpeed then return false end
 
     local targets = {}
-    for _, c in pairs(g_map.getSpectators(player:getPosition(), false)) do
+    for _, c in pairs(getBuffSpectators()) do
         if isGuildAlly(c) then
             local vocType = getVocType(c:getName())
             
@@ -305,17 +350,37 @@ local function castSpeed()
             say(t.spell .. ' "' .. name .. '"')
             lastCastSpeed[name] = now + t.cd
             lastGlobalSpeed = now + globalCdSpeed
-            
-            return
+            rememberGuildBuffAttempt("speed", name, globalCdSpeed)
+            return true
         end
     end
+
+    return false
 end
+
+onTextMessage(function(mode, text)
+    if type(text) ~= "string" or not text:lower():find("you are exhausted", 1, true) then return end
+
+    local attempt = recentGuildBuffAttempt
+    if not attempt or now - attempt.at > 900 then return end
+
+    if attempt.kind == "boost" then
+        lastCastBoost[attempt.name] = 0
+        lastGlobalBoost = now + retryAfterExhaust
+    else
+        lastCastSpeed[attempt.name] = 0
+        lastGlobalSpeed = now + retryAfterExhaust
+    end
+
+    nextGuildBuffCastAt = now + retryAfterExhaust
+    recentGuildBuffAttempt = nil
+    setBoostStatus("Reintento: exhaust")
+end)
 
 -- ==========================================================
 -- 6. MACRO PRINCIPAL
 -- ==========================================================
 macro(200, function()
-    -- CastBoost siempre va primero. Si actua, prepara el terreno seguro para CastSpeed.
-    castBoost()   
-    castSpeed()   
+    -- Boost es prioritario. Haste/Tempo esperan al siguiente espacio global libre.
+    if not castBoost() then castSpeed() end
 end)
