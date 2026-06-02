@@ -127,7 +127,7 @@ local ONE_SQM_ANTIPUSH_RUNE_DELAY = 20 -- delay minimo despues de tirar fire fie
 local ONE_SQM_ANTIPUSH_PUSH_DELAY = 100 -- espera para empujar despues de tirar fire field contra antipush
 local ONE_SQM_QUEUE_RETRY_STEP = 10 -- cada cuantos ms revisa si ya puede empujar despues de limpiar field
 local ONE_SQM_HEAL_ITEMS_PAUSE_MS = 500
-local AUTO_ROUTE_FLOOR_GRACE_MS = 2500 -- tiempo para conservar la ruta al subir/bajar escaleras aunque el target desaparezca un momento
+local AUTO_ROUTE_TARGET_LOST_MS = 400 -- cancela una ruta si el target deja de estar visible brevemente
 local STEP_PUSH_DELAY = 20
 local POST_PUSH_DELAY = 20
 local TURBO_PREDICTED_ROUTE = true
@@ -151,8 +151,6 @@ local destinationTile
 local routeTiles = {}
 local routeTargetId = nil
 local autoRouteDestination = nil
-local autoRouteDestinationOffset = nil
-local autoRoutePathOffsets = nil
 local routeTextSignature = ""
 local currentAttackTargetId = nil
 local currentAttackTargetName = nil
@@ -174,8 +172,7 @@ local oneSqmQueuedPushKey = nil
 local oneSqmQueuedPushBaseKey = nil
 local oneSqmQueuedPushAt = 0
 local getCurrentTargetPlayer
-local stairStackFloorCheckKey = 0
-local autoRouteLastFloorChangeAt = 0
+local autoRouteLastSeenAt = 0
 
 local resetData = function()
   for i, tile in pairs(g_map.getTiles(posz())) do
@@ -192,8 +189,6 @@ local resetData = function()
   routeTiles = {}
   routeTargetId = nil
   autoRouteDestination = nil
-  autoRouteDestinationOffset = nil
-  autoRoutePathOffsets = nil
   routeTextSignature = ""
   cleanTile = nil
   lastPushTargetPositionKey = nil
@@ -213,8 +208,7 @@ local resetData = function()
   oneSqmQueuedPushKey = nil
   oneSqmQueuedPushBaseKey = nil
   oneSqmQueuedPushAt = 0
-  stairStackFloorCheckKey = 0
-  autoRouteLastFloorChangeAt = 0
+  autoRouteLastSeenAt = 0
 end
 
 local getCreatureById = function(id)
@@ -816,87 +810,6 @@ local buildPushRoute = function(startPos, endPos)
   return nil
 end
 
-local buildRouteOffsets = function(route, originPos)
-  if not route or not hasPosition(originPos) then return nil end
-
-  local offsets = {}
-  for i, pos in ipairs(route) do
-    if not hasPosition(pos) then return nil end
-    offsets[i] = {x = pos.x - originPos.x, y = pos.y - originPos.y}
-  end
-
-  return offsets
-end
-
-local rememberAutoRoutePlan = function(targetPos, destination, route)
-  if not hasPosition(targetPos) or not hasPosition(destination) or targetPos.z ~= destination.z then return end
-
-  autoRouteDestinationOffset = {
-    x = destination.x - targetPos.x,
-    y = destination.y - targetPos.y
-  }
-  autoRoutePathOffsets = buildRouteOffsets(route, targetPos)
-end
-
-local applyAutoRouteToTargetFloor = function(targetPos)
-  if not hasPosition(targetPos) or not autoRouteDestinationOffset then return false end
-  if autoRouteDestination and autoRouteDestination.z == targetPos.z then return true end
-
-  autoRouteDestination = {
-    x = targetPos.x + autoRouteDestinationOffset.x,
-    y = targetPos.y + autoRouteDestinationOffset.y,
-    z = targetPos.z
-  }
-
-  local route = buildPushRoute(targetPos, autoRouteDestination)
-  if (not route or #route < 2) and autoRoutePathOffsets and #autoRoutePathOffsets >= 2 then
-    route = {}
-    for i, offset in ipairs(autoRoutePathOffsets) do
-      route[i] = {x = targetPos.x + offset.x, y = targetPos.y + offset.y, z = targetPos.z}
-    end
-  end
-
-  routeTextSignature = ""
-  if route and #route >= 2 then
-    showRoute(route)
-  else
-    clearRouteTexts()
-    routeTiles = {}
-    local destTile = g_map.getTile(autoRouteDestination)
-    if destTile then destTile:setText("DEST") end
-  end
-
-  return true
-end
-
-local getRememberedRouteTarget = function()
-  local routeTarget = getCurrentTargetPlayer()
-  if not routeTarget and routeTargetId then
-    routeTarget = getCreatureById(routeTargetId)
-  end
-  if not routeTarget and currentAttackTargetName then
-    routeTarget = getCreatureByName(currentAttackTargetName)
-  end
-
-  return routeTarget
-end
-
-local keepAutoRouteIfStackedWithTarget = function(playerPos)
-  if not autoRouteDestination or not routeTargetId or not hasPosition(playerPos) then return false end
-
-  local routeTarget = getRememberedRouteTarget()
-  if not routeTarget then return false end
-
-  local targetPos = routeTarget:getPosition()
-  if not hasPosition(targetPos) or targetPos.z ~= playerPos.z or not samePosition(targetPos, playerPos) then
-    return false
-  end
-
-  routeTargetId = routeTarget:getId()
-  pushTarget = routeTarget
-  return applyAutoRouteToTargetFloor(targetPos)
-end
-
 local getPredictedPushRoute = function(creature, finalPos)
   if not TURBO_PREDICTED_ROUTE or not creature or not finalPos or #routeTiles < 2 then return nil end
 
@@ -1019,8 +932,8 @@ local setAutoRouteTarget = function(creature, tile)
   currentAttackTargetId = creature:getId()
   currentAttackTargetName = creature:getName()
   autoRouteDestination = copyPosition(destination)
+  autoRouteLastSeenAt = now
   oneSqmPushMode = (targetToDestinationDistance == 1) or (route and #route == 2)
-  rememberAutoRoutePlan(targetPos, autoRouteDestination, route)
   if route and #route >= 2 then
     showRoute(route)
   else
@@ -1462,16 +1375,7 @@ onCreaturePositionChange(function(creature, newPos, oldPos)
     if cleanTile or targetTile or (pushTarget and not autoRouteDestination) then
       resetData()
     elseif autoRouteDestination and newPos and autoRouteDestination.z ~= newPos.z then
-      -- Si subes/bajas escaleras con una ruta activa, NO se debe perder el push.
-      -- Antes aquí se hacía resetData() si el destino quedaba en otro piso; eso mataba la ruta.
-      autoRouteLastFloorChangeAt = now
-      if keepAutoRouteIfStackedWithTarget(newPos) then return end
-
-      local rememberedTarget = getRememberedRouteTarget()
-      local rememberedTargetPos = rememberedTarget and rememberedTarget:getPosition() or nil
-      if hasPosition(rememberedTargetPos) then
-        applyAutoRouteToTargetFloor(rememberedTargetPos)
-      end
+      resetData()
       return
     elseif not autoRouteDestination and routeTiles[1] and newPos and routeTiles[1].z ~= newPos.z then
       resetData()
@@ -1481,10 +1385,8 @@ onCreaturePositionChange(function(creature, newPos, oldPos)
   if autoRouteDestination and routeTargetId and newPos and hasPosition(newPos) then
     local okId, creatureId = pcall(function() return creature:getId() end)
     if okId and creatureId == routeTargetId and autoRouteDestination.z ~= newPos.z then
-      -- El target cambió de piso. Recalcula el destino usando el mismo offset original,
-      -- pero en el nuevo z, para conservar el push predestinado.
-      autoRouteLastFloorChangeAt = now
-      applyAutoRouteToTargetFloor(newPos)
+      resetData()
+      return
     end
   end
 
@@ -1504,12 +1406,12 @@ onAttackingCreatureChange(function(newCreature, oldCreature)
   if newCreature and newCreature ~= player then
     local ok, isPlayerTarget = pcall(function() return newCreature:isPlayer() end)
     if ok and isPlayerTarget then
-      currentAttackTargetId = newCreature:getId()
-      currentAttackTargetName = newCreature:getName()
-      if autoRouteDestination then
-        pushTarget = newCreature
-        routeTargetId = newCreature:getId()
+      local newTargetId = newCreature:getId()
+      if autoRouteDestination and routeTargetId and newTargetId ~= routeTargetId then
+        resetData()
       end
+      currentAttackTargetId = newTargetId
+      currentAttackTargetName = newCreature:getName()
     end
   end
 end)
@@ -1567,37 +1469,24 @@ macro(20, function()
       delay(2000)
     end
   elseif autoRouteDestination and routeTargetId then
-    local currentTarget = getCurrentTargetPlayer()
-    if currentTarget then
-      routeTargetId = currentTarget:getId()
-      pushTarget = currentTarget
-    end
-    local routeTarget = currentTarget or getCreatureById(routeTargetId)
-    if not routeTarget and currentAttackTargetName then
-      routeTarget = getCreatureByName(currentAttackTargetName)
-    end
+    local routeTarget = getCreatureById(routeTargetId)
     if not routeTarget then
-      -- Al cambiar de piso el target puede desaparecer de spectators unos ms.
-      -- No resetees la ruta: espera a que vuelva a estar visible/atacable.
-      if autoRouteLastFloorChangeAt > 0 and now - autoRouteLastFloorChangeAt < AUTO_ROUTE_FLOOR_GRACE_MS then
-        return
-      end
+      if autoRouteLastSeenAt == 0 then autoRouteLastSeenAt = now end
+      if now - autoRouteLastSeenAt >= AUTO_ROUTE_TARGET_LOST_MS then resetData() end
       return
     end
-    routeTargetId = routeTarget:getId()
     pushTarget = routeTarget
     local routeTargetPos = routeTarget:getPosition()
     if not hasPosition(routeTargetPos) then return end
     if autoRouteDestination.z ~= routeTargetPos.z then
-      autoRouteLastFloorChangeAt = now
-      if not applyAutoRouteToTargetFloor(routeTargetPos) then
-        return
-      end
+      resetData()
+      return
     end
+    autoRouteLastSeenAt = now
 
-    -- No intentes empujar si todavía estás en otro piso; conserva la ruta y espera.
     local playerPos = player:getPosition()
     if not hasPosition(playerPos) or playerPos.z ~= routeTargetPos.z then
+      resetData()
       return
     end
 
@@ -1613,9 +1502,6 @@ macro(20, function()
 
     local predictedRoute = getPredictedPushRoute(routeTarget, autoRouteDestination)
     local route = predictedRoute or buildPushRoute(routeTargetPos, autoRouteDestination)
-    if routeTargetPos.z == autoRouteDestination.z then
-      rememberAutoRoutePlan(routeTargetPos, autoRouteDestination, route)
-    end
     if not route or #route < 2 then
       local directTile = getDirectPushTile(routeTarget, autoRouteDestination)
       if directTile then
@@ -1635,7 +1521,6 @@ macro(20, function()
         routeTargetPos = routeTarget:getPosition()
         if not hasPosition(routeTargetPos) then return end
         route = buildPushRoute(routeTargetPos, autoRouteDestination)
-        rememberAutoRoutePlan(routeTargetPos, autoRouteDestination, route)
         if route and #route >= 2 then
           showRoute(route)
           nextTile = g_map.getTile(route[2])
