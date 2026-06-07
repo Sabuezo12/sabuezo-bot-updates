@@ -11,6 +11,8 @@ if not config.manifestUrl or config.manifestUrl == legacyManifestUrl then
 end
 config.version = config.version or "none"
 if type(config.fileHashes) ~= "table" then config.fileHashes = {} end
+if config.autoInstall == nil then config.autoInstall = true end
+if config.autoReload == nil then config.autoReload = true end
 
 local ui = setupUI([[
 Panel
@@ -58,6 +60,7 @@ local lastManifest = nil
 local lastPendingFiles = {}
 local detailsWindow = nil
 local ensureDetailsWindow
+local autoReloadScheduled = false
 
 local function trim(text)
   return tostring(text or ""):gsub("^%s+", ""):gsub("%s+$", "")
@@ -112,6 +115,27 @@ end
 
 local function setStatus(text, color)
   setDetailsStatus(text, color)
+end
+
+local function reloadAfterAutoInstall()
+  if autoReloadScheduled or not config.autoReload then return end
+  autoReloadScheduled = true
+
+  setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nRecargando bot...", "#8cff9a")
+  setStatus("Update instalado. Recargando bot...", "#8cff9a")
+
+  schedule(800, function()
+    if type(reload) == "function" then
+      local ok, err = pcall(reload)
+      if not ok then
+        setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nReloguea para aplicar", "#ffd166")
+        setStatus("Update instalado. Reloguea para aplicar.\n" .. tostring(err), "#ffd166")
+      end
+    else
+      setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nReloguea para aplicar", "#ffd166")
+      setStatus("Update instalado. Reloguea para aplicar.", "#ffd166")
+    end
+  end)
 end
 
 local function parseVersion(version)
@@ -734,7 +758,7 @@ local function fetchManifest(callback)
   end)
 end
 
-local function finishInstall(manifest, installed, skipped)
+local function finishInstall(manifest, installed, skipped, autoMode)
   installing = false
   config.version = tostring(manifest.version or config.version)
   rememberExistingHashes(manifest)
@@ -745,11 +769,15 @@ local function finishInstall(manifest, installed, skipped)
   local skippedText = skipped > 0 and (" | skipped " .. skipped) or ""
   setPanelStatus("Version: " .. config.version .. "\nUltima version", "#8cff9a")
   setStatus("Actualizado a " .. config.version .. "\nArchivos: " .. installed .. skippedText, "#8cff9a")
+
+  if autoMode and installed > 0 then
+    reloadAfterAutoInstall()
+  end
 end
 
-local function installFileList(manifest, files, index, installed, skipped)
+local function installFileList(manifest, files, index, installed, skipped, autoMode)
   if index > #files then
-    finishInstall(manifest, installed, skipped)
+    finishInstall(manifest, installed, skipped, autoMode)
     return
   end
 
@@ -758,7 +786,7 @@ local function installFileList(manifest, files, index, installed, skipped)
   local url = entry and entry.url
 
   if not isAllowedPath(path) or type(url) ~= "string" or url:len() == 0 then
-    installFileList(manifest, files, index + 1, installed, skipped + 1)
+    installFileList(manifest, files, index + 1, installed, skipped + 1, autoMode)
     return
   end
 
@@ -790,12 +818,12 @@ local function installFileList(manifest, files, index, installed, skipped)
     if hash:len() > 0 then config.fileHashes[path] = hash end
 
     schedule(50, function()
-      installFileList(manifest, files, index + 1, installed + 1, skipped)
+      installFileList(manifest, files, index + 1, installed + 1, skipped, autoMode)
     end)
   end)
 end
 
-local function installManifest(manifest)
+local function installManifest(manifest, autoMode)
   if installing then return end
 
   lastPendingFiles = getPendingFiles(manifest)
@@ -811,7 +839,7 @@ local function installManifest(manifest)
   end
 
   installing = true
-  installFileList(manifest, lastPendingFiles, 1, 0, 0)
+  installFileList(manifest, lastPendingFiles, 1, 0, 0, autoMode == true)
 end
 
 local function showManifestStatus(manifest)
@@ -845,6 +873,27 @@ local function checkUpdates(showDetails)
   end)
 end
 
+local function autoUpdateOnLogin()
+  if installing then return end
+  if not config.autoInstall then
+    checkUpdates(false)
+    return
+  end
+
+  fetchManifest(function(manifest)
+    if not manifest then return end
+
+    lastPendingFiles = getPendingFiles(manifest)
+    if #lastPendingFiles > 0 then
+      setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nActualizando...", "#ffd166")
+      setStatus("Actualizacion automatica: " .. #lastPendingFiles .. " archivos pendientes", "#ffd166")
+      installManifest(manifest, true)
+    else
+      showManifestStatus(manifest)
+    end
+  end)
+end
+
 local function runInstall()
   if installing then
     setStatus("Update already running...", "#ffd166")
@@ -852,12 +901,12 @@ local function runInstall()
   end
 
   if lastManifest then
-    installManifest(lastManifest)
+    installManifest(lastManifest, false)
     return
   end
 
   fetchManifest(function(manifest)
-    if manifest then installManifest(manifest) end
+    if manifest then installManifest(manifest, false) end
   end)
 end
 
@@ -917,9 +966,9 @@ end
 
 setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nRevisando...")
 
-schedule(1500, function()
+schedule(100, function()
   if not installing then
-    checkUpdates(false)
+    autoUpdateOnLogin()
   end
 end)
 
