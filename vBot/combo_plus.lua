@@ -311,6 +311,13 @@ local lastFollowUseAt = 0
 local lastFollowProgressAt = 0
 local lastPlayerPositionKey = ""
 local followWasActive = false
+local lastFollowSeenAt = 0
+local lastFollowTransitionAt = 0
+local lastFollowRecoveryAt = 0
+local FOLLOW_STICKY_WALK_RETRY_MS = 150
+local FOLLOW_STUCK_RECOVERY_MS = 550
+local FOLLOW_TRANSITION_RECOVERY_MS = 180
+local FOLLOW_TRANSITION_TTL_MS = 8000
 local FOLLOW_DOOR_IDS = {
   5007, 8265, 31570, 1629, 1632, 5129, 6252, 6249, 7715, 7712, 7714,
   7719, 6256, 1669, 1672, 5125, 5115, 5124, 17701, 17710, 1642,
@@ -438,6 +445,10 @@ local function distanceBetween(a, b)
   return math.max(math.abs(a.x - b.x), math.abs(a.y - b.y))
 end
 
+local function samePosition(a, b)
+  return hasPosition(a) and hasPosition(b) and a.x == b.x and a.y == b.y and a.z == b.z
+end
+
 local function getFollowName()
   local name = trim(settings.followName)
   if name == "" or lower(name) == "name" then return "" end
@@ -451,6 +462,9 @@ local function resetFollowMemoryIfNeeded()
   followPositions = {}
   lastFollowPosition = nil
   lastFollowTransitionPosition = nil
+  lastFollowSeenAt = 0
+  lastFollowTransitionAt = 0
+  lastFollowRecoveryAt = 0
   if g_game and g_game.cancelFollow then
     pcall(function() g_game.cancelFollow() end)
   end
@@ -659,7 +673,8 @@ local function tryUseFollowTransition(pos, force)
   if distanceBetween(playerPos, pos) > 2 then return false end
 
   local time = getTime()
-  if not force and time - lastFollowUseAt < 350 then return false end
+  local useCooldown = force and 120 or 350
+  if time - lastFollowUseAt < useCooldown then return false end
   lastFollowUseAt = time
 
   local extras = storage.extras or {}
@@ -726,7 +741,8 @@ local function walkToFollowPosition(pos, precision)
   local currentZ = getPlayerZ()
   if not hasPosition(pos) or not currentZ or pos.z ~= currentZ then return false end
   local time = getTime()
-  if player and player.isWalking and player:isWalking() and time - lastFollowWalkAt < 500 then return true end
+  local walkingCooldown = precision and precision > 0 and 250 or 500
+  if player and player.isWalking and player:isWalking() and time - lastFollowWalkAt < walkingCooldown then return true end
   precision = precision or 0
 
   if CaveBot and CaveBot.walkTo then
@@ -766,6 +782,58 @@ local function walkToFollowPosition(pos, precision)
   return false
 end
 
+local function isRecentFollowTransition(pos, time)
+  return hasPosition(pos) and lastFollowTransitionPosition and
+    samePosition(pos, lastFollowTransitionPosition) and
+    time - lastFollowTransitionAt <= FOLLOW_TRANSITION_TTL_MS
+end
+
+local function recoverFollowPath(pos, distance, urgent)
+  if not hasPosition(pos) then return false end
+  local time = getTime()
+  local stuckFor = time - lastFollowProgressAt
+  local recoveryDelay = urgent and FOLLOW_TRANSITION_RECOVERY_MS or FOLLOW_STUCK_RECOVERY_MS
+  if stuckFor < recoveryDelay then return false end
+
+  local retryCooldown = urgent and 120 or 300
+  if time - lastFollowRecoveryAt < retryCooldown then return false end
+  lastFollowRecoveryAt = time
+
+  if g_game and g_game.cancelFollow then
+    pcall(function() g_game.cancelFollow() end)
+  end
+
+  if distance > 1 and walkToFollowPosition(pos, 1) then return true end
+  if distance <= 1 and stepIntoFollowPosition(pos) then return true end
+  if distance <= 2 and tryUseFollowTransition(pos, urgent) then return true end
+  if distance > 1 then return walkToFollowPosition(pos, 0) end
+  return false
+end
+
+local function followVisibleTarget(creature)
+  if not creature then return false end
+  local targetPos = copyPosition(creature:getPosition())
+  rememberFollowPosition(targetPos)
+  if not targetPos or targetPos.z ~= getPlayerZ() then return false end
+
+  local time = getTime()
+  local playerPos = getPlayerPosition()
+  local followDistance = distanceBetween(playerPos, targetPos)
+  lastFollowSeenAt = time
+
+  followCreature(creature)
+
+  if followDistance <= 1 then return true end
+
+  if time - lastFollowWalkAt >= FOLLOW_STICKY_WALK_RETRY_MS then
+    walkToFollowPosition(targetPos, 1)
+  end
+
+  local urgent = isRecentFollowTransition(targetPos, time)
+  recoverFollowPath(targetPos, followDistance, urgent)
+  return true
+end
+
 local function chaseFollowName()
   if not settings.enabled or not settings.followEnabled then
     if followWasActive and g_game and g_game.cancelFollow then
@@ -797,12 +865,7 @@ local function chaseFollowName()
 
   local followTarget = getCreatureByName(name)
   if followTarget then
-    local targetPos = copyPosition(followTarget:getPosition())
-    rememberFollowPosition(targetPos)
-    if targetPos and targetPos.z == getPlayerZ() then
-      followCreature(followTarget)
-      return
-    end
+    if followVisibleTarget(followTarget) then return end
   end
 
   local currentZ = getPlayerZ()
@@ -815,7 +878,15 @@ local function chaseFollowName()
   end
   if lastPos then
     local followDistance = distanceBetween(playerPos, lastPos)
-    local walking = walkToFollowPosition(lastPos, 0)
+    local urgent = isRecentFollowTransition(lastPos, time)
+    local walking = false
+
+    if urgent and followDistance <= 1 then
+      if stepIntoFollowPosition(lastPos) then return end
+      if tryUseFollowTransition(lastPos, true) then return end
+    end
+
+    walking = walkToFollowPosition(lastPos, 0)
 
     if not walking and followDistance > 1 then
       walking = walkToFollowPosition(lastPos, 1)
@@ -838,10 +909,12 @@ local function chaseFollowName()
         tryUseFollowTransition(lastPos, true)
       end
     end
+
+    recoverFollowPath(lastPos, followDistance, urgent)
   end
 end
 
-macro(100, function()
+macro(50, function()
   chaseFollowName()
 end)
 
@@ -851,6 +924,7 @@ onCreaturePositionChange(function(creature, newPos, oldPos)
   if oldPos then rememberFollowPosition(oldPos) end
   if newPos then rememberFollowPosition(newPos) end
   if oldPos and newPos and oldPos.z ~= newPos.z then
+    lastFollowTransitionAt = getTime()
     local playerZ = getPlayerZ()
     if oldPos.z == playerZ then
       lastFollowTransitionPosition = copyPosition(oldPos)
@@ -861,9 +935,11 @@ onCreaturePositionChange(function(creature, newPos, oldPos)
     end
   end
   if oldPos and newPos and oldPos.z ~= newPos.z and type(schedule) == "function" then
-    schedule(80, chaseFollowName)
+    schedule(40, chaseFollowName)
+    schedule(100, chaseFollowName)
     schedule(220, chaseFollowName)
-    schedule(500, chaseFollowName)
+    schedule(400, chaseFollowName)
+    schedule(700, chaseFollowName)
   end
 end)
 
@@ -878,6 +954,17 @@ onPlayerPositionChange(function(newPos, oldPos)
   schedule(350, chaseFollowName)
   schedule(650, chaseFollowName)
 end)
+
+local function refreshLeaderFollowAfterCombat()
+  if not settings.enabled or not settings.followEnabled or getFollowName() == "" then return end
+
+  chaseFollowName()
+  if type(schedule) == "function" then
+    schedule(60, chaseFollowName)
+    schedule(160, chaseFollowName)
+    schedule(320, chaseFollowName)
+  end
+end
 
 local function findLeaderOnTile(tile)
   if not tile then return nil end
@@ -954,6 +1041,7 @@ local function triggerComboOnCreature(creature)
     say(settings.comboSpell)
   end
 
+  refreshLeaderFollowAfterCombat()
   return true
 end
 
@@ -1259,6 +1347,7 @@ onTalk(function(name, level, mode, text)
       if commandTarget then
         if command == "sd" then
           useItemWithId(settings.comboRuneId, commandTarget)
+          refreshLeaderFollowAfterCombat()
         elseif command == "att" then
           triggerComboOnCreature(commandTarget)
         end

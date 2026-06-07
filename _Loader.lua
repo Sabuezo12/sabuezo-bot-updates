@@ -41,7 +41,7 @@ local loaderSections = {
       "vBot/TimerExecutor",
       ----"vBot/zzzz_ComboAttack", -- replaced by combo_plus
       "vBot/pushmax",
-      "vBot/magicbag",
+      ----"vBot/magicbag", -- disabled: automatic magic bag selling
       "vBot/BugMapMouse",
       "vBot/keepwall",
       "vBot/ingame_editor",
