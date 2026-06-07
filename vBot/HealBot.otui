@@ -8,8 +8,6 @@ SpellSourceBoxPopupMenu < ComboBoxPopupMenu
 SpellSourceBoxPopupMenuButton < ComboBoxPopupMenuButton
 SpellSourceBox < ComboBox
   @onSetup: |
-    self:addOption("Current Mana")
-    self:addOption("Current Health")
     self:addOption("Mana Percent")
     self:addOption("Health Percent")
     self:addOption("Burst Damage")
@@ -193,7 +191,8 @@ HealBotSpellHealingV3 < FlatPanel
     margin-left: 4
     width: 70
     font: verdana-11px-rounded
-    tooltip: Mana cost (e.g. 90)
+    text: 0
+    tooltip: Mana minimo requerido. Usa 0 para desactivar este filtro.
 
   Label
     id: spellCooldownLabel

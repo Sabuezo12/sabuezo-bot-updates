@@ -564,6 +564,11 @@ onTextMessage(function(mode, text)
   if EquipManager and EquipManager.setOff then pcall(EquipManager.setOff) end
 
   schedule(100, function()
+    if not isCaveBotActive() or not CaveBot.Config.values.antiRed then
+      CaveBot.Config.antiRedExitScheduled = false
+      return
+    end
+
     antiRedUnequipLeft()
     caveBotSafetyExit()
   end)

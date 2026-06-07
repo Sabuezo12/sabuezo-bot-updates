@@ -181,11 +181,7 @@ end
 activeProfileColor()
 
 local sourceFromOption = function(text)
-  if text == "Current Mana" then
-    return "MP"
-  elseif text == "Current Health" then
-    return "HP"
-  elseif text == "Mana Percent" then
+  if text == "Mana Percent" then
     return "MP%"
   elseif text == "Health Percent" then
     return "HP%"
@@ -195,9 +191,9 @@ end
 
 local optionFromSource = function(source)
   if source == "MP" then
-    return "Current Mana"
+    return "Mana Percent"
   elseif source == "HP" then
-    return "Current Health"
+    return "Health Percent"
   elseif source == "MP%" then
     return "Mana Percent"
   elseif source == "HP%" then
@@ -271,6 +267,21 @@ local conditionMatches = function(origin, sign, value)
   end
 
   return false
+end
+
+local normalizeManaCost = function(value)
+  return math.max(0, tonumber(value) or 0)
+end
+
+local currentManaAmount = function()
+  if player and player.getMana then
+    local ok, value = pcall(function() return player:getMana() end)
+    if ok and tonumber(value) then
+      return tonumber(value)
+    end
+  end
+
+  return tonumber(mana()) or 0
 end
 
 local extraSummary = function(entry)
@@ -573,7 +584,7 @@ if rootWidget then
   
   -- Inyección de tooltips mejorada
   healWindow.healer.spells.spellFormula:setTooltip('Spell Words (Ej: exura med ico)')
-  healWindow.healer.spells.manaCost:setTooltip('Mana Cost (Ej: 90)')
+  healWindow.healer.spells.manaCost:setTooltip('Mana minimo requerido. 0 desactiva este filtro.')
   healWindow.healer.spells.spellValue:setTooltip('Poner valor de disparo (Ej: 80)')
   healWindow.healer.spells.spellExtraValue:setTooltip('Valor de disparo extra')
   healWindow.healer.spells.spellCooldown:setTooltip('Cooldown manual opcional: 3m, 30s, 180000ms')
@@ -590,7 +601,7 @@ if rootWidget then
   setTip(healWindow.healer.spells.spellCondition, 'Condition (e.g. Below)')
   setTip(healWindow.healer.spells.spellValue, 'Trigger value (e.g. 80)')
   setTip(healWindow.healer.spells.spellFormula, 'Spell words (e.g. exura med ico)')
-  setTip(healWindow.healer.spells.manaCost, 'Mana cost required to cast (e.g. 90)')
+  setTip(healWindow.healer.spells.manaCost, 'Mana minimo requerido para lanzar. Usa 0 para desactivar este filtro.')
   setTip(healWindow.healer.spells.spellCooldown, 'Manual cooldown. Empty or 0 disables it. Use 3m, 30s, 1h, or 180000ms.')
   setTip(healWindow.healer.spells.spellAdvanced, 'Enable a second condition')
   setTip(healWindow.healer.spells.spellExtraRelation, 'How to combine both conditions: and / or')
@@ -681,7 +692,7 @@ if rootWidget then
     if clear then
       healWindow.healer.spells.spellFormula:setText('')
       healWindow.healer.spells.spellValue:setText('')
-      healWindow.healer.spells.manaCost:setText('')
+      healWindow.healer.spells.manaCost:setText('0')
       healWindow.healer.spells.spellCooldown:setText('')
       healWindow.healer.spells.spellAdvanced:setChecked(false)
       setComboOption(healWindow.healer.spells.spellExtraRelation, "and")
@@ -728,7 +739,7 @@ if rootWidget then
     setComboOption(healWindow.healer.spells.spellCondition, optionFromSign(entry.sign))
     healWindow.healer.spells.spellValue:setText(tostring(entry.value or ""))
     healWindow.healer.spells.spellFormula:setText(entry.spell or "")
-    healWindow.healer.spells.manaCost:setText(tostring(entry.cost or ""))
+    healWindow.healer.spells.manaCost:setText(tostring(normalizeManaCost(entry.cost)))
     healWindow.healer.spells.spellCooldown:setText(formatManualCooldown(entry.cooldown))
     loadAdvancedEditor(healWindow.healer.spells, "spell", entry)
   end
@@ -772,7 +783,7 @@ if rootWidget then
           standByItems = false
           editSpellEntry(entry)
         end
-        label:setText("(MP>" .. entry.cost .. ") " .. entry.origin .. entry.sign .. entry.value .. extraSummary(entry) .. cooldownSummary(entry) .. ": " .. entry.spell)
+        label:setText("(MP>=" .. normalizeManaCost(entry.cost) .. ") " .. entry.origin .. entry.sign .. entry.value .. extraSummary(entry) .. cooldownSummary(entry) .. ": " .. entry.spell)
       end
     end
   end
@@ -868,7 +879,7 @@ if rootWidget then
   healWindow.healer.spells.addSpell.onClick = function(widget)
   
     local spellFormula = healWindow.healer.spells.spellFormula:getText():trim()
-    local manaCost = tonumber(healWindow.healer.spells.manaCost:getText())
+    local manaCost = normalizeManaCost(healWindow.healer.spells.manaCost:getText())
     local spellTrigger = tonumber(healWindow.healer.spells.spellValue:getText())
     local spellCooldown = parseManualCooldown(healWindow.healer.spells.spellCooldown:getText())
     local spellSource = healWindow.healer.spells.spellSource:getCurrentOption().text
@@ -876,18 +887,11 @@ if rootWidget then
     local source
     local equasion
 
-    if not manaCost then  
-      warn("HealBot: incorrect mana cost value!")       
-      healWindow.healer.spells.spellFormula:setText('')
-      healWindow.healer.spells.spellValue:setText('')
-      healWindow.healer.spells.manaCost:setText('') 
-      return 
-    end
     if not spellTrigger then  
       warn("HealBot: incorrect condition value!") 
       healWindow.healer.spells.spellFormula:setText('')
       healWindow.healer.spells.spellValue:setText('')
-      healWindow.healer.spells.manaCost:setText('')
+      healWindow.healer.spells.manaCost:setText('0')
       return 
     end
     if not spellCooldown then
@@ -1089,7 +1093,7 @@ macro(100, function()
   local somethingIsOnCooldown = false
 
   for _, entry in pairs(currentSettings.spellTable) do
-    if entry.enabled and entry.cost < mana() and entryConditionsPass(entry) then
+    if entry.enabled and currentManaAmount() >= normalizeManaCost(entry.cost) and entryConditionsPass(entry) then
       if not isManualCooldownReady("spell", entry) then
         somethingIsOnCooldown = true
       elseif canCast(entry.spell, not currentSettings.Conditions, not currentSettings.Cooldown) then

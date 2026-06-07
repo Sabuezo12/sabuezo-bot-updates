@@ -201,11 +201,22 @@ end
 
 -- public function, you can use them in your scripts
 CaveBot.isOn = function()
-  return config.isOn()
+  if not config or not config.isOn or not config.isOn() then
+    return false
+  end
+
+  if cavebotMacro and cavebotMacro.isOn then
+    local ok, enabled = pcall(function() return cavebotMacro.isOn() end)
+    if ok then
+      return enabled == true
+    end
+  end
+
+  return true
 end
 
 CaveBot.isOff = function()
-  return config.isOff()
+  return not CaveBot.isOn()
 end
 
 CaveBot.setOn = function(val)
