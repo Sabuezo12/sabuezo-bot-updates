@@ -16,8 +16,6 @@ end
 local config = storage[panelName]
 local holdTargetId = nil
 local lastAutoExiva = 0
-local lastHoldAttackAt = 0
-local HOLD_REATTACK_INTERVAL = 250
 
 local function getTime()
   if now then return now end
@@ -84,11 +82,6 @@ local function sameFloor(creature)
   return creature and creature:getPosition() and creature:getPosition().z == posz()
 end
 
-local function sameCreatureName(creature, name)
-  name = cleanName(name):lower()
-  return name ~= "" and creature and creature:getName() and cleanName(creature:getName()):lower() == name
-end
-
 local function rememberPlayer(creature)
   if not creature or not isPlayer(creature) then return end
   local name = cleanName(creature:getName())
@@ -143,34 +136,6 @@ local function runAutoExiva()
   return false
 end
 
-local function findHoldTarget()
-  local holdName = cleanName(config.holdTargetName)
-
-  for _, spec in ipairs(getSpectators()) do
-    if spec and sameFloor(spec) and not isNpc(spec) then
-      if holdTargetId and spec:getId() == holdTargetId then
-        return spec
-      end
-      if sameCreatureName(spec, holdName) then
-        return spec
-      end
-    end
-  end
-
-  return nil
-end
-
-local function attackHoldTarget(creature)
-  if not creature or not sameFloor(creature) or isNpc(creature) then return false end
-
-  rememberHoldTarget(creature)
-
-  local time = getTime()
-  if time - lastHoldAttackAt < HOLD_REATTACK_INTERVAL then return true end
-  lastHoldAttackAt = time
-  return attackCreature(creature)
-end
-
 onAttackingCreatureChange(function(newCreature, oldCreature)
   if newCreature then
     rememberPlayer(newCreature)
@@ -205,14 +170,16 @@ macro(100, function()
 
   local currentTarget = getAttackTarget()
   if currentTarget and sameFloor(currentTarget) and not isNpc(currentTarget) then
-    return attackHoldTarget(currentTarget)
+    rememberHoldTarget(currentTarget)
+    return
   end
 
-  if not holdTargetId and cleanName(config.holdTargetName) == "" then return end
+  if not holdTargetId then return end
 
-  local heldTarget = findHoldTarget()
-  if heldTarget then
-    return attackHoldTarget(heldTarget)
+  for _, spec in ipairs(getSpectators()) do
+    if spec and sameFloor(spec) and spec:getId() == holdTargetId then
+      return attackCreature(spec)
+    end
   end
 end)
 
