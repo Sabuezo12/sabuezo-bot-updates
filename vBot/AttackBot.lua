@@ -1129,6 +1129,45 @@ function getPattern(category, pattern, safe)
   return spellPatterns[category][pattern][safe]
 end
 
+local function isAttackBotFriendlyPlayer(spec)
+  if not spec or spec == player then return true end
+  if not spec:isPlayer() then return false end
+  if spec:isLocalPlayer() then return true end
+  if spec:isPartyMember() then return true end
+
+  local name = spec:getName()
+  if not name then return false end
+
+  if PlayerList then
+    if PlayerList.isFriend then
+      local ok, result = pcall(function() return PlayerList.isFriend(name) end)
+      if ok and result then return true end
+    end
+    if PlayerList.isGuildMember then
+      local ok, result = pcall(function() return PlayerList.isGuildMember(name) end)
+      if ok and result then return true end
+    end
+  end
+
+  if isFriend then
+    local ok, result = pcall(function() return isFriend(spec) end)
+    if ok and result then return true end
+  end
+
+  return false
+end
+
+local function hasUnsafePlayerInAttackBotRange(range)
+  range = range or 10
+  for _, spec in pairs(getSpectators()) do
+    if spec ~= player and spec:isPlayer() and distanceFromPlayer(spec:getPosition()) <= range and
+      not isAttackBotFriendlyPlayer(spec) then
+      return true
+    end
+  end
+  return false
+end
+
 
 function getMonstersInArea(category, posOrCreature, pattern, minHp, maxHp, safePattern, monsterNamesTable)
   -- monsterNamesTable can be nil
@@ -1142,7 +1181,7 @@ function getMonstersInArea(category, posOrCreature, pattern, minHp, maxHp, safeP
 
   if safePattern then
     for i, spec in pairs(getSpectators(posOrCreature, safePattern)) do
-      if spec ~= player and (spec:isPlayer() and not spec:isPartyMember()) then
+      if spec ~= player and spec:isPlayer() and not isAttackBotFriendlyPlayer(spec) then
         return 0
       end
     end
@@ -1307,7 +1346,7 @@ macro(100, function()
           local anchorParam = (pattern == 2 or pattern == 6 or pattern == 7 or pattern > 9) and player or pos()
           local safe = currentSettings.PvpSafe and spellPatterns[pCat][entry.pattern][2] or false
           local monsterAmount = pCat ~= 8 and getMonstersInArea(entry.category, anchorParam, spellPatterns[pCat][entry.pattern][1], entry.minHp, entry.maxHp, safe, entry.monsters)
-          if (pattern ~= 8 and (entry.orMore and monsterAmount >= entry.count or not entry.orMore and monsterAmount == entry.count)) or (pattern == 8 and bestSide >= entry.count and (not currentSettings.PvpSafe or getPlayers(2) == 0)) then
+          if (pattern ~= 8 and (entry.orMore and monsterAmount >= entry.count or not entry.orMore and monsterAmount == entry.count)) or (pattern == 8 and bestSide >= entry.count and (not currentSettings.PvpSafe or not hasUnsafePlayerInAttackBotRange(2))) then
             if (not currentSettings.BlackListSafe or not isBlackListedPlayerInRange(currentSettings.AntiRsRange)) and (not currentSettings.Kills or killsToRs() > currentSettings.KillsAmount) then
               return executeAttackBotAction(entry.category, attackData, entry.cooldown)
             end

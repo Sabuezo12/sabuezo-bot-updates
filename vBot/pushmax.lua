@@ -28,6 +28,12 @@ Panel
 
 ]])
 ui:setId(panelName)
+if ui.title.setTooltip then
+  ui.title:setTooltip("Activa o desactiva PUSHMAX.")
+end
+if ui.push.setTooltip then
+  ui.push:setTooltip("Abre la configuracion visual de PUSHMAX.")
+end
 
 if not storage[panelName] then
   storage[panelName] = {
@@ -70,6 +76,25 @@ rootWidget = g_ui.getRootWidget()
 if rootWidget then
   pushWindow = UI.createWindow('PushMaxWindow', rootWidget)
   pushWindow:hide()
+
+  local setTooltip = function(widget, text)
+    if widget and widget.setTooltip then
+      widget:setTooltip(text)
+    end
+  end
+
+  setTooltip(pushWindow.delayText, "Delay general para push largo y magic walls. No controla el cooldown real de push 1 sqm.")
+  setTooltip(pushWindow.delay, "Delay general del push normal. El push 1 sqm y los delays despues de runa se ajustan en este lua.")
+  setTooltip(pushWindow.label3, "Runa usada contra anti-push/trash debajo del target. Normalmente fire field.")
+  setTooltip(pushWindow.runeId, "ID de la runa que se tira sobre el target si tiene trash debajo.")
+  setTooltip(pushWindow.label2, "ID del objeto de magic wall ya puesto en el piso.")
+  setTooltip(pushWindow.mwallId, "Objeto de magic wall que bloquea el tile. Sirve para esperar a que expire.")
+  setTooltip(pushWindow.label4, "Runa para cerrar con magic wall cuando el target llega al destino final.")
+  setTooltip(pushWindow.finalMwallRuneId, "ID de la runa de magic wall final.")
+  setTooltip(pushWindow.label5, "IDs de fields que Destroy Field debe limpiar antes de empujar.")
+  setTooltip(pushWindow.destroyFieldIds, "Lista separada por comas. Si un server usa fields custom, agrega sus IDs aqui.")
+  setTooltip(pushWindow.label1, "Hotkey para marcar target/destino. Mantener presionada mucho tiempo marca CLEAR.")
+  setTooltip(pushWindow.hotkey, "Nombre de la tecla usada para PUSHMAX, por ejemplo PageUp.")
 
   pushWindow.closeButton.onClick = function(widget)
     pushWindow:hide()
@@ -116,17 +141,32 @@ if rootWidget then
 end
 
 -- variables for config
+-- Guia rapida:
+-- - ONE_SQM_PUSH_COOLDOWN controla el tiempo real entre pushes cuando estas pegado al target
+--   y el destino marcado esta exactamente a 1 sqm. En este server ahora debe ser 1000 ms.
+-- - Si el server cambia otra vez el delay de push, cambia primero ONE_SQM_PUSH_COOLDOWN.
+-- - ONE_SQM_AFTER_RUNE_PUSH_DELAY controla cuanto esperar despues de usar runa cuando estas
+--   pegado al target. En este server la medicion real es 3000 ms.
+-- - DISTANCE_AFTER_RUNE_PUSH_DELAY controla cuanto esperar despues de usar runa cuando el push
+--   viene desde distancia/ruta larga. En este server la medicion real es 2000 ms.
+-- - ONE_SQM_HEAL_ITEMS_PAUSE_MS debe ser un poco mayor que ONE_SQM_PUSH_COOLDOWN para push normal.
+--   Cuando se usa runa, el script manda una pausa mas larga solo para ese caso.
+-- - STUCK_FIRST_PUSH_DELAY acompana al delay de push pegado cuando el modo no es 1 sqm directo.
 local DESTROY_FIELD_RUNE_ID = 3148
 local FAST_PUSH_DELAY = 20
 local PLAYER_PUSH_COOLDOWN = 20
-local ONE_SQM_PUSH_COOLDOWN = 500 -- tiempo minimo entre pushes cuando estas pegado y el destino es 1 sqm
+local ONE_SQM_PUSH_COOLDOWN = 1000 -- tiempo minimo entre pushes pegado + destino 1 sqm. Cambiar aqui si el server cambia el delay.
+local ONE_SQM_AFTER_RUNE_PUSH_DELAY = 3000 -- despues de usar runa pegado al target, espera real antes de poder mover.
+local DISTANCE_AFTER_RUNE_PUSH_DELAY = 2000 -- despues de usar runa desde distancia/ruta larga, espera real antes de poder mover.
 local ONE_SQM_POST_PUSH_DELAY = 20 -- delay despues de mandar el push directo de 1 sqm
 local ONE_SQM_CLEAR_FIELD_PUSH_DELAY = 10 -- despues de destroy field, intenta empujar casi inmediato
 local ONE_SQM_CLEAR_FIELD_RETRY_MS = 600 -- ventana maxima para esperar que desaparezca el field
 local ONE_SQM_ANTIPUSH_RUNE_DELAY = 20 -- delay minimo despues de tirar fire field/antipush rune
 local ONE_SQM_ANTIPUSH_PUSH_DELAY = 100 -- espera para empujar despues de tirar fire field contra antipush
 local ONE_SQM_QUEUE_RETRY_STEP = 10 -- cada cuantos ms revisa si ya puede empujar despues de limpiar field
-local ONE_SQM_HEAL_ITEMS_PAUSE_MS = 500
+local ONE_SQM_HEAL_ITEMS_PAUSE_MS = 1200 -- pausa items del HealBot durante push 1 sqm normal.
+local ONE_SQM_RUNE_HEAL_ITEMS_PAUSE_MS = ONE_SQM_AFTER_RUNE_PUSH_DELAY + 200 -- pausa HealBot solo cuando el push 1 sqm uso runa.
+local ONE_SQM_QUEUE_HOLD_MS = math.max(ONE_SQM_PUSH_COOLDOWN, ONE_SQM_AFTER_RUNE_PUSH_DELAY) + 250 -- evita repetir rune/destroy mientras ya hay un push 1 sqm pendiente.
 local AUTO_ROUTE_TARGET_LOST_MS = 400 -- cancela una ruta si el target deja de estar visible brevemente
 local STEP_PUSH_DELAY = 20
 local POST_PUSH_DELAY = 20
@@ -139,7 +179,7 @@ local RETREAT_COOLDOWN = 80
 local RUNUP_PUSH_WINDOW = 10
 local MAGIC_WALL_RUNE_ID = 3180
 local AUTO_ROUTE_LIMIT = 40
-local STUCK_FIRST_PUSH_DELAY = 500
+local STUCK_FIRST_PUSH_DELAY = 1000 -- espera base anti-stuck; conviene igualarlo al cooldown real de push 1 sqm.
 local cleanTile = nil
 
 -- scripts
@@ -171,6 +211,8 @@ local oneSqmPushMode = false -- true solo cuando el comando original es empujar 
 local oneSqmQueuedPushKey = nil
 local oneSqmQueuedPushBaseKey = nil
 local oneSqmQueuedPushAt = 0
+local lastPushRuneAt = 0
+local lastPushRuneDelay = 0
 local getCurrentTargetPlayer
 local autoRouteLastSeenAt = 0
 
@@ -208,6 +250,8 @@ local resetData = function()
   oneSqmQueuedPushKey = nil
   oneSqmQueuedPushBaseKey = nil
   oneSqmQueuedPushAt = 0
+  lastPushRuneAt = 0
+  lastPushRuneDelay = 0
   autoRouteLastSeenAt = 0
 end
 
@@ -290,11 +334,24 @@ local canClearField = function(tile)
   return tile and tile:canShoot() and getFieldThing(tile)
 end
 
-local clearField = function(tile, customDelay)
+local markPushRuneUsed = function(delayMs)
+  lastPushRuneAt = now
+  lastPushRuneDelay = tonumber(delayMs) or 0
+end
+
+local getRunePushCooldownRemaining = function()
+  if lastPushRuneDelay <= 0 then return 0 end
+  return math.max(0, lastPushRuneDelay - (now - lastPushRuneAt))
+end
+
+local clearField = function(tile, customDelay, runePushDelay)
   local fieldThing = canClearField(tile)
   if not fieldThing then return false end
 
   useWith(DESTROY_FIELD_RUNE_ID, fieldThing)
+  if runePushDelay then
+    markPushRuneUsed(runePushDelay)
+  end
   delay(customDelay or POST_PUSH_DELAY)
   return true
 end
@@ -522,17 +579,17 @@ local copyPosition = function(pos)
   return {x = pos.x, y = pos.y, z = pos.z}
 end
 
-local pauseHealItemsForOneSqmPush = function()
+local pauseHealItemsForOneSqmPush = function(customMs)
   if not vBot then return end
 
-  local pauseUntil = now + ONE_SQM_HEAL_ITEMS_PAUSE_MS
+  local pauseUntil = now + (tonumber(customMs) or ONE_SQM_HEAL_ITEMS_PAUSE_MS)
   if not vBot.pauseHealItemsUntil or vBot.pauseHealItemsUntil < pauseUntil then
     vBot.pauseHealItemsUntil = pauseUntil
   end
 end
 
 local getOneSqmPushCooldownRemaining = function()
-  return math.max(0, ONE_SQM_PUSH_COOLDOWN - (now - lastPlayerPushAttemptAt))
+  return math.max(0, ONE_SQM_PUSH_COOLDOWN - (now - lastPlayerPushAttemptAt), getRunePushCooldownRemaining())
 end
 
 local sendOneSqmMove = function(creature, destPos, fromPos, distance)
@@ -1068,7 +1125,8 @@ local queueOneSqmDirectPush = function(creature, tilePos, waitMs, reason, requir
 
   local wait = tonumber(waitMs) or 0
   local maxWait = tonumber(maxWaitMs) or wait
-  if oneSqmQueuedPushKey == queueKey and now - oneSqmQueuedPushAt < wait + maxWait + 100 then
+  local duplicateWindow = math.max(wait + maxWait + 100, ONE_SQM_QUEUE_HOLD_MS)
+  if oneSqmQueuedPushKey == queueKey and now - oneSqmQueuedPushAt < duplicateWindow then
     return true
   end
 
@@ -1127,8 +1185,8 @@ local queueOneSqmDirectPush = function(creature, tilePos, waitMs, reason, requir
     -- IMPORTANTE:
     -- No usar delay() dentro de este callback de schedule().
     -- En OTC/vBot puede lanzar: "Invalid usage of delay function".
-    -- El cooldown real del push de 1 sqm ya queda protegido por lastPlayerPushAttemptAt
-    -- y ONE_SQM_PUSH_COOLDOWN, así que aquí no hace falta delay().
+    -- El cooldown real ya queda protegido por lastPlayerPushAttemptAt,
+    -- ONE_SQM_PUSH_COOLDOWN y el delay post-runa, asi que aqui no hace falta delay().
   end
 
   schedule(wait, tryQueuedPush)
@@ -1147,7 +1205,7 @@ local pushCreatureToTile = function(creature, destination, pushDelay, rune, cust
 
   directOneSqmPush = directOneSqmPush == true
 
-  if directOneSqmPush and hasQueuedOneSqmPush(creature, tilePos, ONE_SQM_ANTIPUSH_PUSH_DELAY + ONE_SQM_CLEAR_FIELD_RETRY_MS + 150) then
+  if directOneSqmPush and hasQueuedOneSqmPush(creature, tilePos, ONE_SQM_QUEUE_HOLD_MS) then
     return true
   end
 
@@ -1157,9 +1215,11 @@ local pushCreatureToTile = function(creature, destination, pushDelay, rune, cust
     local fieldThing = canClearField(destination)
     if not fieldThing then return false end
 
-    pauseHealItemsForOneSqmPush()
+    pauseHealItemsForOneSqmPush(ONE_SQM_RUNE_HEAL_ITEMS_PAUSE_MS)
     useWith(DESTROY_FIELD_RUNE_ID, fieldThing)
-    queueOneSqmDirectPush(creature, tilePos, ONE_SQM_CLEAR_FIELD_PUSH_DELAY, "clearfield", true, ONE_SQM_CLEAR_FIELD_RETRY_MS)
+    markPushRuneUsed(ONE_SQM_AFTER_RUNE_PUSH_DELAY)
+    queueOneSqmDirectPush(creature, tilePos, ONE_SQM_CLEAR_FIELD_PUSH_DELAY, "clearfield", true,
+      math.max(ONE_SQM_CLEAR_FIELD_RETRY_MS, ONE_SQM_AFTER_RUNE_PUSH_DELAY))
     delay(ONE_SQM_CLEAR_FIELD_PUSH_DELAY)
     return true
   end
@@ -1199,22 +1259,27 @@ local pushCreatureToTile = function(creature, destination, pushDelay, rune, cust
   local targetThing = tileOfTarget:getTopUseThing()
   if targetThing and not isCreatureThing(targetThing) and not targetThing:isNotMoveable() and
     destination:getTimer() < pushDelay + 500 then
+    local runeCooldownRemaining = getRunePushCooldownRemaining()
+    if runeCooldownRemaining > 0 then return true end
+
     if directOneSqmPush then
       -- Antipush pegado: en el modo nuevo tambien debe tirar fire field/runa,
       -- pero sin meter la espera vieja de stuck. Programa el push para el timing real del server.
-      pauseHealItemsForOneSqmPush()
+      pauseHealItemsForOneSqmPush(ONE_SQM_RUNE_HEAL_ITEMS_PAUSE_MS)
       useWith(rune, creature)
+      markPushRuneUsed(ONE_SQM_AFTER_RUNE_PUSH_DELAY)
       queueOneSqmDirectPush(creature, tilePos, ONE_SQM_ANTIPUSH_PUSH_DELAY, "antipush", false, ONE_SQM_ANTIPUSH_PUSH_DELAY)
       delay(ONE_SQM_ANTIPUSH_RUNE_DELAY)
       return true
     end
 
     useWith(rune, creature)
+    markPushRuneUsed(DISTANCE_AFTER_RUNE_PUSH_DELAY)
     return true
   end
 
   if isNotOk(getDestroyFieldIds(), destination) then
-    return clearField(destination)
+    return clearField(destination, nil, DISTANCE_AFTER_RUNE_PUSH_DELAY)
   end
 
   local targetPositionKey = positionKey(targetPos)
@@ -1270,6 +1335,9 @@ local pushCreatureToTile = function(creature, destination, pushDelay, rune, cust
       useStuckFirstPushDelay = true
     end
   end
+
+  local runeCooldownRemaining = getRunePushCooldownRemaining()
+  if runeCooldownRemaining > 0 then return true end
 
   if now - lastPlayerPushAttemptAt < playerPushCooldown then return true end
 
