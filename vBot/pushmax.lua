@@ -146,9 +146,9 @@ end
 --   y el destino marcado esta exactamente a 1 sqm. En este server ahora debe ser 1000 ms.
 -- - Si el server cambia otra vez el delay de push, cambia primero ONE_SQM_PUSH_COOLDOWN.
 -- - ONE_SQM_AFTER_RUNE_PUSH_DELAY controla cuanto esperar despues de usar runa cuando estas
---   pegado al target. En este server la medicion real es 3000 ms.
+--   pegado al target antes de programar el push post-runa.
 -- - DISTANCE_AFTER_RUNE_PUSH_DELAY controla cuanto esperar despues de usar runa cuando el push
---   viene desde distancia/ruta larga. En este server la medicion real es 2000 ms.
+--   viene desde distancia/ruta larga.
 -- - ONE_SQM_HEAL_ITEMS_PAUSE_MS debe ser un poco mayor que ONE_SQM_PUSH_COOLDOWN para push normal.
 --   Cuando se usa runa, el script manda una pausa mas larga solo para ese caso.
 -- - STUCK_FIRST_PUSH_DELAY acompana al delay de push pegado cuando el modo no es 1 sqm directo.
@@ -156,29 +156,29 @@ local DESTROY_FIELD_RUNE_ID = 3148
 local FAST_PUSH_DELAY = 20
 local PLAYER_PUSH_COOLDOWN = 20
 local ONE_SQM_PUSH_COOLDOWN = 1000 -- tiempo minimo entre pushes pegado + destino 1 sqm. Cambiar aqui si el server cambia el delay.
-local ONE_SQM_AFTER_RUNE_PUSH_DELAY = 3000 -- despues de usar runa pegado al target, espera real antes de poder mover.
-local DISTANCE_AFTER_RUNE_PUSH_DELAY = 2000 -- despues de usar runa desde distancia/ruta larga, espera real antes de poder mover.
+local ONE_SQM_AFTER_RUNE_PUSH_DELAY = 20 -- despues de usar runa pegado al target, espera real antes de poder mover.
+local DISTANCE_AFTER_RUNE_PUSH_DELAY = 20 -- despues de usar runa desde distancia/ruta larga, espera real antes de poder mover.
 local ONE_SQM_POST_PUSH_DELAY = 20 -- delay despues de mandar el push directo de 1 sqm
 local ONE_SQM_CLEAR_FIELD_PUSH_DELAY = 10 -- despues de destroy field, intenta empujar casi inmediato
-local ONE_SQM_CLEAR_FIELD_RETRY_MS = 600 -- ventana maxima para esperar que desaparezca el field
+local ONE_SQM_CLEAR_FIELD_RETRY_MS = 200 -- ventana maxima para esperar que desaparezca el field
 local ONE_SQM_ANTIPUSH_RUNE_DELAY = 20 -- delay minimo despues de tirar fire field/antipush rune
 local ONE_SQM_ANTIPUSH_PUSH_DELAY = 100 -- espera para empujar despues de tirar fire field contra antipush
 local ONE_SQM_QUEUE_RETRY_STEP = 10 -- cada cuantos ms revisa si ya puede empujar despues de limpiar field
 local ONE_SQM_HEAL_ITEMS_PAUSE_MS = 1200 -- pausa items del HealBot durante push 1 sqm normal.
 local ONE_SQM_RUNE_HEAL_ITEMS_PAUSE_MS = ONE_SQM_AFTER_RUNE_PUSH_DELAY + 200 -- pausa HealBot solo cuando el push 1 sqm uso runa.
 local ONE_SQM_QUEUE_HOLD_MS = math.max(ONE_SQM_PUSH_COOLDOWN, ONE_SQM_AFTER_RUNE_PUSH_DELAY) + 250 -- evita repetir rune/destroy mientras ya hay un push 1 sqm pendiente.
-local AUTO_ROUTE_TARGET_LOST_MS = 400 -- cancela una ruta si el target deja de estar visible brevemente
+local AUTO_ROUTE_TARGET_LOST_MS = 15000 -- espera para reenganchar la ruta si el target cambia de piso o deja de estar visible
 local STEP_PUSH_DELAY = 20
 local POST_PUSH_DELAY = 20
 local TURBO_PREDICTED_ROUTE = true
 local PREDICTED_POST_PUSH_DELAY = 20
 local PREDICTED_ROUTE_IMMEDIATE_PUSH = true
 local PREDICTED_ROUTE_SKIP_TEXT_UPDATE = false
-local STUCK_RETREAT_DELAY = 250
-local RETREAT_COOLDOWN = 80
-local RUNUP_PUSH_WINDOW = 10
+local STUCK_RETREAT_DELAY = 350
+local RETREAT_COOLDOWN = 250
+local RUNUP_PUSH_WINDOW = 20
 local MAGIC_WALL_RUNE_ID = 3180
-local AUTO_ROUTE_LIMIT = 40
+local AUTO_ROUTE_LIMIT = 5
 local STUCK_FIRST_PUSH_DELAY = 1000 -- espera base anti-stuck; conviene igualarlo al cooldown real de push 1 sqm.
 local cleanTile = nil
 
@@ -216,11 +216,16 @@ local lastPushRuneDelay = 0
 local getCurrentTargetPlayer
 local autoRouteLastSeenAt = 0
 
+local isPushRouteText = function(text)
+  return text == "TARGET" or text == "DEST" or text == ">> DEST <<" or text == "CLEAR" or
+    text == "PUSH X" or text == "PUSH Y" or
+    (text and (text:find("^PUSH %d+$") or text:find("^PUSH%d+$") or text:find("^>> PUSH %d+ <<$")))
+end
+
 local resetData = function()
   for i, tile in pairs(g_map.getTiles(posz())) do
     local text = tile:getText()
-    if text == "TARGET" or text == "DEST" or text == "CLEAR" or
-      text == "PUSH X" or text == "PUSH Y" or (text and text:find("^PUSH %d+$")) then
+    if isPushRouteText(text) then
       tile:setText('')
     end
   end
@@ -748,8 +753,7 @@ end
 local clearRouteTexts = function()
   for i, tile in pairs(g_map.getTiles(posz())) do
     local text = tile:getText()
-    if text == "TARGET" or text == "DEST" or text == "PUSH X" or text == "PUSH Y" or
-      (text and text:find("^PUSH %d+$")) then
+    if isPushRouteText(text) then
       tile:setText("")
     end
   end
@@ -763,10 +767,11 @@ local showRoute = function(route)
   routeTiles = route or {}
   routeTextSignature = signature
 
-  local finalPos = routeTiles[#routeTiles]
-  local finalTile = finalPos and g_map.getTile(finalPos) or nil
-  if finalTile then
-    finalTile:setText("DEST")
+  for i, pos in ipairs(routeTiles) do
+    local tile = g_map.getTile(pos)
+    if tile then
+      tile:setText(i == #routeTiles and "DEST" or ("PUSH" .. i))
+    end
   end
 
   sourceTile = routeTiles[1] and g_map.getTile(routeTiles[1]) or nil
@@ -1442,19 +1447,8 @@ onCreaturePositionChange(function(creature, newPos, oldPos)
   if creature == player then
     if cleanTile or targetTile or (pushTarget and not autoRouteDestination) then
       resetData()
-    elseif autoRouteDestination and newPos and autoRouteDestination.z ~= newPos.z then
-      resetData()
-      return
     elseif not autoRouteDestination and routeTiles[1] and newPos and routeTiles[1].z ~= newPos.z then
       resetData()
-    end
-  end
-
-  if autoRouteDestination and routeTargetId and newPos and hasPosition(newPos) then
-    local okId, creatureId = pcall(function() return creature:getId() end)
-    if okId and creatureId == routeTargetId and autoRouteDestination.z ~= newPos.z then
-      resetData()
-      return
     end
   end
 
@@ -1476,7 +1470,13 @@ onAttackingCreatureChange(function(newCreature, oldCreature)
     if ok and isPlayerTarget then
       local newTargetId = newCreature:getId()
       if autoRouteDestination and routeTargetId and newTargetId ~= routeTargetId then
-        resetData()
+        local newTargetName = newCreature:getName()
+        if currentAttackTargetName and newTargetName == currentAttackTargetName then
+          routeTargetId = newTargetId
+        else
+          resetData()
+          return
+        end
       end
       currentAttackTargetId = newTargetId
       currentAttackTargetName = newCreature:getName()
@@ -1538,6 +1538,12 @@ macro(20, function()
     end
   elseif autoRouteDestination and routeTargetId then
     local routeTarget = getCreatureById(routeTargetId)
+    if not routeTarget and currentAttackTargetName then
+      routeTarget = getCreatureByName(currentAttackTargetName)
+      if routeTarget then
+        routeTargetId = routeTarget:getId()
+      end
+    end
     if not routeTarget then
       if autoRouteLastSeenAt == 0 then autoRouteLastSeenAt = now end
       if now - autoRouteLastSeenAt >= AUTO_ROUTE_TARGET_LOST_MS then resetData() end
@@ -1547,14 +1553,15 @@ macro(20, function()
     local routeTargetPos = routeTarget:getPosition()
     if not hasPosition(routeTargetPos) then return end
     if autoRouteDestination.z ~= routeTargetPos.z then
-      resetData()
-      return
+      clearRouteTexts()
+      routeTiles = {}
+      routeTextSignature = ""
+      autoRouteDestination.z = routeTargetPos.z
     end
     autoRouteLastSeenAt = now
 
     local playerPos = player:getPosition()
     if not hasPosition(playerPos) or playerPos.z ~= routeTargetPos.z then
-      resetData()
       return
     end
 

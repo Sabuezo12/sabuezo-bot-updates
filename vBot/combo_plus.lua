@@ -1020,7 +1020,7 @@ local function useItemWithId(itemId, targetThing)
   return false
 end
 
-local function triggerComboOnCreature(creature)
+local function triggerComboOnCreature(creature, castSpellFromTrigger)
   if not settings.enabled or not creature then return false end
   if creature:isLocalPlayer() or isFriend(creature) then return false end
 
@@ -1037,7 +1037,7 @@ local function triggerComboOnCreature(creature)
     useItemWithId(settings.comboRuneId, creature)
   end
 
-  if settings.comboSpellEnabled and trim(settings.comboSpell):len() > 0 then
+  if castSpellFromTrigger == true and settings.comboSpellEnabled and trim(settings.comboSpell):len() > 0 then
     say(settings.comboSpell)
   end
 
@@ -1063,7 +1063,7 @@ local function triggerComboFromLeaderText(text)
 
   local currentTarget = getCurrentTarget()
   if currentTarget then
-    return triggerComboOnCreature(currentTarget)
+    return triggerComboOnCreature(currentTarget, true)
   end
 
   return triggerComboWithoutTarget()
