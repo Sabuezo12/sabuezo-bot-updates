@@ -314,10 +314,12 @@ local followWasActive = false
 local lastFollowSeenAt = 0
 local lastFollowTransitionAt = 0
 local lastFollowRecoveryAt = 0
+local followFreedAfterLost = false
 local FOLLOW_STICKY_WALK_RETRY_MS = 150
 local FOLLOW_STUCK_RECOVERY_MS = 550
 local FOLLOW_TRANSITION_RECOVERY_MS = 180
 local FOLLOW_TRANSITION_TTL_MS = 8000
+local FOLLOW_LOST_FREE_MS = 8000
 local FOLLOW_DOOR_IDS = {
   5007, 8265, 31570, 1629, 1632, 5129, 6252, 6249, 7715, 7712, 7714,
   7719, 6256, 1669, 1672, 5125, 5115, 5124, 17701, 17710, 1642,
@@ -465,6 +467,7 @@ local function resetFollowMemoryIfNeeded()
   lastFollowSeenAt = 0
   lastFollowTransitionAt = 0
   lastFollowRecoveryAt = 0
+  followFreedAfterLost = false
   if g_game and g_game.cancelFollow then
     pcall(function() g_game.cancelFollow() end)
   end
@@ -820,6 +823,7 @@ local function followVisibleTarget(creature)
   local playerPos = getPlayerPosition()
   local followDistance = distanceBetween(playerPos, targetPos)
   lastFollowSeenAt = time
+  followFreedAfterLost = false
 
   followCreature(creature)
 
@@ -866,6 +870,14 @@ local function chaseFollowName()
   local followTarget = getCreatureByName(name)
   if followTarget then
     if followVisibleTarget(followTarget) then return end
+  end
+
+  if lastFollowSeenAt > 0 and time - lastFollowSeenAt > FOLLOW_LOST_FREE_MS then
+    if not followFreedAfterLost and g_game and g_game.cancelFollow then
+      pcall(function() g_game.cancelFollow() end)
+    end
+    followFreedAfterLost = true
+    return
   end
 
   local currentZ = getPlayerZ()
