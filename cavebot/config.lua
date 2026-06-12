@@ -519,6 +519,17 @@ CaveBot.Config.set = function(id, value)
 end
 
 local followPausePausedByConfig = false
+local followPauseNoFollowSince = 0
+local FOLLOW_PAUSE_RESUME_DELAY_MS = 5000
+
+local function followPauseNow()
+  if type(now) == "number" then return now end
+  if g_clock and g_clock.millis then
+    local ok, value = pcall(function() return g_clock.millis() end)
+    if ok and type(value) == "number" then return value end
+  end
+  return os and os.clock and math.floor(os.clock() * 1000) or 0
+end
 
 local function getFollowingPlayer()
   if not g_game or not g_game.getFollowingCreature then return nil end
@@ -545,6 +556,7 @@ end
 
 macro(200, function()
   if not CaveBot.Config.values.pauseWhileFollowing then
+    followPauseNoFollowSince = 0
     if followPausePausedByConfig then
       followPausePausedByConfig = false
       setCaveBotStateByFollow(true)
@@ -553,6 +565,7 @@ macro(200, function()
   end
 
   if getFollowingPlayer() then
+    followPauseNoFollowSince = 0
     if isCaveBotActive() then
       followPausePausedByConfig = true
       setCaveBotStateByFollow(false)
@@ -561,6 +574,16 @@ macro(200, function()
   end
 
   if followPausePausedByConfig then
+    local time = followPauseNow()
+    if followPauseNoFollowSince == 0 then
+      followPauseNoFollowSince = time
+      return
+    end
+    if time - followPauseNoFollowSince < FOLLOW_PAUSE_RESUME_DELAY_MS then
+      return
+    end
+
+    followPauseNoFollowSince = 0
     followPausePausedByConfig = false
     setCaveBotStateByFollow(true)
   end

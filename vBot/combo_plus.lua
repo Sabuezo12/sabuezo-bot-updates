@@ -38,6 +38,7 @@ local defaults = {
   mwCooldown = 1000,
   followEnabled = false,
   followName = "",
+  followIgnoreFields = false,
   commandsEnabled = true
 }
 
@@ -288,6 +289,7 @@ followSwitch.onClick = function()
   end
 end
 addTextEdit("followName", "Follow Name", "", leftPanel, "Nombre del player que quieres seguir. Puede subir y bajar escaleras usando la ultima posicion vista.")
+addCheckBox("followIgnoreFields", "Follow Ignore Fields", false, leftPanel, "Permite que el follow camine por fire, energy, poison u otros fields si el path lo requiere.")
 
 addCheckBox("mwComboEnabled", "Combo MW", false, rightPanel, "Si el leader tira una MW, intentas tirar otra MW al lado.")
 addModeButtons("mwPattern", "MW Pattern", "auto", rightPanel, "Auto tira a los lados de la MW. Half Circle intenta formar un medio circulo delante de la MW del leader.")
@@ -751,6 +753,7 @@ local function walkToFollowPosition(pos, precision)
   if CaveBot and CaveBot.walkTo then
     local ok, walking = pcall(function()
       return CaveBot.walkTo(pos, 50, {
+        ignoreFields = settings.followIgnoreFields == true,
         ignoreNonPathable = true,
         precision = precision,
         ignoreStairs = false,
@@ -766,7 +769,12 @@ local function walkToFollowPosition(pos, precision)
 
   if type(autoWalk) == "function" then
     local ok = pcall(function()
-      autoWalk(pos, 50, {ignoreNonPathable = true, precision = precision, ignoreStairs = false})
+      autoWalk(pos, 50, {
+        ignoreFields = settings.followIgnoreFields == true,
+        ignoreNonPathable = true,
+        precision = precision,
+        ignoreStairs = false
+      })
     end)
     if ok then
       lastFollowWalkAt = time
