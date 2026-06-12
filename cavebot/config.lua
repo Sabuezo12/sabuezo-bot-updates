@@ -364,6 +364,7 @@ CaveBot.Config.setup = function()
   add("ignoreFields", "Ignore fields", false)  
   add("skipBlocked", "Skip blocked path", false)  
   add("useDelay", "Delay after use", 400)
+  add("pauseWhileFollowing", "Pause while follow", false)
   CaveBot.Config.setupDeathSafetyPanel(ui)
 end
 
@@ -516,6 +517,54 @@ CaveBot.Config.set = function(id, value)
   CaveBot.Config.value_setters[id](value)
   CaveBot.save()
 end
+
+local followPausePausedByConfig = false
+
+local function getFollowingPlayer()
+  if not g_game or not g_game.getFollowingCreature then return nil end
+
+  local ok, creature = pcall(function()
+    return g_game.getFollowingCreature()
+  end)
+  if not ok or not creature then return nil end
+
+  local okPlayer, isPlayer = pcall(function()
+    return creature:isPlayer()
+  end)
+
+  return okPlayer and isPlayer == true and creature or nil
+end
+
+local function setCaveBotStateByFollow(enabled)
+  if enabled then
+    if CaveBot and CaveBot.setOn then pcall(CaveBot.setOn) end
+  else
+    if CaveBot and CaveBot.setOff then pcall(CaveBot.setOff) end
+  end
+end
+
+macro(200, function()
+  if not CaveBot.Config.values.pauseWhileFollowing then
+    if followPausePausedByConfig then
+      followPausePausedByConfig = false
+      setCaveBotStateByFollow(true)
+    end
+    return
+  end
+
+  if getFollowingPlayer() then
+    if isCaveBotActive() then
+      followPausePausedByConfig = true
+      setCaveBotStateByFollow(false)
+    end
+    return
+  end
+
+  if followPausePausedByConfig then
+    followPausePausedByConfig = false
+    setCaveBotStateByFollow(true)
+  end
+end)
 
 macro(500, function()
   if hasActiveDeathWait() then
