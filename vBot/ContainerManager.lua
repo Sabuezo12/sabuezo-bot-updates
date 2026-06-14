@@ -40,7 +40,7 @@ if type(storage[panelName]) ~= "table" then
     list = {
       {
         eId = 2854,
-        eName = "Main",
+        eName = "Main Bp",
         eEnabled = true,
         eMinimize = false,
         eInfinite = false,
@@ -234,7 +234,7 @@ BackpackName < Label
     tooltip: Auto Next Page Container
 
 CMUI < MainWindow
-  !text: tr('Container Manager - Revamped by F.Almeida')
+  !text: tr('Container Manager - By Sabuezo')
   font: verdana-11px-rounded
   size: 550 250
   @onEscape: self:hide()
@@ -423,8 +423,7 @@ CMUI < MainWindow
     margin-top: 15
     margin-right: 5
     font: verdana-11px-rounded    
-    !tooltip: tr('Original made by Lee#7225\nImproved by Vithrax\nRevamped by F.Almeida#8019')
-    @onClick: g_platform.openUrl("https://www.paypal.com/donate/?business=8XSU4KTS2V9PN&no_recurring=0&item_name=OTC+AND+OTS+SCRIPTS&currency_code=USD")
+    !tooltip: tr('Container Manager - By Sabuezo')
 
   ResizeBorder
     id: bottomResizeBorder
@@ -767,17 +766,28 @@ local function moveItem(item, destination, index)
   g_game.move(item, i, item:getCount())
 end
 
+local function getMainBackpackId()
+  local slot = getBack()
+  if slot and slot:isContainer() then
+    return slot:getId()
+  end
+  return nil
+end
+
+local function isMainBackpackContainer(container)
+  if not config.openBack or not container then return false end
+  local mainId = getMainBackpackId()
+  local containerItem = container:getContainerItem()
+  return mainId and containerItem and containerItem:getId() == mainId
+end
+
 local function getQuiverSlots()
   return {getAmmo(), getLeft(), getRight()}
 end
 
 -- Check if main backpack is open
 local function isMainOpened()
-  local mainId = nil
-  local slot = getBack()
-  if slot and slot:isContainer() then
-    mainId = slot:getId()
-  end
+  local mainId = getMainBackpackId()
   if mainId and getContainerByItem(mainId) then
     return true
   end
@@ -865,6 +875,38 @@ local containersToOpen = {}
 -- Containers with pages table
 local pageContainers = {}
 
+local function queueContainerToOpen(item)
+  if not item then return false end
+  local id = item:getId()
+  local index = findContainerConfig(id)
+  if not index then return false end
+  local settings = config.list[index]
+  if not settings or not settings.eEnabled then return false end
+  if getContainerByItem(id) then return false end
+
+  for _, queuedItem in pairs(containersToOpen) do
+    if queuedItem == item then
+      return true
+    end
+  end
+
+  table.insert(containersToOpen, item)
+  return true
+end
+
+local function queueConfiguredContainersFrom(container)
+  if not container or container.lootContainer then return false end
+  local queued = false
+
+  for _, item in ipairs(container:getItems()) do
+    if queueContainerToOpen(item) then
+      queued = true
+    end
+  end
+
+  return queued
+end
+
 -- Reopen Containers (this one must be Global)
 function reopenContainers()
   if cManager:isOff() then return end
@@ -883,15 +925,27 @@ onContainerOpen(function(container, previousContainer)
   if cManager:isOff() then return end
   if container.lootContainer then return end
   local cId = container:getContainerItem():getId()
+  local isMainSource = isMainBackpackContainer(container)
   local index = findContainerConfig(cId)
-  if not index then return end
-  local settings = config.list[index]
+  if not index and not isMainSource then return end
+  local settings = index and config.list[index] or {
+    eEnabled = true,
+    eOpenNext = true,
+    eResize = false,
+    eRename = false,
+    eMinimize = false,
+    ePages = false
+  }
   if not settings.eEnabled then return end
 
   if not container.window then return end
   local cWindow = container.window
   if settings.eResize then cWindow:setContentHeight(34) end
-  if settings.eRename then cWindow:setText(settings.eName) end
+  if isMainSource then
+    cWindow:setText("Main Bp")
+  elseif settings.eRename then
+    cWindow:setText(settings.eName)
+  end
   if settings.eMinimize then cWindow:minimize() end
 
   -- auto next page
@@ -903,11 +957,7 @@ onContainerOpen(function(container, previousContainer)
   end
 
   if settings.eOpenNext then
-    for i, item in ipairs(container:getItems()) do
-      if table.find(cList,item:getId()) then
-        table.insert(containersToOpen,item)
-      end
-    end
+    queueConfiguredContainersFrom(container)
   end
 end)
 
@@ -927,40 +977,43 @@ end)
 -- Containers to be opened
 local openNextMacro = macro(defaultDelay,function()
   if cManager:isOff() then return end
-  local old = table.size(g_game.getContainers())
   for e, entry in pairs(containersToOpen) do
     g_game.open(entry,nil)
     table.remove(containersToOpen,e)
     return delay(defaultDelay + 5)
   end
+
+  for _, container in pairs(g_game.getContainers()) do
+    if queueConfiguredContainersFrom(container) then
+      return delay(defaultDelay + 5)
+    end
+  end
+
   openMain()
 end)
 
 local sortItemsMacro = macro(defaultDelay, function(m)
   if cManager:isOn() and config.sortItems then
     for c, cont in pairs(g_game.getContainers()) do
-      local srcId = cont:getContainerItem():getId()
-      local srcIndex = findContainerConfig(srcId)
-      if srcIndex then
-        local srcConfig = config.list[srcIndex]
-        if srcConfig and srcConfig.eEnabled then
-          for i, item in ipairs(cont:getItems()) do
-            local toId = sList[item:getId()]
-            if toId and toId ~= srcId then
-              local toIndex = findContainerConfig(toId)
-              if toIndex then
-                local toConfig = config.list[toIndex]
-                if toConfig and toConfig.eEnabled then
-                  local destNotFull = getContainerByItem(toId, not toConfig.eInfinite)
-                  if destNotFull then
-                    return moveItem(item,destNotFull,toConfig.eInfinite and 0 or nil)
-                  elseif toConfig.eFull then
-                    local destFull = getContainerByItem(toId)
-                    if destFull then
-                      for n, newCont in ipairs(destFull:getItems()) do
-                        if newCont:getId() == toId then
-                          return g_game.open(newCont,destFull)
-                        end
+      if not cont.lootContainer then
+        local containerItem = cont:getContainerItem()
+        local srcId = containerItem and containerItem:getId() or 0
+        for i, item in ipairs(cont:getItems()) do
+          local toId = sList[item:getId()]
+          if toId and toId ~= srcId then
+            local toIndex = findContainerConfig(toId)
+            if toIndex then
+              local toConfig = config.list[toIndex]
+              if toConfig and toConfig.eEnabled then
+                local destNotFull = getContainerByItem(toId, not toConfig.eInfinite)
+                if destNotFull then
+                  return moveItem(item,destNotFull,toConfig.eInfinite and 0 or nil)
+                elseif toConfig.eFull then
+                  local destFull = getContainerByItem(toId)
+                  if destFull then
+                    for n, newCont in ipairs(destFull:getItems()) do
+                      if newCont:getId() == toId then
+                        return g_game.open(newCont,destFull)
                       end
                     end
                   end
