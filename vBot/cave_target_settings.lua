@@ -181,6 +181,4 @@ if true then
   end)
 end
 
-addTextEdit("ignoreCreatures", "Ignore Creatures:", "deer,rabbit", leftPanel, "Creatures names to ignore.\nSeparated by commas.\ne.g.:'deer, rabbit'")
-
 addCheckBox("showTargetPriority", "Show Target Priority", false, rightPanel)

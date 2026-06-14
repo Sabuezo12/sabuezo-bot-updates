@@ -42,7 +42,57 @@ local function canRunWhileTargeting(actionWidget)
   return actionWidget.value:find("waitStamina", 1, true) ~= nil or actionWidget.value:find("stepDirection", 1, true) ~= nil or actionWidget.value:find("setHealBot", 1, true) ~= nil
 end
 
-cavebotMacro = macro(20, function()
+local CAVEBOT_LOOP_INTERVAL = 50
+
+local function createCaveBotLoop(interval, callback)
+  local loop = {
+    delay = nil,
+    _on = false,
+    _scheduled = false
+  }
+
+  local function scheduleNext(wait)
+    if loop._scheduled or not loop._on then return end
+    loop._scheduled = true
+    schedule(wait, function()
+      loop._scheduled = false
+      if not loop._on then return end
+
+      local waitTime = interval
+      if type(loop.delay) == "number" and loop.delay > now then
+        waitTime = math.max(10, math.min(interval, loop.delay - now))
+      else
+        loop.delay = nil
+        local status, err = pcall(callback)
+        if not status then
+          warn("CaveBot loop error:\n" .. tostring(err))
+        end
+      end
+
+      scheduleNext(waitTime)
+    end)
+  end
+
+  loop.setOn = function(enabled)
+    if enabled == false then
+      return loop.setOff()
+    end
+    loop._on = true
+    scheduleNext(1)
+  end
+
+  loop.setOff = function()
+    loop._on = false
+  end
+
+  loop.isOn = function()
+    return loop._on
+  end
+
+  return loop
+end
+
+local function caveBotTick()
   local actions = ui.list:getChildCount()
   if actions == 0 then return end
   local currentAction = ui.list:getFocusedChild()
@@ -106,7 +156,9 @@ cavebotMacro = macro(20, function()
     nextAction = 1
   end
   ui.list:focusChild(ui.list:getChildByIndex(nextAction))
-end)
+end
+
+cavebotMacro = createCaveBotLoop(CAVEBOT_LOOP_INTERVAL, caveBotTick)
 
 -- config, its callback is called immediately, data can be nil
 local lastConfig = ""
