@@ -7,6 +7,16 @@ local settings = storage.itemCounter
 local watchItems = settings.watch
 local rowWidgets = {}
 local registeredEntrySignatures = {}
+local DEFAULT_WATCH_VERSION = 1
+local DEFAULT_WATCH_ITEMS = {
+  { id = 12081, alias = "Full Health Potion" },
+  { id = 11767, alias = "Health Recovery Potion" },
+  { id = 11846, alias = "Adrenaline 500ml" },
+  { id = 11766, alias = "Mana Recovery Potion" },
+  { id = 12066, alias = "Swiftness Potion" },
+  { id = 12123, alias = "Nitro Potions" },
+  { id = 11845, alias = "Rewind Potion" }
+}
 
 local trim = function(text)
   return tostring(text or ""):gsub("^%s+", ""):gsub("%s+$", "")
@@ -30,6 +40,39 @@ local normalizeWatchList = function()
   if #watchItems == 0 then
     table.insert(watchItems, { id = 0, alias = "" })
   end
+end
+
+local hasWatchItem = function(itemId)
+  itemId = tonumber(itemId)
+  if not itemId then return false end
+
+  for _, entry in ipairs(watchItems) do
+    if tonumber(entry and entry.id) == itemId then
+      return true
+    end
+  end
+
+  return false
+end
+
+local applyDefaultWatchItems = function()
+  normalizeWatchList()
+
+  if tonumber(settings.defaultWatchVersion) and tonumber(settings.defaultWatchVersion) >= DEFAULT_WATCH_VERSION then
+    return
+  end
+
+  if #watchItems == 1 and tonumber(watchItems[1].id) == 0 and tostring(watchItems[1].alias or "") == "" then
+    table.remove(watchItems, 1)
+  end
+
+  for _, item in ipairs(DEFAULT_WATCH_ITEMS) do
+    if not hasWatchItem(item.id) then
+      table.insert(watchItems, { id = item.id, alias = item.alias })
+    end
+  end
+
+  settings.defaultWatchVersion = DEFAULT_WATCH_VERSION
 end
 
 local getAliasList = function(aliasText)
@@ -152,6 +195,7 @@ counterWindow.add.onClick = function()
   refreshRows()
 end
 
+applyDefaultWatchItems()
 refreshRows()
 
 macro(250, function()
