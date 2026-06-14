@@ -518,8 +518,11 @@ CaveBot.Config.set = function(id, value)
   CaveBot.save()
 end
 
-local followPausePausedByConfig = false
-local followPauseNoFollowSince = 0
+storage.caveBotFollowPause = storage.caveBotFollowPause or {}
+local followPauseState = storage.caveBotFollowPause
+if followPauseState.pausedByConfig == nil then followPauseState.pausedByConfig = false end
+if followPauseState.noFollowSince == nil then followPauseState.noFollowSince = 0 end
+
 local FOLLOW_PAUSE_RESUME_DELAY_MS = 5000
 
 local function followPauseNow()
@@ -531,19 +534,66 @@ local function followPauseNow()
   return os and os.clock and math.floor(os.clock() * 1000) or 0
 end
 
-local function getFollowingPlayer()
+local function getFollowingCreatureSafe()
   if not g_game or not g_game.getFollowingCreature then return nil end
 
   local ok, creature = pcall(function()
     return g_game.getFollowingCreature()
   end)
-  if not ok or not creature then return nil end
+  return ok and creature or nil
+end
+
+local function isPlayerCreature(creature)
+  if not creature or creature == player then return false end
 
   local okPlayer, isPlayer = pcall(function()
     return creature:isPlayer()
   end)
 
-  return okPlayer and isPlayer == true and creature or nil
+  return okPlayer and isPlayer == true
+end
+
+local function isVisibleCreature(creature)
+  if not creature then return false end
+
+  local okPos, pos = pcall(function() return creature:getPosition() end)
+  if not okPos or not pos then return false end
+  if pos.z ~= posz() then return false end
+
+  if type(getSpectators) ~= "function" then return true end
+  for _, spec in ipairs(getSpectators()) do
+    if spec == creature then return true end
+    local okIdA, idA = pcall(function() return spec:getId() end)
+    local okIdB, idB = pcall(function() return creature:getId() end)
+    if okIdA and okIdB and idA == idB then return true end
+  end
+
+  return false
+end
+
+local function isFollowingPlayer()
+  if not g_game then return false end
+
+  local hasReliableFollowState = false
+  local isFollowing = nil
+  if g_game.isFollowing then
+    local ok, result = pcall(function() return g_game.isFollowing() end)
+    if ok then
+      hasReliableFollowState = true
+      isFollowing = result == true
+      if not isFollowing then return false end
+    end
+  end
+
+  local creature = getFollowingCreatureSafe()
+  if creature then
+    if not isPlayerCreature(creature) then return false end
+    if hasReliableFollowState then return true end
+    return isVisibleCreature(creature)
+  end
+
+  -- Some clients expose follow state but not the creature object reliably.
+  return hasReliableFollowState and isFollowing == true
 end
 
 local function setCaveBotStateByFollow(enabled)
@@ -556,35 +606,35 @@ end
 
 macro(200, function()
   if not CaveBot.Config.values.pauseWhileFollowing then
-    followPauseNoFollowSince = 0
-    if followPausePausedByConfig then
-      followPausePausedByConfig = false
+    followPauseState.noFollowSince = 0
+    if followPauseState.pausedByConfig then
+      followPauseState.pausedByConfig = false
       setCaveBotStateByFollow(true)
     end
     return
   end
 
-  if getFollowingPlayer() then
-    followPauseNoFollowSince = 0
+  if isFollowingPlayer() then
+    followPauseState.noFollowSince = 0
     if isCaveBotActive() then
-      followPausePausedByConfig = true
+      followPauseState.pausedByConfig = true
       setCaveBotStateByFollow(false)
     end
     return
   end
 
-  if followPausePausedByConfig then
+  if followPauseState.pausedByConfig then
     local time = followPauseNow()
-    if followPauseNoFollowSince == 0 then
-      followPauseNoFollowSince = time
+    if followPauseState.noFollowSince == 0 then
+      followPauseState.noFollowSince = time
       return
     end
-    if time - followPauseNoFollowSince < FOLLOW_PAUSE_RESUME_DELAY_MS then
+    if time - followPauseState.noFollowSince < FOLLOW_PAUSE_RESUME_DELAY_MS then
       return
     end
 
-    followPauseNoFollowSince = 0
-    followPausePausedByConfig = false
+    followPauseState.noFollowSince = 0
+    followPauseState.pausedByConfig = false
     setCaveBotStateByFollow(true)
   end
 end)
