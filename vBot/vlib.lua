@@ -1691,12 +1691,6 @@ diamondArrowArea = [[
     01110
 ]]
 
-burstArrowArea = [[
-    111
-    111
-    111
-]]
-
 -- Custom by F.Almeida
 local offsetDirections = {
   [North]      =  {0,-1},

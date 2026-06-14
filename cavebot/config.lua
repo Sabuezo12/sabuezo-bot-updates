@@ -330,7 +330,7 @@ CaveBot.Config.setupDeathSafetyPanel = function(parent)
   registerDeathAction(panel)
   registerDeathText("deathLabel", "", panel.labelRow.labelEdit)
   registerDeathNumber("deathWaitMinutes", 60, panel.waitRow.waitEdit)
-  registerDeathSwitch("antiRed", false, panel.antiRedRow.antiRedSwitch, function()
+  registerDeathSwitch("antiRed", true, panel.antiRedRow.antiRedSwitch, function()
     CaveBot.Config.resetAntiRedState()
   end)
 

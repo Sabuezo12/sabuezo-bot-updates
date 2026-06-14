@@ -148,16 +148,9 @@ addTextEdit("holdWgHot", "Wild Growth Hotkey:", "Ctrl+F10", rightPanel)
 if true then
   local texts = {"HOLD MW","HOLD WG"}
   local candidates = {}
-  local HOLD_WALL_VISIBLE_RANGE = 7
 
   local function samePosition(a, b)
     return a and b and a.x == b.x and a.y == b.y and a.z == b.z
-  end
-
-  local function isHoldWallVisible(pos)
-    local playerPos = player and player:getPosition()
-    if not pos or not playerPos or pos.z ~= playerPos.z then return false end
-    return math.max(math.abs(pos.x - playerPos.x), math.abs(pos.y - playerPos.y)) <= HOLD_WALL_VISIBLE_RANGE
   end
 
   local function candidateIndex(pos)
@@ -181,14 +174,6 @@ if true then
     end
   end
 
-  local function clearHoldWallTile(tile, pos)
-    pos = pos or (tile and tile:getPosition())
-    if tile and table.find(texts, tile:getText()) then
-      tile:setText("")
-    end
-    removeCandidate(pos)
-  end
-
   local function clearHoldWalls()
     candidates = {}
     for _, tile in ipairs(g_map.getTiles(posz())) do
@@ -208,7 +193,7 @@ if true then
 
   local function canRefreshWall(tile, obj)
     local top = tile and tile:getTopUseThing()
-    return top and isHoldWallVisible(tile:getPosition()) and tile:canShoot() and not isInPz() and tile:isWalkable() and top:getId() ~= obj
+    return top and tile:canShoot() and not isInPz() and tile:isWalkable() and top:getId() ~= obj
   end
 
   local m = macro(20, function()
@@ -219,9 +204,7 @@ if true then
     while i <= #candidates do
       local pos = candidates[i]
       local tile = g_map.getTile(pos)
-      if not isHoldWallVisible(pos) then
-        clearHoldWallTile(tile, pos)
-      elseif not tile then
+      if not tile then
         table.remove(candidates, i)
       else
         local text = tile:getText()
@@ -246,9 +229,6 @@ if true then
     if not rune or thing:getId() ~= obj then return end
 
     if tile:getText():find("HOLD") then
-      if not isHoldWallVisible(tile:getPosition()) then
-        return clearHoldWallTile(tile)
-      end
       local top = tile:getTopUseThing()
       if top then
         return useWith(rune, top)
@@ -263,9 +243,6 @@ if true then
 
     local text = tile:getText()
     local _, obj = holdWallData(text)
-    if obj and not isHoldWallVisible(tile:getPosition()) then
-      return clearHoldWallTile(tile)
-    end
     if obj and thing:getId() == obj then
       addCandidate(tile:getPosition())
     end
