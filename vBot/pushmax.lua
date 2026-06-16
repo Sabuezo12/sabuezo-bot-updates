@@ -222,6 +222,27 @@ local isPushRouteText = function(text)
     (text and (text:find("^PUSH %d+$") or text:find("^PUSH%d+$") or text:find("^>> PUSH %d+ <<$")))
 end
 
+local resetTargetPushState = function()
+  lastPushTargetPositionKey = nil
+  lastPushTargetMoveAt = 0
+  lastRetreatAt = 0
+  lastPlayerPushAttemptAt = 0
+  lastPushAttemptTargetKey = nil
+  lastRunupAt = 0
+  lastRunupTargetId = nil
+  pendingRunupTargetId = nil
+  lastPushCommandDistance = 0
+  lastPushFromPos = nil
+  lastPushToPos = nil
+  stuckFirstPushTargetKey = nil
+  stuckFirstPushStartedAt = 0
+  oneSqmQueuedPushKey = nil
+  oneSqmQueuedPushBaseKey = nil
+  oneSqmQueuedPushAt = 0
+  lastPushRuneAt = 0
+  lastPushRuneDelay = 0
+end
+
 local resetData = function()
   for i, tile in pairs(g_map.getTiles(posz())) do
     local text = tile:getText()
@@ -238,25 +259,8 @@ local resetData = function()
   autoRouteDestination = nil
   routeTextSignature = ""
   cleanTile = nil
-  lastPushTargetPositionKey = nil
-  lastPushTargetMoveAt = 0
-  lastRetreatAt = 0
-  lastPlayerPushAttemptAt = 0
-  lastPushAttemptTargetKey = nil
-  lastRunupAt = 0
-  lastRunupTargetId = nil
-  pendingRunupTargetId = nil
-  lastPushCommandDistance = 0
-  lastPushFromPos = nil
-  lastPushToPos = nil
-  stuckFirstPushTargetKey = nil
-  stuckFirstPushStartedAt = 0
+  resetTargetPushState()
   oneSqmPushMode = false
-  oneSqmQueuedPushKey = nil
-  oneSqmQueuedPushBaseKey = nil
-  oneSqmQueuedPushAt = 0
-  lastPushRuneAt = 0
-  lastPushRuneDelay = 0
   autoRouteLastSeenAt = 0
 end
 
@@ -995,11 +999,47 @@ local setAutoRouteTarget = function(creature, tile)
   currentAttackTargetName = creature:getName()
   autoRouteDestination = copyPosition(destination)
   autoRouteLastSeenAt = now
+  resetTargetPushState()
   oneSqmPushMode = (targetToDestinationDistance == 1) or (route and #route == 2)
   if route and #route >= 2 then
     showRoute(route)
   else
     tile:setText("DEST")
+  end
+  creature:setMarked("#00FF00")
+  return true
+end
+
+local retargetAutoRouteTarget = function(creature)
+  if not creature or creature == player or not autoRouteDestination then return false end
+  local ok, isPlayerTarget = pcall(function() return creature:isPlayer() end)
+  if not ok or not isPlayerTarget then return false end
+
+  local targetPos = creature:getPosition()
+  if not hasPosition(targetPos) then return false end
+
+  clearRouteTexts()
+  routeTiles = {}
+  routeTextSignature = ""
+  pushTarget = creature
+  targetTile = nil
+  sourceTile = nil
+  destinationTile = nil
+  cleanTile = nil
+  routeTargetId = creature:getId()
+  currentAttackTargetId = creature:getId()
+  currentAttackTargetName = creature:getName()
+  autoRouteLastSeenAt = now
+  resetTargetPushState()
+
+  if autoRouteDestination.z ~= targetPos.z then
+    autoRouteDestination.z = targetPos.z
+  end
+
+  oneSqmPushMode = safeDistance(targetPos, autoRouteDestination) == 1
+  local destTile = g_map.getTile(autoRouteDestination)
+  if destTile then
+    destTile:setText("DEST")
   end
   creature:setMarked("#00FF00")
   return true
@@ -1470,13 +1510,8 @@ onAttackingCreatureChange(function(newCreature, oldCreature)
     if ok and isPlayerTarget then
       local newTargetId = newCreature:getId()
       if autoRouteDestination and routeTargetId and newTargetId ~= routeTargetId then
-        local newTargetName = newCreature:getName()
-        if currentAttackTargetName and newTargetName == currentAttackTargetName then
-          routeTargetId = newTargetId
-        else
-          resetData()
-          return
-        end
+        retargetAutoRouteTarget(newCreature)
+        return
       end
       currentAttackTargetId = newTargetId
       currentAttackTargetName = newCreature:getName()
