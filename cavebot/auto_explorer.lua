@@ -16,6 +16,10 @@ local FRONTIER_RADIUS = 4
 local RECENT_TARGET_TIME = 12000
 local TARGETBOT_PAUSE_DELAY = 250
 local PATROL_RECENT_TIME = 45000
+local DEATH_START_GRACE = 2500
+local DEATH_HP_CONFIRM_TIME = 1800
+local DEATH_OFFLINE_CONFIRM_TIME = 4000
+local DEATH_SAFE_HP = 5
 
 local state = {
   enabled = false,
@@ -37,6 +41,9 @@ local state = {
   nextThinkAt = 0,
   nextScanAt = 0,
   nextWalkAt = 0,
+  deathLowHpSince = 0,
+  deathOfflineSince = 0,
+  deathHadSafeHp = false,
   status = "Off",
   statusColor = "#c8c8c8"
 }
@@ -256,21 +263,49 @@ local function looksLikeDeathText(text)
   text = text:lower()
   return text:find("you are dead", 1, true) or
     text:find("you died", 1, true) or
-    text:find("you were killed", 1, true) or
-    text:find("you lose", 1, true) or
-    text:find("death penalty", 1, true)
+    text:find("you were killed", 1, true)
+end
+
+local function resetDeathState()
+  state.deathLowHpSince = 0
+  state.deathOfflineSince = 0
+  state.deathHadSafeHp = false
 end
 
 local function shouldDisableForDeath()
   if not state.enabled then return false end
+
+  local time = currentTime()
+  if state.startedAt and state.startedAt > 0 and time - state.startedAt < DEATH_START_GRACE then
+    return false
+  end
+
   if g_game and g_game.isOnline then
     local okOnline, online = pcall(function() return g_game.isOnline() end)
-    if okOnline and online == false then return true end
+    if okOnline and online == false then
+      if state.deathOfflineSince == 0 then state.deathOfflineSince = time end
+      if time - state.deathOfflineSince >= DEATH_OFFLINE_CONFIRM_TIME then return true end
+    else
+      state.deathOfflineSince = 0
+    end
   end
+
   if type(hppercent) == "function" then
     local okHp, hp = pcall(hppercent)
-    if okHp and tonumber(hp) and tonumber(hp) <= 0 then return true end
+    hp = okHp and tonumber(hp) or nil
+    if hp then
+      if hp > DEATH_SAFE_HP then
+        state.deathHadSafeHp = true
+        state.deathLowHpSince = 0
+      elseif hp <= 0 and state.deathHadSafeHp then
+        if state.deathLowHpSince == 0 then state.deathLowHpSince = time end
+        if time - state.deathLowHpSince >= DEATH_HP_CONFIRM_TIME then return true end
+      else
+        state.deathLowHpSince = 0
+      end
+    end
   end
+
   return false
 end
 
@@ -302,6 +337,7 @@ local function resetRuntime(keepEnabled)
   state.nextThinkAt = 0
   state.nextScanAt = 0
   state.nextWalkAt = 0
+  resetDeathState()
 
   if player and player.getPosition then
     local pos = player:getPosition()
