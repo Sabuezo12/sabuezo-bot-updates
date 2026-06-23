@@ -138,8 +138,8 @@ local function getLabelText()
 end
 
 local function getStats()
-  if Analyzer and Analyzer.getCaveBotStats then
-    local ok, stats = pcall(Analyzer.getCaveBotStats)
+  if SabuezoAnalyzer and SabuezoAnalyzer.getCaveBotStats then
+    local ok, stats = pcall(SabuezoAnalyzer.getCaveBotStats)
     if ok and type(stats) == "table" then
       stats.supplies = type(stats.supplies) == "table" and stats.supplies or {}
       return stats

@@ -217,9 +217,8 @@ local function enoughMana()
 end
 
 local boostStatusText = ""
-local nextGuildBuffCastAt = 0
-local recentGuildBuffAttempt = nil
-local retryAfterExhaust = 450
+local recentGuildBuffAttempts = {boost = nil, speed = nil}
+local retryAfterExhaust = 200
 
 local function setBoostStatus(text)
     if boostStatusText == text then return end
@@ -234,9 +233,8 @@ local function getBuffSpectators()
     return g_map.getSpectators(player:getPosition(), false)
 end
 
-local function rememberGuildBuffAttempt(kind, name, globalCooldown)
-    recentGuildBuffAttempt = {kind = kind, name = name, at = now}
-    nextGuildBuffCastAt = now + globalCooldown
+local function rememberGuildBuffAttempt(kind, name)
+    recentGuildBuffAttempts[kind] = {name = name, at = now}
 end
 
 local function playerListMatches(c, method)
@@ -286,7 +284,7 @@ local function castBoost()
         setBoostStatus("Boost: sin aliados")
         return false
     end
-    if now < nextGuildBuffCastAt or now < lastGlobalBoost then
+    if now < lastGlobalBoost then
         setBoostStatus("Boost: espera | Aliados: " .. #targets)
         return false
     end
@@ -297,7 +295,7 @@ local function castBoost()
             say('exura boost "'..name..'"')
             lastCastBoost[name] = now + cdBoost
             lastGlobalBoost = now + globalCdBoost
-            rememberGuildBuffAttempt("boost", name, globalCdBoost)
+            rememberGuildBuffAttempt("boost", name)
             setBoostStatus("Boost > " .. name)
             return true
         end
@@ -314,35 +312,40 @@ local function castSpeed()
     local cfg = config
     if not (cfg.hasteEnabled or cfg.tempoEnabled) then return false end
     if not enoughMana() then return false end
-    if now < nextGuildBuffCastAt or now < lastGlobalSpeed then return false end
+    if now < lastGlobalSpeed then return false end
 
     local targets = {}
     for _, c in pairs(getBuffSpectators()) do
         if isGuildAlly(c) then
-            local vocType = getVocType(c:getName())
-            
-            if vocType == "knight" or vocType == "paladin" then
-                local spell = nil
-                local prio = 99
-                local cd = 0
+            local spell
+            local cd
 
-                if vocType == "knight" then
-                    if cfg.tempoEnabled then spell = "exura tempo"; prio = 1; cd = cdTempo
-                    elseif cfg.hasteEnabled then spell = "exura haste"; prio = 2; cd = cdHaste end
-                
-                elseif vocType == "paladin" then
-                    if cfg.hasteEnabled then spell = "exura haste"; prio = 1; cd = cdHaste
-                    elseif cfg.tempoEnabled then spell = "exura tempo"; prio = 2; cd = cdTempo end
+            if cfg.hasteEnabled then
+                spell = "exura haste"
+                cd = cdHaste
+            elseif cfg.tempoEnabled then
+                local vocType = getVocType(c:getName())
+                if vocType == "knight" or vocType == "paladin" then
+                    spell = "exura tempo"
+                    cd = cdTempo
                 end
+            end
 
-                if spell then
-                    table.insert(targets, {c = c, prio = prio, spell = spell, cd = cd})
-                end
+            if spell then
+                table.insert(targets, {c = c, spell = spell, cd = cd})
             end
         end
     end
 
-    table.sort(targets, function(a,b) return a.prio < b.prio end)
+    -- El que lleve mas tiempo sin speed buff va primero; ninguna vocacion tiene prioridad.
+    table.sort(targets, function(a, b)
+        local aName = a.c:getName()
+        local bName = b.c:getName()
+        local aCast = lastCastSpeed[aName] or 0
+        local bCast = lastCastSpeed[bName] or 0
+        if aCast == bCast then return aName:lower() < bName:lower() end
+        return aCast < bCast
+    end)
 
     for _, t in ipairs(targets) do
         local name = t.c:getName()
@@ -350,7 +353,7 @@ local function castSpeed()
             say(t.spell .. ' "' .. name .. '"')
             lastCastSpeed[name] = now + t.cd
             lastGlobalSpeed = now + globalCdSpeed
-            rememberGuildBuffAttempt("speed", name, globalCdSpeed)
+            rememberGuildBuffAttempt("speed", name)
             return true
         end
     end
@@ -358,29 +361,46 @@ local function castSpeed()
     return false
 end
 
+onTalk(function(name, level, mode, text)
+    if name ~= player:getName() or type(text) ~= "string" then return end
+    local spoken = text:lower()
+    if spoken:find("exura boost", 1, true) == 1 then
+        recentGuildBuffAttempts.boost = nil
+    elseif spoken:find("exura haste", 1, true) == 1 or spoken:find("exura tempo", 1, true) == 1 then
+        recentGuildBuffAttempts.speed = nil
+    end
+end)
+
 onTextMessage(function(mode, text)
     if type(text) ~= "string" or not text:lower():find("you are exhausted", 1, true) then return end
 
-    local attempt = recentGuildBuffAttempt
-    if not attempt or now - attempt.at > 900 then return end
+    schedule(20, function()
+        local retried = false
+        local boostAttempt = recentGuildBuffAttempts.boost
+        if boostAttempt and now - boostAttempt.at <= 900 then
+            lastCastBoost[boostAttempt.name] = 0
+            lastGlobalBoost = now + retryAfterExhaust
+            recentGuildBuffAttempts.boost = nil
+            retried = true
+        end
 
-    if attempt.kind == "boost" then
-        lastCastBoost[attempt.name] = 0
-        lastGlobalBoost = now + retryAfterExhaust
-    else
-        lastCastSpeed[attempt.name] = 0
-        lastGlobalSpeed = now + retryAfterExhaust
-    end
+        local speedAttempt = recentGuildBuffAttempts.speed
+        if speedAttempt and now - speedAttempt.at <= 900 then
+            lastCastSpeed[speedAttempt.name] = 0
+            lastGlobalSpeed = now + retryAfterExhaust
+            recentGuildBuffAttempts.speed = nil
+            retried = true
+        end
 
-    nextGuildBuffCastAt = now + retryAfterExhaust
-    recentGuildBuffAttempt = nil
-    setBoostStatus("Reintento: exhaust")
+        if retried then setBoostStatus("Reintento: exhaust") end
+    end)
 end)
 
 -- ==========================================================
 -- 6. MACRO PRINCIPAL
 -- ==========================================================
 macro(200, function()
-    -- Boost es prioritario. Haste/Tempo esperan al siguiente espacio global libre.
-    if not castBoost() then castSpeed() end
+    -- Son ciclos independientes: ambos pueden lanzarse durante la misma vuelta.
+    castBoost()
+    castSpeed()
 end)

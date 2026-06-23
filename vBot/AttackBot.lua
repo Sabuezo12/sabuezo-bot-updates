@@ -603,7 +603,6 @@ ui = UI.createWidget("AttackBotBotPanel")
 local setActiveProfile = function()
   local n = AttackBotConfig.currentBotProfile
   currentSettings = AttackBotConfig[panelName][n]
-  if currentSettings.ManualOverride == nil then currentSettings.ManualOverride = false end
 end
 setActiveProfile()
 
@@ -618,10 +617,6 @@ end
 -- small UI elements
 ui.title.onClick = function(widget)
   currentSettings.enabled = not currentSettings.enabled
-  currentSettings.ManualOverride = false
-  if currentSettings.enabled and TargetBot and TargetBot.isOff and TargetBot.isOff() then
-    currentSettings.ManualOverride = true
-  end
   local paused = AttackBot and AttackBot.isPaused and AttackBot.isPaused()
   widget:setOn(currentSettings.enabled and not paused)
   vBotConfigSave("atk")
@@ -968,7 +963,7 @@ end
     panel.creatures:setText(1)
     panel.minHp:setValue(0)
     panel.maxHp:setValue(100)
-    panel.cooldown:setText(1000)
+    panel.cooldown:setText(2000)
     panel.monsters:setText("monster names")
     panel.itemId:setItemId(0)
     panel.spellName:setText("spell name")
@@ -1059,7 +1054,6 @@ end
     
     AttackBot.setOff = function()
       currentSettings.enabled = false
-      currentSettings.ManualOverride = false
       ui.title:setOn(currentSettings.enabled and not AttackBot.isPaused())
       vBotConfigSave("atk")
     end
@@ -1070,15 +1064,6 @@ end
       vBotConfigSave("atk")
     end
 
-    AttackBot.isManualOverride = function()
-      return currentSettings.ManualOverride == true
-    end
-
-    AttackBot.setManualOverride = function(enabled)
-      currentSettings.ManualOverride = enabled == true or nil
-      vBotConfigSave("atk")
-    end
-    
     AttackBot.getActiveProfile = function()
       return AttackBotConfig.currentBotProfile -- returns number 1-5
     end
@@ -1097,30 +1082,6 @@ end
       mainWindow:raise()
       mainWindow:focus()
     end
-
-    AttackBot.syncWithTargetBot = function()
-      if not TargetBot or not TargetBot.isOn or not TargetBot.isOff then
-        return
-      end
-      if AttackBot.isPaused() then
-        return
-      end
-
-      if currentSettings.ManualOverride and AttackBot.isOn() then
-        return
-      end
-
-      if TargetBot.isOn() and AttackBot.isOff() then
-        AttackBot.setOn()
-      elseif TargetBot.isOff() and AttackBot.isOn() then
-        AttackBot.setOff()
-      end
-    end
-
-    macro(250, function()
-      AttackBot.syncWithTargetBot()
-    end)
-
 
 -- otui covered, now support functions
 function getPattern(category, pattern, safe)
@@ -1251,6 +1212,52 @@ function executeAttackBotAction(categoryOrPos, idOrFormula, cooldown)
   end
 end
 
+local function attackEntryMatchesTarget(entry, creature, ignoreNames)
+  if not creature then return false end
+  local hp = creature:getHealthPercent()
+  if hp < entry.minHp or hp > entry.maxHp then return false end
+  if ignoreNames or type(entry.monsters) ~= "table" or #entry.monsters == 0 then return true end
+  return table.find(entry.monsters, creature:getName():lower(), true) and true or false
+end
+
+local function prepareDirectionalAttack(entry, bestDir, bestSide, ignoreNames)
+  if not currentSettings.Rotate or entry.patternCategory ~= 4 then return true end
+
+  if entry.pattern == 6 or entry.pattern == 7 then
+    local creature = target()
+    if not attackEntryMatchesTarget(entry, creature, ignoreNames) then return true end
+    if not TargetBot or not TargetBot.Creature or not TargetBot.Creature.alignAndFace then return true end
+
+    local beamRange = entry.pattern == 6 and 5 or 7
+    local currentRange = distanceFromPlayer(creature:getPosition())
+    local ready = TargetBot.Creature.alignAndFace(creature, {
+      desiredRange = math.min(currentRange, beamRange),
+      maxRange = beamRange,
+      maxPath = 10
+    })
+    return ready == true
+  end
+
+  local directionalPattern = entry.pattern == 2 or entry.pattern == 8 or entry.pattern >= 9
+  if not directionalPattern then return true end
+
+  local creature = target()
+  if not creature or not TargetBot or not TargetBot.Creature then return true end
+  if ignoreNames and TargetBot.Creature.faceCreature then
+    local ready = TargetBot.Creature.faceCreature(creature)
+    return ready == true
+  end
+  if bestDir and bestSide > 0 and TargetBot.Creature.faceDirection then
+    local ready = TargetBot.Creature.faceDirection(creature, bestDir)
+    return ready == true
+  end
+  if TargetBot.Creature.faceCreature then
+    local ready = TargetBot.Creature.faceCreature(creature)
+    return ready == true
+  end
+  return true
+end
+
 -- support function covered, now the main loop
 macro(100, function()
   if AttackBot and AttackBot.isPaused and AttackBot.isPaused() then return end
@@ -1287,13 +1294,6 @@ macro(100, function()
     elseif monstersW == bestSide then bestDir = 3
   end
 
-  if currentSettings.Rotate then
-    if player:getDirection() ~= bestDir and bestSide > 0 then
-      turn(bestDir)
-      return
-    end
-  end
-
   -- support functions done, main spells now
           --[[
            entry = {
@@ -1325,6 +1325,7 @@ macro(100, function()
           if entry.category == 2 then
             return warn("[AttackBot] Area Runes cannot be used in PVP situation!")
           else
+            if entry.category == 5 and not prepareDirectionalAttack(entry, bestDir, bestSide, true) then return end
             return executeAttackBotAction(entry.category, attackData, entry.cooldown)
           end
         end
@@ -1343,6 +1344,7 @@ macro(100, function()
         elseif entry.category == 5 then
           local pCat = entry.patternCategory
           local pattern = entry.pattern
+          if not prepareDirectionalAttack(entry, bestDir, bestSide) then return end
           local anchorParam = (pattern == 2 or pattern == 6 or pattern == 7 or pattern > 9) and player or pos()
           local safe = currentSettings.PvpSafe and spellPatterns[pCat][entry.pattern][2] or false
           local monsterAmount = pCat ~= 8 and getMonstersInArea(entry.category, anchorParam, spellPatterns[pCat][entry.pattern][1], entry.minHp, entry.maxHp, safe, entry.monsters)

@@ -572,6 +572,17 @@ CaveBot.registerAction("goto", "green", function(value, retries, prev)
       noPath = 0
       return true -- already at position
   end
+
+  -- Fast path: try to walk before running the heavier diagnostic path checks.
+  -- The old order calculated multiple paths even when the first walk attempt could succeed.
+  if not CaveBot.Config.get("ignoreFields") and CaveBot.walkTo(pos, 40) then
+    return "retry"
+  end
+  
+  if CaveBot.walkTo(pos, maxDist, { ignoreNonPathable = true, allowUnseen = true, allowOnlyVisibleTiles = false }) then
+    return "retry"
+  end
+
   -- check if there's a path to that place, ignore creatures and fields
   local path = findPath(playerPos, pos, maxDist, { ignoreNonPathable = true, precision = 1, ignoreCreatures = true, allowUnseen = true, allowOnlyVisibleTiles = false  })
   if not path then
@@ -627,17 +638,6 @@ CaveBot.registerAction("goto", "green", function(value, retries, prev)
       return false -- no other way
     end
   end
-  
-  -- try to find path, don't ignore creatures, don't ignore fields
-  if not CaveBot.Config.get("ignoreFields") and CaveBot.walkTo(pos, 40) then
-    return "retry"
-  end
-  
-  -- try to find path, don't ignore creatures, ignore fields
-  if CaveBot.walkTo(pos, maxDist, { ignoreNonPathable = true, allowUnseen = true, allowOnlyVisibleTiles = false }) then
-    return "retry"
-  end
-  
   if retries >= 3 then
     -- try to lower precision, find something close to final position
     local precison = retries - 1
