@@ -23,6 +23,9 @@ end
 if CaveBot.Config then
   CaveBot.Config.setup()
 end
+if CaveBot.AutoExplorer and CaveBot.AutoExplorer.setupMainPanel then
+  CaveBot.AutoExplorer.setupMainPanel(ui.autoExplorer)
+end
 for extension, callbacks in pairs(CaveBot.Extensions) do
   if callbacks.setup then
     callbacks.setup()
@@ -196,6 +199,9 @@ ui.autoRecording.onClick = function()
     CaveBot.Recorder.disable()
     ui.autoRecording:setOn(false)
   else
+    if CaveBot.AutoExplorer and CaveBot.AutoExplorer.isOn and CaveBot.AutoExplorer.isOn() then
+      CaveBot.AutoExplorer.disable()
+    end
     CaveBot.Recorder.enable()
     ui.autoRecording:setOn(true)
   end
