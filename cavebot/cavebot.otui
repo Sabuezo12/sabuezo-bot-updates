@@ -41,7 +41,7 @@ CaveBotPanel < Panel
         width: 38
 
       Label
-        text: Radio
+        text: Perim
         anchors.right: radiusEdit.left
         anchors.verticalCenter: radiusEdit.verticalCenter
         margin-right: 3
@@ -56,38 +56,60 @@ CaveBotPanel < Panel
         margin-right: 3
 
     Panel
+      id: perimeterRow
+      height: 16
+      margin-bottom: 2
+
+      HorizontalScrollBar
+        id: perimeterSlider
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        margin-left: 4
+        margin-right: 4
+        minimum: 20
+        maximum: 120
+        step: 1
+
+    Panel
       id: optionsRow
       height: 20
 
       BotSwitch
-        id: floorSwitch
-        anchors.right: parent.right
+        id: previewSwitch
+        anchors.left: parent.left
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        width: 35
+        width: 55
 
         $on:
-          text: On
+          text: Ver On
 
         $!on:
-          text: Off
+          text: Ver Off
 
       Button
         id: resetButton
-        text: Reset
-        anchors.right: floorSwitch.left
+        text: Limpiar
+        anchors.left: previewSwitch.right
         anchors.top: parent.top
         anchors.bottom: parent.bottom
-        margin-right: 2
-        width: 43
+        margin-left: 3
+        width: 55
 
-      Label
-        text: Pisos
-        anchors.left: parent.left
-        anchors.right: resetButton.left
-        anchors.verticalCenter: parent.verticalCenter
-        margin-left: 4
-        margin-right: 3
+      BotSwitch
+        id: floorSwitch
+        anchors.left: resetButton.right
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        margin-left: 3
+
+        $on:
+          text: Piso On
+
+        $!on:
+          text: Piso Off
 
   HorizontalSeparator
     margin-top: 2

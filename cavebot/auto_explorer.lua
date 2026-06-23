@@ -3,6 +3,9 @@
 CaveBot.AutoExplorer = CaveBot.AutoExplorer or {}
 
 local AutoExplorer = CaveBot.AutoExplorer
+local AREA_MIN = 20
+local AREA_MAX = 120
+local AREA_DEFAULT = 30
 local THINK_INTERVAL = 50
 local FAST_STEP_DELAY = 60
 local SCAN_INTERVAL = 180
@@ -117,9 +120,9 @@ local function sign(value)
 end
 
 local function clampRadius(value)
-  value = tonumber(value) or 30
-  if value < 5 then return 5 end
-  if value > 120 then return 120 end
+  value = tonumber(value) or AREA_DEFAULT
+  if value < AREA_MIN then return AREA_MIN end
+  if value > AREA_MAX then return AREA_MAX end
   return math.floor(value)
 end
 
@@ -133,6 +136,15 @@ local function allowFloorChanges()
   return values.autoExplorerFloors ~= false
 end
 
+local function isPreviewEnabled()
+  local values = CaveBot.Config and CaveBot.Config.values or {}
+  return values.autoExplorerPreview == true
+end
+
+local function shouldShowOverlay()
+  return state.enabled == true or isPreviewEnabled()
+end
+
 local function getAnchor(pos)
   if hasPosition(state.origin) then return state.origin end
 
@@ -143,6 +155,16 @@ local function getAnchor(pos)
 
   state.origin = copyPosition(pos)
   return state.origin
+end
+
+local function getOverlayAnchor(pos)
+  if state.enabled then
+    return getAnchor(pos)
+  end
+  if hasPosition(pos) then
+    return pos
+  end
+  return nil
 end
 
 local function inCurrentRadius(pos)
@@ -349,7 +371,7 @@ local function compactStatus(text)
   if text:find("^Piso") then return text:gsub(" | .*", "") end
   if text:find("^Patrulla") then return count and ("Patrulla " .. count) or "Patrulla" end
   if text:find("^On") then return count and ("On " .. count) or "On" end
-  if text:find("^Off") then return count and ("Off " .. count) or "Off" end
+  if text:find("^Off") then return "Off" end
   return text
 end
 
@@ -645,7 +667,7 @@ local function setOverlayLine(widget, x, y, width, height)
 end
 
 local function updateMinimapOverlay(playerPos, force)
-  if not state.enabled then
+  if not shouldShowOverlay() then
     hideMinimapOverlay()
     return
   end
@@ -677,7 +699,7 @@ local function updateMinimapOverlay(playerPos, force)
 
   local centerX = width / 2
   local centerY = height / 2
-  local anchor = getAnchor(playerPos)
+  local anchor = getOverlayAnchor(playerPos)
   if not anchor then
     hideMinimapOverlay()
     return
@@ -724,6 +746,19 @@ local function updateMinimapOverlay(playerPos, force)
   pcall(function() overlay:raise() end)
 end
 
+local function refreshOverlayNow(force)
+  if player and player.getPosition then
+    local ok, pos = pcall(function() return player:getPosition() end)
+    if ok and hasPosition(pos) then
+      updateMinimapOverlay(pos, force == true)
+      return
+    end
+  end
+  if not state.enabled and not isPreviewEnabled() then
+    hideMinimapOverlay()
+  end
+end
+
 local function updateButtons()
   if not AutoExplorer.panel then return end
   local button = AutoExplorer.panel.enabled
@@ -731,9 +766,13 @@ local function updateButtons()
   pcall(function()
     button:setImageColor(state.enabled and "#663333" or "#225533")
   end)
+  if AutoExplorer.panel.optionsRow and AutoExplorer.panel.optionsRow.previewSwitch then
+    AutoExplorer.panel.optionsRow.previewSwitch:setOn(isPreviewEnabled(), true)
+  end
 end
 
-local function resetRuntime(keepEnabled)
+local function resetRuntime(keepEnabled, keepOrigin)
+  local previousOrigin = keepOrigin and copyPosition(state.origin) or nil
   state.origin = nil
   state.anchors = {}
   state.visited = {}
@@ -763,8 +802,13 @@ local function resetRuntime(keepEnabled)
   if player and player.getPosition then
     local pos = player:getPosition()
     if hasPosition(pos) then
-      state.origin = copyPosition(pos)
-      state.anchors[pos.z] = copyPosition(pos)
+      if hasPosition(previousOrigin) then
+        state.origin = previousOrigin
+        state.anchors[previousOrigin.z] = copyPosition(previousOrigin)
+      else
+        state.origin = copyPosition(pos)
+        state.anchors[pos.z] = copyPosition(pos)
+      end
       markAreaCovered(pos)
       markWalked(pos)
       state.lastPosKey = positionKey(pos)
@@ -1214,14 +1258,14 @@ local function keepInsideRadius(playerPos)
     end)
     if ok and walking then
       state.nextWalkAt = currentTime() + FAST_STEP_DELAY
-      setStatus("Volviendo al radio", "#ffd166")
+      setStatus("Volviendo al perimetro", "#ffd166")
       return true
     end
   end
 
   state.nextWalkAt = currentTime() + EMPTY_SCAN_INTERVAL
   state.nextScanAt = currentTime() + EMPTY_SCAN_INTERVAL
-  setStatus("Fuera del radio | buscando regreso", "#ffd166")
+  setStatus("Fuera del perimetro | buscando regreso", "#ffd166")
   return true
 end
 
@@ -1328,7 +1372,7 @@ AutoExplorer.enable = function()
   if player and player.getPosition then
     updateMinimapOverlay(player:getPosition(), true)
   end
-  warn("Auto Explorer activado. Radio: " .. getRadius() .. " sqm.")
+  warn("Auto Explorer activado. Perimetro: " .. getRadius() .. " sqm.")
 end
 
 AutoExplorer.disable = function()
@@ -1336,30 +1380,36 @@ AutoExplorer.disable = function()
   state.enabled = false
   if CaveBot.resetWalking then pcall(CaveBot.resetWalking) end
   clearTarget(false)
-  hideMinimapOverlay()
+  refreshOverlayNow(true)
   setStatus("Off | " .. countVisited() .. " cubiertos", "#c8c8c8")
   updateButtons()
   warn("Auto Explorer detenido.")
 end
 
 local function forceAutoExplorerOff(reason)
-  destroyMinimapOverlay()
-  if not state.enabled then return end
+  if not state.enabled then
+    refreshOverlayNow(true)
+    return
+  end
 
   state.enabled = false
   if CaveBot.resetWalking then pcall(CaveBot.resetWalking) end
   clearTarget(false)
+  refreshOverlayNow(true)
   setStatus(reason or ("Off | " .. countVisited() .. " cubiertos"), "#c8c8c8")
   updateButtons()
 end
 
 AutoExplorer.reset = function()
-  resetRuntime(state.enabled)
+  local keepCenter = state.enabled and hasPosition(state.origin)
+  resetRuntime(state.enabled, keepCenter)
   if state.enabled and player and player.getPosition then
     updateMinimapOverlay(player:getPosition(), true)
+  else
+    refreshOverlayNow(true)
   end
   if state.enabled then
-    warn("Auto Explorer reiniciado desde la posicion actual.")
+    warn("Auto Explorer reiniciado sin mover el centro.")
   end
   updateButtons()
 end
@@ -1388,31 +1438,45 @@ if CaveBot.setOff and not CaveBot._autoExplorerSetOffHooked then
   end
 end
 
-local function registerExplorerNumber(id, defaultValue, widget, onSet)
-  if CaveBot.Config.default_values[id] ~= nil then return end
+local function registerExplorerNumber(id, defaultValue, widget, onSet, slider)
+  local syncing = false
+  local currentValue = CaveBot.Config.values[id]
+  if currentValue == nil then currentValue = defaultValue end
 
   CaveBot.Config.value_setters[id] = function(value)
     value = clampRadius(value)
     CaveBot.Config.values[id] = value
-    widget:setText(value, true)
+    syncing = true
+    if widget then widget:setText(value, true) end
+    if slider and slider.setValue then slider:setValue(value) end
+    syncing = false
     if onSet then onSet(value) end
   end
 
-  CaveBot.Config.values[id] = defaultValue
-  CaveBot.Config.default_values[id] = defaultValue
-  CaveBot.Config.value_setters[id](defaultValue)
+  CaveBot.Config.default_values[id] = CaveBot.Config.default_values[id] or defaultValue
+  if slider and slider.setRange then slider:setRange(AREA_MIN, AREA_MAX) end
+  if slider and slider.setStep then slider:setStep(1) end
+  CaveBot.Config.value_setters[id](currentValue)
 
-  widget.onTextChange = function(_, newValue)
+  if widget then widget.onTextChange = function(_, newValue)
+    if syncing then return end
     local value = tonumber(newValue)
     if not value then return end
-    CaveBot.Config.values[id] = clampRadius(value)
-    if onSet then onSet(CaveBot.Config.values[id]) end
+    CaveBot.Config.value_setters[id](value)
     CaveBot.save()
-  end
+  end end
+
+  if slider then slider.onValueChange = function(_, value)
+    if syncing then return end
+    CaveBot.Config.value_setters[id](value)
+    CaveBot.save()
+  end end
 end
 
 local function registerExplorerSwitch(id, defaultValue, widget, onSet)
-  if CaveBot.Config.default_values[id] ~= nil then return end
+  if not widget then return end
+  local currentValue = CaveBot.Config.values[id]
+  if currentValue == nil then currentValue = defaultValue end
 
   CaveBot.Config.value_setters[id] = function(value)
     value = value == true
@@ -1421,14 +1485,12 @@ local function registerExplorerSwitch(id, defaultValue, widget, onSet)
     if onSet then onSet(value) end
   end
 
-  CaveBot.Config.values[id] = defaultValue
-  CaveBot.Config.default_values[id] = defaultValue
-  CaveBot.Config.value_setters[id](defaultValue)
+  CaveBot.Config.default_values[id] = CaveBot.Config.default_values[id] or defaultValue
+  CaveBot.Config.value_setters[id](currentValue)
 
   widget.onClick = function(widget)
     widget:setOn(not widget:isOn())
-    CaveBot.Config.values[id] = widget:isOn()
-    if onSet then onSet(CaveBot.Config.values[id]) end
+    CaveBot.Config.value_setters[id](widget:isOn())
     CaveBot.save()
   end
 end
@@ -1437,11 +1499,20 @@ AutoExplorer.setupMainPanel = function(panel)
   if not panel then return end
   AutoExplorer.panel = panel
 
-  registerExplorerNumber("autoExplorerRadius", 30, panel.statusRow.radiusEdit, function()
-    if state.enabled then AutoExplorer.reset() end
-  end)
+  registerExplorerNumber("autoExplorerRadius", AREA_DEFAULT, panel.statusRow.radiusEdit, function()
+    clearTarget(false)
+    refreshOverlayNow(true)
+  end, panel.perimeterRow and panel.perimeterRow.perimeterSlider)
   registerExplorerSwitch("autoExplorerFloors", true, panel.optionsRow.floorSwitch, function()
     if state.enabled then clearTarget(false) end
+  end)
+  registerExplorerSwitch("autoExplorerPreview", false, panel.optionsRow.previewSwitch, function(value)
+    if value then
+      refreshOverlayNow(true)
+    elseif not state.enabled then
+      hideMinimapOverlay()
+    end
+    updateButtons()
   end)
 
   panel.enabled.onClick = function(widget)
@@ -1457,18 +1528,27 @@ AutoExplorer.setupMainPanel = function(panel)
   end
 
   panel.enabled:setTooltip("Activa el explorador automatico. Apaga el CaveBot normal para evitar conflictos.")
-  panel.optionsRow.resetButton:setTooltip("Limpia la memoria de tiles cubiertos y usa tu posicion actual como centro.")
-  panel.statusRow.radiusEdit:setTooltip("Radio maximo desde la posicion donde activas o reseteas el Auto Explorer. Minimo 5, maximo 120 sqm.")
-  panel.optionsRow.floorSwitch:setTooltip("Permite subir o bajar escaleras, rampas, agujeros y alcantarillas dentro del radio.")
+  panel.optionsRow.resetButton:setTooltip("Limpia memoria y ruta. El centro activo solo cambia al apagar y encender Auto Explorer.")
+  panel.statusRow.radiusEdit:setTooltip("Tamano del perimetro visual. Apagado sigue a tu char; activo queda fijo en el punto de activacion.")
+  if panel.perimeterRow and panel.perimeterRow.perimeterSlider then
+    panel.perimeterRow.perimeterSlider:setTooltip("Mueve la barra para ajustar el perimetro entre 20 y 120.")
+  end
+  panel.optionsRow.previewSwitch:setTooltip("Muestra u oculta el perimetro en el minimapa antes de activar Auto Explorer.")
+  panel.optionsRow.floorSwitch:setTooltip("Permite subir o bajar escaleras, rampas, agujeros y alcantarillas dentro del perimetro.")
 
   updateButtons()
   setStatus(state.status, state.statusColor)
 end
 
 onPlayerPositionChange(function(newPos, oldPos)
-  if not state.enabled then return end
-  if hasPosition(oldPos) then markAreaCovered(oldPos) end
   if not hasPosition(newPos) then return end
+
+  if not state.enabled then
+    if isPreviewEnabled() then updateMinimapOverlay(newPos, true) end
+    return
+  end
+
+  if hasPosition(oldPos) then markAreaCovered(oldPos) end
   updateMinimapOverlay(newPos, true)
 
   if hasPosition(oldPos) and newPos.z ~= oldPos.z then
@@ -1498,4 +1578,9 @@ onTextMessage(function(mode, text)
   setStatus("Off | muerte detectada", "#ff7777")
 end)
 
-macro(THINK_INTERVAL, explorerTick)
+macro(THINK_INTERVAL, function()
+  if not state.enabled and isPreviewEnabled() then
+    refreshOverlayNow(false)
+  end
+  explorerTick()
+end)
