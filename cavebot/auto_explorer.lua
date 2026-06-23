@@ -15,15 +15,19 @@ local COVERAGE_RADIUS = 2
 local FRONTIER_RADIUS = 4
 local RECENT_TARGET_TIME = 12000
 local TARGETBOT_PAUSE_DELAY = 250
+local PATROL_RECENT_TIME = 45000
 
 local state = {
   enabled = false,
   anchors = {},
   visited = {},
+  walkedAt = {},
+  walkCount = {},
   blocked = {},
   recentTargets = {},
   target = nil,
   targetKey = nil,
+  targetMode = "explore",
   targetStartedAt = 0,
   targetBestDistance = nil,
   targetNoProgressAt = 0,
@@ -173,6 +177,14 @@ local function markVisited(pos)
   if key then state.visited[key] = true end
 end
 
+local function markWalked(pos)
+  local key = positionKey(pos)
+  if not key then return end
+  state.walkedAt[key] = currentTime()
+  state.walkCount[key] = (tonumber(state.walkCount[key]) or 0) + 1
+  markVisited(pos)
+end
+
 local function markAreaCovered(centerPos)
   if not hasPosition(centerPos) or not g_map or not g_map.getTiles then return end
 
@@ -204,9 +216,11 @@ local function compactStatus(text)
   local count = text:match("(%d+)%s+cubiertos")
   if text:find("Pausa: TargetBot", 1, true) then return "Pausa TB" end
   if text:find("Sin tiles nuevos", 1, true) then return count and ("Sin nuevos " .. count) or "Sin nuevos" end
+  if text:find("Sin ruta disponible", 1, true) then return count and ("Sin ruta " .. count) or "Sin ruta" end
   if text:find("Recalculando", 1, true) then return "Recalculando" end
   if text:find("Ruta bloqueada", 1, true) then return "Bloqueado" end
   if text:find("^Piso") then return text:gsub(" | .*", "") end
+  if text:find("^Patrulla") then return count and ("Patrulla " .. count) or "Patrulla" end
   if text:find("^On") then return count and ("On " .. count) or "On" end
   if text:find("^Off") then return count and ("Off " .. count) or "Off" end
   return text
@@ -237,6 +251,29 @@ local function shouldPauseForTargetBot()
   return not allowed
 end
 
+local function looksLikeDeathText(text)
+  if type(text) ~= "string" then return false end
+  text = text:lower()
+  return text:find("you are dead", 1, true) or
+    text:find("you died", 1, true) or
+    text:find("you were killed", 1, true) or
+    text:find("you lose", 1, true) or
+    text:find("death penalty", 1, true)
+end
+
+local function shouldDisableForDeath()
+  if not state.enabled then return false end
+  if g_game and g_game.isOnline then
+    local okOnline, online = pcall(function() return g_game.isOnline() end)
+    if okOnline and online == false then return true end
+  end
+  if type(hppercent) == "function" then
+    local okHp, hp = pcall(hppercent)
+    if okHp and tonumber(hp) and tonumber(hp) <= 0 then return true end
+  end
+  return false
+end
+
 local function updateButtons()
   if not AutoExplorer.panel then return end
   local button = AutoExplorer.panel.enabled
@@ -249,10 +286,13 @@ end
 local function resetRuntime(keepEnabled)
   state.anchors = {}
   state.visited = {}
+  state.walkedAt = {}
+  state.walkCount = {}
   state.blocked = {}
   state.recentTargets = {}
   state.target = nil
   state.targetKey = nil
+  state.targetMode = "explore"
   state.targetStartedAt = 0
   state.targetBestDistance = nil
   state.targetNoProgressAt = 0
@@ -268,6 +308,7 @@ local function resetRuntime(keepEnabled)
     if hasPosition(pos) then
       state.anchors[pos.z] = copyPosition(pos)
       markAreaCovered(pos)
+      markWalked(pos)
       state.lastPosKey = positionKey(pos)
     end
   end
@@ -315,23 +356,37 @@ local function canUseTile(tile)
   return true
 end
 
-local function candidateScore(candidate)
+local function candidateScore(candidate, mode)
   local score = 0
-  score = score + candidate.frontier * 30
-  score = score + candidate.anchorDistance * 6
-  score = score - candidate.distance * 3
+  mode = mode or "explore"
+
+  if mode == "patrol" then
+    local age = candidate.lastWalkedAt > 0 and math.min(90000, currentTime() - candidate.lastWalkedAt) or 90000
+    score = score + math.floor(age / 1000) * 5
+    score = score - candidate.walkCount * 35
+    score = score + math.min(candidate.distance, 10) * 8
+    score = score + candidate.anchorDistance * 2
+  else
+    score = score + candidate.frontier * 30
+    score = score + candidate.anchorDistance * 6
+    score = score - candidate.distance * 3
+  end
 
   if candidate.floorTile and allowFloorChanges() then
     score = score + 10
   end
   if isRecentTarget(candidate.key) then
-    score = score - 120
+    score = score - (mode == "patrol" and 220 or 120)
+  end
+  if candidate.lastWalkedAt > 0 and currentTime() - candidate.lastWalkedAt < PATROL_RECENT_TIME then
+    score = score - (mode == "patrol" and 180 or 30)
   end
 
   return score
 end
 
-local function buildCandidates()
+local function buildCandidates(mode)
+  mode = mode or "explore"
   local playerPos = player and player.getPosition and player:getPosition() or nil
   if not hasPosition(playerPos) then return {} end
   getAnchor(playerPos)
@@ -345,13 +400,15 @@ local function buildCandidates()
       local tilePos = getTilePosition(tile)
       if tilePos and not samePosition(tilePos, playerPos) then
         local key = positionKey(tilePos)
-        if key and not state.visited[key] then
+        if key and (mode == "patrol" or not state.visited[key]) then
           local candidate = {
             pos = copyPosition(tilePos),
             key = key,
             distance = distance2d(playerPos, tilePos),
             anchorDistance = distance2d(getAnchor(playerPos), tilePos),
             floorTile = isFloorChangeTile(tilePos),
+            lastWalkedAt = tonumber(state.walkedAt[key]) or 0,
+            walkCount = tonumber(state.walkCount[key]) or 0,
             frontier = 0,
             score = 0
           }
@@ -369,7 +426,7 @@ local function buildCandidates()
       end
     end
     candidate.frontier = frontier
-    candidate.score = candidateScore(candidate)
+    candidate.score = candidateScore(candidate, mode)
   end
 
   table.sort(candidates, function(a, b)
@@ -382,10 +439,9 @@ local function buildCandidates()
   return candidates
 end
 
-local function chooseTarget()
+local function chooseTargetFromCandidates(candidates, mode)
   local radius = getRadius()
   local maxDistance = math.max(8, radius * 2 + 10)
-  local candidates = buildCandidates()
   local checked = 0
   local best = nil
 
@@ -405,15 +461,26 @@ local function chooseTarget()
   end
 
   if best then
-    return best.pos, best.key, best.path
+    return best.pos, best.key, best.path, mode
   end
 
-  return nil, nil, nil
+  return nil, nil, nil, mode
 end
 
-local function setTarget(pos, key)
+local function chooseTarget()
+  local target, key, path, mode = chooseTargetFromCandidates(buildCandidates("explore"), "explore")
+  if target then return target, key, path, mode end
+
+  target, key, path, mode = chooseTargetFromCandidates(buildCandidates("patrol"), "patrol")
+  if target then return target, key, path, mode end
+
+  return nil, nil, nil, "idle"
+end
+
+local function setTarget(pos, key, mode)
   state.target = pos
   state.targetKey = key
+  state.targetMode = mode or "explore"
   state.targetStartedAt = currentTime()
   state.targetBestDistance = player and player.getPosition and distance2d(player:getPosition(), pos) or nil
   state.targetNoProgressAt = currentTime()
@@ -425,6 +492,7 @@ local function clearTarget(remember)
   end
   state.target = nil
   state.targetKey = nil
+  state.targetMode = "explore"
   state.targetStartedAt = 0
   state.targetBestDistance = nil
   state.targetNoProgressAt = 0
@@ -477,12 +545,19 @@ local function explorerTick()
   if currentTime() < (state.nextThinkAt or 0) then return end
   state.nextThinkAt = currentTime() + THINK_INTERVAL
 
+  if shouldDisableForDeath() then
+    AutoExplorer.disable()
+    setStatus("Off | muerte detectada", "#ff7777")
+    return
+  end
+
   if not player or not player.getPosition or not g_map then return end
   local playerPos = player:getPosition()
   if not hasPosition(playerPos) then return end
 
   getAnchor(playerPos)
   markAreaCovered(playerPos)
+  markWalked(playerPos)
 
   if state.target and state.targetKey and state.visited[state.targetKey] and distance2d(playerPos, state.target) <= COVERAGE_RADIUS then
     clearTarget(true)
@@ -499,7 +574,8 @@ local function explorerTick()
 
   if currentTime() >= (state.nextWalkAt or 0) and CaveBot.doWalking and CaveBot.doWalking() then
     state.nextWalkAt = currentTime() + FAST_STEP_DELAY
-    setStatus("On | " .. countVisited() .. " cubiertos", "#8cff9a")
+    local label = state.targetMode == "patrol" and "Patrulla" or "On"
+    setStatus(label .. " | " .. countVisited() .. " cubiertos", state.targetMode == "patrol" and "#8fd3ff" or "#8cff9a")
     return
   end
 
@@ -521,15 +597,15 @@ local function explorerTick()
   if not state.target then
     if currentTime() < (state.nextScanAt or 0) then return end
     state.nextScanAt = currentTime() + SCAN_INTERVAL
-    local target, key = chooseTarget()
+    local target, key, _, mode = chooseTarget()
     if target then
-      setTarget(target, key)
+      setTarget(target, key, mode)
     end
   end
 
   if not state.target then
     state.nextScanAt = currentTime() + EMPTY_SCAN_INTERVAL
-    setStatus("Sin tiles nuevos | " .. countVisited() .. " cubiertos", "#ffaa00")
+    setStatus("Sin ruta disponible | " .. countVisited() .. " cubiertos", "#ffaa00")
     return
   end
 
@@ -542,7 +618,8 @@ local function explorerTick()
   end
 
   state.nextWalkAt = currentTime() + FAST_STEP_DELAY
-  setStatus("On | " .. countVisited() .. " cubiertos", "#8cff9a")
+  local label = state.targetMode == "patrol" and "Patrulla" or "On"
+  setStatus(label .. " | " .. countVisited() .. " cubiertos", state.targetMode == "patrol" and "#8fd3ff" or "#8cff9a")
 end
 
 AutoExplorer.isOn = function()
@@ -671,6 +748,14 @@ onPlayerPositionChange(function(newPos, oldPos)
   end
 
   markAreaCovered(newPos)
+  markWalked(newPos)
+end)
+
+onTextMessage(function(mode, text)
+  if not state.enabled then return end
+  if not looksLikeDeathText(text) then return end
+  AutoExplorer.disable()
+  setStatus("Off | muerte detectada", "#ff7777")
 end)
 
 macro(THINK_INTERVAL, explorerTick)
