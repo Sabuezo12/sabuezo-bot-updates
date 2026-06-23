@@ -7,7 +7,7 @@ local THINK_INTERVAL = 50
 local FAST_STEP_DELAY = 60
 local SCAN_INTERVAL = 180
 local EMPTY_SCAN_INTERVAL = 650
-local MAX_PATH_CHECKS = 18
+local MAX_PATH_CHECKS = 28
 local BLOCK_TIME = 8000
 local STUCK_TIME = 2200
 local NO_PROGRESS_TIME = 3500
@@ -15,7 +15,11 @@ local COVERAGE_RADIUS = 2
 local FRONTIER_RADIUS = 4
 local RECENT_TARGET_TIME = 12000
 local TARGETBOT_PAUSE_DELAY = 250
-local PATROL_RECENT_TIME = 45000
+local PATROL_RECENT_TIME = 20000
+local PATROL_MIN_DISTANCE = 4
+local PATROL_PREFERRED_DISTANCE = 9
+local PATROL_PATH_CHECKS = 42
+local EDGE_SCAN_DISTANCE = 3
 local DEATH_START_GRACE = 2500
 local DEATH_HP_CONFIRM_TIME = 1800
 local DEATH_OFFLINE_CONFIRM_TIME = 4000
@@ -53,6 +57,8 @@ local state = {
   targetNoProgressAt = 0,
   lastPosKey = nil,
   lastMoveAt = 0,
+  lastStepDx = 0,
+  lastStepDy = 0,
   startedAt = 0,
   nextThinkAt = 0,
   nextScanAt = 0,
@@ -101,6 +107,13 @@ end
 local function distance2d(a, b)
   if not hasPosition(a) or not hasPosition(b) then return 9999 end
   return math.max(math.abs(a.x - b.x), math.abs(a.y - b.y))
+end
+
+local function sign(value)
+  value = tonumber(value) or 0
+  if value > 0 then return 1 end
+  if value < 0 then return -1 end
+  return 0
 end
 
 local function clampRadius(value)
@@ -421,10 +434,44 @@ local function getMinimapWidget()
   return modules.game_minimap.minimapWidget
 end
 
-local function hideMinimapOverlay()
-  if minimapOverlay.widget then
-    pcall(function() minimapOverlay.widget:setVisible(false) end)
+local function destroyMinimapOverlayWidgets(minimap, keepWidget)
+  if not minimap then return end
+
+  if minimap.getChildren then
+    local okChildren, children = pcall(function() return minimap:getChildren() end)
+    if okChildren and type(children) == "table" then
+      for _, child in pairs(children) do
+        local okId, id = pcall(function()
+          return child.getId and child:getId() or nil
+        end)
+        if child ~= keepWidget and okId and id == "autoExplorerMinimapOverlay" then
+          pcall(function() child:destroy() end)
+        end
+      end
+    end
   end
+
+  if keepWidget or not minimap.getChildById then return end
+  for _ = 1, 5 do
+    local ok, child = pcall(function() return minimap:getChildById("autoExplorerMinimapOverlay") end)
+    if not ok or not child then break end
+    pcall(function() child:destroy() end)
+  end
+end
+
+local function destroyMinimapOverlay()
+  local minimap = getMinimapWidget()
+  destroyMinimapOverlayWidgets(minimap)
+
+  if minimapOverlay.widget then
+    pcall(function() minimapOverlay.widget:destroy() end)
+  end
+  minimapOverlay.widget = nil
+  minimapOverlay.parent = nil
+end
+
+local function hideMinimapOverlay()
+  destroyMinimapOverlay()
 end
 
 local function createMinimapOverlay()
@@ -432,12 +479,11 @@ local function createMinimapOverlay()
   if not minimap then return nil end
 
   if minimapOverlay.widget and minimapOverlay.parent == minimap then
+    destroyMinimapOverlayWidgets(minimap, minimapOverlay.widget)
     return minimapOverlay.widget
   end
 
-  if minimapOverlay.widget then
-    pcall(function() minimapOverlay.widget:destroy() end)
-  end
+  destroyMinimapOverlay()
 
   minimapOverlay.parent = minimap
   minimapOverlay.widget = setupUI([[
@@ -704,6 +750,8 @@ local function resetRuntime(keepEnabled)
   state.targetNoProgressAt = 0
   state.lastPosKey = nil
   state.lastMoveAt = currentTime()
+  state.lastStepDx = 0
+  state.lastStepDy = 0
   state.startedAt = currentTime()
   state.nextThinkAt = 0
   state.nextScanAt = 0
@@ -743,8 +791,8 @@ local function getPathParams()
     ignoreFields = ignoreFields,
     precision = 0,
     ignoreStairs = not allowFloorChanges(),
-    allowUnseen = false,
-    allowOnlyVisibleTiles = true
+    allowUnseen = true,
+    allowOnlyVisibleTiles = false
   }
 end
 
@@ -809,20 +857,78 @@ local function canUseTile(tile)
   return true
 end
 
+local function getVisibleBounds(tiles, z)
+  local bounds = nil
+  for _, tile in pairs(tiles or {}) do
+    local pos = getTilePosition(tile)
+    if pos and pos.z == z then
+      if not bounds then
+        bounds = {minX = pos.x, maxX = pos.x, minY = pos.y, maxY = pos.y}
+      else
+        if pos.x < bounds.minX then bounds.minX = pos.x end
+        if pos.x > bounds.maxX then bounds.maxX = pos.x end
+        if pos.y < bounds.minY then bounds.minY = pos.y end
+        if pos.y > bounds.maxY then bounds.maxY = pos.y end
+      end
+    end
+  end
+  return bounds
+end
+
+local function getEdgeDistance(pos, bounds)
+  if not hasPosition(pos) or not bounds then return 99 end
+  return math.min(
+    math.abs(pos.x - bounds.minX),
+    math.abs(bounds.maxX - pos.x),
+    math.abs(pos.y - bounds.minY),
+    math.abs(bounds.maxY - pos.y)
+  )
+end
+
+local function edgeScore(edgeDistance, distance)
+  edgeDistance = tonumber(edgeDistance) or 99
+  distance = tonumber(distance) or 0
+  local score = math.max(0, EDGE_SCAN_DISTANCE + 1 - edgeDistance) * 35
+  if distance >= 5 then score = score + math.min(distance, 12) * 4 end
+  return score
+end
+
+local function patrolDistanceScore(distance)
+  distance = tonumber(distance) or 0
+  if distance < PATROL_MIN_DISTANCE then
+    return -90 * (PATROL_MIN_DISTANCE - distance)
+  end
+  if distance <= PATROL_PREFERRED_DISTANCE then
+    return distance * 14
+  end
+  return PATROL_PREFERRED_DISTANCE * 14 - ((distance - PATROL_PREFERRED_DISTANCE) * 10)
+end
+
+local function patrolCenterScore(anchorDistance)
+  local radius = getRadius()
+  local preferred = math.max(4, math.floor(radius * 0.55))
+  return -math.abs((tonumber(anchorDistance) or 0) - preferred) * 4
+end
+
 local function candidateScore(candidate, mode)
   local score = 0
   mode = mode or "explore"
 
   if mode == "patrol" then
     local age = candidate.lastWalkedAt > 0 and math.min(90000, currentTime() - candidate.lastWalkedAt) or 90000
-    score = score + math.floor(age / 1000) * 5
-    score = score - candidate.walkCount * 35
-    score = score + math.min(candidate.distance, 10) * 8
-    score = score + candidate.anchorDistance * 2
+    score = score + math.floor(age / 1000) * 4
+    score = score - candidate.walkCount * 55
+    score = score + candidate.frontier * 10
+    score = score + (candidate.edgeScore or 0)
+    score = score + patrolDistanceScore(candidate.distance)
+    score = score + patrolCenterScore(candidate.anchorDistance)
+    score = score + (candidate.directionScore or 0) * 28
   else
-    score = score + candidate.frontier * 30
-    score = score + candidate.anchorDistance * 6
-    score = score - candidate.distance * 3
+    score = score + candidate.frontier * 18
+    score = score + (candidate.edgeScore or 0)
+    score = score + math.min(candidate.distance, 14) * 5
+    score = score + candidate.anchorDistance * 4
+    score = score - candidate.walkCount * 25
   end
 
   if candidate.floorTile and allowFloorChanges() then
@@ -847,6 +953,7 @@ local function buildCandidates(mode)
   local candidates = {}
   local okTiles, tiles = pcall(function() return g_map.getTiles(posz()) end)
   if not okTiles or type(tiles) ~= "table" then return candidates end
+  local bounds = getVisibleBounds(tiles, playerPos.z)
 
   for _, tile in pairs(tiles) do
     if canUseTile(tile) then
@@ -855,15 +962,21 @@ local function buildCandidates(mode)
         local key = positionKey(tilePos)
         if key and (mode == "patrol" or not state.visited[key]) then
           local floorThing = getFloorChangeThing(tile)
+          local distance = distance2d(playerPos, tilePos)
+          local edgeDistanceValue = getEdgeDistance(tilePos, bounds)
           local candidate = {
             pos = copyPosition(tilePos),
             key = key,
-            distance = distance2d(playerPos, tilePos),
+            distance = distance,
             anchorDistance = distance2d(getAnchor(playerPos), tilePos),
+            edgeDistance = edgeDistanceValue,
+            edgeScore = edgeScore(edgeDistanceValue, distance),
             floorTile = isFloorChangeTile(tile, tilePos),
             floorUse = floorThing ~= nil,
             lastWalkedAt = tonumber(state.walkedAt[key]) or 0,
             walkCount = tonumber(state.walkCount[key]) or 0,
+            directionScore = (sign(tilePos.x - playerPos.x) * (state.lastStepDx or 0)) +
+              (sign(tilePos.y - playerPos.y) * (state.lastStepDy or 0)),
             frontier = 0,
             score = 0
           }
@@ -886,8 +999,15 @@ local function buildCandidates(mode)
 
   table.sort(candidates, function(a, b)
     if a.score ~= b.score then return a.score > b.score end
+    if a.edgeScore ~= b.edgeScore then return a.edgeScore > b.edgeScore end
     if a.frontier ~= b.frontier then return a.frontier > b.frontier end
-    if a.anchorDistance ~= b.anchorDistance then return a.anchorDistance > b.anchorDistance end
+    if mode == "patrol" and a.distance ~= b.distance then
+      return math.abs(a.distance - PATROL_PREFERRED_DISTANCE) < math.abs(b.distance - PATROL_PREFERRED_DISTANCE)
+    end
+    if a.anchorDistance ~= b.anchorDistance then
+      if mode == "patrol" then return a.anchorDistance < b.anchorDistance end
+      return a.anchorDistance > b.anchorDistance
+    end
     return a.distance < b.distance
   end)
 
@@ -901,7 +1021,7 @@ local function chooseTargetFromCandidates(candidates, mode)
   local best = nil
 
   for _, candidate in ipairs(candidates) do
-    if checked >= MAX_PATH_CHECKS then break end
+    if checked >= (mode == "patrol" and PATROL_PATH_CHECKS or MAX_PATH_CHECKS) then break end
     checked = checked + 1
 
     local path = getPathTo(candidate.pos, maxDistance)
@@ -1047,17 +1167,50 @@ local function processStuck(playerPos)
   return false
 end
 
+local function getReturnInsideRadiusTarget(playerPos)
+  if not hasPosition(playerPos) or not g_map or not g_map.getTiles then return nil end
+
+  local okTiles, tiles = pcall(function() return g_map.getTiles(playerPos.z) end)
+  if not okTiles or type(tiles) ~= "table" then return nil end
+
+  local candidates = {}
+  for _, tile in pairs(tiles) do
+    local tilePos = getTilePosition(tile)
+    if tilePos and tilePos.z == playerPos.z and inCurrentRadius(tilePos) and canUseTile(tile) then
+      table.insert(candidates, {
+        pos = copyPosition(tilePos),
+        distance = distance2d(playerPos, tilePos),
+        anchorDistance = distance2d(getAnchor(), tilePos)
+      })
+    end
+  end
+
+  table.sort(candidates, function(a, b)
+    if a.distance ~= b.distance then return a.distance < b.distance end
+    return a.anchorDistance < b.anchorDistance
+  end)
+
+  local maxDistance = math.max(8, getRadius() * 2 + 10)
+  for _, candidate in ipairs(candidates) do
+    if getPathTo(candidate.pos, maxDistance) then
+      return candidate.pos
+    end
+  end
+
+  return nil
+end
+
 local function keepInsideRadius(playerPos)
   if inCurrentRadius(playerPos) then return false end
 
   clearTarget(false)
   if CaveBot.resetWalking then pcall(CaveBot.resetWalking) end
 
-  local anchor = getAnchor(playerPos)
-  if anchor and playerPos.z == anchor.z and CaveBot.walkTo then
-    local maxDistance = math.max(8, distance2d(playerPos, anchor) + 8)
+  local returnTarget = getReturnInsideRadiusTarget(playerPos)
+  if returnTarget and CaveBot.walkTo then
+    local maxDistance = math.max(8, distance2d(playerPos, returnTarget) + 8)
     local ok, walking = pcall(function()
-      return CaveBot.walkTo(anchor, maxDistance, getPathParams())
+      return CaveBot.walkTo(returnTarget, maxDistance, getPathParams())
     end)
     if ok and walking then
       state.nextWalkAt = currentTime() + FAST_STEP_DELAY
@@ -1066,8 +1219,9 @@ local function keepInsideRadius(playerPos)
     end
   end
 
-  AutoExplorer.disable()
-  setStatus("Off | fuera del radio", "#ff7777")
+  state.nextWalkAt = currentTime() + EMPTY_SCAN_INTERVAL
+  state.nextScanAt = currentTime() + EMPTY_SCAN_INTERVAL
+  setStatus("Fuera del radio | buscando regreso", "#ffd166")
   return true
 end
 
@@ -1188,6 +1342,17 @@ AutoExplorer.disable = function()
   warn("Auto Explorer detenido.")
 end
 
+local function forceAutoExplorerOff(reason)
+  destroyMinimapOverlay()
+  if not state.enabled then return end
+
+  state.enabled = false
+  if CaveBot.resetWalking then pcall(CaveBot.resetWalking) end
+  clearTarget(false)
+  setStatus(reason or ("Off | " .. countVisited() .. " cubiertos"), "#c8c8c8")
+  updateButtons()
+end
+
 AutoExplorer.reset = function()
   resetRuntime(state.enabled)
   if state.enabled and player and player.getPosition then
@@ -1197,6 +1362,30 @@ AutoExplorer.reset = function()
     warn("Auto Explorer reiniciado desde la posicion actual.")
   end
   updateButtons()
+end
+
+AutoExplorer.hideOverlay = destroyMinimapOverlay
+
+if CaveBot.setOn and not CaveBot._autoExplorerSetOnHooked then
+  CaveBot._autoExplorerSetOnHooked = true
+  CaveBot._autoExplorerOriginalSetOn = CaveBot.setOn
+  CaveBot.setOn = function(val)
+    if val ~= false then
+      forceAutoExplorerOff("Off | CaveBot activado")
+    end
+    return CaveBot._autoExplorerOriginalSetOn(val)
+  end
+end
+
+if CaveBot.setOff and not CaveBot._autoExplorerSetOffHooked then
+  CaveBot._autoExplorerSetOffHooked = true
+  CaveBot._autoExplorerOriginalSetOff = CaveBot.setOff
+  CaveBot.setOff = function(val)
+    if val ~= false then
+      forceAutoExplorerOff("Off | CaveBot pausado")
+    end
+    return CaveBot._autoExplorerOriginalSetOff(val)
+  end
 end
 
 local function registerExplorerNumber(id, defaultValue, widget, onSet)
@@ -1283,6 +1472,8 @@ onPlayerPositionChange(function(newPos, oldPos)
   updateMinimapOverlay(newPos, true)
 
   if hasPosition(oldPos) and newPos.z ~= oldPos.z then
+    state.lastStepDx = 0
+    state.lastStepDy = 0
     clearTarget(false)
     if CaveBot.resetWalking then pcall(CaveBot.resetWalking) end
     if not allowFloorChanges() then
@@ -1291,6 +1482,9 @@ onPlayerPositionChange(function(newPos, oldPos)
       return
     end
     setStatus("Piso " .. tostring(newPos.z) .. " | " .. countVisited() .. " cubiertos", "#8cff9a")
+  elseif hasPosition(oldPos) then
+    state.lastStepDx = sign(newPos.x - oldPos.x)
+    state.lastStepDy = sign(newPos.y - oldPos.y)
   end
 
   markAreaCovered(newPos)
