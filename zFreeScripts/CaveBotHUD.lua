@@ -34,7 +34,6 @@ Panel
 ]], modules.game_interface.getMapPanel())
 
 local lines = {}
-local registeredSupplyHudItems = {}
 
 local function formatNumber(value)
   local n = tonumber(value) or 0
@@ -168,13 +167,12 @@ local function registerSupplyHudItem(id, data)
   id = tonumber(id)
   if not id or id <= 100 then return end
 
-  if vBot and vBot.ItemCounter and not registeredSupplyHudItems[id] then
+  if vBot and vBot.ItemCounter then
     if vBot.ItemCounter.registerSupplyItem then
       pcall(vBot.ItemCounter.registerSupplyItem, id, data or {})
     elseif vBot.ItemCounter.registerItemId then
       pcall(vBot.ItemCounter.registerItemId, id)
     end
-    registeredSupplyHudItems[id] = true
   end
 end
 
@@ -240,11 +238,6 @@ local function getSupplyDataFromConfig()
 end
 
 local function getHudSupplyItems(stats)
-  local supplies = stats and stats.supplies or nil
-  if type(supplies) == "table" and #supplies > 0 then
-    return supplies
-  end
-
   if Supplies and Supplies.getItemsData then
     local ok, data = pcall(Supplies.getItemsData)
     if ok then
@@ -253,7 +246,15 @@ local function getHudSupplyItems(stats)
     end
   end
 
-  return buildSupplyStatsFromData(getSupplyDataFromConfig())
+  local configItems = buildSupplyStatsFromData(getSupplyDataFromConfig())
+  if #configItems > 0 then return configItems end
+
+  local supplies = stats and stats.supplies or nil
+  if type(supplies) == "table" and #supplies > 0 then
+    return supplies
+  end
+
+  return {}
 end
 
 local function ensureLine(index)
