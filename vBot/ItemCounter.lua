@@ -97,11 +97,15 @@ local registerCounterEntry = function(entry)
   local signature = tostring(id) .. "|" .. tostring(entry.alias or "")
   if registeredEntrySignatures[id] == signature then return end
 
-  local aliases = getAliasList(entry.alias)
-  if #aliases > 0 and vBot.ItemCounter.register then
-    vBot.ItemCounter.register(id, aliases[1], aliases)
-  elseif vBot.ItemCounter.registerItemId then
-    vBot.ItemCounter.registerItemId(id)
+  if vBot.ItemCounter.registerWatchItem then
+    vBot.ItemCounter.registerWatchItem(id, entry)
+  else
+    local aliases = getAliasList(entry.alias)
+    if #aliases > 0 and vBot.ItemCounter.register then
+      vBot.ItemCounter.register(id, aliases[1], aliases)
+    elseif vBot.ItemCounter.registerItemId then
+      vBot.ItemCounter.registerItemId(id)
+    end
   end
 
   registeredEntrySignatures[id] = signature
@@ -143,6 +147,11 @@ end
 local refreshRows
 refreshRows = function()
   normalizeWatchList()
+  registeredEntrySignatures = {}
+  if vBot.ItemCounter and vBot.ItemCounter.clearWatchItems then
+    vBot.ItemCounter.clearWatchItems()
+  end
+
   counterWindow.list:destroyChildren()
   rowWidgets = {}
 
@@ -200,6 +209,10 @@ refreshRows()
 
 macro(250, function()
   if not settings.enabled then return end
+  if vBot.ItemCounter and vBot.ItemCounter.updateAmmo then
+    vBot.ItemCounter.updateAmmo()
+  end
+
   for _, row in ipairs(rowWidgets) do
     updateRowCount(row)
   end

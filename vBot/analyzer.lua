@@ -925,6 +925,8 @@ end
 
 local function getSourceText(source)
   if source == "log" then return "server log" end
+  if source == "ammo" then return "municion" end
+  if source == "buy" then return "compra" end
   if source == "visible" then return "visual" end
   return "sin dato"
 end

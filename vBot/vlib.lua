@@ -11,12 +11,15 @@ vBot.customCooldowns = {}
 if type(storage.itemCounter) ~= "table" then storage.itemCounter = {} end
 if type(storage.itemCounter.items) ~= "table" then storage.itemCounter.items = {} end
 if type(storage.itemCounter.supplyItems) ~= "table" then storage.itemCounter.supplyItems = {} end
+if type(storage.itemCounter.visibleOnlyItems) ~= "table" then storage.itemCounter.visibleOnlyItems = {} end
+if type(storage.itemCounter.watchItems) ~= "table" then storage.itemCounter.watchItems = {} end
 
 local itemCounterStore = storage.itemCounter
 local itemCounterNames = {}
 local itemCounterFuzzyNames = {}
 local itemCounterAliases = {}
 local itemCounterRegisteredIds = {}
+local itemCounterAmmoState = {}
 
 local CUSTOM_COOLDOWN_LIMIT = 80
 local customCooldownOrder = {}
@@ -193,6 +196,30 @@ local function isNumericItemCounterName(name)
     return tostring(name or ""):match("^%d+$") ~= nil
 end
 
+local function itemCounterLooksLikeAmmoName(name)
+    name = normalizeItemCounterName(name)
+    if name == "" then return false end
+    return name:find("arrow", 1, true) or
+        name:find("bolt", 1, true) or
+        name:find("assassin star", 1, true) or
+        name:find("throwing star", 1, true) or
+        name:find("spear", 1, true) or
+        name:find("throwing knife", 1, true) or
+        name:find("small stone", 1, true)
+end
+
+local function markItemCounterVisibleOnly(id)
+    id = resolveItemCounterId(id)
+    if not id then return end
+    itemCounterStore.visibleOnlyItems[tostring(id)] = true
+end
+
+local function itemCounterIsVisibleOnly(id)
+    id = resolveItemCounterId(id)
+    if not id then return false end
+    return itemCounterStore.visibleOnlyItems[tostring(id)] == true
+end
+
 vBot.ItemCounter = vBot.ItemCounter or {}
 
 function vBot.ItemCounter.register(id, name, aliases, keepOnUse)
@@ -253,6 +280,9 @@ function vBot.ItemCounter.registerItemId(id)
     if name and not isNumericItemCounterName(name) then
         registerItemCounterName(id, name, true)
     end
+    if itemCounterLooksLikeAmmoName(name) then
+        markItemCounterVisibleOnly(id)
+    end
     itemCounterRegisteredIds[key] = true
 end
 
@@ -287,6 +317,12 @@ function vBot.ItemCounter.registerSupplyItem(id, data)
         local aliases = splitItemCounterAliases(data.alias or data.name or data.logName)
         if #aliases > 0 then
             vBot.ItemCounter.register(id, aliases[1], aliases)
+            for _, alias in ipairs(aliases) do
+                if itemCounterLooksLikeAmmoName(alias) then
+                    markItemCounterVisibleOnly(id)
+                    break
+                end
+            end
         end
 
         itemCounterStore.items[key].supply = itemCounterStore.items[key].supply or {}
@@ -296,8 +332,35 @@ function vBot.ItemCounter.registerSupplyItem(id, data)
     end
 end
 
+function vBot.ItemCounter.registerWatchItem(id, data)
+    id = tonumber(id)
+    if not id or id <= 0 then return end
+
+    vBot.ItemCounter.registerItemId(id)
+    id = resolveItemCounterId(id)
+    local key = tostring(id)
+    itemCounterStore.watchItems[key] = true
+
+    if type(data) == "table" then
+        local aliases = splitItemCounterAliases(data.alias or data.name or data.logName)
+        if #aliases > 0 then
+            vBot.ItemCounter.register(id, aliases[1], aliases)
+            for _, alias in ipairs(aliases) do
+                if itemCounterLooksLikeAmmoName(alias) then
+                    markItemCounterVisibleOnly(id)
+                    break
+                end
+            end
+        end
+    end
+end
+
 function vBot.ItemCounter.clearSupplyItems()
     itemCounterStore.supplyItems = {}
+end
+
+function vBot.ItemCounter.clearWatchItems()
+    itemCounterStore.watchItems = {}
 end
 
 function vBot.ItemCounter.set(id, count, source, usedDelta)
@@ -378,12 +441,18 @@ function vBot.ItemCounter.getAmount(id, visibleAmount)
     visibleAmount = tonumber(visibleAmount) or 0
     if not id then return visibleAmount end
 
+    if itemCounterIsVisibleOnly(id) then
+        vBot.ItemCounter.set(id, visibleAmount, "visible", 0)
+        return visibleAmount
+    end
+
     local key = tostring(id)
     local entry = itemCounterStore.items[key]
     if not entry then return visibleAmount end
 
     local known = tonumber(entry.count)
     local keepKnown = known ~= nil and itemCounterKeepsKnownAmount(entry.source)
+
     if visibleAmount > 0 and not keepKnown and (not known or visibleAmount > known or entry.source ~= "log") then
         vBot.ItemCounter.set(id, visibleAmount, "visible")
         known = visibleAmount
@@ -413,6 +482,67 @@ function vBot.ItemCounter.getSource(id)
 
     local entry = itemCounterStore.items[tostring(id)]
     return entry and entry.source or "unknown"
+end
+
+function vBot.ItemCounter.isVisibleOnly(id)
+    return itemCounterIsVisibleOnly(id)
+end
+
+local function itemCounterIsLogTracked(id)
+    id = resolveItemCounterId(id)
+    if not id then return false end
+
+    local key = tostring(id)
+    return itemCounterStore.supplyItems[key] == true or itemCounterStore.watchItems[key] == true
+end
+
+local function getVisibleCounterAmount(id, alternateId)
+    local amount = 0
+    if player and player.getItemsCount then
+        amount = math.max(amount, tonumber(player:getItemsCount(id)) or 0)
+        if alternateId and tonumber(alternateId) ~= tonumber(id) then
+            amount = math.max(amount, tonumber(player:getItemsCount(alternateId)) or 0)
+        end
+    end
+    return amount
+end
+
+function vBot.ItemCounter.updateAmmo()
+    if type(getAmmo) ~= "function" then
+        itemCounterAmmoState.id = nil
+        itemCounterAmmoState.count = nil
+        return
+    end
+
+    local ammo = getAmmo()
+    if not ammo then
+        itemCounterAmmoState.id = nil
+        itemCounterAmmoState.count = nil
+        return
+    end
+
+    local id = tonumber(ammo:getId())
+    if not id or id <= 100 then
+        itemCounterAmmoState.id = nil
+        itemCounterAmmoState.count = nil
+        return
+    end
+
+    local count = tonumber(ammo:getCount()) or 1
+    if count <= 0 then
+        itemCounterAmmoState.id = nil
+        itemCounterAmmoState.count = nil
+        return
+    end
+
+    vBot.ItemCounter.registerItemId(id)
+    local resolvedId = resolveItemCounterId(id) or id
+    markItemCounterVisibleOnly(resolvedId)
+    local visible = getVisibleCounterAmount(id, resolvedId)
+    vBot.ItemCounter.set(resolvedId, visible, "visible", 0)
+
+    itemCounterAmmoState.id = resolvedId
+    itemCounterAmmoState.count = count
 end
 
 function vBot.ItemCounter.format(id)
@@ -465,6 +595,9 @@ function vBot.ItemCounter.parseLog(text)
         end
 
         if id then
+            if not itemCounterIsLogTracked(id) then return end
+            if itemCounterIsVisibleOnly(id) then return end
+
             local entry = itemCounterStore.items[tostring(resolveItemCounterId(id))]
             local count = tonumber(amount) or 0
             if not (entry and entry.keepOnUse) then
@@ -480,6 +613,9 @@ function vBot.ItemCounter.parseLog(text)
         name = normalizeItemCounterName(name)
         local id = findItemCounterIdByLogName(name, 1)
         if id then
+            if not itemCounterIsLogTracked(id) then return end
+            if itemCounterIsVisibleOnly(id) then return end
+
             local entry = itemCounterStore.items[tostring(resolveItemCounterId(id))]
             vBot.ItemCounter.set(id, entry and entry.keepOnUse and 1 or 0, "log", entry and entry.keepOnUse and 0 or 1)
         end

@@ -180,6 +180,10 @@ function addItemPanel()
     end
 
     -- new item id
+    if panelId ~= "blank" then
+      config.items[tostring(panelId)] = nil
+    end
+
     config.items[tostring(id)] = config.items[tostring(id)] or {} -- min, max, avg
     local aliasText = trimAlias(aliasValue:getText())
     if aliasText ~= "" then
@@ -483,6 +487,7 @@ Supplies.getItemsData = function()
     end
   end
 
+  config.items = t
   return t
 end
 
