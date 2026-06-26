@@ -16,13 +16,18 @@ local STUCK_TIME = 2200
 local NO_PROGRESS_TIME = 3500
 local COVERAGE_RADIUS = 2
 local FRONTIER_RADIUS = 4
-local RECENT_TARGET_TIME = 12000
+local RECENT_TARGET_TIME = 25000
 local TARGETBOT_PAUSE_DELAY = 250
-local PATROL_RECENT_TIME = 20000
-local PATROL_MIN_DISTANCE = 4
-local PATROL_PREFERRED_DISTANCE = 9
+local PATROL_RECENT_TIME = 60000
+local PATROL_MIN_DISTANCE = 6
+local PATROL_PREFERRED_DISTANCE = 12
 local PATROL_PATH_CHECKS = 42
 local EDGE_SCAN_DISTANCE = 3
+local RETURN_INSIDE_MARGIN = 4
+local RETURN_PATH_CHECKS = 48
+local CORRIDOR_OPEN_MAX = 2
+local CORRIDOR_DIRECTION_BONUS = 85
+local CORRIDOR_BASE_BONUS = 90
 local DEATH_START_GRACE = 2500
 local DEATH_HP_CONFIRM_TIME = 1800
 local DEATH_OFFLINE_CONFIRM_TIME = 4000
@@ -173,6 +178,17 @@ local function inCurrentRadius(pos)
   return anchor and distance2d(pos, anchor) <= getRadius()
 end
 
+local function distanceFromAnchor(pos)
+  local anchor = getAnchor()
+  if not anchor then return 9999 end
+  return distance2d(pos, anchor)
+end
+
+local function inStableReturnArea(pos)
+  if not hasPosition(pos) then return false end
+  return distanceFromAnchor(pos) <= math.max(1, getRadius() - RETURN_INSIDE_MARGIN)
+end
+
 local function isFloorChangeByMinimap(pos)
   if not hasPosition(pos) or not g_map or not g_map.getMinimapColor then return false end
   local color = g_map.getMinimapColor(pos)
@@ -290,6 +306,28 @@ local function canCoverTile(tile)
   return true
 end
 
+local function countOpenCardinalTiles(pos)
+  if not hasPosition(pos) or not g_map or not g_map.getTile then return 4 end
+
+  local count = 0
+  local offsets = {
+    {x = 0, y = -1}, {x = 1, y = 0}, {x = 0, y = 1}, {x = -1, y = 0}
+  }
+
+  for _, offset in ipairs(offsets) do
+    local tile = g_map.getTile({x = pos.x + offset.x, y = pos.y + offset.y, z = pos.z})
+    if tile and isWalkableTile(tile) then
+      count = count + 1
+    end
+  end
+
+  return count
+end
+
+local function isCorridorArea(pos)
+  return countOpenCardinalTiles(pos) <= CORRIDOR_OPEN_MAX
+end
+
 local function isBlocked(key)
   if not key then return false end
   local untilTime = state.blocked[key]
@@ -339,10 +377,11 @@ local function markAreaCovered(centerPos)
 
   local okTiles, tiles = pcall(function() return g_map.getTiles(centerPos.z) end)
   if not okTiles or type(tiles) ~= "table" then return end
+  local coverageRadius = isCorridorArea(centerPos) and 0 or COVERAGE_RADIUS
 
   for _, tile in pairs(tiles) do
     local tilePos = getTilePosition(tile)
-    if tilePos and tilePos.z == centerPos.z and distance2d(centerPos, tilePos) <= COVERAGE_RADIUS then
+    if tilePos and tilePos.z == centerPos.z and distance2d(centerPos, tilePos) <= coverageRadius then
       if not isFloorChangeTile(tile, tilePos) and inCurrentRadius(tilePos) and canCoverTile(tile) then
         markVisited(tilePos)
       end
@@ -849,6 +888,37 @@ local function getPathTo(pos, maxDistance)
   return nil
 end
 
+local function directionOffset(dir)
+  if dir == North or dir == 0 then return 0, -1 end
+  if dir == East or dir == 1 then return 1, 0 end
+  if dir == South or dir == 2 then return 0, 1 end
+  if dir == West or dir == 3 then return -1, 0 end
+  if dir == NorthEast or dir == 4 then return 1, -1 end
+  if dir == SouthEast or dir == 5 then return 1, 1 end
+  if dir == SouthWest or dir == 6 then return -1, 1 end
+  if dir == NorthWest or dir == 7 then return -1, -1 end
+  return 0, 0
+end
+
+local function pathLeavesPerimeter(path, startPos, allowOutsideStart)
+  if not path or not startPos then return false end
+
+  local pos = copyPosition(startPos)
+  local hasBeenInside = inCurrentRadius(pos)
+  for _, dir in ipairs(path) do
+    local dx, dy = directionOffset(dir)
+    pos = {x = pos.x + dx, y = pos.y + dy, z = pos.z}
+
+    if inCurrentRadius(pos) then
+      hasBeenInside = true
+    elseif hasBeenInside or not allowOutsideStart then
+      return true
+    end
+  end
+
+  return false
+end
+
 local function getFloorStandPosition(pos, maxDistance)
   if not hasPosition(pos) or not player or not player.getPosition then return nil, nil end
 
@@ -940,18 +1010,39 @@ end
 local function patrolDistanceScore(distance)
   distance = tonumber(distance) or 0
   if distance < PATROL_MIN_DISTANCE then
-    return -90 * (PATROL_MIN_DISTANCE - distance)
+    return -130 * (PATROL_MIN_DISTANCE - distance)
   end
   if distance <= PATROL_PREFERRED_DISTANCE then
-    return distance * 14
+    return distance * 18
   end
-  return PATROL_PREFERRED_DISTANCE * 14 - ((distance - PATROL_PREFERRED_DISTANCE) * 10)
+  return PATROL_PREFERRED_DISTANCE * 18 - ((distance - PATROL_PREFERRED_DISTANCE) * 6)
 end
 
 local function patrolCenterScore(anchorDistance)
   local radius = getRadius()
-  local preferred = math.max(4, math.floor(radius * 0.55))
-  return -math.abs((tonumber(anchorDistance) or 0) - preferred) * 4
+  local preferred = math.max(6, math.floor(radius * 0.72))
+  return -math.abs((tonumber(anchorDistance) or 0) - preferred) * 5
+end
+
+local function corridorScore(candidate, mode)
+  if not candidate or not candidate.corridor then return 0 end
+
+  local score = CORRIDOR_BASE_BONUS + math.min(12, tonumber(candidate.distance) or 0) * 8
+  if (candidate.directionScore or 0) > 0 then
+    score = score + CORRIDOR_DIRECTION_BONUS
+  elseif (candidate.directionScore or 0) < 0 then
+    score = score - math.floor(CORRIDOR_DIRECTION_BONUS / 2)
+  end
+
+  if candidate.openCardinals <= 1 then
+    score = score - 55
+  end
+
+  if mode == "patrol" then
+    score = score + 70
+  end
+
+  return score
 end
 
 local function candidateScore(candidate, mode)
@@ -960,16 +1051,18 @@ local function candidateScore(candidate, mode)
 
   if mode == "patrol" then
     local age = candidate.lastWalkedAt > 0 and math.min(90000, currentTime() - candidate.lastWalkedAt) or 90000
-    score = score + math.floor(age / 1000) * 4
-    score = score - candidate.walkCount * 55
-    score = score + candidate.frontier * 10
-    score = score + (candidate.edgeScore or 0)
+    score = score + math.floor(age / 1000) * 5
+    score = score - candidate.walkCount * 95
+    score = score + candidate.frontier * 16
+    score = score + (candidate.edgeScore or 0) * 2
+    score = score + corridorScore(candidate, mode)
     score = score + patrolDistanceScore(candidate.distance)
     score = score + patrolCenterScore(candidate.anchorDistance)
-    score = score + (candidate.directionScore or 0) * 28
+    score = score + (candidate.directionScore or 0) * 45
   else
     score = score + candidate.frontier * 18
     score = score + (candidate.edgeScore or 0)
+    score = score + corridorScore(candidate, mode)
     score = score + math.min(candidate.distance, 14) * 5
     score = score + candidate.anchorDistance * 4
     score = score - candidate.walkCount * 25
@@ -979,10 +1072,10 @@ local function candidateScore(candidate, mode)
     score = score + 10
   end
   if isRecentTarget(candidate.key) then
-    score = score - (mode == "patrol" and 220 or 120)
+    score = score - (mode == "patrol" and 450 or 120)
   end
   if candidate.lastWalkedAt > 0 and currentTime() - candidate.lastWalkedAt < PATROL_RECENT_TIME then
-    score = score - (mode == "patrol" and 180 or 30)
+    score = score - (mode == "patrol" and 360 or 30)
   end
 
   return score
@@ -1008,6 +1101,7 @@ local function buildCandidates(mode)
           local floorThing = getFloorChangeThing(tile)
           local distance = distance2d(playerPos, tilePos)
           local edgeDistanceValue = getEdgeDistance(tilePos, bounds)
+          local openCardinals = countOpenCardinalTiles(tilePos)
           local candidate = {
             pos = copyPosition(tilePos),
             key = key,
@@ -1015,6 +1109,8 @@ local function buildCandidates(mode)
             anchorDistance = distance2d(getAnchor(playerPos), tilePos),
             edgeDistance = edgeDistanceValue,
             edgeScore = edgeScore(edgeDistanceValue, distance),
+            openCardinals = openCardinals,
+            corridor = openCardinals <= CORRIDOR_OPEN_MAX,
             floorTile = isFloorChangeTile(tile, tilePos),
             floorUse = floorThing ~= nil,
             lastWalkedAt = tonumber(state.walkedAt[key]) or 0,
@@ -1049,7 +1145,7 @@ local function buildCandidates(mode)
       return math.abs(a.distance - PATROL_PREFERRED_DISTANCE) < math.abs(b.distance - PATROL_PREFERRED_DISTANCE)
     end
     if a.anchorDistance ~= b.anchorDistance then
-      if mode == "patrol" then return a.anchorDistance < b.anchorDistance end
+      if mode == "patrol" then return a.anchorDistance > b.anchorDistance end
       return a.anchorDistance > b.anchorDistance
     end
     return a.distance < b.distance
@@ -1063,6 +1159,7 @@ local function chooseTargetFromCandidates(candidates, mode)
   local maxDistance = math.max(8, radius * 2 + 10)
   local checked = 0
   local best = nil
+  local playerPos = player and player.getPosition and player:getPosition() or nil
 
   for _, candidate in ipairs(candidates) do
     if checked >= (mode == "patrol" and PATROL_PATH_CHECKS or MAX_PATH_CHECKS) then break end
@@ -1074,9 +1171,13 @@ local function chooseTargetFromCandidates(candidates, mode)
       walkPos, path = getFloorStandPosition(candidate.pos, maxDistance)
     end
     if path then
-      local pathScore = candidate.score - (#path * 2)
-      if not best or pathScore > best.score then
-        best = {pos = candidate.pos, key = candidate.key, path = path, walkPos = walkPos, score = pathScore}
+      if playerPos and pathLeavesPerimeter(path, playerPos, false) then
+        markBlocked(candidate.pos)
+      else
+        local pathScore = candidate.score - (#path * 2)
+        if not best or pathScore > best.score then
+          best = {pos = candidate.pos, key = candidate.key, path = path, walkPos = walkPos, score = pathScore}
+        end
       end
     else
       markBlocked(candidate.pos)
@@ -1168,8 +1269,17 @@ local function walkToTarget(target)
 
   local radius = getRadius()
   local walkTarget = state.targetWalkPos or target
+  local playerPos = player and player.getPosition and player:getPosition() or nil
   if hasPosition(walkTarget) and samePosition(walkTarget, player:getPosition()) and tryUseFloorChangeTarget(target) then
     return true
+  end
+
+  if hasPosition(playerPos) and hasPosition(walkTarget) then
+    local maxDistance = math.max(8, radius * 2 + 10)
+    local path = getPathTo(walkTarget, maxDistance)
+    if not path or pathLeavesPerimeter(path, playerPos, false) then
+      return false
+    end
   end
 
   local ok, result = pcall(function()
@@ -1220,12 +1330,25 @@ local function getReturnInsideRadiusTarget(playerPos)
   local candidates = {}
   for _, tile in pairs(tiles) do
     local tilePos = getTilePosition(tile)
-    if tilePos and tilePos.z == playerPos.z and inCurrentRadius(tilePos) and canUseTile(tile) then
+    if tilePos and tilePos.z == playerPos.z and inStableReturnArea(tilePos) and canUseTile(tile) then
       table.insert(candidates, {
         pos = copyPosition(tilePos),
         distance = distance2d(playerPos, tilePos),
         anchorDistance = distance2d(getAnchor(), tilePos)
       })
+    end
+  end
+
+  if #candidates == 0 then
+    for _, tile in pairs(tiles) do
+      local tilePos = getTilePosition(tile)
+      if tilePos and tilePos.z == playerPos.z and inCurrentRadius(tilePos) and canUseTile(tile) then
+        table.insert(candidates, {
+          pos = copyPosition(tilePos),
+          distance = distance2d(playerPos, tilePos),
+          anchorDistance = distance2d(getAnchor(), tilePos)
+        })
+      end
     end
   end
 
@@ -1235,8 +1358,13 @@ local function getReturnInsideRadiusTarget(playerPos)
   end)
 
   local maxDistance = math.max(8, getRadius() * 2 + 10)
+  local checked = 0
   for _, candidate in ipairs(candidates) do
-    if getPathTo(candidate.pos, maxDistance) then
+    if checked >= RETURN_PATH_CHECKS then break end
+    checked = checked + 1
+
+    local path = getPathTo(candidate.pos, maxDistance)
+    if path and not pathLeavesPerimeter(path, playerPos, true) then
       return candidate.pos
     end
   end
@@ -1286,6 +1414,14 @@ local function explorerTick()
   updateMinimapOverlay(playerPos)
 
   getAnchor(playerPos)
+  if shouldPauseForTargetBot() then
+    if CaveBot.resetWalking then pcall(CaveBot.resetWalking) end
+    state.nextWalkAt = currentTime() + TARGETBOT_PAUSE_DELAY
+    state.nextScanAt = currentTime() + TARGETBOT_PAUSE_DELAY
+    setStatus("Pausa: TargetBot | " .. countVisited() .. " cubiertos", "#ffd166")
+    return
+  end
+
   if keepInsideRadius(playerPos) then return end
 
   markAreaCovered(playerPos)
@@ -1294,14 +1430,6 @@ local function explorerTick()
   if state.target and state.targetKey and state.visited[state.targetKey] and distance2d(playerPos, state.target) <= COVERAGE_RADIUS then
     clearTarget(true)
     if CaveBot.resetWalking then pcall(CaveBot.resetWalking) end
-  end
-
-  if shouldPauseForTargetBot() then
-    if CaveBot.resetWalking then pcall(CaveBot.resetWalking) end
-    state.nextWalkAt = currentTime() + TARGETBOT_PAUSE_DELAY
-    state.nextScanAt = currentTime() + TARGETBOT_PAUSE_DELAY
-    setStatus("Pausa: TargetBot | " .. countVisited() .. " cubiertos", "#ffd166")
-    return
   end
 
   if currentTime() >= (state.nextWalkAt or 0) and CaveBot.doWalking and CaveBot.doWalking() then

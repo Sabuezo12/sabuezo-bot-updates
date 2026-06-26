@@ -87,30 +87,80 @@ local function calibrateSupplyCountersBeforeBuying()
   return false
 end
 
+local function trimText(text)
+  return tostring(text or ""):gsub("^%s+", ""):gsub("%s+$", "")
+end
+
+local function parseBuySuppliesValue(value)
+  local data = string.split(value or "", ",")
+  if #data == 0 or #data > 3 then
+    return nil, nil, nil, "incorrect BuySupplies value"
+  end
+
+  local npcName = trimText(data[1])
+  if npcName == "" then
+    return nil, nil, nil, "missing NPC name"
+  end
+
+  local tradeWord = nil
+  local waitVal = nil
+
+  if #data >= 2 then
+    local second = trimText(data[2])
+    if second ~= "" then
+      local secondNumber = tonumber(second)
+      if secondNumber then
+        waitVal = secondNumber
+      else
+        tradeWord = second
+      end
+    end
+  end
+
+  if #data == 3 then
+    local third = trimText(data[3])
+    if third ~= "" then
+      local thirdNumber = tonumber(third)
+      if not thirdNumber then
+        return nil, nil, nil, "incorrect delay value"
+      end
+      if waitVal then
+        return nil, nil, nil, "use NPC, word, delay or NPC, delay"
+      end
+      waitVal = thirdNumber
+    end
+  end
+
+  return npcName, tradeWord, waitVal
+end
+
+local function openNpcTrade(tradeWord)
+  tradeWord = trimText(tradeWord)
+  if tradeWord ~= "" then
+    CaveBot.Conversation("hi", tradeWord)
+  else
+    CaveBot.OpenNpcTrade()
+  end
+end
+
 CaveBot.Extensions.BuySupplies.setup = function()
   CaveBot.registerAction("BuySupplies", "#C300FF", function(value, retries)
     local possibleItems = {}
     resetBuySupplyCalibration(value, retries)
 
-    local val = string.split(value, ",")
-    local waitVal
-    if #val == 0 or #val > 2 then 
-      warn("CaveBot[BuySupplies]: incorrect BuySupplies value")
+    local npcName, tradeWord, waitVal, parseError = parseBuySuppliesValue(value)
+    if parseError then
+      warn("CaveBot[BuySupplies]: " .. parseError)
       return false 
-    elseif #val == 2 then
-      waitVal = tonumber(val[2]:trim())
     end
 
-    local npcName = val[1]:trim()
     local npc = getCreatureByName(npcName)
     if not npc then 
       print("CaveBot[BuySupplies]: NPC not found")
       return false 
     end
     
-    if not waitVal and #val == 2 then 
-      warn("CaveBot[BuySupplies]: incorrect delay values!")
-    elseif waitVal and #val == 2 then
+    if waitVal then
       delay(waitVal)
     end
 
@@ -128,7 +178,7 @@ CaveBot.Extensions.BuySupplies.setup = function()
     end
 
     if not NPC.isTrading() then
-      CaveBot.OpenNpcTrade()
+      openNpcTrade(tradeWord)
       CaveBot.delay(storage.extras.talkDelay*2)
       return "retry"
     end
@@ -175,6 +225,6 @@ CaveBot.Extensions.BuySupplies.setup = function()
  CaveBot.Editor.registerAction("buysupplies", "buy supplies", {
   value="NPC name",
   title="Buy Supplies",
-  description="NPC Name, delay(in ms, optional)",
+  description="NPC name, word(optional), delay(in ms, optional)",
  })
 end
