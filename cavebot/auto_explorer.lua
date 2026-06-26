@@ -35,6 +35,8 @@ local DEATH_SAFE_HP = 5
 local MINIMAP_OVERLAY_UPDATE = 250
 local MINIMAP_OVERLAY_THICKNESS = 2
 local FLOOR_USE_COOLDOWN = 700
+local FLOOR_RETURN_SCAN_INTERVAL = 250
+local FLOOR_RETURN_PATH_CHECKS = 40
 
 local FLOOR_CHANGE_USE_IDS = {
   [386] = true, [421] = true, [432] = true, [433] = true, [435] = true,
@@ -73,6 +75,8 @@ local state = {
   nextWalkAt = 0,
   nextOverlayUpdateAt = 0,
   lastFloorUseAt = 0,
+  floorReturnTarget = nil,
+  floorReturnStartedAt = 0,
   deathLowHpSince = 0,
   deathOfflineSince = 0,
   deathHadSafeHp = false,
@@ -836,6 +840,8 @@ local function resetRuntime(keepEnabled, keepOrigin)
   state.nextWalkAt = 0
   state.nextOverlayUpdateAt = 0
   state.lastFloorUseAt = 0
+  state.floorReturnTarget = nil
+  state.floorReturnStartedAt = 0
   resetDeathState()
 
   if player and player.getPosition then
@@ -879,10 +885,18 @@ local function getPathParams()
   }
 end
 
-local function getPathTo(pos, maxDistance)
+local function getFloorReturnPathParams()
+  local params = getPathParams()
+  params.ignoreStairs = false
+  params.allowUnseen = true
+  params.allowOnlyVisibleTiles = false
+  return params
+end
+
+local function getPathTo(pos, maxDistance, params)
   if not getPath or not player or not player.getPosition then return nil end
   local ok, path = pcall(function()
-    return getPath(player:getPosition(), pos, maxDistance, getPathParams())
+    return getPath(player:getPosition(), pos, maxDistance, params or getPathParams())
   end)
   if ok and path and path[1] then return path end
   return nil
@@ -1224,8 +1238,13 @@ local function clearTarget(remember)
   state.targetNoProgressAt = 0
 end
 
-local function tryUseFloorChangeTarget(target)
-  if not allowFloorChanges() or not hasPosition(target) or not player or not player.getPosition then return false end
+local function shouldReturnToOriginFloor(playerPos)
+  return not allowFloorChanges() and hasPosition(playerPos) and hasPosition(state.origin) and playerPos.z ~= state.origin.z
+end
+
+local function tryUseFloorChangeTarget(target, force)
+  if not force and not allowFloorChanges() then return false end
+  if not hasPosition(target) or not player or not player.getPosition then return false end
 
   local playerPos = player:getPosition()
   if not hasPosition(playerPos) or playerPos.z ~= target.z then return false end
@@ -1256,11 +1275,171 @@ local function tryUseFloorChangeTarget(target)
     state.nextWalkAt = time + FLOOR_USE_COOLDOWN
     state.nextScanAt = time + FLOOR_USE_COOLDOWN
     if CaveBot.resetWalking then pcall(CaveBot.resetWalking) end
-    setStatus("Usando cambio de piso", "#8fd3ff")
+    setStatus(force and "Regresando de piso" or "Usando cambio de piso", force and "#ffd166" or "#8fd3ff")
     return true
   end
 
   return false
+end
+
+local function getFloorReturnStandPosition(pos, maxDistance, params)
+  if not hasPosition(pos) or not player or not player.getPosition then return nil, nil end
+
+  local playerPos = player:getPosition()
+  if not hasPosition(playerPos) or playerPos.z ~= pos.z then return nil, nil end
+  if distance2d(playerPos, pos) <= 1 then return copyPosition(playerPos), {} end
+
+  local offsets = {
+    {x = 0, y = -1}, {x = 1, y = 0}, {x = 0, y = 1}, {x = -1, y = 0},
+    {x = 1, y = -1}, {x = 1, y = 1}, {x = -1, y = 1}, {x = -1, y = -1}
+  }
+  local bestPos = nil
+  local bestPath = nil
+  local bestScore = nil
+
+  for _, offset in ipairs(offsets) do
+    local standPos = {x = pos.x + offset.x, y = pos.y + offset.y, z = pos.z}
+    local tile = g_map and g_map.getTile and g_map.getTile(standPos) or nil
+    if tile and isWalkableTile(tile) and not tileHasCreature(tile) and not isBlocked(positionKey(standPos)) then
+      local path = getPathTo(standPos, maxDistance, params)
+      if path then
+        local score = #path + distance2d(standPos, pos)
+        if not bestScore or score < bestScore then
+          bestScore = score
+          bestPos = copyPosition(standPos)
+          bestPath = path
+        end
+      end
+    end
+  end
+
+  return bestPos, bestPath
+end
+
+local function getFloorReturnTarget(playerPos)
+  if not shouldReturnToOriginFloor(playerPos) or not g_map or not g_map.getTiles then return nil, nil end
+
+  local okTiles, tiles = pcall(function() return g_map.getTiles(playerPos.z) end)
+  if not okTiles or type(tiles) ~= "table" then return nil, nil end
+
+  local params = getFloorReturnPathParams()
+  local maxDistance = math.max(20, getRadius() * 2 + 10)
+  local candidates = {}
+
+  for _, tile in pairs(tiles) do
+    local tilePos = getTilePosition(tile)
+    if tilePos and tilePos.z == playerPos.z then
+      local thing = getFloorChangeThing(tile)
+      local floorTile = thing ~= nil or isFloorChangeTile(tile, tilePos)
+      if floorTile and (samePosition(tilePos, playerPos) or not tileHasCreature(tile)) and not isBlocked(positionKey(tilePos)) then
+        local walkPos = nil
+        local path = nil
+
+        if thing or not isWalkableTile(tile) then
+          walkPos, path = getFloorReturnStandPosition(tilePos, maxDistance, params)
+        elseif isWalkableTile(tile) then
+          walkPos = copyPosition(tilePos)
+          if samePosition(playerPos, tilePos) then
+            path = {}
+          else
+            path = getPathTo(tilePos, maxDistance, params)
+          end
+        end
+
+        if walkPos and path then
+          local originDistance = hasPosition(state.origin) and distance2d(tilePos, {x = state.origin.x, y = state.origin.y, z = tilePos.z}) or 0
+          table.insert(candidates, {
+            target = copyPosition(tilePos),
+            walkPos = copyPosition(walkPos),
+            distance = distance2d(playerPos, walkPos),
+            pathLength = #path,
+            originDistance = originDistance,
+            hasUseThing = thing ~= nil
+          })
+        end
+      end
+    end
+  end
+
+  table.sort(candidates, function(a, b)
+    if a.hasUseThing ~= b.hasUseThing then return a.hasUseThing end
+    if a.distance ~= b.distance then return a.distance < b.distance end
+    if a.pathLength ~= b.pathLength then return a.pathLength < b.pathLength end
+    return a.originDistance < b.originDistance
+  end)
+
+  local checked = 0
+  for _, candidate in ipairs(candidates) do
+    if checked >= FLOOR_RETURN_PATH_CHECKS then break end
+    checked = checked + 1
+    return candidate.target, candidate.walkPos
+  end
+
+  return nil, nil
+end
+
+local function processFloorReturn(playerPos)
+  if not shouldReturnToOriginFloor(playerPos) then
+    state.floorReturnTarget = nil
+    state.floorReturnStartedAt = 0
+    return false
+  end
+
+  if state.floorReturnStartedAt == 0 then
+    state.floorReturnStartedAt = currentTime()
+  end
+
+  clearTarget(false)
+  if currentTime() >= (state.nextWalkAt or 0) and CaveBot.doWalking and CaveBot.doWalking() then
+    state.nextWalkAt = currentTime() + FAST_STEP_DELAY
+    setStatus("Regresando al piso " .. tostring(state.origin.z), "#ffd166")
+    return true
+  end
+
+  if currentTime() < (state.nextWalkAt or 0) then
+    return true
+  end
+
+  local target, walkPos = getFloorReturnTarget(playerPos)
+  if target then
+    state.floorReturnTarget = copyPosition(target)
+    if tryUseFloorChangeTarget(target, true) then
+      return true
+    end
+
+    if walkPos and CaveBot.walkTo then
+      local maxDistance = math.max(20, distance2d(playerPos, walkPos) + 12)
+      local ok, walking = pcall(function()
+        return CaveBot.walkTo(walkPos, maxDistance, getFloorReturnPathParams())
+      end)
+      if ok and walking then
+        state.nextWalkAt = currentTime() + FAST_STEP_DELAY
+        setStatus("Regresando al piso " .. tostring(state.origin.z), "#ffd166")
+        return true
+      end
+    end
+  end
+
+  if hasPosition(state.origin) and CaveBot.walkTo then
+    local fallback = {x = state.origin.x, y = state.origin.y, z = playerPos.z}
+    local maxDistance = math.max(20, distance2d(playerPos, fallback) + 12)
+    local path = getPathTo(fallback, maxDistance, getFloorReturnPathParams())
+    if path then
+      local ok, walking = pcall(function()
+        return CaveBot.walkTo(fallback, maxDistance, getFloorReturnPathParams())
+      end)
+      if ok and walking then
+        state.nextWalkAt = currentTime() + FAST_STEP_DELAY
+        setStatus("Buscando regreso al piso " .. tostring(state.origin.z), "#ffd166")
+        return true
+      end
+    end
+  end
+
+  state.nextWalkAt = currentTime() + FLOOR_RETURN_SCAN_INTERVAL
+  state.nextScanAt = currentTime() + FLOOR_RETURN_SCAN_INTERVAL
+  setStatus("Buscando cambio de piso para regresar", "#ffd166")
+  return true
 end
 
 local function walkToTarget(target)
@@ -1414,6 +1593,8 @@ local function explorerTick()
   updateMinimapOverlay(playerPos)
 
   getAnchor(playerPos)
+  if processFloorReturn(playerPos) then return end
+
   if shouldPauseForTargetBot() then
     if CaveBot.resetWalking then pcall(CaveBot.resetWalking) end
     state.nextWalkAt = currentTime() + TARGETBOT_PAUSE_DELAY
@@ -1508,6 +1689,8 @@ AutoExplorer.disable = function()
   state.enabled = false
   if CaveBot.resetWalking then pcall(CaveBot.resetWalking) end
   clearTarget(false)
+  state.floorReturnTarget = nil
+  state.floorReturnStartedAt = 0
   refreshOverlayNow(true)
   setStatus("Off | " .. countVisited() .. " cubiertos", "#c8c8c8")
   updateButtons()
@@ -1523,6 +1706,8 @@ local function forceAutoExplorerOff(reason)
   state.enabled = false
   if CaveBot.resetWalking then pcall(CaveBot.resetWalking) end
   clearTarget(false)
+  state.floorReturnTarget = nil
+  state.floorReturnStartedAt = 0
   refreshOverlayNow(true)
   setStatus(reason or ("Off | " .. countVisited() .. " cubiertos"), "#c8c8c8")
   updateButtons()
@@ -1662,7 +1847,7 @@ AutoExplorer.setupMainPanel = function(panel)
     panel.perimeterRow.perimeterSlider:setTooltip("Mueve la barra para ajustar el perimetro entre 20 y 120.")
   end
   panel.optionsRow.previewSwitch:setTooltip("Muestra u oculta el perimetro en el minimapa antes de activar Auto Explorer.")
-  panel.optionsRow.floorSwitch:setTooltip("Permite subir o bajar escaleras, rampas, agujeros y alcantarillas dentro del perimetro.")
+  panel.optionsRow.floorSwitch:setTooltip("Permite explorar otros pisos. Si esta apagado y caes/subes/bajas, Auto Explorer intenta regresar al piso del perimetro.")
 
   updateButtons()
   setStatus(state.status, state.statusColor)
@@ -1684,15 +1869,25 @@ onPlayerPositionChange(function(newPos, oldPos)
     state.lastStepDy = 0
     clearTarget(false)
     if CaveBot.resetWalking then pcall(CaveBot.resetWalking) end
-    if not allowFloorChanges() then
-      AutoExplorer.disable()
-      setStatus("Off | cambio de piso bloqueado", "#ff7777")
+
+    if shouldReturnToOriginFloor(newPos) then
+      state.floorReturnTarget = nil
+      state.floorReturnStartedAt = currentTime()
+      state.nextWalkAt = 0
+      state.nextScanAt = 0
+      setStatus("Regresando al piso " .. tostring(state.origin.z), "#ffd166")
       return
     end
+
     setStatus("Piso " .. tostring(newPos.z) .. " | " .. countVisited() .. " cubiertos", "#8cff9a")
   elseif hasPosition(oldPos) then
     state.lastStepDx = sign(newPos.x - oldPos.x)
     state.lastStepDy = sign(newPos.y - oldPos.y)
+  end
+
+  if shouldReturnToOriginFloor(newPos) then
+    setStatus("Regresando al piso " .. tostring(state.origin.z), "#ffd166")
+    return
   end
 
   markAreaCovered(newPos)

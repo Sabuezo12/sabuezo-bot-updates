@@ -3,28 +3,12 @@ setDefaultTab("Tools")
 local panelName = "caveBotHud"
 if type(storage[panelName]) ~= "table" then
   storage[panelName] = {
-    enabled = true,
     maxSupplies = 5
   }
 end
 local config = storage[panelName]
-if config.enabled == nil then config.enabled = true end
+config.enabled = true
 config.maxSupplies = tonumber(config.maxSupplies) or 5
-
-local ui = setupUI([[
-Panel
-  height: 19
-
-  BotSwitch
-    id: title
-    anchors.top: parent.top
-    anchors.left: parent.left
-    anchors.right: parent.right
-    text-align: center
-    !text: tr('CaveBot HUD')
-]])
-
-ui.title:setOn(config.enabled)
 
 local hudPanel = setupUI([[
 CaveBotHudLabel < Label
@@ -50,6 +34,7 @@ Panel
 ]], modules.game_interface.getMapPanel())
 
 local lines = {}
+local registeredSupplyHudItems = {}
 
 local function formatNumber(value)
   local n = tonumber(value) or 0
@@ -159,6 +144,118 @@ local function getStats()
   }
 end
 
+local function getTrackedItemAmount(id)
+  id = tonumber(id)
+  if not id then return 0 end
+
+  local visible = 0
+  if player and player.getItemsCount then
+    visible = tonumber(player:getItemsCount(id)) or 0
+  end
+
+  if vBot and vBot.ItemCounter and vBot.ItemCounter.getAmountInfo then
+    local ok, current = pcall(vBot.ItemCounter.getAmountInfo, id, visible)
+    if ok then return tonumber(current) or 0 end
+  end
+  if itemAmount then
+    local ok, amount = pcall(itemAmount, id)
+    if ok then return tonumber(amount) or visible end
+  end
+  return visible
+end
+
+local function registerSupplyHudItem(id, data)
+  id = tonumber(id)
+  if not id or id <= 100 then return end
+
+  if vBot and vBot.ItemCounter and not registeredSupplyHudItems[id] then
+    if vBot.ItemCounter.registerSupplyItem then
+      pcall(vBot.ItemCounter.registerSupplyItem, id, data or {})
+    elseif vBot.ItemCounter.registerItemId then
+      pcall(vBot.ItemCounter.registerItemId, id)
+    end
+    registeredSupplyHudItems[id] = true
+  end
+end
+
+local function getSupplyItemName(id)
+  local name = tostring(id)
+  if vBot and vBot.ItemCounter and vBot.ItemCounter.getName then
+    local ok, value = pcall(vBot.ItemCounter.getName, id)
+    if ok and value and tostring(value) ~= "" then
+      name = tostring(value)
+    end
+  end
+  return name
+end
+
+local function getSupplyItemUsed(id)
+  if vBot and vBot.ItemCounter and vBot.ItemCounter.getUsed then
+    local ok, used = pcall(vBot.ItemCounter.getUsed, id)
+    if ok then return tonumber(used) or 0 end
+  end
+  return 0
+end
+
+local function buildSupplyStatsFromData(data)
+  local items = {}
+  if type(data) ~= "table" then return items end
+
+  for id, values in pairs(data) do
+    local numericId = tonumber(id)
+    if numericId and numericId > 100 and type(values) == "table" then
+      registerSupplyHudItem(numericId, values)
+      table.insert(items, {
+        id = numericId,
+        name = getSupplyItemName(numericId),
+        current = getTrackedItemAmount(numericId),
+        used = getSupplyItemUsed(numericId)
+      })
+    end
+  end
+
+  table.sort(items, function(a, b)
+    return tostring(a.name):lower() < tostring(b.name):lower()
+  end)
+  return items
+end
+
+local function getSupplyDataFromConfig()
+  local profiles = SuppliesConfig and SuppliesConfig.supplies
+  if type(profiles) ~= "table" then return nil end
+
+  local profileName = profiles.currentProfile
+  local profile = profileName and profiles[profileName] or nil
+  if type(profile) ~= "table" then
+    for key, value in pairs(profiles) do
+      if key ~= "currentProfile" and type(value) == "table" then
+        profile = value
+        break
+      end
+    end
+  end
+
+  if type(profile) ~= "table" then return nil end
+  return profile.items
+end
+
+local function getHudSupplyItems(stats)
+  local supplies = stats and stats.supplies or nil
+  if type(supplies) == "table" and #supplies > 0 then
+    return supplies
+  end
+
+  if Supplies and Supplies.getItemsData then
+    local ok, data = pcall(Supplies.getItemsData)
+    if ok then
+      local items = buildSupplyStatsFromData(data)
+      if #items > 0 then return items end
+    end
+  end
+
+  return buildSupplyStatsFromData(getSupplyDataFromConfig())
+end
+
 local function ensureLine(index)
   if not lines[index] then
     local label = UI.createWidget("CaveBotHudLabel", hudPanel)
@@ -184,8 +281,8 @@ end
 
 local function updateHud()
   local caveOn = isOn(CaveBot)
-  hudPanel:setVisible(config.enabled == true and caveOn == true)
-  if not config.enabled or not caveOn then
+  hudPanel:setVisible(caveOn == true)
+  if not caveOn then
     return
   end
 
@@ -213,7 +310,7 @@ local function updateHud()
   setLine(line, {"~ Prom ronda: ", "white", formatDuration(stats.avgRound), "#9dd1ce", "  Refill: ", "white", formatDuration(stats.avgRefill), "#9dd1ce"})
   line = line + 1
 
-  local supplies = stats.supplies or {}
+  local supplies = getHudSupplyItems(stats)
   if #supplies > 0 then
     setLine(line, {"~ Supplies ", "#9dd1ce", "Actual/Gastado", "#ffd166"})
     line = line + 1
@@ -238,15 +335,8 @@ local function updateHud()
   hudPanel:setHeight(math.max(12, (line - 1) * 13))
 end
 
-ui.title.onClick = function(widget)
-  config.enabled = not config.enabled
-  widget:setOn(config.enabled)
-  updateHud()
-end
-
 macro(1000, function()
   updateHud()
 end)
 
 updateHud()
-UI.Separator()
