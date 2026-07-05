@@ -202,7 +202,7 @@ end
 local function tileHasCreature(tile)
   if not tile then return false end
   local ok, result = pcall(function()
-    if tile.hasCreature then return tile:hasCreature() end
+    if tileHasCreature then return tileHasCreature(tile) end
     local creatures = tile:getCreatures()
     return creatures and #creatures > 0
   end)

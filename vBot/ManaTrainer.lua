@@ -9,6 +9,7 @@ if type(config.creatures) ~= "string" or config.creatures:len() == 0 then config
 config.castDelay = tonumber(config.castDelay) or 1500
 if config.pauseAttackBot == nil then config.pauseAttackBot = true end
 if config.pauseHealBot == nil then config.pauseHealBot = false end
+if config.manaOnly == nil then config.manaOnly = false end
 
 local ui = setupUI([[
 Panel
@@ -132,6 +133,7 @@ local function refreshParsed()
   config.castDelay = clamp(config.castDelay, 250, 60000, 1500)
   config.pauseAttackBot = config.pauseAttackBot == true
   config.pauseHealBot = config.pauseHealBot == true
+  config.manaOnly = config.manaOnly == true
   normalizeRules()
   parseCreatures()
 
@@ -283,7 +285,10 @@ local function updateStatus(text, color)
   refreshParsed()
 
   if not text then
-    if #creatureList == 0 then
+    if config.manaOnly then
+      text = "Mana only, " .. #spellRules .. " active spell(s)"
+      color = config.enabled and "#8cff9a" or "#cfd3d7"
+    elseif #creatureList == 0 then
       text = "No creatures"
       color = "#ff8a8a"
     elseif config.enabled then
@@ -364,6 +369,7 @@ local function updateWindow()
   window.castDelay:setValue(config.castDelay)
   window.pauseAttackBot:setChecked(config.pauseAttackBot)
   window.pauseHealBot:setChecked(config.pauseHealBot)
+  window.manaOnly:setChecked(config.manaOnly)
   refreshRows()
 end
 
@@ -413,6 +419,16 @@ window.pauseHealBot.onClick = function(widget)
   end
 end
 
+window.manaOnly.onClick = function(widget)
+  config.manaOnly = not config.manaOnly
+  widget:setChecked(config.manaOnly)
+  if not config.manaOnly then
+    setAttackBotPaused(false)
+    setHealBotPaused(false)
+  end
+  updateStatus()
+end
+
 window.addSpell.onClick = function()
   normalizeRules()
   table.insert(config.rules, makeRule("", 90, true))
@@ -436,19 +452,21 @@ macro(250, function()
   end
 
   refreshParsed()
-  if #creatureList == 0 then
+  if not config.manaOnly and #creatureList == 0 then
     setAttackBotPaused(false)
     setHealBotPaused(false)
     updateStatus("No creatures", "#ff8a8a")
     return
   end
 
-  local creature = getCurrentTarget()
-  if not targetMatches(creature) then
-    setAttackBotPaused(false)
-    setHealBotPaused(false)
-    updateStatus("Waiting target", "#ffd166")
-    return
+  if not config.manaOnly then
+    local creature = getCurrentTarget()
+    if not targetMatches(creature) then
+      setAttackBotPaused(false)
+      setHealBotPaused(false)
+      updateStatus("Waiting target", "#ffd166")
+      return
+    end
   end
 
   setAttackBotPaused(true)

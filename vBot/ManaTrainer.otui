@@ -109,7 +109,7 @@ ManaTrainerWindow < MainWindow
     anchors.top: delayLabel.bottom
     anchors.left: parent.left
     margin-top: 10
-    width: 150
+    width: 126
     height: 18
     text: Pause AttackBot
     tooltip: Pause AttackBot while attacking a configured trainer target.
@@ -118,11 +118,21 @@ ManaTrainerWindow < MainWindow
     id: pauseHealBot
     anchors.left: pauseAttackBot.right
     anchors.verticalCenter: pauseAttackBot.verticalCenter
-    margin-left: 16
-    width: 150
+    margin-left: 8
+    width: 116
     height: 18
     text: Pause HealBot
     tooltip: Pause HealBot while attacking a configured trainer target.
+
+  CheckBox
+    id: manaOnly
+    anchors.left: pauseHealBot.right
+    anchors.verticalCenter: pauseAttackBot.verticalCenter
+    margin-left: 8
+    width: 112
+    height: 18
+    text: Mana Only
+    tooltip: Ignore creature target and cast using only mana percent.
 
   Label
     id: spellsLabel

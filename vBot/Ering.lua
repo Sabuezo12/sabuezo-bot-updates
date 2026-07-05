@@ -105,9 +105,6 @@ local function updateLabels()
 end
 
 local icon
-local initialEnabled = config.enabled == true
-local bootingIcon = true
-local syncingIcon = false
 
 local function saveIconState(enabled)
     storage._icons = storage._icons or {}
@@ -136,24 +133,19 @@ local function setEnabled(enabled, fromIcon)
     end
 end
 
-icon = addIcon("ERingIcon", {text="Ering", item=3088, switchable=true}, function(widget, on)
-    if bootingIcon then
-        updateIconVisual(widget, initialEnabled)
-        return
+ERing = {
+    isOn = function()
+        return config.enabled == true
+    end,
+    setOn = function()
+        setEnabled(true)
+    end,
+    setOff = function()
+        setEnabled(false)
     end
-    if syncingIcon then
-        updateIconVisual(widget, config.enabled)
-        return
-    end
-    setEnabled(on, true)
-end)
+}
 
-bootingIcon = false
-setEnabled(initialEnabled)
-icon:breakAnchors()
-icon:move(255, 42)
-icon.text:setFont('verdana-11px-rounded')
-updateIconVisual(icon, config.enabled)
+setEnabled(config.enabled == true)
 
 ui.title:setOn(config.enabled)
 ui.title.onClick = function(widget)

@@ -22,7 +22,7 @@ CaveBot.doWalking = function()
   end
   local dir = walkPath[walkPathIter]
   if dir then
-    g_game.walk(dir, false)
+    safeBotWalk(dir)
     table.insert(expectedDirs, dir)
     walkPathIter = walkPathIter + 1
     CaveBot.delay(CaveBot.Config.get("walkDelay") + player:getStepDuration(false, dir))
@@ -74,7 +74,12 @@ CaveBot.walkTo = function(dest, maxDist, params)
   local dir = path[1]
   
   if CaveBot.Config.get("mapClick") then
-    local ret = autoWalk(path)
+    local ok, ret = pcall(function()
+      return autoWalk(path)
+    end)
+    if not ok or ret == nil or ret == false then
+      ret = safeBotWalk(dir)
+    end
     if ret then
       isWalking = true
       expectedDirs = path
@@ -83,7 +88,7 @@ CaveBot.walkTo = function(dest, maxDist, params)
     return ret
   end
   
-  g_game.walk(dir, false)
+  safeBotWalk(dir)
   isWalking = true    
   walkPath = path
   walkPathIter = 2

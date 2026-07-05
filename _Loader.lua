@@ -19,6 +19,7 @@ local loaderSections = {
   {
     name = "Core",
     files = {
+      "vBot/client_compat",
       ----"vbot/Inmortal",
       "vBot/items",
       "vBot/vlib",
@@ -111,6 +112,7 @@ local loaderSections = {
       "vBot/analyzer",
       ----"vBot/xeno_menu", -- disabled: unused contextual menu
       "vBot/iconos",
+      "vBot/bot_tabs",
       "zFreeScripts/CaveBotHUD",
     }
   }
@@ -123,7 +125,3 @@ for _, section in ipairs(loaderSections) do
 end
 
 setDefaultTab("Main")
-local label = UI.Label("Pruebas PbotWars:")
-label:setColor('#9dd1ce')
-label:setFont('verdana-11px-rounded')
-UI.Separator()

@@ -59,7 +59,7 @@ local function getBestFacePosition(creaturePos, playerPos, desiredRange, maxRang
             z = creaturePos.z
           }
           local tile = g_map.getTile(candidate)
-          if tile and tile:isWalkable() and not tile:hasCreature() then
+          if tile and tile:isWalkable() and not tileHasCreature(tile) then
             local path = getFacePath(playerPos, candidate, maxPath)
             if path and (not bestPath or #path < #bestPath) then
               bestPath = path
@@ -153,7 +153,7 @@ TargetBot.Creature.alignAndFace = function(creature, options)
   local path = getBestFacePosition(creaturePos, playerPos, desiredRange, maxRange, maxPath)
   if path and #path > 0 then
     if not player:isWalking() and now - lastFaceMove >= FACE_MOVE_DELAY then
-      walk(path[1])
+      safeBotWalk(path[1])
       lastFaceMove = now
     end
     return false, "moving"
@@ -191,7 +191,7 @@ function getWalkableTilesCount(position)
   local count = 0
 
   for i, tile in pairs(getNearTiles(position)) do
-      if tile:isWalkable() or tile:hasCreature() then
+      if tile:isWalkable() or tileHasCreature(tile) then
           count = count + 1
       end
   end
@@ -209,7 +209,7 @@ function rePosition(minTiles)
 
   if playerTilesCount > minTiles then return end
   for i, tile in ipairs(tiles) do
-      tilesTable[tile] = not tile:hasCreature() and tile:isWalkable() and getWalkableTilesCount(tile:getPosition()) or nil
+      tilesTable[tile] = not tileHasCreature(tile) and tile:isWalkable() and getWalkableTilesCount(tile:getPosition()) or nil
   end
 
   local best = 0

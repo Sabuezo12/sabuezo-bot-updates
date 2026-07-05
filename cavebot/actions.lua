@@ -47,7 +47,7 @@ onTextMessage(function(mode, text)
   local tiles = getNearTiles(pos())
 
   for i, tile in ipairs(tiles) do
-    if not tile:hasCreature() and tile:isWalkable() and #tile:getItems() > 9 then
+    if not tileHasCreature(tile) and tile:isWalkable() and #tile:getItems() > 9 then
       local topThing = tile:getTopThing()
       if not isInPz() then
         return useWith(3197, tile:getTopThing()) -- disintegrate
@@ -375,7 +375,7 @@ CaveBot.FunctionHelpers.stepDirection = function(directionName, retries, maxRetr
     return false
   end
 
-  g_game.walk(step.dir, false)
+  safeBotWalk(step.dir)
   CaveBot.delay(waitMs)
   return "retry"
 end
@@ -608,7 +608,7 @@ CaveBot.registerAction("goto", "green", function(value, retries, prev)
   
       local tile = g_map.getTile(nextPos)
       if tile then
-          if tile:hasCreature() then
+          if tileHasCreature(tile) then
               local creature = tile:getCreatures()[1]
               local hppc = creature:getHealthPercent()
               if creature:isMonster() and (hppc and hppc > 0) and (oldTibia or creature:getType() < 3) then

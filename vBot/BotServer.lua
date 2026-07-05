@@ -1,8 +1,8 @@
 setDefaultTab("Main")
 local regex = [["(.*?)"]]
 local panelName = "BOTserver"
-local DEFAULT_BOTSERVER_CHANNEL = "Slegna14325"
-local BOTSERVER_DEFAULTS_VERSION = 1
+local DEFAULT_BOTSERVER_CHANNEL = "Slegna1324"
+local BOTSERVER_DEFAULTS_VERSION = 2
 local ui = setupUI([[
 Panel
   height: 18

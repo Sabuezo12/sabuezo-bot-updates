@@ -77,7 +77,7 @@ local addScrollBar = function(id, title, min, max, defaultValue, dest, tooltip)
   widget.scroll.onValueChange(widget.scroll, widget.scroll:getValue())
 end
 
-local btCave = UI.Button('CaveBot & Target Settings', function()
+local btCave = UI.Button('Cave / Target', function()
   CaveBotConfigsWindow:show()
   CaveBotConfigsWindow:raise()
   CaveBotConfigsWindow:focus()

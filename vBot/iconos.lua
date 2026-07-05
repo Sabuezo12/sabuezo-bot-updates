@@ -1,9 +1,10 @@
-local leftX = 197
-local rightX = 255
-local topY = 80
-local spacingY = 45
+local leftX = 206
+local rightX = 274
+local topY = 146
+local spacingY = 48
 
 local iconList = {
+  {id = "ERingIcon", text = "Ering", itemId = 3088, botScript = ERing, x = rightX, y = topY - 34, offColor = "red"},
   {id = "CavebotIcon", text = "Cave", itemId = 12548, botScript = CaveBot, x = leftX, y = topY, offColor = "white"},
   {id = "TargetIcon", text = "Target", itemId = 7438, botScript = TargetBot, x = rightX, y = topY, offColor = "white"},
   {id = "RecogeTodoIcon", text = "Recoge\nTodo", itemId = {id = 3043, count = 100}, botScript = RecogeTodo, x = leftX, y = topY + spacingY},
@@ -40,13 +41,26 @@ end
 local function styleIcon(widget)
   if not widget then return end
   widget:breakAnchors()
-  widget:setSize({height = 42, width = 45})
+  widget:setSize({height = 46, width = 58})
   if widget.text then
+    pcall(function() widget.text:breakAnchors() end)
     widget.text:setFont("verdana-11px-rounded")
     widget.text:setColor("red")
+    pcall(function() widget.text:setTextAlign(AlignCenter) end)
+    pcall(function() widget.text:setSize({height = 24, width = 58}) end)
+    pcall(function() widget.text:setWidth(58) end)
+    pcall(function() widget.text:setMarginLeft(0) end)
+    pcall(function() widget.text:setMarginRight(0) end)
+    pcall(function() widget.text:move(0, 23) end)
   end
   if widget.item then
-    widget.item:setMarginTop(14)
+    pcall(function() widget.item:breakAnchors() end)
+    pcall(function() widget.item:setSize({height = 32, width = 32}) end)
+    pcall(function() widget.item:setMarginTop(0) end)
+    pcall(function() widget.item:setMarginLeft(13) end)
+    pcall(function() widget.item:setMarginRight(13) end)
+    pcall(function() widget.item:move(13, 0) end)
+    pcall(function() widget.item:lower() end)
   end
 end
 

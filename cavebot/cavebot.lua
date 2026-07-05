@@ -45,7 +45,7 @@ local function canRunWhileTargeting(actionWidget)
   return actionWidget.value:find("waitStamina", 1, true) ~= nil or actionWidget.value:find("stepDirection", 1, true) ~= nil or actionWidget.value:find("setHealBot", 1, true) ~= nil
 end
 
-local CAVEBOT_LOOP_INTERVAL = 50
+local CAVEBOT_LOOP_INTERVAL = 100
 
 cavebotMacro = macro(CAVEBOT_LOOP_INTERVAL, function()
   local actions = ui.list:getChildCount()
