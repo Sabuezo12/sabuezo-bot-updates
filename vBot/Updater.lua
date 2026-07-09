@@ -886,7 +886,7 @@ local function fetchManifest(callback)
 
     activeAttempt = activeAttempt + 1
     local token = activeAttempt
-    local requestUrl = withCacheBuster(url)
+    local requestUrl = url
 
     setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nRevisando " ..
       tostring(attemptIndex) .. "/" .. tostring(#attempts), "#ffd166")
@@ -972,7 +972,7 @@ local function installFileList(manifest, files, index, installed, skipped, autoM
   setStatus("Descargando " .. index .. "/" .. #files .. "\n" .. path, "#cfd3d7")
 
   local finished = false
-  local requestUrl = withCacheBuster(url)
+  local requestUrl = url
   if type(schedule) == "function" then
     schedule(20000, function()
       if finished then return end
