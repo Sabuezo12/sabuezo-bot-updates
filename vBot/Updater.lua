@@ -170,6 +170,21 @@ local function isNewerVersion(version, baseVersion)
 end
 
 local httpDownloadSerial = 0
+local httpRequestSerial = 0
+
+local function withCacheBuster(url)
+  url = tostring(url or "")
+  httpRequestSerial = httpRequestSerial + 1
+
+  local stamp = "0"
+  if os and os.time then
+    stamp = tostring(os.time())
+  end
+  stamp = stamp .. "-" .. tostring(now or 0) .. "-" .. tostring(httpRequestSerial)
+
+  local separator = url:find("?", 1, true) and "&" or "?"
+  return url .. separator .. "sabuezoCache=" .. stamp
+end
 
 local function httpGet(url, callback)
   local http = modules and modules.corelib and modules.corelib.HTTP or HTTP
@@ -287,7 +302,9 @@ local function httpGet(url, callback)
   local function makeHeaders()
     return {
       Accept = "*/*",
-      ["User-Agent"] = "Mozilla/5.0"
+      ["User-Agent"] = "Mozilla/5.0",
+      ["Cache-Control"] = "no-cache",
+      Pragma = "no-cache"
     }
   end
 
@@ -731,13 +748,29 @@ local function formatSummary(manifest, maxLines)
 end
 
 local function fetchManifest(callback)
+  local finished = false
+  local requestUrl = withCacheBuster(config.manifestUrl)
+
+  if type(schedule) == "function" then
+    schedule(15000, function()
+      if finished then return end
+      finished = true
+      setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nError al revisar", "#ff8a8a")
+      setStatus("No hubo respuesta del servidor. Intenta de nuevo.", "#ff8a8a")
+      if callback then callback(nil) end
+    end)
+  end
+
   setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nRevisando...", "#ffd166")
   setStatus("Revisando actualizaciones...", "#ffd166")
-  httpGet(config.manifestUrl, function(data, err)
+  httpGet(requestUrl, function(data, err)
+    if finished then return end
+    finished = true
+
     if not data then
       setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nError al revisar", "#ff8a8a")
       setStatus("Manifest error: " .. tostring(err), "#ff8a8a")
-      callback(nil)
+      if callback then callback(nil) end
       return
     end
 
@@ -747,14 +780,14 @@ local function fetchManifest(callback)
     if not ok or type(manifest) ~= "table" or type(manifest.files) ~= "table" then
       setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nManifest invalido", "#ff8a8a")
       setStatus("Invalid manifest", "#ff8a8a")
-      callback(nil)
+      if callback then callback(nil) end
       return
     end
 
     lastManifest = manifest
     lastPendingFiles = getPendingFiles(manifest)
     refreshDetailsWindow(manifest)
-    callback(manifest)
+    if callback then callback(manifest) end
   end)
 end
 
@@ -792,7 +825,23 @@ local function installFileList(manifest, files, index, installed, skipped, autoM
 
   setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nActualizando...", "#ffd166")
   setStatus("Descargando " .. index .. "/" .. #files .. "\n" .. path, "#cfd3d7")
-  httpGet(url, function(contents, err)
+
+  local finished = false
+  local requestUrl = withCacheBuster(url)
+  if type(schedule) == "function" then
+    schedule(20000, function()
+      if finished then return end
+      finished = true
+      installing = false
+      setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nError al actualizar", "#ff8a8a")
+      setStatus("Download timeout:\n" .. path .. "\nIntenta de nuevo.", "#ff8a8a")
+    end)
+  end
+
+  httpGet(requestUrl, function(contents, err)
+    if finished then return end
+    finished = true
+
     if not contents then
       installing = false
       setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nError al actualizar", "#ff8a8a")
