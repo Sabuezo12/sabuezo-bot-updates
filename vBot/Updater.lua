@@ -4,9 +4,9 @@ local panelName = "sabuezoUpdater"
 if type(storage[panelName]) ~= "table" then storage[panelName] = {} end
 
 local config = storage[panelName]
-local legacyManifestUrl = "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/manifest.json"
-local defaultManifestUrl = "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/refs/heads/main/manifest.json"
-if not config.manifestUrl or config.manifestUrl == legacyManifestUrl then
+local defaultManifestUrl = "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/manifest.json"
+local refsManifestUrl = "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/refs/heads/main/manifest.json"
+if not config.manifestUrl or config.manifestUrl == refsManifestUrl then
   config.manifestUrl = defaultManifestUrl
 end
 config.version = config.version or "none"
