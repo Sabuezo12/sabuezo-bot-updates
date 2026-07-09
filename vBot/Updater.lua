@@ -4,9 +4,10 @@ local panelName = "sabuezoUpdater"
 if type(storage[panelName]) ~= "table" then storage[panelName] = {} end
 
 local config = storage[panelName]
-local defaultManifestUrl = "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/manifest.json"
+local rawManifestUrl = "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/manifest.json"
 local refsManifestUrl = "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/refs/heads/main/manifest.json"
-if not config.manifestUrl or config.manifestUrl == refsManifestUrl then
+local defaultManifestUrl = "https://api.github.com/repos/Sabuezo12/sabuezo-bot-updates/contents/manifest.json?ref=main"
+if not config.manifestUrl or config.manifestUrl == refsManifestUrl or config.manifestUrl == rawManifestUrl then
   config.manifestUrl = defaultManifestUrl
 end
 config.version = config.version or "none"
@@ -184,6 +185,52 @@ local function withCacheBuster(url)
 
   local separator = url:find("?", 1, true) and "&" or "?"
   return url .. separator .. "sabuezoCache=" .. stamp
+end
+
+local function decodeBase64(data)
+  data = tostring(data or ""):gsub("%s", "")
+  if data:len() == 0 then return nil end
+
+  local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+  data = data:gsub("[^" .. alphabet .. "=]", "")
+
+  local bits = data:gsub(".", function(char)
+    if char == "=" then return "" end
+    local index = alphabet:find(char, 1, true)
+    if not index then return "" end
+
+    local value = index - 1
+    local result = ""
+    for i = 6, 1, -1 do
+      result = result .. ((value % (2 ^ i) - value % (2 ^ (i - 1)) > 0) and "1" or "0")
+    end
+    return result
+  end)
+
+  return bits:gsub("%d%d%d?%d?%d?%d?%d?%d?", function(byte)
+    if byte:len() ~= 8 then return "" end
+
+    local value = 0
+    for i = 1, 8 do
+      if byte:sub(i, i) == "1" then
+        value = value + 2 ^ (8 - i)
+      end
+    end
+    return string.char(value)
+  end)
+end
+
+local function decodeGithubContentResponse(data)
+  if type(data) ~= "string" or not data:find('"content"', 1, true) then return data end
+
+  local ok, payload = pcall(function()
+    return json.decode(data)
+  end)
+  if not ok or type(payload) ~= "table" or type(payload.content) ~= "string" then return data end
+
+  local decoded = decodeBase64(payload.content)
+  if type(decoded) == "string" and decoded:len() > 0 then return decoded end
+  return data
 end
 
 local function httpGet(url, callback)
@@ -773,6 +820,8 @@ local function fetchManifest(callback)
       if callback then callback(nil) end
       return
     end
+
+    data = decodeGithubContentResponse(data)
 
     local ok, manifest = pcall(function()
       return json.decode(data)
