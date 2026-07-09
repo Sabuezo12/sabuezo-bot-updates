@@ -23,7 +23,8 @@ if not storage[panelName] then
   mwallInfo = true,
   vocation = true,
   outfit = false,
-  broadcasts = true
+  broadcasts = true,
+  minimapMembers = true
 }
 end
 
@@ -42,6 +43,7 @@ if config.mwallInfo == nil then config.mwallInfo = true end
 if config.vocation == nil then config.vocation = true end
 if config.outfit == nil then config.outfit = false end
 if config.broadcasts == nil then config.broadcasts = true end
+if config.minimapMembers == nil then config.minimapMembers = true end
 config.mwalls = {}
 
 BotServer._rodMasterMainGeneration = (BotServer._rodMasterMainGeneration or 0) + 1
@@ -51,15 +53,26 @@ local lastVocationSync = 0
 local serverCount = {}
 local ServerMembers = nil
 local members = {}
+local memberInfo = {}
 local lastPresenceSync = 0
+local lastPresencePositionKey = nil
+local lastPositionPresenceSync = 0
 local MEMBER_TIMEOUT = 30000
 local MEMBER_TIMEOUT_SECONDS = 30
+local MEMBER_POSITION_TIMEOUT = 15000
+local MAX_MINIMAP_MARKERS = 16
+local MINIMAP_OVERLAY_UPDATE = 300
 local LOCAL_MESSAGE_TTL_SECONDS = 45
 local LOCAL_BUS_ROOT = "/bot/_sabuezo_botserver"
 local clientId = nil
 local localMessageSeq = 0
 local seenLocalBroadcasts = {}
 local seenLocalMwalls = {}
+local minimapOverlay = {
+  widget = nil,
+  parent = nil,
+  nextUpdateAt = 0
+}
 
 local function currentBotServerListeners(listenerSocket)
   return config.enabled and BotServer._websocket and
@@ -77,9 +90,53 @@ local function getSelfName()
   return "Unknown"
 end
 
-local function touchMember(memberName)
+local function hasPosition(pos)
+  return type(pos) == "table" and tonumber(pos.x) and tonumber(pos.y) and tonumber(pos.z)
+end
+
+local function copyPosition(pos)
+  if not hasPosition(pos) then return nil end
+  return {
+    x = tonumber(pos.x),
+    y = tonumber(pos.y),
+    z = tonumber(pos.z)
+  }
+end
+
+local function positionKey(pos)
+  if not hasPosition(pos) then return nil end
+  return tostring(pos.x) .. "," .. tostring(pos.y) .. "," .. tostring(pos.z)
+end
+
+local function getSelfPosition()
+  if not player or not player.getPosition then return nil end
+
+  local ok, pos = pcall(function() return player:getPosition() end)
+  if ok then return copyPosition(pos) end
+  return nil
+end
+
+local function touchMember(memberName, info)
   if type(memberName) ~= "string" or memberName == "" then return end
   members[memberName] = now or 0
+
+  if type(info) == "table" then
+    local current = memberInfo[memberName] or {}
+    current.name = memberName
+    current.clientId = info.clientId or current.clientId
+    current.voc = info.voc or current.voc
+    current.mana = info.mana or current.mana
+    current.pos = copyPosition(info.pos) or current.pos
+    current.lastSeen = now or 0
+    current.wallTime = tonumber(info.time) or os.time()
+    memberInfo[memberName] = current
+  elseif not memberInfo[memberName] then
+    memberInfo[memberName] = {
+      name = memberName,
+      lastSeen = now or 0,
+      wallTime = os.time()
+    }
+  end
 end
 
 local function pruneMembers()
@@ -87,6 +144,7 @@ local function pruneMembers()
   for memberName, lastSeen in pairs(members) do
     if currentTime - lastSeen > MEMBER_TIMEOUT then
       members[memberName] = nil
+      memberInfo[memberName] = nil
     end
   end
 
@@ -106,7 +164,12 @@ end
 local function getMembersTooltip()
   local names = {}
   for memberName in pairs(members) do
-    table.insert(names, memberName)
+    local info = memberInfo[memberName]
+    local text = memberName
+    if info and hasPosition(info.pos) then
+      text = text .. " - " .. positionKey(info.pos)
+    end
+    table.insert(names, text)
   end
   table.sort(names)
   return table.concat(names, "\n")
@@ -187,6 +250,7 @@ local function writeLocalPresence()
     name = getSelfName(),
     voc = player:getVocation(),
     mana = mana,
+    pos = getSelfPosition(),
     time = wallTime()
   })
 end
@@ -208,7 +272,13 @@ local function readLocalMembers()
     if type(data) == "table" and messageTime and currentTime - messageTime <= MEMBER_TIMEOUT_SECONDS then
       local memberName = data.name
       if type(memberName) == "string" and memberName ~= "" then
-        touchMember(memberName)
+        touchMember(memberName, {
+          clientId = data.clientId,
+          voc = data.voc,
+          mana = data.mana,
+          pos = data.pos,
+          time = messageTime
+        })
         if data.voc then
           vBot.BotServerMembers[memberName] = data.voc
         end
@@ -350,12 +420,20 @@ end
 
 local function publishPresence(force)
   if not config.enabled then return end
-  if not force and now and now - lastPresenceSync < 5000 then return end
+  local selfPos = getSelfPosition()
+  local selfPosKey = positionKey(selfPos)
+  local moved = selfPosKey and selfPosKey ~= lastPresencePositionKey
+  local canSendMove = moved and now and now - lastPositionPresenceSync >= 1000
+  if not force and not canSendMove and now and now - lastPresenceSync < 5000 then return end
 
   local selfName = getSelfName()
   lastPresenceSync = now or 0
-  touchMember(selfName)
-  sendBotServer("presence", {name = selfName, voc = player:getVocation()})
+  if force or canSendMove then
+    lastPresencePositionKey = selfPosKey
+    lastPositionPresenceSync = now or 0
+  end
+  touchMember(selfName, {clientId = clientId, voc = player:getVocation(), pos = selfPos})
+  sendBotServer("presence", {clientId = clientId, name = selfName, voc = player:getVocation(), pos = selfPos})
 end
 
 local function syncVocation(force)
@@ -365,6 +443,379 @@ local function syncVocation(force)
   lastVocationSync = now or 0
   sendBotServer("voc", player:getVocation())
   sendBotServer("voc", "yes")
+end
+
+local function getMinimapWidget()
+  if not modules or not modules.game_minimap then return nil end
+  return modules.game_minimap.minimapWidget
+end
+
+local function destroyMemberMinimapOverlayWidgets(minimap, keepWidget)
+  if not minimap then return end
+
+  if minimap.getChildren then
+    local okChildren, children = pcall(function() return minimap:getChildren() end)
+    if okChildren and type(children) == "table" then
+      for _, child in pairs(children) do
+        local okId, id = pcall(function()
+          return child.getId and child:getId() or nil
+        end)
+        if child ~= keepWidget and okId and id == "botServerMembersMinimapOverlay" then
+          pcall(function() child:destroy() end)
+        end
+      end
+    end
+  end
+
+  if keepWidget or not minimap.getChildById then return end
+  for _ = 1, 5 do
+    local ok, child = pcall(function() return minimap:getChildById("botServerMembersMinimapOverlay") end)
+    if not ok or not child then break end
+    pcall(function() child:destroy() end)
+  end
+end
+
+local function hideMemberMinimapOverlay()
+  local minimap = getMinimapWidget()
+  destroyMemberMinimapOverlayWidgets(minimap)
+
+  if minimapOverlay.widget then
+    pcall(function() minimapOverlay.widget:destroy() end)
+  end
+  minimapOverlay.widget = nil
+  minimapOverlay.parent = nil
+end
+
+local function createMemberMinimapOverlay()
+  local minimap = getMinimapWidget()
+  if not minimap then return nil end
+
+  if minimapOverlay.widget and minimapOverlay.parent == minimap then
+    destroyMemberMinimapOverlayWidgets(minimap, minimapOverlay.widget)
+    return minimapOverlay.widget
+  end
+
+  hideMemberMinimapOverlay()
+
+  minimapOverlay.parent = minimap
+  minimapOverlay.widget = setupUI([[
+Panel
+  id: botServerMembersMinimapOverlay
+  anchors.fill: parent
+  phantom: true
+  focusable: false
+  visible: false
+  background-color: alpha
+
+  UIWidget
+    id: marker1
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 5 5
+    phantom: true
+    focusable: false
+    background-color: #00ffd0dd
+
+  UIWidget
+    id: marker2
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 5 5
+    phantom: true
+    focusable: false
+    background-color: #00ffd0dd
+
+  UIWidget
+    id: marker3
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 5 5
+    phantom: true
+    focusable: false
+    background-color: #00ffd0dd
+
+  UIWidget
+    id: marker4
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 5 5
+    phantom: true
+    focusable: false
+    background-color: #00ffd0dd
+
+  UIWidget
+    id: marker5
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 5 5
+    phantom: true
+    focusable: false
+    background-color: #00ffd0dd
+
+  UIWidget
+    id: marker6
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 5 5
+    phantom: true
+    focusable: false
+    background-color: #00ffd0dd
+
+  UIWidget
+    id: marker7
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 5 5
+    phantom: true
+    focusable: false
+    background-color: #00ffd0dd
+
+  UIWidget
+    id: marker8
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 5 5
+    phantom: true
+    focusable: false
+    background-color: #00ffd0dd
+
+  UIWidget
+    id: marker9
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 5 5
+    phantom: true
+    focusable: false
+    background-color: #00ffd0dd
+
+  UIWidget
+    id: marker10
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 5 5
+    phantom: true
+    focusable: false
+    background-color: #00ffd0dd
+
+  UIWidget
+    id: marker11
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 5 5
+    phantom: true
+    focusable: false
+    background-color: #00ffd0dd
+
+  UIWidget
+    id: marker12
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 5 5
+    phantom: true
+    focusable: false
+    background-color: #00ffd0dd
+
+  UIWidget
+    id: marker13
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 5 5
+    phantom: true
+    focusable: false
+    background-color: #00ffd0dd
+
+  UIWidget
+    id: marker14
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 5 5
+    phantom: true
+    focusable: false
+    background-color: #00ffd0dd
+
+  UIWidget
+    id: marker15
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 5 5
+    phantom: true
+    focusable: false
+    background-color: #00ffd0dd
+
+  UIWidget
+    id: marker16
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 5 5
+    phantom: true
+    focusable: false
+    background-color: #00ffd0dd
+]], minimap)
+
+  pcall(function() minimapOverlay.widget:raise() end)
+  return minimapOverlay.widget
+end
+
+local function getWidgetSize(widget)
+  if not widget then return nil, nil end
+
+  if widget.getSize then
+    local ok, size = pcall(function() return widget:getSize() end)
+    if ok and size then
+      local width = tonumber(size.width or size.x)
+      local height = tonumber(size.height or size.y)
+      if width and height then return width, height end
+    end
+  end
+
+  local width, height
+  if widget.getWidth then
+    local ok, value = pcall(function() return widget:getWidth() end)
+    if ok then width = tonumber(value) end
+  end
+  if widget.getHeight then
+    local ok, value = pcall(function() return widget:getHeight() end)
+    if ok then height = tonumber(value) end
+  end
+
+  return width, height
+end
+
+local function getWidgetPosition(widget)
+  if not widget or not widget.getPosition then return nil end
+  local ok, pos = pcall(function() return widget:getPosition() end)
+  if ok and pos and pos.x and pos.y then return pos end
+  return nil
+end
+
+local function getMinimapTileAt(minimap, localX, localY)
+  local origin = getWidgetPosition(minimap)
+  if not origin or not minimap or not minimap.getTilePosition then return nil end
+
+  local screenPos = {
+    x = math.floor(origin.x + localX),
+    y = math.floor(origin.y + localY)
+  }
+  local ok, mapPos = pcall(function() return minimap:getTilePosition(screenPos) end)
+  if ok and hasPosition(mapPos) then return mapPos end
+  return nil
+end
+
+local function estimateMinimapScale(minimap, width, height)
+  local centerX = math.floor(width / 2)
+  local centerY = math.floor(height / 2)
+  local centerPos = getMinimapTileAt(minimap, centerX, centerY)
+  if not centerPos then return nil, nil end
+
+  local sample = math.max(10, math.floor(math.min(width, height) / 3))
+  local leftX = math.max(1, centerX - sample)
+  local rightX = math.min(width - 2, centerX + sample)
+  local topY = math.max(1, centerY - sample)
+  local bottomY = math.min(height - 2, centerY + sample)
+
+  local leftPos = getMinimapTileAt(minimap, leftX, centerY)
+  local rightPos = getMinimapTileAt(minimap, rightX, centerY)
+  if leftPos and rightPos and leftPos.z == centerPos.z and rightPos.z == centerPos.z then
+    local tiles = math.abs(rightPos.x - leftPos.x)
+    if tiles > 0 then
+      return math.max(0.2, math.min(12, math.abs(rightX - leftX) / tiles)), centerPos
+    end
+  end
+
+  local topPos = getMinimapTileAt(minimap, centerX, topY)
+  local bottomPos = getMinimapTileAt(minimap, centerX, bottomY)
+  if topPos and bottomPos and topPos.z == centerPos.z and bottomPos.z == centerPos.z then
+    local tiles = math.abs(bottomPos.y - topPos.y)
+    if tiles > 0 then
+      return math.max(0.2, math.min(12, math.abs(bottomY - topY) / tiles)), centerPos
+    end
+  end
+
+  return nil, centerPos
+end
+
+local function clamp(value, minValue, maxValue)
+  if value < minValue then return minValue end
+  if value > maxValue then return maxValue end
+  return value
+end
+
+local function hideAllMinimapMarkers(overlay)
+  if not overlay then return end
+  for i = 1, MAX_MINIMAP_MARKERS do
+    local marker = overlay["marker" .. i]
+    if marker then
+      pcall(function() marker:setVisible(false) end)
+    end
+  end
+end
+
+local function setMinimapMarker(marker, x, y, tooltip)
+  if not marker then return end
+  pcall(function() marker:setVisible(true) end)
+  pcall(function() marker:setTooltip(tooltip or "") end)
+  pcall(function() marker:setMarginLeft(math.floor(x)) end)
+  pcall(function() marker:setMarginTop(math.floor(y)) end)
+  pcall(function() marker:setSize({width = 5, height = 5}) end)
+  pcall(function() marker:setWidth(5) end)
+  pcall(function() marker:setHeight(5) end)
+end
+
+local function updateMemberMinimapOverlay(force)
+  if not config.enabled or not config.minimapMembers then
+    hideMemberMinimapOverlay()
+    return
+  end
+
+  if not force and now and now < minimapOverlay.nextUpdateAt then return end
+  minimapOverlay.nextUpdateAt = (now or 0) + MINIMAP_OVERLAY_UPDATE
+
+  local minimap = getMinimapWidget()
+  local overlay = createMemberMinimapOverlay()
+  if not minimap or not overlay then return end
+
+  local width, height = getWidgetSize(minimap)
+  if not width or not height or width < 20 or height < 20 then
+    hideMemberMinimapOverlay()
+    return
+  end
+
+  local scale, centerMapPos = estimateMinimapScale(minimap, width, height)
+  if not scale or not centerMapPos then
+    hideMemberMinimapOverlay()
+    return
+  end
+
+  hideAllMinimapMarkers(overlay)
+
+  local markerIndex = 0
+  local currentTime = now or 0
+  local selfName = getSelfName()
+  local centerX = width / 2
+  local centerY = height / 2
+
+  for memberName, info in pairs(memberInfo) do
+    if markerIndex >= MAX_MINIMAP_MARKERS then break end
+    if memberName ~= selfName and info and info.clientId ~= clientId and hasPosition(info.pos) and
+      currentTime - (info.lastSeen or 0) <= MEMBER_POSITION_TIMEOUT and info.pos.z == centerMapPos.z then
+      local x = centerX + (info.pos.x - centerMapPos.x) * scale
+      local y = centerY + (info.pos.y - centerMapPos.y) * scale
+      if x >= 0 and x <= width - 5 and y >= 0 and y <= height - 5 then
+        markerIndex = markerIndex + 1
+        local tooltip = memberName .. "\nPos: " .. positionKey(info.pos)
+        if info.voc then tooltip = tooltip .. "\nVoc: " .. tostring(info.voc) end
+        setMinimapMarker(overlay["marker" .. markerIndex], clamp(x - 2, 0, width - 5), clamp(y - 2, 0, height - 5), tooltip)
+      end
+    end
+  end
+
+  if markerIndex == 0 then
+    pcall(function() overlay:setVisible(false) end)
+    return
+  end
+
+  pcall(function() overlay:setVisible(true) end)
+  pcall(function() overlay:raise() end)
 end
 
 if not storage.BotServerChannel or storage.BotServerChannel == "" then
@@ -412,7 +863,9 @@ if rootWidget then
       ServerMembers = {}
       serverCount = {}
       members = {}
+      memberInfo = {}
       lastPresenceSync = 0
+      hideMemberMinimapOverlay()
     end
     initBotServerListenFunctions()
     publishPresence(true)
@@ -423,29 +876,36 @@ if rootWidget then
   botServerWindow.Data.Channel.onTextChange = function(widget, text)
     storage.BotServerChannel = text
     members = {}
+    memberInfo = {}
     seenLocalBroadcasts = {}
     seenLocalMwalls = {}
     lastPresenceSync = 0
+    hideMemberMinimapOverlay()
   end
   botServerWindow.Data.Random.onClick = function(widget)
     storage.BotServerChannel = tostring(math.random(1000000000000,9999999999999))
     botServerWindow.Data.Channel:setText(storage.BotServerChannel)
     members = {}
+    memberInfo = {}
     seenLocalBroadcasts = {}
     seenLocalMwalls = {}
     lastPresenceSync = 0
+    hideMemberMinimapOverlay()
   end
   botServerWindow.Features.Feature1:setOn(config.manaInfo)
+  pcall(function() botServerWindow.Features.Feature1:setTooltip("Muestra mana de miembros conectados cuando esten visibles.") end)
   botServerWindow.Features.Feature1.onClick = function(widget)
     config.manaInfo = not config.manaInfo
     widget:setOn(config.manaInfo)
   end
   botServerWindow.Features.Feature2:setOn(config.mwallInfo)
+  pcall(function() botServerWindow.Features.Feature2:setTooltip("Comparte Magic Walls detectadas con el canal.") end)
   botServerWindow.Features.Feature2.onClick = function(widget)
     config.mwallInfo = not config.mwallInfo
     widget:setOn(config.mwallInfo)
   end
   botServerWindow.Features.Feature3:setOn(config.vocation)
+  pcall(function() botServerWindow.Features.Feature3:setTooltip("Comparte vocacion para Player List y marcas del bot.") end)
   botServerWindow.Features.Feature3.onClick = function(widget)
     config.vocation = not config.vocation
     if config.vocation then
@@ -454,14 +914,27 @@ if rootWidget then
     widget:setOn(config.vocation)
   end
   botServerWindow.Features.Feature4:setOn(config.outfit)
+  pcall(function() botServerWindow.Features.Feature4:setTooltip("Opcion heredada para vocacion por outfit.") end)
   botServerWindow.Features.Feature4.onClick = function(widget)
     config.outfit = not config.outfit
     widget:setOn(config.outfit)
   end
   botServerWindow.Features.Feature5:setOn(config.broadcasts)
+  pcall(function() botServerWindow.Features.Feature5:setTooltip("Permite recibir mensajes broadcast del canal.") end)
   botServerWindow.Features.Feature5.onClick = function(widget)
     config.broadcasts = not config.broadcasts
     widget:setOn(config.broadcasts)
+  end
+  botServerWindow.Features.Feature6:setOn(config.minimapMembers)
+  pcall(function() botServerWindow.Features.Feature6:setTooltip("Muestra miembros conectados como puntos temporales en el minimapa.") end)
+  botServerWindow.Features.Feature6.onClick = function(widget)
+    config.minimapMembers = not config.minimapMembers
+    widget:setOn(config.minimapMembers)
+    if config.minimapMembers then
+      updateMemberMinimapOverlay(true)
+    else
+      hideMemberMinimapOverlay()
+    end
   end
   botServerWindow.Features.Broadcast.onClick = function(widget)
     sendBotServer("broadcast", botServerWindow.Features.broadcastText:getText())
@@ -509,7 +982,11 @@ function initBotServerListenFunctions()
       memberName = message.name
     end
 
-    touchMember(memberName)
+    touchMember(memberName, {
+      clientId = type(message) == "table" and message.clientId or nil,
+      voc = type(message) == "table" and message.voc or nil,
+      pos = type(message) == "table" and message.pos or nil
+    })
     if type(message) == "table" and message.voc then
       vBot.BotServerMembers[memberName] = message.voc
     end
@@ -534,6 +1011,7 @@ function initBotServerListenFunctions()
   BotServer.listen("mana", function(name, message)
     if not currentBotServerListeners(listenerSocket) then return end
     if config.manaInfo and type(message) == "table" then
+      touchMember(name, {mana = message["mana"]})
       local creature = getPlayerByName(name)
       if creature then
         creature:setManaPercent(message["mana"])
@@ -547,6 +1025,7 @@ function initBotServerListenFunctions()
     if message == "yes" and config.vocation then
       sendBotServer("voc", player:getVocation())
     else
+      touchMember(name, {voc = message})
       vBot.BotServerMembers[name] = message
     end
   end)
@@ -594,6 +1073,9 @@ macro(500, function()
     publishPresence()
     syncVocation()
     processLocalBus()
+    updateMemberMinimapOverlay()
+  else
+    hideMemberMinimapOverlay()
   end
 end)
 

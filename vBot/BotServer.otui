@@ -1,24 +1,25 @@
 BotServerData < Panel
-  size: 340 70
+  size: 340 76
   image-source: /images/ui/window
   image-border: 6
   padding: 3
 
   Label
-    id: label
+    id: titleLabel
     anchors.top: parent.top
-    anchors.left: parent.left 
+    anchors.left: parent.left
     anchors.right: parent.right
     text-align: center
     !text: tr("BotServer Data")
 
   Label
-    id: label
+    id: channelLabel
     anchors.top: parent.top
     anchors.left: parent.left
     margin-top: 23
-    text-align: center
-    text: Channel Name:
+    width: 88
+    text-align: left
+    text: Channel:
     margin-left: 6
 
   TextEdit
@@ -41,13 +42,13 @@ BotServerData < Panel
     margin-right: 6
 
   Label
-    id: label
+    id: statusLabel
     anchors.left: parent.left
     anchors.bottom: parent.bottom
     margin-left: 6
     margin-bottom: 4
     text-align: center
-    text: Status: 
+    text: Status:
 
   Label
     id: ServerStatus
@@ -56,7 +57,7 @@ BotServerData < Panel
     margin-left: 10
     width: 150
     margin-bottom: 4
-    text-align: left  
+    text-align: left
 
   Label
     id: Participants
@@ -73,10 +74,10 @@ BotServerData < Panel
     anchors.bottom: parent.bottom
     size: 80 21
     text-align: center
-    text: Members:   
+    text: Members:
 
 FeaturePanel < Panel
-  size: 340 150
+  size: 340 165
   image-source: /images/ui/panel_flat
   image-border: 5
   padding: 3
@@ -87,7 +88,7 @@ FeaturePanel < Panel
     anchors.horizontalCenter: parent.horizontalCenter
     text-align: center
     text: Features
-  
+
   HorizontalSeparator
     id: sep
     anchors.top: prev.bottom
@@ -101,7 +102,9 @@ FeaturePanel < Panel
     anchors.left: parent.left
     margin-left: 3
     margin-top: 5
-    text: Mana info
+    width: 54
+    height: 21
+    text: Mana
 
   BotSwitch
     id: Feature2
@@ -109,7 +112,9 @@ FeaturePanel < Panel
     anchors.left: prev.right
     margin-top: 5
     margin-left: 5
-    text: MWall info
+    width: 58
+    height: 21
+    text: MWall
 
   BotSwitch
     id: Feature3
@@ -117,24 +122,38 @@ FeaturePanel < Panel
     anchors.left: prev.right
     margin-top: 5
     margin-left: 5
-    text: Send Vocation
+    width: 48
+    height: 21
+    text: Voc
+
+  BotSwitch
+    id: Feature6
+    anchors.top: sep.bottom
+    anchors.left: prev.right
+    margin-top: 5
+    margin-left: 5
+    width: 48
+    height: 21
+    text: Map
 
   BotSwitch
     id: Feature4
     anchors.top: prev.bottom
     anchors.left: parent.left
-    margin-top: 3
+    margin-top: 5
     margin-left: 3
-    text: Outfit Vocation
+    width: 70
+    height: 21
+    text: Outfit
 
   BotSwitch
     id: Feature5
-    anchors.bottom: prev.bottom
+    anchors.top: prev.top
     anchors.left: prev.right
-    margin-top: 3
     margin-left: 5
-    text: Broadcasts
-
+    width: 86
+    height: 21
+    text: Broadcast
 
   TextEdit
     id: broadcastText
@@ -157,7 +176,7 @@ FeaturePanel < Panel
 
 BotServerWindow < MainWindow
   !text: tr('BotServer')
-  size: 370 310
+  size: 370 335
   @onEscape: self:hide()
 
   BotServerData
@@ -176,7 +195,7 @@ BotServerWindow < MainWindow
     anchors.right: parent.right
     anchors.left: parent.left
     anchors.bottom: closeButton.top
-    margin-bottom: 8    
+    margin-bottom: 8
 
   Button
     id: closeButton
@@ -194,7 +213,7 @@ BotServerWindow < MainWindow
     anchors.left: parent.left
     margin-left: 5
     height: 21
-    
+
     $!on:
       text: BotServer: OFF
 
