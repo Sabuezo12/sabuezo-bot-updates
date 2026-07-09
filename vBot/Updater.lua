@@ -238,6 +238,30 @@ local function decodeGithubContentResponse(data)
   return data
 end
 
+local function normalizeJsonPayload(data)
+  data = tostring(data or "")
+  data = data:gsub("^\239\187\191", "")
+  data = data:gsub("^%s+", ""):gsub("%s+$", "")
+
+  if data:sub(1, 1) == "{" or data:sub(1, 1) == "[" then
+    return data
+  end
+
+  local firstObject = data:find("{", 1, true)
+  local lastObject = data:match("^.*()}")
+  if firstObject and lastObject and lastObject >= firstObject then
+    return data:sub(firstObject, lastObject)
+  end
+
+  local firstArray = data:find("[", 1, true)
+  local lastArray = data:match("^.*()%]")
+  if firstArray and lastArray and lastArray >= firstArray then
+    return data:sub(firstArray, lastArray)
+  end
+
+  return data
+end
+
 local function httpGet(url, callback)
   local http = modules and modules.corelib and modules.corelib.HTTP or HTTP
   local function resolveRawHttp()
@@ -885,12 +909,13 @@ local function fetchManifest(callback)
       end
 
       data = decodeGithubContentResponse(data)
+      local manifestPayload = normalizeJsonPayload(data)
 
       local ok, manifest = pcall(function()
-        return json.decode(data)
+        return json.decode(manifestPayload)
       end)
       if not ok or type(manifest) ~= "table" or type(manifest.files) ~= "table" then
-        lastError = "r" .. tostring(attemptIndex) .. ": manifest invalido: " .. previewText(data)
+        lastError = "r" .. tostring(attemptIndex) .. ": manifest invalido: " .. previewText(manifestPayload)
         tryNextManifest()
         return
       end
