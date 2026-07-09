@@ -810,9 +810,9 @@ local function buildManifestUrls()
 
   add(config.manifestUrl)
   add(defaultManifestUrl)
+  add(refsManifestUrl)
   add(githubRawManifestUrl)
   add(jsDelivrManifestUrl)
-  add(refsManifestUrl)
   add(rawManifestUrl)
 
   return urls
