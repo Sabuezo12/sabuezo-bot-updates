@@ -1,0 +1,259 @@
+DepotItemRow < Panel
+  height: 68
+  image-source: /images/ui/panel_flat
+  image-border: 1
+  padding: 3
+
+  BotItem
+    id: item
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+
+  UIWidget
+    id: name
+    anchors.left: item.right
+    anchors.right: remove.left
+    anchors.top: parent.top
+    margin-left: 6
+    margin-right: 4
+    height: 16
+    text: Select item
+    text-align: left
+    font: verdana-11px-rounded
+    color: #ffffff
+
+  Button
+    id: active
+    anchors.right: parent.right
+    anchors.top: parent.top
+    width: 22
+    height: 16
+    text: On
+    font: cipsoftFont
+
+  Button
+    id: remove
+    anchors.right: active.left
+    anchors.top: parent.top
+    margin-right: 3
+    width: 18
+    height: 16
+    text: X
+    font: cipsoftFont
+
+  UIWidget
+    anchors.left: name.left
+    anchors.top: name.bottom
+    margin-top: 2
+    width: 62
+    height: 12
+    text: Mode
+    text-align: center
+    font: verdana-11px-rounded
+    color: #c8c8c8
+
+  UIWidget
+    anchors.left: prev.right
+    anchors.top: prev.top
+    margin-left: 4
+    width: 54
+    height: 12
+    text: Amount
+    text-align: center
+    font: verdana-11px-rounded
+    color: #c8c8c8
+
+  UIWidget
+    anchors.left: prev.right
+    anchors.top: prev.top
+    margin-left: 4
+    width: 44
+    height: 12
+    text: Box
+    text-align: center
+    font: verdana-11px-rounded
+    color: #c8c8c8
+
+  UIWidget
+    anchors.left: prev.right
+    anchors.top: prev.top
+    margin-left: 4
+    width: 52
+    height: 12
+    text: Source
+    text-align: center
+    font: verdana-11px-rounded
+    color: #c8c8c8
+
+  UIWidget
+    anchors.left: prev.right
+    anchors.top: prev.top
+    margin-left: 4
+    width: 42
+    height: 12
+    text: Log
+    text-align: center
+    font: verdana-11px-rounded
+    color: #c8c8c8
+
+  Button
+    id: mode
+    anchors.left: name.left
+    anchors.top: prev.bottom
+    margin-top: 1
+    width: 62
+    height: 20
+    text: Deposit
+    font: cipsoftFont
+
+  BotTextEdit
+    id: amount
+    anchors.left: mode.right
+    anchors.top: mode.top
+    margin-left: 4
+    width: 54
+    height: 20
+    text-align: center
+    text: 0
+
+  BotTextEdit
+    id: box
+    anchors.left: amount.right
+    anchors.top: amount.top
+    margin-left: 4
+    width: 44
+    height: 20
+    text-align: center
+    text: 3
+
+  Button
+    id: source
+    anchors.left: box.right
+    anchors.top: box.top
+    margin-left: 4
+    width: 52
+    height: 20
+    text: Box
+    font: cipsoftFont
+
+  Button
+    id: alias
+    anchors.left: source.right
+    anchors.top: source.top
+    margin-left: 4
+    width: 42
+    height: 20
+    text: Log
+    font: cipsoftFont
+
+  BotTextEdit
+    id: aliasValue
+    anchors.left: alias.left
+    anchors.top: alias.top
+    width: 1
+    height: 1
+    visible: false
+
+  UIWidget
+    id: count
+    anchors.left: name.left
+    anchors.right: parent.right
+    anchors.top: mode.bottom
+    margin-top: 3
+    height: 13
+    text: Actual: -
+    text-align: left
+    font: verdana-11px-rounded
+    color: #c8c8c8
+
+DepositerPanel < MainWindow
+  size: 470 430
+  !text: tr('Depot Settings')
+  @onEscape: self:hide()
+
+  UIWidget
+    id: title
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 30
+    text: Configure items to deposit or withdraw from depot.
+    text-align: center
+    font: verdana-11px-rounded
+    color: #d8d8d8
+
+  Button
+    id: addDeposit
+    anchors.left: parent.left
+    anchors.top: title.bottom
+    margin-top: 4
+    width: 100
+    height: 20
+    text: Add Deposit
+    font: cipsoftFont
+
+  Button
+    id: addWithdraw
+    anchors.left: addDeposit.right
+    anchors.top: addDeposit.top
+    margin-left: 5
+    width: 110
+    height: 20
+    text: Add Withdraw
+    font: cipsoftFont
+
+  Button
+    id: resetCounters
+    anchors.right: parent.right
+    anchors.top: addDeposit.top
+    width: 90
+    height: 20
+    text: Reset Used
+    font: cipsoftFont
+
+  ScrollablePanel
+    id: DepositerList
+    anchors.top: addDeposit.bottom
+    margin-top: 6
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: sep.top
+    margin-bottom: 8
+    padding: 3
+    vertical-scrollbar: DepositerScrollBar
+    layout:
+      type: verticalBox
+
+  VerticalScrollBar
+    id: DepositerScrollBar
+    anchors.top: DepositerList.top
+    anchors.bottom: DepositerList.bottom
+    anchors.right: DepositerList.right
+    step: 18
+    pixels-scroll: true
+
+  ResizeBorder
+    id: bottomResizeBorder
+    anchors.fill: next
+    height: 3
+    minimum: 260
+    maximum: 800
+    margin-left: 3
+    margin-right: 3
+    background: #ffffff88
+
+  HorizontalSeparator
+    id: sep
+    anchors.right: parent.right
+    anchors.left: parent.left
+    anchors.bottom: CloseButton.top
+    margin-bottom: 8
+
+  Button
+    id: CloseButton
+    !text: tr('Close')
+    font: cipsoftFont
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 45 21
+    margin-right: 5

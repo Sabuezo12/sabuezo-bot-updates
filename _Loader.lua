@@ -36,7 +36,7 @@ local loaderSections = {
       "vBot/Updater",
       "vBot/extras",
       "vBot/extrasPvp",
-      ----"vBot/BotServer", -- disabled from loader
+      "vBot/BotServer",
       "vBot/combo_plus",
       ----"vBot/combo", -- replaced by combo_plus
       "vBot/TimerExecutor",

@@ -34,15 +34,18 @@ for i, file in ipairs(extFiles) do
 end
 --dofile("/cavebot/extension_template.lua")
 dofile("/cavebot/sell_all.lua")
-dofile("/cavebot/depositor.lua")
+-- Legacy depositor was replaced by cavebot/depot_manager.lua.
+--dofile("/cavebot/depositor.lua")
+dofile("/cavebot/depot_manager.lua")
 dofile("/cavebot/buy_supplies.lua")
-dofile("/cavebot/d_withdraw.lua")
+-- Old depot withdraw actions were replaced by cavebot/depot_manager.lua.
+--dofile("/cavebot/d_withdraw.lua")
 dofile("/cavebot/supply_check.lua")
 dofile("/cavebot/travel.lua")
 dofile("/cavebot/doors.lua")
 dofile("/cavebot/pos_check.lua")
-dofile("/cavebot/withdraw.lua")
-dofile("/cavebot/inbox_withdraw.lua")
+--dofile("/cavebot/withdraw.lua")
+--dofile("/cavebot/inbox_withdraw.lua")
 dofile("/cavebot/lure.lua")
 dofile("/cavebot/bank.lua")
 dofile("/cavebot/clear_tile.lua")
