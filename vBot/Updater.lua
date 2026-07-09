@@ -807,8 +807,8 @@ local function buildManifestUrls()
 
   add(config.manifestUrl)
   add(defaultManifestUrl)
-  add(rawManifestUrl)
   add(refsManifestUrl)
+  add(rawManifestUrl)
 
   return urls
 end
