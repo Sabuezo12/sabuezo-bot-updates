@@ -821,6 +821,15 @@ local function buildManifestUrls()
   return urls
 end
 
+local function previewText(text)
+  text = tostring(text or "")
+  text = text:gsub("\r", " "):gsub("\n", " "):gsub("%s+", " ")
+  text = text:gsub("^%s+", ""):gsub("%s+$", "")
+  if text:len() > 90 then text = text:sub(1, 90) .. "..." end
+  if text:len() == 0 then return "empty" end
+  return text
+end
+
 local function fetchManifest(callback)
   local finished = false
   local attempts = buildManifestUrls()
@@ -859,7 +868,7 @@ local function fetchManifest(callback)
       tostring(attemptIndex) .. "/" .. tostring(#attempts), "#ffd166")
 
     if type(schedule) == "function" then
-      schedule(12000, function()
+      schedule(6000, function()
         if finished or token ~= activeAttempt then return end
         lastError = "timeout en ruta " .. tostring(attemptIndex)
         tryNextManifest()
@@ -881,7 +890,7 @@ local function fetchManifest(callback)
         return json.decode(data)
       end)
       if not ok or type(manifest) ~= "table" or type(manifest.files) ~= "table" then
-        lastError = "r" .. tostring(attemptIndex) .. ": manifest invalido"
+        lastError = "r" .. tostring(attemptIndex) .. ": manifest invalido: " .. previewText(data)
         tryNextManifest()
         return
       end
