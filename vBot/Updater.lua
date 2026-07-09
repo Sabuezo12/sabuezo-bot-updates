@@ -9,7 +9,7 @@ local refsManifestUrl = "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot
 local githubRawManifestUrl = "https://github.com/Sabuezo12/sabuezo-bot-updates/raw/main/manifest.json"
 local jsDelivrManifestUrl = "https://cdn.jsdelivr.net/gh/Sabuezo12/sabuezo-bot-updates@main/manifest.json"
 local apiManifestUrl = "https://api.github.com/repos/Sabuezo12/sabuezo-bot-updates/contents/manifest.json?ref=main"
-local defaultManifestUrl = refsManifestUrl
+local defaultManifestUrl = rawManifestUrl
 if not config.manifestUrl or config.manifestUrl == refsManifestUrl or config.manifestUrl == rawManifestUrl or
   config.manifestUrl == githubRawManifestUrl or config.manifestUrl == jsDelivrManifestUrl or
   config.manifestUrl == apiManifestUrl then
