@@ -8,9 +8,11 @@ local rawManifestUrl = "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-
 local refsManifestUrl = "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/refs/heads/main/manifest.json"
 local githubRawManifestUrl = "https://github.com/Sabuezo12/sabuezo-bot-updates/raw/main/manifest.json"
 local jsDelivrManifestUrl = "https://cdn.jsdelivr.net/gh/Sabuezo12/sabuezo-bot-updates@main/manifest.json"
-local defaultManifestUrl = "https://api.github.com/repos/Sabuezo12/sabuezo-bot-updates/contents/manifest.json?ref=main"
+local apiManifestUrl = "https://api.github.com/repos/Sabuezo12/sabuezo-bot-updates/contents/manifest.json?ref=main"
+local defaultManifestUrl = refsManifestUrl
 if not config.manifestUrl or config.manifestUrl == refsManifestUrl or config.manifestUrl == rawManifestUrl or
-  config.manifestUrl == githubRawManifestUrl or config.manifestUrl == jsDelivrManifestUrl then
+  config.manifestUrl == githubRawManifestUrl or config.manifestUrl == jsDelivrManifestUrl or
+  config.manifestUrl == apiManifestUrl then
   config.manifestUrl = defaultManifestUrl
 end
 config.version = config.version or "none"
@@ -810,6 +812,7 @@ local function buildManifestUrls()
 
   add(config.manifestUrl)
   add(defaultManifestUrl)
+  add(apiManifestUrl)
   add(refsManifestUrl)
   add(githubRawManifestUrl)
   add(jsDelivrManifestUrl)
@@ -831,7 +834,9 @@ local function fetchManifest(callback)
   local function fail()
     if finished then return end
     finished = true
-    setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nError al revisar", "#ff8a8a")
+    local shortError = tostring(lastError or "no response")
+    if shortError:len() > 38 then shortError = shortError:sub(1, 38) .. "..." end
+    setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nError: " .. shortError, "#ff8a8a")
     setStatus("Manifest error: " .. tostring(lastError or "no response"), "#ff8a8a")
     if callback then callback(nil) end
   end
@@ -865,7 +870,7 @@ local function fetchManifest(callback)
       if finished or token ~= activeAttempt then return end
 
       if not data then
-        lastError = err or ("ruta " .. tostring(attemptIndex) .. " sin respuesta")
+        lastError = "r" .. tostring(attemptIndex) .. ": " .. tostring(err or "sin respuesta")
         tryNextManifest()
         return
       end
@@ -876,7 +881,7 @@ local function fetchManifest(callback)
         return json.decode(data)
       end)
       if not ok or type(manifest) ~= "table" or type(manifest.files) ~= "table" then
-        lastError = "manifest invalido en ruta " .. tostring(attemptIndex)
+        lastError = "r" .. tostring(attemptIndex) .. ": manifest invalido"
         tryNextManifest()
         return
       end
