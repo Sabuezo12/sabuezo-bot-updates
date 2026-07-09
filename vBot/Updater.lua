@@ -454,6 +454,24 @@ local function httpGet(url, callback)
     return type(lastError) == "string" and lastError:find("std::map", 1, true) ~= nil
   end
 
+  if http and http.get then
+    local attempts = {
+      {"HTTP.get callback", function() return http.get(url, onResponse) end},
+      {"HTTP.get callback headers", function() return http.get(url, onResponse, makeHeaders()) end},
+      {"HTTP.get headers callback", function() return http.get(url, makeHeaders(), onResponse) end}
+    }
+
+    for _, attempt in ipairs(attempts) do
+      local ok, result = pcall(attempt[2])
+      if ok and result ~= nil then return result end
+      if ok then
+        lastError = attempt[1] .. " returned nil"
+      else
+        lastError = attempt[1] .. ": " .. shortError(result)
+      end
+    end
+  end
+
   if rawHttp and rawHttp.get then
     local headers = makeHeaders()
     local timeout = tonumber(http and (http.timeout or http.TIMEOUT)) or 60
@@ -476,24 +494,6 @@ local function httpGet(url, callback)
         else
           lastError = attempt.name .. ": " .. shortError(operation)
         end
-      end
-    end
-  end
-
-  if (not rawHttp or not rawHttp.get) and http and http.get then
-    local headers = makeHeaders()
-    local attempts = {
-      {"HTTP.get callback headers", function() return http.get(url, onResponse, headers) end},
-      {"HTTP.get headers callback", function() return http.get(url, headers, onResponse) end}
-    }
-
-    for _, attempt in ipairs(attempts) do
-      local ok, result = pcall(attempt[2])
-      if ok and result ~= nil then return result end
-      if ok then
-        lastError = attempt[1] .. " returned nil"
-      else
-        lastError = attempt[1] .. ": " .. shortError(result)
       end
     end
   end
