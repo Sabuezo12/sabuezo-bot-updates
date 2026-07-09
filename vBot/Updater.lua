@@ -794,50 +794,102 @@ local function formatSummary(manifest, maxLines)
   return table.concat(visible, "\n")
 end
 
+local function buildManifestUrls()
+  local urls = {}
+  local seen = {}
+
+  local function add(url)
+    url = tostring(url or "")
+    if url:len() == 0 or seen[url] then return end
+    seen[url] = true
+    table.insert(urls, url)
+  end
+
+  add(config.manifestUrl)
+  add(defaultManifestUrl)
+  add(rawManifestUrl)
+  add(refsManifestUrl)
+
+  return urls
+end
+
 local function fetchManifest(callback)
   local finished = false
-  local requestUrl = withCacheBuster(config.manifestUrl)
-
-  if type(schedule) == "function" then
-    schedule(15000, function()
-      if finished then return end
-      finished = true
-      setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nError al revisar", "#ff8a8a")
-      setStatus("No hubo respuesta del servidor. Intenta de nuevo.", "#ff8a8a")
-      if callback then callback(nil) end
-    end)
-  end
+  local attempts = buildManifestUrls()
+  local attemptIndex = 0
+  local activeAttempt = 0
+  local lastError = nil
 
   setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nRevisando...", "#ffd166")
   setStatus("Revisando actualizaciones...", "#ffd166")
-  httpGet(requestUrl, function(data, err)
+
+  local function fail()
     if finished then return end
     finished = true
+    setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nError al revisar", "#ff8a8a")
+    setStatus("Manifest error: " .. tostring(lastError or "no response"), "#ff8a8a")
+    if callback then callback(nil) end
+  end
 
-    if not data then
-      setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nError al revisar", "#ff8a8a")
-      setStatus("Manifest error: " .. tostring(err), "#ff8a8a")
-      if callback then callback(nil) end
+  local function tryNextManifest()
+    if finished then return end
+
+    attemptIndex = attemptIndex + 1
+    local url = attempts[attemptIndex]
+    if not url then
+      fail()
       return
     end
 
-    data = decodeGithubContentResponse(data)
+    activeAttempt = activeAttempt + 1
+    local token = activeAttempt
+    local requestUrl = withCacheBuster(url)
 
-    local ok, manifest = pcall(function()
-      return json.decode(data)
+    setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nRevisando " ..
+      tostring(attemptIndex) .. "/" .. tostring(#attempts), "#ffd166")
+
+    if type(schedule) == "function" then
+      schedule(12000, function()
+        if finished or token ~= activeAttempt then return end
+        lastError = "timeout en ruta " .. tostring(attemptIndex)
+        tryNextManifest()
+      end)
+    end
+
+    httpGet(requestUrl, function(data, err)
+      if finished or token ~= activeAttempt then return end
+
+      if not data then
+        lastError = err or ("ruta " .. tostring(attemptIndex) .. " sin respuesta")
+        tryNextManifest()
+        return
+      end
+
+      data = decodeGithubContentResponse(data)
+
+      local ok, manifest = pcall(function()
+        return json.decode(data)
+      end)
+      if not ok or type(manifest) ~= "table" or type(manifest.files) ~= "table" then
+        lastError = "manifest invalido en ruta " .. tostring(attemptIndex)
+        tryNextManifest()
+        return
+      end
+
+      finished = true
+      config.manifestUrl = url
+      lastManifest = manifest
+      lastPendingFiles = getPendingFiles(manifest)
+      refreshDetailsWindow(manifest)
+      if callback then callback(manifest) end
     end)
-    if not ok or type(manifest) ~= "table" or type(manifest.files) ~= "table" then
-      setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nManifest invalido", "#ff8a8a")
-      setStatus("Invalid manifest", "#ff8a8a")
-      if callback then callback(nil) end
-      return
-    end
+  end
 
-    lastManifest = manifest
-    lastPendingFiles = getPendingFiles(manifest)
-    refreshDetailsWindow(manifest)
-    if callback then callback(manifest) end
-  end)
+  if #attempts == 0 then
+    fail()
+  else
+    tryNextManifest()
+  end
 end
 
 local function finishInstall(manifest, installed, skipped, autoMode)
