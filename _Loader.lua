@@ -36,7 +36,8 @@ local loaderSections = {
       "vBot/Updater",
       "vBot/extras",
       "vBot/extrasPvp",
-      ----"vBot/BotServer", -- disabled: BotServer externo/local causa lag/debug en Anvard
+      "vBot/GameBotServerTransport",
+      "vBot/BotServer",
       "vBot/combo_plus",
       ----"vBot/combo", -- replaced by combo_plus
       "vBot/TimerExecutor",

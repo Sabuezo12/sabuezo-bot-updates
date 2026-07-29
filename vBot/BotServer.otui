@@ -1,3 +1,12 @@
+BotServerTransportComboBoxPopupMenu < ComboBoxPopupMenu
+BotServerTransportComboBoxPopupMenuButton < ComboBoxPopupMenuButton
+BotServerTransportComboBox < ComboBox
+  @onSetup: |
+    self:addOption("Guild")
+    self:addOption("Party")
+    self:addOption("Auto")
+    self:addOption("Extended Opcode")
+
 BotServerData < Panel
   size: 340 76
   image-source: /images/ui/window
@@ -75,6 +84,96 @@ BotServerData < Panel
     size: 80 21
     text-align: center
     text: Members:
+
+TransportPanel < Panel
+  size: 340 82
+  image-source: /images/ui/panel_flat
+  image-border: 5
+  padding: 3
+
+  Label
+    id: title
+    anchors.top: parent.top
+    anchors.horizontalCenter: parent.horizontalCenter
+    text-align: center
+    text: Game transport
+
+  HorizontalSeparator
+    id: sep
+    anchors.top: prev.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 2
+
+  Label
+    id: transportLabel
+    anchors.top: sep.bottom
+    anchors.left: parent.left
+    margin-top: 7
+    margin-left: 6
+    width: 72
+    text: Transport:
+
+  BotServerTransportComboBox
+    id: TransportMode
+    anchors.verticalCenter: prev.verticalCenter
+    anchors.left: prev.right
+    margin-left: 5
+    width: 145
+
+  Label
+    id: guildChannelLabel
+    anchors.top: TransportMode.bottom
+    anchors.left: parent.left
+    margin-top: 8
+    margin-left: 6
+    width: 38
+    text: Guild:
+
+  SpinBox
+    id: GuildChannelId
+    anchors.verticalCenter: prev.verticalCenter
+    anchors.left: prev.right
+    margin-left: 4
+    width: 48
+    minimum: 0
+    maximum: 65535
+    step: 1
+
+  Label
+    id: gameChannelLabel
+    anchors.verticalCenter: prev.verticalCenter
+    anchors.left: prev.right
+    margin-left: 10
+    width: 36
+    text: Party:
+
+  SpinBox
+    id: GameChannelId
+    anchors.verticalCenter: prev.verticalCenter
+    anchors.left: prev.right
+    margin-left: 4
+    width: 48
+    minimum: 0
+    maximum: 65535
+    step: 1
+
+  Label
+    id: opcodeLabel
+    anchors.verticalCenter: prev.verticalCenter
+    anchors.left: prev.right
+    margin-left: 10
+    text: Opcode:
+
+  SpinBox
+    id: ExtendedOpcode
+    anchors.verticalCenter: prev.verticalCenter
+    anchors.left: prev.right
+    margin-left: 4
+    width: 50
+    minimum: 0
+    maximum: 255
+    step: 1
 
 FeaturePanel < Panel
   size: 340 165
@@ -176,13 +275,19 @@ FeaturePanel < Panel
 
 BotServerWindow < MainWindow
   !text: tr('BotServer')
-  size: 370 335
+  size: 370 425
   @onEscape: self:hide()
 
   BotServerData
     id: Data
     anchors.top: parent.top
     anchors.horizontalCenter: parent.horizontalCenter
+
+  TransportPanel
+    id: Transport
+    anchors.top: prev.bottom
+    anchors.horizontalCenter: parent.horizontalCenter
+    margin-top: 10
 
   FeaturePanel
     id: Features

@@ -2,7 +2,7 @@ setDefaultTab("Main")
 local regex = [["(.*?)"]]
 local panelName = "BOTserver"
 local DEFAULT_BOTSERVER_CHANNEL = "Slegna1324"
-local BOTSERVER_DEFAULTS_VERSION = 2
+local BOTSERVER_DEFAULTS_VERSION = 4
 local ui = setupUI([[
 Panel
   height: 18
@@ -32,6 +32,8 @@ local config = storage[panelName]
 if storage.BotServerDefaultsVersion ~= BOTSERVER_DEFAULTS_VERSION then
   storage.BotServerChannel = DEFAULT_BOTSERVER_CHANNEL
   config.enabled = true
+  config.transportMode = "guild"
+  config.guildChannelId = 0
   storage.BotServerDefaultsVersion = BOTSERVER_DEFAULTS_VERSION
 elseif config.enabled == nil then
   config.enabled = true
@@ -44,6 +46,13 @@ if config.vocation == nil then config.vocation = true end
 if config.outfit == nil then config.outfit = false end
 if config.broadcasts == nil then config.broadcasts = true end
 if config.minimapMembers == nil then config.minimapMembers = true end
+if config.transportMode ~= "guild" and config.transportMode ~= "party" and
+   config.transportMode ~= "auto" and config.transportMode ~= "opcode" then
+  config.transportMode = "guild"
+end
+config.guildChannelId = math.max(0, math.min(65535, tonumber(config.guildChannelId) or 0))
+config.gameChannelId = math.max(0, math.min(65535, tonumber(config.gameChannelId) or 1))
+config.extendedOpcode = math.max(0, math.min(255, tonumber(config.extendedOpcode) or 201))
 config.mwalls = {}
 
 BotServer._rodMasterMainGeneration = (BotServer._rodMasterMainGeneration or 0) + 1
@@ -58,16 +67,10 @@ local lastPresenceSync = 0
 local lastPresencePositionKey = nil
 local lastPositionPresenceSync = 0
 local MEMBER_TIMEOUT = 30000
-local MEMBER_TIMEOUT_SECONDS = 30
 local MEMBER_POSITION_TIMEOUT = 15000
 local MAX_MINIMAP_MARKERS = 16
 local MINIMAP_OVERLAY_UPDATE = 300
-local LOCAL_MESSAGE_TTL_SECONDS = 45
-local LOCAL_BUS_ROOT = "/bot/_sabuezo_botserver"
 local clientId = nil
-local localMessageSeq = 0
-local seenLocalBroadcasts = {}
-local seenLocalMwalls = {}
 local minimapOverlay = {
   widget = nil,
   parent = nil,
@@ -175,217 +178,11 @@ local function getMembersTooltip()
   return table.concat(names, "\n")
 end
 
-local function wallTime()
-  return os.time()
-end
-
 local function safeFileName(value)
   value = tostring(value or ""):gsub("^%s+", ""):gsub("%s+$", "")
   value = value:gsub("[^%w%-_]", "_")
   if value == "" then value = "default" end
   return value
-end
-
-local function ensureDir(path)
-  local ok, exists = pcall(function() return g_resources.directoryExists(path) end)
-  if ok and exists then return true end
-  return pcall(function() g_resources.makeDir(path) end)
-end
-
-local function getLocalBusBase()
-  local channelName = safeFileName(storage.BotServerChannel or "default")
-  ensureDir(LOCAL_BUS_ROOT)
-  local channelPath = LOCAL_BUS_ROOT .. "/" .. channelName
-  ensureDir(channelPath)
-  ensureDir(channelPath .. "/members")
-  ensureDir(channelPath .. "/broadcasts")
-  ensureDir(channelPath .. "/mwalls")
-  return channelPath
-end
-
-local function readLocalJson(path)
-  local ok, exists = pcall(function() return g_resources.fileExists(path) end)
-  if not ok or not exists then return nil end
-
-  local readOk, contents = pcall(function() return g_resources.readFileContents(path) end)
-  if not readOk or not contents or contents == "" then return nil end
-
-  local decodeOk, data = pcall(function() return json.decode(contents) end)
-  if decodeOk and type(data) == "table" then return data end
-  return nil
-end
-
-local function writeLocalJson(path, data)
-  local encodeOk, contents = pcall(function() return json.encode(data) end)
-  if not encodeOk or not contents then return false end
-
-  local writeOk = pcall(function() g_resources.writeFileContents(path, contents) end)
-  return writeOk == true
-end
-
-local function deleteLocalFile(path)
-  pcall(function()
-    if g_resources.deleteFile then
-      g_resources.deleteFile(path)
-    end
-  end)
-end
-
-local function localMessageId(topic)
-  localMessageSeq = localMessageSeq + 1
-  return safeFileName((clientId or getSelfName()) .. "_" .. topic .. "_" .. tostring(wallTime()) .. "_" .. tostring(now or 0) .. "_" .. tostring(localMessageSeq))
-end
-
-local function writeLocalPresence()
-  if not config.enabled then return false end
-
-  local base = getLocalBusBase()
-  local memberPath = base .. "/members/" .. safeFileName(clientId or getSelfName()) .. ".json"
-  local mana = 0
-  local ok, result = pcall(function() return manapercent() end)
-  if ok and result then mana = result end
-
-  return writeLocalJson(memberPath, {
-    clientId = clientId,
-    name = getSelfName(),
-    voc = player:getVocation(),
-    mana = mana,
-    pos = getSelfPosition(),
-    time = wallTime()
-  })
-end
-
-local function readLocalMembers()
-  if not config.enabled then return end
-
-  local base = getLocalBusBase()
-  local ok, files = pcall(function()
-    return g_resources.listDirectoryFiles(base .. "/members", false, false)
-  end)
-  if not ok or type(files) ~= "table" then return end
-
-  local currentTime = wallTime()
-  for _, file in ipairs(files) do
-    local path = base .. "/members/" .. file
-    local data = readLocalJson(path)
-    local messageTime = type(data) == "table" and tonumber(data.time) or nil
-    if type(data) == "table" and messageTime and currentTime - messageTime <= MEMBER_TIMEOUT_SECONDS then
-      local memberName = data.name
-      if type(memberName) == "string" and memberName ~= "" then
-        touchMember(memberName, {
-          clientId = data.clientId,
-          voc = data.voc,
-          mana = data.mana,
-          pos = data.pos,
-          time = messageTime
-        })
-        if data.voc then
-          vBot.BotServerMembers[memberName] = data.voc
-        end
-        if config.manaInfo and data.mana then
-          local creature = getPlayerByName(memberName)
-          if creature then
-            pcall(function() creature:setManaPercent(data.mana) end)
-          end
-        end
-      end
-    elseif messageTime and currentTime - messageTime > MEMBER_TIMEOUT_SECONDS * 3 then
-      deleteLocalFile(path)
-    end
-  end
-end
-
-local function writeLocalBroadcast(message)
-  if not config.enabled then return false end
-
-  local base = getLocalBusBase()
-  local id = localMessageId("broadcast")
-  return writeLocalJson(base .. "/broadcasts/" .. id .. ".json", {
-    id = id,
-    clientId = clientId,
-    name = getSelfName(),
-    message = tostring(message or ""),
-    time = wallTime()
-  })
-end
-
-local function processLocalBroadcasts()
-  if not config.enabled then return end
-
-  local base = getLocalBusBase()
-  local ok, files = pcall(function()
-    return g_resources.listDirectoryFiles(base .. "/broadcasts", false, false)
-  end)
-  if not ok or type(files) ~= "table" then return end
-
-  local currentTime = wallTime()
-  for _, file in ipairs(files) do
-    local path = base .. "/broadcasts/" .. file
-    local data = readLocalJson(path)
-    local id = data and data.id or file
-    local messageTime = type(data) == "table" and tonumber(data.time) or nil
-    if type(data) == "table" and messageTime and currentTime - messageTime <= LOCAL_MESSAGE_TTL_SECONDS then
-      if data.clientId ~= clientId and not seenLocalBroadcasts[id] then
-        seenLocalBroadcasts[id] = true
-        if config.broadcasts and data.message and data.message ~= "" then
-          broadcastMessage(tostring(data.name or "BotServer") .. ": " .. tostring(data.message))
-        end
-      end
-    elseif messageTime and currentTime - messageTime > LOCAL_MESSAGE_TTL_SECONDS then
-      deleteLocalFile(path)
-    end
-  end
-end
-
-local function writeLocalMwall(message)
-  if not config.enabled or type(message) ~= "table" or not message.pos then return false end
-
-  local base = getLocalBusBase()
-  local id = localMessageId("mwall")
-  return writeLocalJson(base .. "/mwalls/" .. id .. ".json", {
-    id = id,
-    clientId = clientId,
-    name = getSelfName(),
-    pos = message.pos,
-    duration = tonumber(message.duration) or 0,
-    time = wallTime()
-  })
-end
-
-local function processLocalMwalls()
-  if not config.enabled or not config.mwallInfo then return end
-
-  local base = getLocalBusBase()
-  local ok, files = pcall(function()
-    return g_resources.listDirectoryFiles(base .. "/mwalls", false, false)
-  end)
-  if not ok or type(files) ~= "table" then return end
-
-  local currentTime = wallTime()
-  for _, file in ipairs(files) do
-    local path = base .. "/mwalls/" .. file
-    local data = readLocalJson(path)
-    local id = data and data.id or file
-    local messageTime = type(data) == "table" and tonumber(data.time) or nil
-    if type(data) == "table" and messageTime and currentTime - messageTime <= LOCAL_MESSAGE_TTL_SECONDS then
-      if data.clientId ~= clientId and not seenLocalMwalls[id] and data.pos and data.duration then
-        seenLocalMwalls[id] = true
-        local duration = tonumber(data.duration) or 0
-        if duration > 0 and (not config.mwalls[data.pos] or config.mwalls[data.pos] < now) then
-          config.mwalls[data.pos] = now + duration - 150
-        end
-      end
-    elseif messageTime and currentTime - messageTime > LOCAL_MESSAGE_TTL_SECONDS then
-      deleteLocalFile(path)
-    end
-  end
-end
-
-local function processLocalBus()
-  if not config.enabled then return end
-  readLocalMembers()
-  processLocalBroadcasts()
-  processLocalMwalls()
 end
 
 local function pruneMwalls()
@@ -397,16 +194,7 @@ local function pruneMwalls()
 end
 
 local function sendBotServer(topic, message)
-  local localOk = false
-  if topic == "presence" or topic == "voc" or topic == "mana" then
-    localOk = writeLocalPresence()
-  elseif topic == "broadcast" then
-    localOk = writeLocalBroadcast(message)
-  elseif topic == "mwall" then
-    localOk = writeLocalMwall(message)
-  end
-
-  if not BotServer._websocket then return localOk end
+  if not BotServer._websocket then return false end
 
   local ok = pcall(function()
     if message == nil then
@@ -415,7 +203,7 @@ local function sendBotServer(topic, message)
       BotServer.send(topic, message)
     end
   end)
-  return ok or localOk
+  return ok == true
 end
 
 local function publishPresence(force)
@@ -833,6 +621,18 @@ if config.enabled then
   BotServer.init(name(), channel)
 end
 
+local function restartGameTransport()
+  if not config.enabled or not GameBotServerTransport or not GameBotServerTransport.restart then return end
+  GameBotServerTransport.restart()
+  schedule(100, function()
+    if not config.enabled then return end
+    initBotServerListenFunctions()
+    syncVocation(true)
+    publishPresence(true)
+    updateStatusText()
+  end)
+end
+
 vBot.BotServerMembers = {}
 
 rootWidget = g_ui.getRootWidget()
@@ -847,14 +647,16 @@ if rootWidget then
     if config.enabled then
       channel = tostring(storage.BotServerChannel)
       BotServer.init(name(), channel)
-      botServerWindow.Data.ServerStatus:setText("CONNECTING...")
+      botServerWindow.Data.ServerStatus:setText("GAME: STARTING")
       ui.botServer:setColor('#FFF380')
       botServerWindow.Data.ServerStatus:setColor('#FFF380')
     else
       if BotServer._websocket then
         BotServer.terminate()
       end
-	  BotServer.resetReconnect()
+      if BotServer.resetReconnect then
+        BotServer.resetReconnect()
+      end
       botServerWindow.Data.ServerStatus:setText("DISCONNECTED")
       ui.botServer:setColor('#E3242B')
       botServerWindow.Data.ServerStatus:setColor('#E3242B')
@@ -873,22 +675,69 @@ if rootWidget then
   end
 
   botServerWindow.Data.Channel:setText(storage.BotServerChannel)
+  pcall(function()
+    botServerWindow.Data.Channel:setTooltip("Clave logica del grupo. Todos tus amigos deben usar exactamente la misma.")
+    botServerWindow.Data.Random:setTooltip("Genera una clave de grupo nueva.")
+  end)
   botServerWindow.Data.Channel.onTextChange = function(widget, text)
     storage.BotServerChannel = text
+    channel = tostring(text)
+    if GameBotServerTransport and GameBotServerTransport.setRoom then
+      GameBotServerTransport.setRoom(channel)
+    end
     members = {}
     memberInfo = {}
-    seenLocalBroadcasts = {}
-    seenLocalMwalls = {}
     lastPresenceSync = 0
     hideMemberMinimapOverlay()
   end
+  local transportLabels = {
+    guild = "Guild",
+    party = "Party",
+    auto = "Auto",
+    opcode = "Extended Opcode"
+  }
+  local transportValues = {
+    ["Guild"] = "guild",
+    ["Party"] = "party",
+    ["Auto"] = "auto",
+    ["Extended Opcode"] = "opcode"
+  }
+  botServerWindow.Transport.TransportMode:setOption(transportLabels[config.transportMode] or "Guild")
+  botServerWindow.Transport.TransportMode.onOptionChange = function(widget)
+    local option = widget:getCurrentOption()
+    config.transportMode = transportValues[option and option.text or "Guild"] or "guild"
+    restartGameTransport()
+  end
+  botServerWindow.Transport.GuildChannelId:setValue(config.guildChannelId)
+  botServerWindow.Transport.GuildChannelId.onValueChange = function(widget, value)
+    config.guildChannelId = math.max(0, math.min(65535, tonumber(value) or 0))
+    restartGameTransport()
+  end
+  botServerWindow.Transport.GameChannelId:setValue(config.gameChannelId)
+  botServerWindow.Transport.GameChannelId.onValueChange = function(widget, value)
+    config.gameChannelId = math.max(0, math.min(65535, tonumber(value) or 1))
+    restartGameTransport()
+  end
+  botServerWindow.Transport.ExtendedOpcode:setValue(config.extendedOpcode)
+  botServerWindow.Transport.ExtendedOpcode.onValueChange = function(widget, value)
+    config.extendedOpcode = math.max(0, math.min(255, tonumber(value) or 201))
+    restartGameTransport()
+  end
+  pcall(function()
+    botServerWindow.Transport.TransportMode:setTooltip(
+      "Guild es el modo principal. Party es alternativo. Auto prueba Opcode y conserva Guild como respaldo.")
+    botServerWindow.Transport.GuildChannelId:setTooltip(
+      "ID del canal Guild. En protocolo 8.6 normalmente es 0.")
+    botServerWindow.Transport.GameChannelId:setTooltip(
+      "ID del canal Party. En protocolo 8.6 normalmente es 1.")
+    botServerWindow.Transport.ExtendedOpcode:setTooltip(
+      "Opcode del relay instalado en el servidor. Debe coincidir en todos los clientes.")
+  end)
   botServerWindow.Data.Random.onClick = function(widget)
     storage.BotServerChannel = tostring(math.random(1000000000000,9999999999999))
     botServerWindow.Data.Channel:setText(storage.BotServerChannel)
     members = {}
     memberInfo = {}
-    seenLocalBroadcasts = {}
-    seenLocalMwalls = {}
     lastPresenceSync = 0
     hideMemberMinimapOverlay()
   end
@@ -1046,24 +895,23 @@ initBotServerListenFunctions()
 function updateStatusText()
   pruneMembers()
   if BotServer._websocket then
-    botServerWindow.Data.ServerStatus:setText("CONNECTED")
-    botServerWindow.Data.ServerStatus:setColor('#03AC13')
-    ui.botServer:setColor('#03AC13')
+    local statusText = "GAME: CONNECTED"
+    local statusLevel = "connected"
+    if GameBotServerTransport and GameBotServerTransport.getStatus then
+      statusText, statusLevel = GameBotServerTransport.getStatus()
+    end
+    local statusColor = statusLevel == "connected" and '#03AC13' or
+      (statusLevel == "waiting" and '#FFF380' or '#E3242B')
+    botServerWindow.Data.ServerStatus:setText(statusText)
+    botServerWindow.Data.ServerStatus:setColor(statusColor)
+    ui.botServer:setColor(statusColor)
     botServerWindow.Data.Participants:setText(getMemberCount())
     botServerWindow.Data.Members:setTooltip(getMembersTooltip())
   else
-    if config.enabled then
-      botServerWindow.Data.ServerStatus:setText("LOCAL BUS")
-      ui.botServer:setColor('#FFF380')
-      botServerWindow.Data.ServerStatus:setColor('#FFF380')
-      botServerWindow.Data.Participants:setText(getMemberCount())
-      botServerWindow.Data.Members:setTooltip(getMembersTooltip())
-    else
-      botServerWindow.Data.ServerStatus:setText("DISCONNECTED")
-      ui.botServer:setColor('#E3242B')
-      botServerWindow.Data.ServerStatus:setColor('#E3242B')
-      botServerWindow.Data.Participants:setText("-")
-    end
+    botServerWindow.Data.ServerStatus:setText("DISCONNECTED")
+    ui.botServer:setColor('#E3242B')
+    botServerWindow.Data.ServerStatus:setColor('#E3242B')
+    botServerWindow.Data.Participants:setText("-")
   end
 end
 
@@ -1072,7 +920,6 @@ macro(500, function()
     initBotServerListenFunctions()
     publishPresence()
     syncVocation()
-    processLocalBus()
     updateMemberMinimapOverlay()
   else
     hideMemberMinimapOverlay()
@@ -1085,7 +932,6 @@ macro(1000, function()
   if config.enabled then
     initBotServerListenFunctions()
     publishPresence(true)
-    processLocalBus()
     if BotServer._websocket then
       sendBotServer("list")
     end
