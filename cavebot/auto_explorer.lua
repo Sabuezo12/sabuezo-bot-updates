@@ -6,11 +6,11 @@ local AutoExplorer = CaveBot.AutoExplorer
 local AREA_MIN = 20
 local AREA_MAX = 120
 local AREA_DEFAULT = 30
-local THINK_INTERVAL = 150
-local FAST_STEP_DELAY = 110
-local SCAN_INTERVAL = 450
-local EMPTY_SCAN_INTERVAL = 900
-local MAX_PATH_CHECKS = 10
+local THINK_INTERVAL = 500
+local FAST_STEP_DELAY = 180
+local SCAN_INTERVAL = 1800
+local EMPTY_SCAN_INTERVAL = 2500
+local MAX_PATH_CHECKS = 3
 local BLOCK_TIME = 8000
 local STUCK_TIME = 2200
 local NO_PROGRESS_TIME = 3500
@@ -21,10 +21,10 @@ local TARGETBOT_PAUSE_DELAY = 250
 local PATROL_RECENT_TIME = 60000
 local PATROL_MIN_DISTANCE = 6
 local PATROL_PREFERRED_DISTANCE = 12
-local PATROL_PATH_CHECKS = 14
+local PATROL_PATH_CHECKS = 4
 local EDGE_SCAN_DISTANCE = 3
 local RETURN_INSIDE_MARGIN = 4
-local RETURN_PATH_CHECKS = 18
+local RETURN_PATH_CHECKS = 4
 local CORRIDOR_OPEN_MAX = 2
 local CORRIDOR_DIRECTION_BONUS = 85
 local CORRIDOR_BASE_BONUS = 90
@@ -35,8 +35,10 @@ local DEATH_SAFE_HP = 5
 local MINIMAP_OVERLAY_UPDATE = 250
 local MINIMAP_OVERLAY_THICKNESS = 2
 local FLOOR_USE_COOLDOWN = 700
-local FLOOR_RETURN_SCAN_INTERVAL = 250
-local FLOOR_RETURN_PATH_CHECKS = 16
+local FLOOR_RETURN_SCAN_INTERVAL = 900
+local FLOOR_RETURN_PATH_CHECKS = 4
+local MAX_SCAN_RADIUS = 18
+local MAX_RETURN_SCAN_RADIUS = 22
 
 local FLOOR_CHANGE_USE_IDS = {
   [386] = true, [421] = true, [432] = true, [433] = true, [435] = true,
@@ -377,17 +379,17 @@ local function markWalked(pos)
 end
 
 local function markAreaCovered(centerPos)
-  if not hasPosition(centerPos) or not g_map or not g_map.getTiles then return end
-
-  local okTiles, tiles = pcall(function() return g_map.getTiles(centerPos.z) end)
-  if not okTiles or type(tiles) ~= "table" then return end
+  if not hasPosition(centerPos) or not g_map or not g_map.getTile then return end
   local coverageRadius = isCorridorArea(centerPos) and 0 or COVERAGE_RADIUS
 
-  for _, tile in pairs(tiles) do
-    local tilePos = getTilePosition(tile)
-    if tilePos and tilePos.z == centerPos.z and distance2d(centerPos, tilePos) <= coverageRadius then
-      if not isFloorChangeTile(tile, tilePos) and inCurrentRadius(tilePos) and canCoverTile(tile) then
-        markVisited(tilePos)
+  for x = centerPos.x - coverageRadius, centerPos.x + coverageRadius do
+    for y = centerPos.y - coverageRadius, centerPos.y + coverageRadius do
+      local tilePos = {x = x, y = y, z = centerPos.z}
+      if distance2d(centerPos, tilePos) <= coverageRadius then
+        local tile = g_map.getTile(tilePos)
+        if tile and not isFloorChangeTile(tile, tilePos) and inCurrentRadius(tilePos) and canCoverTile(tile) then
+          markVisited(tilePos)
+        end
       end
     end
   end
@@ -1021,6 +1023,31 @@ local function edgeScore(edgeDistance, distance)
   return score
 end
 
+local function getNearbyBounds(centerPos, radius)
+  if not hasPosition(centerPos) then return nil end
+  radius = tonumber(radius) or MAX_SCAN_RADIUS
+  return {
+    minX = centerPos.x - radius,
+    maxX = centerPos.x + radius,
+    minY = centerPos.y - radius,
+    maxY = centerPos.y + radius
+  }
+end
+
+local function forEachNearbyTile(centerPos, radius, callback)
+  if not hasPosition(centerPos) or not g_map or not g_map.getTile then return end
+  radius = math.max(1, tonumber(radius) or MAX_SCAN_RADIUS)
+
+  for x = centerPos.x - radius, centerPos.x + radius do
+    for y = centerPos.y - radius, centerPos.y + radius do
+      local tile = g_map.getTile({x = x, y = y, z = centerPos.z})
+      if tile then
+        callback(tile)
+      end
+    end
+  end
+end
+
 local function bucketKey(x, y)
   return tostring(math.floor(x / FRONTIER_RADIUS)) .. ":" .. tostring(math.floor(y / FRONTIER_RADIUS))
 end
@@ -1130,14 +1157,13 @@ local function buildCandidates(mode)
   mode = mode or "explore"
   local playerPos = player and player.getPosition and player:getPosition() or nil
   if not hasPosition(playerPos) then return {} end
-  getAnchor(playerPos)
+  local anchor = getAnchor(playerPos)
 
   local candidates = {}
-  local okTiles, tiles = pcall(function() return g_map.getTiles(posz()) end)
-  if not okTiles or type(tiles) ~= "table" then return candidates end
-  local bounds = getVisibleBounds(tiles, playerPos.z)
+  local scanRadius = math.min(getRadius(), MAX_SCAN_RADIUS)
+  local bounds = getNearbyBounds(anchor or playerPos, scanRadius)
 
-  for _, tile in pairs(tiles) do
+  forEachNearbyTile(playerPos, scanRadius, function(tile)
     if canUseTile(tile) then
       local tilePos = getTilePosition(tile)
       if tilePos and not samePosition(tilePos, playerPos) then
@@ -1169,7 +1195,7 @@ local function buildCandidates(mode)
         end
       end
     end
-  end
+  end)
 
   local buckets = buildCandidateBuckets(candidates)
   for _, candidate in ipairs(candidates) do
@@ -1343,16 +1369,13 @@ local function getFloorReturnStandPosition(pos, maxDistance, params)
 end
 
 local function getFloorReturnTarget(playerPos)
-  if not shouldReturnToOriginFloor(playerPos) or not g_map or not g_map.getTiles then return nil, nil end
-
-  local okTiles, tiles = pcall(function() return g_map.getTiles(playerPos.z) end)
-  if not okTiles or type(tiles) ~= "table" then return nil, nil end
+  if not shouldReturnToOriginFloor(playerPos) or not g_map or not g_map.getTile then return nil, nil end
 
   local params = getFloorReturnPathParams()
   local maxDistance = math.max(20, getRadius() * 2 + 10)
   local candidates = {}
 
-  for _, tile in pairs(tiles) do
+  forEachNearbyTile(playerPos, MAX_RETURN_SCAN_RADIUS, function(tile)
     local tilePos = getTilePosition(tile)
     if tilePos and tilePos.z == playerPos.z then
       local thing = getFloorChangeThing(tile)
@@ -1385,7 +1408,7 @@ local function getFloorReturnTarget(playerPos)
         end
       end
     end
-  end
+  end)
 
   table.sort(candidates, function(a, b)
     if a.hasUseThing ~= b.hasUseThing then return a.hasUseThing end
@@ -1527,13 +1550,10 @@ local function processStuck(playerPos)
 end
 
 local function getReturnInsideRadiusTarget(playerPos)
-  if not hasPosition(playerPos) or not g_map or not g_map.getTiles then return nil end
-
-  local okTiles, tiles = pcall(function() return g_map.getTiles(playerPos.z) end)
-  if not okTiles or type(tiles) ~= "table" then return nil end
+  if not hasPosition(playerPos) or not g_map or not g_map.getTile then return nil end
 
   local candidates = {}
-  for _, tile in pairs(tiles) do
+  forEachNearbyTile(playerPos, MAX_RETURN_SCAN_RADIUS, function(tile)
     local tilePos = getTilePosition(tile)
     if tilePos and tilePos.z == playerPos.z and inStableReturnArea(tilePos) and canUseTile(tile) then
       table.insert(candidates, {
@@ -1542,10 +1562,10 @@ local function getReturnInsideRadiusTarget(playerPos)
         anchorDistance = distance2d(getAnchor(), tilePos)
       })
     end
-  end
+  end)
 
   if #candidates == 0 then
-    for _, tile in pairs(tiles) do
+    forEachNearbyTile(playerPos, MAX_RETURN_SCAN_RADIUS, function(tile)
       local tilePos = getTilePosition(tile)
       if tilePos and tilePos.z == playerPos.z and inCurrentRadius(tilePos) and canUseTile(tile) then
         table.insert(candidates, {
@@ -1554,7 +1574,7 @@ local function getReturnInsideRadiusTarget(playerPos)
           anchorDistance = distance2d(getAnchor(), tilePos)
         })
       end
-    end
+    end)
   end
 
   table.sort(candidates, function(a, b)
