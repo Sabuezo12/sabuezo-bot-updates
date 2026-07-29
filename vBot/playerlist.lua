@@ -453,8 +453,23 @@ local function applyStatus(creature)
   end
 end
 
+local function getSafeSpectators()
+  if not player or not player.getPosition or not g_map or not g_map.getSpectators then
+    return {}
+  end
+
+  local okPosition, position = pcall(function() return player:getPosition() end)
+  if not okPosition or not position then return {} end
+
+  local okSpectators, spectators = pcall(function()
+    return g_map.getSpectators(position, false)
+  end)
+  if not okSpectators or type(spectators) ~= "table" then return {} end
+  return spectators
+end
+
 function refreshStatus()
-  for _, spec in ipairs(getSpectators()) do
+  for _, spec in ipairs(getSafeSpectators()) do
     applyStatus(spec)
   end
 end
@@ -611,7 +626,7 @@ PlayerList.importVocations = function(vocationLists)
 end
 
 PlayerList.autoAddVisibleGuildMembers = function()
-  for _, spec in ipairs(getSpectators()) do
+  for _, spec in ipairs(getSafeSpectators()) do
     autoAddGuildMember(spec)
   end
 end

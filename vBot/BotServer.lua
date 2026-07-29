@@ -119,6 +119,19 @@ local function getSelfPosition()
   return nil
 end
 
+local function normalizeManaPercent(value)
+  value = tonumber(value)
+  if not value then return nil end
+  return math.max(0, math.min(100, math.floor(value + 0.5)))
+end
+
+local function getSelfManaPercent()
+  if type(manapercent) ~= "function" then return nil end
+  local ok, value = pcall(manapercent)
+  if not ok then return nil end
+  return normalizeManaPercent(value)
+end
+
 local function touchMember(memberName, info)
   if type(memberName) ~= "string" or memberName == "" then return end
   members[memberName] = now or 0
@@ -128,7 +141,7 @@ local function touchMember(memberName, info)
     current.name = memberName
     current.clientId = info.clientId or current.clientId
     current.voc = info.voc or current.voc
-    current.mana = info.mana or current.mana
+    current.mana = normalizeManaPercent(info.mana) or current.mana
     current.pos = copyPosition(info.pos) or current.pos
     current.lastSeen = now or 0
     current.wallTime = tonumber(info.time) or os.time()
@@ -139,6 +152,27 @@ local function touchMember(memberName, info)
       lastSeen = now or 0,
       wallTime = os.time()
     }
+  end
+end
+
+local function applyVisibleMemberMana(memberName, mana)
+  if not config.enabled or not config.manaInfo then return false end
+  mana = normalizeManaPercent(mana)
+  if mana == nil then return false end
+
+  local okCreature, creature = pcall(function() return getPlayerByName(memberName) end)
+  if not okCreature or not creature then return false end
+
+  local ok = pcall(function() creature:setManaPercent(mana) end)
+  return ok
+end
+
+local function refreshVisibleMemberMana()
+  local currentTime = now or 0
+  for memberName, info in pairs(memberInfo) do
+    if info and info.mana ~= nil and currentTime - (info.lastSeen or 0) <= MEMBER_TIMEOUT then
+      applyVisibleMemberMana(memberName, info.mana)
+    end
   end
 end
 
@@ -171,6 +205,9 @@ local function getMembersTooltip()
     local text = memberName
     if info and hasPosition(info.pos) then
       text = text .. " - " .. positionKey(info.pos)
+    end
+    if info and info.mana ~= nil then
+      text = text .. " - Mana " .. tostring(info.mana) .. "%"
     end
     table.insert(names, text)
   end
@@ -210,6 +247,7 @@ local function publishPresence(force)
   if not config.enabled then return end
   local selfPos = getSelfPosition()
   local selfPosKey = positionKey(selfPos)
+  local selfMana = config.manaInfo and getSelfManaPercent() or nil
   local moved = selfPosKey and selfPosKey ~= lastPresencePositionKey
   local canSendMove = moved and now and now - lastPositionPresenceSync >= 1000
   if not force and not canSendMove and now and now - lastPresenceSync < 5000 then return end
@@ -220,8 +258,14 @@ local function publishPresence(force)
     lastPresencePositionKey = selfPosKey
     lastPositionPresenceSync = now or 0
   end
-  touchMember(selfName, {clientId = clientId, voc = player:getVocation(), pos = selfPos})
-  sendBotServer("presence", {clientId = clientId, name = selfName, voc = player:getVocation(), pos = selfPos})
+  touchMember(selfName, {clientId = clientId, voc = player:getVocation(), mana = selfMana, pos = selfPos})
+  sendBotServer("presence", {
+    clientId = clientId,
+    name = selfName,
+    voc = player:getVocation(),
+    mana = selfMana,
+    pos = selfPos
+  })
 end
 
 local function syncVocation(force)
@@ -834,8 +878,12 @@ function initBotServerListenFunctions()
     touchMember(memberName, {
       clientId = type(message) == "table" and message.clientId or nil,
       voc = type(message) == "table" and message.voc or nil,
+      mana = type(message) == "table" and message.mana or nil,
       pos = type(message) == "table" and message.pos or nil
     })
+    if type(message) == "table" then
+      applyVisibleMemberMana(memberName, message.mana)
+    end
     if type(message) == "table" and message.voc then
       vBot.BotServerMembers[memberName] = message.voc
     end
@@ -860,11 +908,10 @@ function initBotServerListenFunctions()
   BotServer.listen("mana", function(name, message)
     if not currentBotServerListeners(listenerSocket) then return end
     if config.manaInfo and type(message) == "table" then
-      touchMember(name, {mana = message["mana"]})
-      local creature = getPlayerByName(name)
-      if creature then
-        creature:setManaPercent(message["mana"])
-      end
+      local memberName = type(message.name) == "string" and message.name ~= "" and message.name or name
+      local mana = normalizeManaPercent(message.mana)
+      touchMember(memberName, {mana = mana})
+      applyVisibleMemberMana(memberName, mana)
     end
   end)
 
@@ -920,6 +967,7 @@ macro(500, function()
     initBotServerListenFunctions()
     publishPresence()
     syncVocation()
+    refreshVisibleMemberMana()
     updateMemberMinimapOverlay()
   else
     hideMemberMinimapOverlay()
@@ -964,12 +1012,13 @@ onAddThing(function(tile, thing)
 end)
 
 -- mana
-local lastMana = 0
+local lastMana = nil
 macro(500, function()
   if config.enabled and config.manaInfo then
-    if manapercent() ~= lastMana then
-      lastMana = manapercent()
-      sendBotServer("mana", {mana=lastMana})
+    local currentMana = getSelfManaPercent()
+    if currentMana ~= nil and currentMana ~= lastMana then
+      lastMana = currentMana
+      sendBotServer("mana", {name=getSelfName(), mana=lastMana})
     end
   end
 end)
