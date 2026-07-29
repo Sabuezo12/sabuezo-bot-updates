@@ -6,11 +6,11 @@ local AutoExplorer = CaveBot.AutoExplorer
 local AREA_MIN = 20
 local AREA_MAX = 120
 local AREA_DEFAULT = 30
-local THINK_INTERVAL = 50
-local FAST_STEP_DELAY = 60
-local SCAN_INTERVAL = 180
-local EMPTY_SCAN_INTERVAL = 650
-local MAX_PATH_CHECKS = 28
+local THINK_INTERVAL = 150
+local FAST_STEP_DELAY = 110
+local SCAN_INTERVAL = 450
+local EMPTY_SCAN_INTERVAL = 900
+local MAX_PATH_CHECKS = 10
 local BLOCK_TIME = 8000
 local STUCK_TIME = 2200
 local NO_PROGRESS_TIME = 3500
@@ -21,10 +21,10 @@ local TARGETBOT_PAUSE_DELAY = 250
 local PATROL_RECENT_TIME = 60000
 local PATROL_MIN_DISTANCE = 6
 local PATROL_PREFERRED_DISTANCE = 12
-local PATROL_PATH_CHECKS = 42
+local PATROL_PATH_CHECKS = 14
 local EDGE_SCAN_DISTANCE = 3
 local RETURN_INSIDE_MARGIN = 4
-local RETURN_PATH_CHECKS = 48
+local RETURN_PATH_CHECKS = 18
 local CORRIDOR_OPEN_MAX = 2
 local CORRIDOR_DIRECTION_BONUS = 85
 local CORRIDOR_BASE_BONUS = 90
@@ -36,7 +36,7 @@ local MINIMAP_OVERLAY_UPDATE = 250
 local MINIMAP_OVERLAY_THICKNESS = 2
 local FLOOR_USE_COOLDOWN = 700
 local FLOOR_RETURN_SCAN_INTERVAL = 250
-local FLOOR_RETURN_PATH_CHECKS = 40
+local FLOOR_RETURN_PATH_CHECKS = 16
 
 local FLOOR_CHANGE_USE_IDS = {
   [386] = true, [421] = true, [432] = true, [433] = true, [435] = true,
@@ -1021,6 +1021,37 @@ local function edgeScore(edgeDistance, distance)
   return score
 end
 
+local function bucketKey(x, y)
+  return tostring(math.floor(x / FRONTIER_RADIUS)) .. ":" .. tostring(math.floor(y / FRONTIER_RADIUS))
+end
+
+local function buildCandidateBuckets(candidates)
+  local buckets = {}
+  for _, candidate in ipairs(candidates) do
+    local pos = candidate.pos
+    if hasPosition(pos) then
+      local key = bucketKey(pos.x, pos.y)
+      buckets[key] = (buckets[key] or 0) + 1
+    end
+  end
+  return buckets
+end
+
+local function countNearbyCandidates(candidate, buckets)
+  local pos = candidate and candidate.pos
+  if not hasPosition(pos) or type(buckets) ~= "table" then return 0 end
+
+  local bucketX = math.floor(pos.x / FRONTIER_RADIUS)
+  local bucketY = math.floor(pos.y / FRONTIER_RADIUS)
+  local count = 0
+  for x = bucketX - 1, bucketX + 1 do
+    for y = bucketY - 1, bucketY + 1 do
+      count = count + (buckets[tostring(x) .. ":" .. tostring(y)] or 0)
+    end
+  end
+  return count
+end
+
 local function patrolDistanceScore(distance)
   distance = tonumber(distance) or 0
   if distance < PATROL_MIN_DISTANCE then
@@ -1140,14 +1171,9 @@ local function buildCandidates(mode)
     end
   end
 
+  local buckets = buildCandidateBuckets(candidates)
   for _, candidate in ipairs(candidates) do
-    local frontier = 0
-    for _, other in ipairs(candidates) do
-      if distance2d(candidate.pos, other.pos) <= FRONTIER_RADIUS then
-        frontier = frontier + 1
-      end
-    end
-    candidate.frontier = frontier
+    candidate.frontier = countNearbyCandidates(candidate, buckets)
     candidate.score = candidateScore(candidate, mode)
   end
 
