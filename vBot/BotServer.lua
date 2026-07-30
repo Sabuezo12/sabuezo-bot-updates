@@ -65,10 +65,13 @@ local members = {}
 local memberInfo = {}
 local lastPresenceSync = 0
 local lastPresencePositionKey = nil
+local lastPresenceMana = nil
 local lastPositionPresenceSync = 0
+local STATUS_UPDATE_INTERVAL = 3000
 local MEMBER_TIMEOUT = 30000
 local MEMBER_POSITION_TIMEOUT = 15000
 local MAX_MINIMAP_MARKERS = 16
+local MINIMAP_MARKER_COLOR = "#ff3030ff"
 local MINIMAP_OVERLAY_UPDATE = 300
 local clientId = nil
 local minimapOverlay = {
@@ -249,13 +252,16 @@ local function publishPresence(force)
   local selfPosKey = positionKey(selfPos)
   local selfMana = config.manaInfo and getSelfManaPercent() or nil
   local moved = selfPosKey and selfPosKey ~= lastPresencePositionKey
-  local canSendMove = moved and now and now - lastPositionPresenceSync >= 1000
-  if not force and not canSendMove and now and now - lastPresenceSync < 5000 then return end
+  local manaChanged = selfMana ~= lastPresenceMana
+  local canSendStatus = (moved or manaChanged) and now and
+    now - lastPositionPresenceSync >= STATUS_UPDATE_INTERVAL
+  if not force and not canSendStatus and now and now - lastPresenceSync < 5000 then return end
 
   local selfName = getSelfName()
   lastPresenceSync = now or 0
-  if force or canSendMove then
+  if force or canSendStatus then
     lastPresencePositionKey = selfPosKey
+    lastPresenceMana = selfMana
     lastPositionPresenceSync = now or 0
   end
   touchMember(selfName, {clientId = clientId, voc = player:getVocation(), mana = selfMana, pos = selfPos})
@@ -584,6 +590,7 @@ end
 
 local function setMinimapMarker(marker, x, y, tooltip)
   if not marker then return end
+  pcall(function() marker:setBackgroundColor(MINIMAP_MARKER_COLOR) end)
   pcall(function() marker:setVisible(true) end)
   pcall(function() marker:setTooltip(tooltip or "") end)
   pcall(function() marker:setMarginLeft(math.floor(x)) end)
@@ -962,7 +969,7 @@ function updateStatusText()
   end
 end
 
-macro(500, function()
+macro(100, function()
   if config.enabled then
     initBotServerListenFunctions()
     publishPresence()
@@ -1007,18 +1014,6 @@ onAddThing(function(tile, thing)
         config.mwalls[pos] = now + 20000
         sendBotServer("mwall", {pos=pos, duration=20000})
       end
-    end
-  end
-end)
-
--- mana
-local lastMana = nil
-macro(500, function()
-  if config.enabled and config.manaInfo then
-    local currentMana = getSelfManaPercent()
-    if currentMana ~= nil and currentMana ~= lastMana then
-      lastMana = currentMana
-      sendBotServer("mana", {name=getSelfName(), mana=lastMana})
     end
   end
 end)

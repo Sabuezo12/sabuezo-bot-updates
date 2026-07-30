@@ -14,12 +14,12 @@ local RAW_PARTY_OPCODE = 43
 local RAW_PARTY_RECORD_SIZE = 37
 local RAW_PARTY_MAX_MEMBERS = 32
 local MAX_CHAT_PACKET = 240
-local CHAT_SEND_INTERVAL = 1400
+local CHAT_SEND_INTERVAL = 3000
 local MEMBER_TIMEOUT = 35000
 local SEEN_TIMEOUT = 60000
 local TOPIC_INTERVALS = {
-  presence = 8000,
-  mana = 8000,
+  presence = 3000,
+  mana = 3000,
   voc = 10000
 }
 local COALESCED_TOPICS = {
@@ -573,9 +573,9 @@ function transport.send(topic, message)
     return true
   end
 
-  -- Presence already carries vocation; a request/response round trip would
-  -- create unnecessary chat traffic on a channel transport.
-  if topic == "voc" and message == "yes" and state.activeMode ~= "opcode" then
+  -- Presence already carries vocation, so chat transports do not need
+  -- separate vocation packets.
+  if topic == "voc" and state.activeMode ~= "opcode" then
     return true
   end
 
@@ -648,7 +648,7 @@ if type(onTalk) == "function" then
   end)
 end
 
-macro(250, function()
+macro(50, function()
   if not validGeneration() then return end
   pruneRuntime()
   flushChatQueue()
