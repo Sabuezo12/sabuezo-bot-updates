@@ -580,6 +580,7 @@ local function isAllowedPath(path)
   if path:match("^vBot_configs/") or path:match("^cavebot_configs/") or path:match("^targetbot_configs/") then return false end
   if path:match("^storage/") or path:match("^_archive/") then return false end
   if path == "_Loader.lua" then return true end
+  if path == "dummy.lua" then return true end
   if path:match("^vBot/") then return true end
   if path:match("^cavebot/") then return true end
   if path:match("^targetbot/") then return true end
@@ -674,7 +675,8 @@ local function getPendingFiles(manifest)
       local changedHash = hash:len() > 0 and storedHash and storedHash ~= hash
 
       if sameVersion then
-        if missing or changedHash then table.insert(pending, entry) end
+        local untrackedRootFile = path == "dummy.lua" and not storedHash
+        if missing or untrackedRootFile or changedHash then table.insert(pending, entry) end
       elseif useHistoryPaths then
         if historyPaths[path] or missing or changedHash then table.insert(pending, entry) end
       else

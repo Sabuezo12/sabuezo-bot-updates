@@ -1,3 +1,6 @@
+vBot = vBot or {}
+if vBot.InGameScriptManagerLoaded then return end
+
 local function getEditorConfigName()
   if type(configName) == "string" and configName ~= "" then return configName end
   if type(botConfigName) == "string" and botConfigName ~= "" then return botConfigName end
@@ -598,3 +601,4 @@ for _, entry in ipairs(managerConfig.scripts) do
 end
 
 refreshList()
+vBot.InGameScriptManagerLoaded = true

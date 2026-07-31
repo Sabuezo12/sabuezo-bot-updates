@@ -125,3 +125,12 @@ for _, section in ipairs(loaderSections) do
 end
 
 setDefaultTab("Main")
+
+schedule(100, function()
+  if vBot and vBot.InGameScriptManagerLoaded then return end
+
+  local loaded, loadError = pcall(loadScript, "vBot/ingame_editor")
+  if not loaded then
+    warn("In-Game Script Editor no pudo cargarse:\n" .. tostring(loadError))
+  end
+end)

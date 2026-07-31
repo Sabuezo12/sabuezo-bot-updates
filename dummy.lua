@@ -75,7 +75,6 @@ local function updateStatus(text, color)
     ui.status:setText("Status: " .. text)
     ui.status:setColor(color or "#888888")
 end
-
 local function copyPosition(pos)
     if not pos then return nil end
     return {x = pos.x, y = pos.y, z = pos.z}
@@ -441,12 +440,5 @@ function setDummySmartOn()
     waitingDummyKey = nil
     lastPlayerPosition = copyPosition(player and player:getPosition())
     lastPlayerObject = player
-end
-
-local editorLoaded, editorError = pcall(function()
-    dofile("/vBot/ingame_editor.lua")
-end)
-if not editorLoaded then
-    warn("In-Game Script Editor no pudo cargarse:\n" .. tostring(editorError))
 end
 

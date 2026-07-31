@@ -1,3 +1,9 @@
+2.0.30 - 2026-07-31
+- Restaura la carga del administrador In-Game Scripts desde el loader aunque dummy.lua sea antiguo.
+- Importa automaticamente el script del editor anterior sin modificar storage.
+- Permite al updater instalar dummy.lua y recuperar la mejora de Dummy Smart en todos los perfiles.
+- Evita cargar dos veces el administrador cuando un perfil ya tenia la integracion local.
+
 2.0.29 - 2026-07-31
 - Reemplaza el editor simple por un administrador de scripts con nombre, checkbox, edicion, renombrado, alta y borrado.
 - Conserva los scripts de cada perfil en storage y migra automaticamente el script anterior.
