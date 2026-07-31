@@ -1,3 +1,11 @@
+3.0.0 - 2026-07-31
+- Agrega Icon Editor para cambiar nombre, item, visibilidad, colores y posicion de los 15 iconos.
+- Permite mover iconos, ajustar por pasos, distribuir en columnas y restablecer uno o todos.
+- Corrige Alinear para conservar las coordenadas de la ventana y evitar columnas empalmadas.
+- Valida que la distribucion quepa antes de mover y respeta el tamano minimo de cada icono.
+- Coloca Icon Editor al inicio de Tools con el formato destacado del editor de scripts.
+- Conserva la configuracion personalizada de cada perfil dentro de storage.
+
 2.0.30 - 2026-07-31
 - Restaura la carga del administrador In-Game Scripts desde el loader aunque dummy.lua sea antiguo.
 - Importa automaticamente el script del editor anterior sin modificar storage.

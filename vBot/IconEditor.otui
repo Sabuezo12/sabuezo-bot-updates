@@ -1,0 +1,559 @@
+IconEditorRow < UIWidget
+  height: 28
+  focusable: true
+  background-color: alpha
+
+  $focus:
+    background-color: #00000066
+
+  CheckBox
+    id: visible
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 3
+    size: 15 15
+    tooltip: Mostrar u ocultar este icono.
+
+  UIItem
+    id: item
+    anchors.left: visible.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 4
+    size: 24 24
+    phantom: true
+
+  Label
+    id: name
+    anchors.left: item.right
+    anchors.right: coords.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 5
+    margin-right: 4
+    height: 20
+    text-align: left
+    text-auto-resize: false
+    font: verdana-11px-rounded
+
+  Label
+    id: coords
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 15
+    width: 64
+    height: 18
+    text-align: right
+    color: #a8a8a8
+
+IconEditorColorSwatch < UIWidget
+  size: 22 18
+  focusable: true
+  border-width: 1
+  border-color: #777777
+  tooltip: Seleccionar este color.
+
+  $hover:
+    border-color: #ffffff
+
+  $focus:
+    border-width: 2
+    border-color: #ffffff
+
+IconEditorWindow < MainWindow
+  id: IconEditorWindow
+  !text: tr('Icon Editor')
+  size: 620 460
+  @onEscape: self:hide()
+
+  Label
+    id: listTitle
+    anchors.top: parent.top
+    anchors.left: parent.left
+    width: 245
+    height: 18
+    text: Iconos
+    color: #9dd1ce
+    font: verdana-11px-rounded
+    text-align: center
+
+  ScrollablePanel
+    id: iconList
+    anchors.top: listTitle.bottom
+    anchors.left: parent.left
+    anchors.bottom: bottomSeparator.top
+    margin-top: 4
+    margin-bottom: 8
+    width: 245
+    padding: 2
+    vertical-scrollbar: iconListScrollBar
+    layout: verticalBox
+    background: #20202066
+
+  VerticalScrollBar
+    id: iconListScrollBar
+    anchors.top: iconList.top
+    anchors.bottom: iconList.bottom
+    anchors.right: iconList.right
+    step: 28
+    pixels-scroll: true
+
+  VerticalSeparator
+    id: middleSeparator
+    anchors.top: parent.top
+    anchors.bottom: bottomSeparator.top
+    anchors.left: iconList.right
+    margin-left: 8
+    margin-bottom: 8
+
+  Label
+    id: selectedTitle
+    anchors.top: parent.top
+    anchors.left: middleSeparator.right
+    anchors.right: parent.right
+    margin-left: 9
+    height: 18
+    text: Icono seleccionado
+    color: #9dd1ce
+    font: verdana-11px-rounded
+    text-align: center
+
+  Label
+    id: nameLabel
+    anchors.top: selectedTitle.bottom
+    anchors.left: selectedTitle.left
+    margin-top: 9
+    width: 58
+    height: 18
+    text: Nombre:
+
+  TextEdit
+    id: selectedName
+    anchors.left: nameLabel.right
+    anchors.right: parent.right
+    anchors.verticalCenter: nameLabel.verticalCenter
+    margin-left: 5
+    height: 20
+    font: verdana-11px-rounded
+    tooltip: Usa / para dividir el nombre en dos lineas.
+
+  Label
+    id: itemLabel
+    anchors.top: nameLabel.bottom
+    anchors.left: selectedTitle.left
+    margin-top: 11
+    width: 58
+    height: 18
+    text: Item:
+
+  BotItem
+    id: selectedItem
+    anchors.top: itemLabel.top
+    anchors.left: itemLabel.right
+    margin-left: 5
+    size: 36 36
+    tooltip: Arrastra aqui el item que quieres mostrar.
+
+  CheckBox
+    id: selectedVisible
+    anchors.left: selectedItem.right
+    anchors.verticalCenter: selectedItem.verticalCenter
+    margin-left: 14
+    width: 100
+    height: 18
+    text: Visible
+
+  Label
+    id: positionLabel
+    anchors.top: selectedItem.bottom
+    anchors.left: selectedTitle.left
+    margin-top: 8
+    width: 58
+    height: 18
+    text: Posicion:
+
+  Label
+    id: xLabel
+    anchors.left: positionLabel.right
+    anchors.verticalCenter: positionLabel.verticalCenter
+    margin-left: 5
+    width: 15
+    height: 18
+    text: X
+
+  SpinBox
+    id: selectedX
+    anchors.left: xLabel.right
+    anchors.verticalCenter: positionLabel.verticalCenter
+    margin-left: 3
+    width: 82
+    minimum: 0
+    maximum: 4000
+    step: 1
+    editable: true
+    tooltip: Coordenada horizontal del icono.
+
+  Label
+    id: yLabel
+    anchors.left: selectedX.right
+    anchors.verticalCenter: positionLabel.verticalCenter
+    margin-left: 14
+    width: 15
+    height: 18
+    text: Y
+
+  SpinBox
+    id: selectedY
+    anchors.left: yLabel.right
+    anchors.verticalCenter: positionLabel.verticalCenter
+    margin-left: 3
+    width: 82
+    minimum: 0
+    maximum: 4000
+    step: 1
+    editable: true
+    tooltip: Coordenada vertical del icono.
+
+  HorizontalSeparator
+    id: colorSeparator
+    anchors.top: positionLabel.bottom
+    anchors.left: selectedTitle.left
+    anchors.right: parent.right
+    margin-top: 9
+
+  Label
+    id: onColorLabel
+    anchors.top: colorSeparator.bottom
+    anchors.left: selectedTitle.left
+    margin-top: 8
+    width: 92
+    height: 18
+    text: Color ON:
+
+  IconEditorColorSwatch
+    id: onGreen
+    anchors.left: onColorLabel.right
+    anchors.verticalCenter: onColorLabel.verticalCenter
+    background-color: #00d43a
+    tooltip: Verde
+
+  IconEditorColorSwatch
+    id: onLime
+    anchors.left: onGreen.right
+    anchors.verticalCenter: onColorLabel.verticalCenter
+    margin-left: 6
+    background-color: #77ff55
+    tooltip: Lima
+
+  IconEditorColorSwatch
+    id: onCyan
+    anchors.left: onLime.right
+    anchors.verticalCenter: onColorLabel.verticalCenter
+    margin-left: 6
+    background-color: #32d8ff
+    tooltip: Cyan
+
+  IconEditorColorSwatch
+    id: onYellow
+    anchors.left: onCyan.right
+    anchors.verticalCenter: onColorLabel.verticalCenter
+    margin-left: 6
+    background-color: #ffe45b
+    tooltip: Amarillo
+
+  UIWidget
+    id: onColorPreview
+    anchors.left: onYellow.right
+    anchors.right: parent.right
+    anchors.verticalCenter: onColorLabel.verticalCenter
+    margin-left: 12
+    height: 18
+    border-width: 1
+    border-color: #777777
+    background-color: #00d43a
+    tooltip: Color seleccionado para el estado encendido.
+
+  Label
+    id: offColorLabel
+    anchors.top: onColorLabel.bottom
+    anchors.left: selectedTitle.left
+    margin-top: 8
+    width: 92
+    height: 18
+    text: Color OFF:
+
+  IconEditorColorSwatch
+    id: offRed
+    anchors.left: offColorLabel.right
+    anchors.verticalCenter: offColorLabel.verticalCenter
+    background-color: #ff3b3b
+    tooltip: Rojo
+
+  IconEditorColorSwatch
+    id: offWhite
+    anchors.left: offRed.right
+    anchors.verticalCenter: offColorLabel.verticalCenter
+    margin-left: 6
+    background-color: #ffffff
+    tooltip: Blanco
+
+  IconEditorColorSwatch
+    id: offOrange
+    anchors.left: offWhite.right
+    anchors.verticalCenter: offColorLabel.verticalCenter
+    margin-left: 6
+    background-color: #ff9f32
+    tooltip: Naranja
+
+  IconEditorColorSwatch
+    id: offYellow
+    anchors.left: offOrange.right
+    anchors.verticalCenter: offColorLabel.verticalCenter
+    margin-left: 6
+    background-color: #ffe45b
+    tooltip: Amarillo
+
+  IconEditorColorSwatch
+    id: offCyan
+    anchors.left: offYellow.right
+    anchors.verticalCenter: offColorLabel.verticalCenter
+    margin-left: 6
+    background-color: #32d8ff
+    tooltip: Cyan
+
+  UIWidget
+    id: offColorPreview
+    anchors.left: offCyan.right
+    anchors.right: parent.right
+    anchors.verticalCenter: offColorLabel.verticalCenter
+    margin-left: 12
+    height: 18
+    border-width: 1
+    border-color: #777777
+    background-color: #ff3b3b
+    tooltip: Color seleccionado para el estado apagado.
+
+  Button
+    id: applyIcon
+    anchors.top: offColorLabel.bottom
+    anchors.left: selectedTitle.left
+    margin-top: 11
+    width: 78
+    height: 21
+    text: Aplicar
+    tooltip: Guardar y aplicar los cambios del icono seleccionado.
+
+  Button
+    id: resetIcon
+    anchors.left: applyIcon.right
+    anchors.verticalCenter: applyIcon.verticalCenter
+    margin-left: 6
+    width: 96
+    height: 21
+    text: Restablecer
+    tooltip: Volver este icono a su aspecto y posicion original.
+
+  Label
+    id: iconStatus
+    anchors.left: resetIcon.right
+    anchors.right: parent.right
+    anchors.verticalCenter: applyIcon.verticalCenter
+    margin-left: 8
+    height: 21
+    text-align: center
+    color: #b8c7cc
+    text: Selecciona un icono
+
+  HorizontalSeparator
+    id: layoutSeparator
+    anchors.top: applyIcon.bottom
+    anchors.left: selectedTitle.left
+    anchors.right: parent.right
+    margin-top: 12
+
+  Label
+    id: layoutTitle
+    anchors.top: layoutSeparator.bottom
+    anchors.left: selectedTitle.left
+    anchors.right: parent.right
+    margin-top: 7
+    height: 18
+    text: Distribucion y movimiento
+    color: #9dd1ce
+    font: verdana-11px-rounded
+    text-align: center
+
+  CheckBox
+    id: moveMode
+    anchors.top: layoutTitle.bottom
+    anchors.left: selectedTitle.left
+    margin-top: 8
+    width: 126
+    height: 18
+    text: Mover iconos
+    tooltip: Permite arrastrar los iconos directamente sobre la pantalla.
+
+  CheckBox
+    id: snapEnabled
+    anchors.left: moveMode.right
+    anchors.verticalCenter: moveMode.verticalCenter
+    margin-left: 12
+    width: 170
+    height: 18
+    text: Ajustar a cuadricula
+    tooltip: Redondea la posicion del icono al paso indicado.
+
+  Label
+    id: gridLabel
+    anchors.top: moveMode.bottom
+    anchors.left: selectedTitle.left
+    margin-top: 9
+    width: 72
+    height: 18
+    text: Paso (px):
+    tooltip: Distancia en pixeles entre cada posicion permitida al mover.
+
+  SpinBox
+    id: gridSize
+    anchors.left: gridLabel.right
+    anchors.verticalCenter: gridLabel.verticalCenter
+    margin-left: 4
+    width: 62
+    minimum: 1
+    maximum: 32
+    step: 1
+    editable: true
+    tooltip: Con paso 2, el icono se ajusta a 206, 208, 210 y asi sucesivamente.
+
+  Label
+    id: originXLabel
+    anchors.top: gridLabel.bottom
+    anchors.left: selectedTitle.left
+    margin-top: 9
+    width: 54
+    height: 18
+    text: Origen X
+
+  SpinBox
+    id: originX
+    anchors.left: originXLabel.right
+    anchors.verticalCenter: originXLabel.verticalCenter
+    margin-left: 4
+    width: 70
+    minimum: 0
+    maximum: 4000
+    step: 1
+    editable: true
+
+  Label
+    id: originYLabel
+    anchors.left: originX.right
+    anchors.verticalCenter: originXLabel.verticalCenter
+    margin-left: 18
+    width: 54
+    height: 18
+    text: Origen Y
+
+  SpinBox
+    id: originY
+    anchors.left: originYLabel.right
+    anchors.verticalCenter: originXLabel.verticalCenter
+    margin-left: 4
+    width: 70
+    minimum: 0
+    maximum: 4000
+    step: 1
+    editable: true
+
+  Label
+    id: columnsLabel
+    anchors.left: gridSize.right
+    anchors.verticalCenter: gridLabel.verticalCenter
+    margin-left: 24
+    width: 55
+    height: 18
+    text: Columnas
+
+  SpinBox
+    id: columns
+    anchors.left: columnsLabel.right
+    anchors.verticalCenter: gridLabel.verticalCenter
+    margin-left: 4
+    width: 58
+    minimum: 1
+    maximum: 8
+    step: 1
+    editable: true
+
+  Label
+    id: gapXLabel
+    anchors.top: originXLabel.bottom
+    anchors.left: selectedTitle.left
+    margin-top: 8
+    width: 54
+    height: 18
+    text: Espacio X
+
+  SpinBox
+    id: gapX
+    anchors.left: gapXLabel.right
+    anchors.verticalCenter: gapXLabel.verticalCenter
+    margin-left: 4
+    width: 58
+    minimum: 58
+    maximum: 200
+    step: 1
+    editable: true
+
+  Label
+    id: gapYLabel
+    anchors.left: gapX.right
+    anchors.verticalCenter: gapXLabel.verticalCenter
+    margin-left: 8
+    width: 54
+    height: 18
+    text: Espacio Y
+
+  SpinBox
+    id: gapY
+    anchors.left: gapYLabel.right
+    anchors.verticalCenter: gapXLabel.verticalCenter
+    margin-left: 4
+    width: 58
+    minimum: 46
+    maximum: 200
+    step: 1
+    editable: true
+
+  Button
+    id: alignGrid
+    anchors.left: gapY.right
+    anchors.right: parent.right
+    anchors.verticalCenter: gapXLabel.verticalCenter
+    margin-left: 12
+    height: 21
+    text: Alinear
+    tooltip: Ordenar todos los iconos usando origen, columnas y separaciones.
+
+  HorizontalSeparator
+    id: bottomSeparator
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: closeButton.top
+    margin-bottom: 8
+
+  Button
+    id: resetAll
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    width: 112
+    height: 21
+    text: Restablecer todo
+    tooltip: Recuperar nombres, items, colores y posiciones originales.
+
+  Button
+    id: closeButton
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    width: 55
+    height: 21
+    text: Close
+    @onClick: self:getParent():hide()
