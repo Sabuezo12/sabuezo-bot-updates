@@ -1,3 +1,8 @@
+3.0.1 - 2026-07-31
+- Corrige Inmortal para equipar Energy Ring directamente desde una mochila abierta.
+- Aplica el mismo movimiento directo a Might Ring y Stone Skin Amulet.
+- Mantiene equipItemId y los botones de accion solamente como metodos de respaldo.
+
 3.0.0 - 2026-07-31
 - Agrega Icon Editor para cambiar nombre, item, visibilidad, colores y posicion de los 15 iconos.
 - Permite mover iconos, ajustar por pasos, distribuir en columnas y restablecer uno o todos.

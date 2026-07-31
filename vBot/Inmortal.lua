@@ -611,15 +611,15 @@ local function equipDangerItem(itemId, slot, slotKey, actionButtonId)
 
   suppressCounterSlot(slotKey)
 
-  if equipItemById(itemId) then return true end
-  if executeActionButton(actionButtonId) then return true end
-
   local item = findItemSmart(itemId)
 
   if item then
     g_game.move(item, {x = 65535, y = slot, z = 0}, 1)
     return true
   end
+
+  if equipItemById(itemId) then return true end
+  if executeActionButton(actionButtonId) then return true end
 
   return false
 end
