@@ -119,6 +119,10 @@ local function updateIconVisual(widget, enabled)
 end
 
 local function setEnabled(enabled, fromIcon)
+    if enabled and Inmortal and Inmortal.isOn and Inmortal.isOn() and Inmortal.setOff then
+        pcall(Inmortal.setOff)
+    end
+
     config.enabled = enabled == true
     ui.title:setOn(config.enabled)
     saveIconState(config.enabled)

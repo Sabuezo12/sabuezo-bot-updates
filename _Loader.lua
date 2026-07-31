@@ -20,7 +20,6 @@ local loaderSections = {
     name = "Core",
     files = {
       "vBot/client_compat",
-      ----"vbot/Inmortal",
       "vBot/items",
       "vBot/vlib",
       "vBot/ItemCounter",
@@ -53,13 +52,14 @@ local loaderSections = {
     name = "Tools",
     files = {
       "vBot/playerlist",
-      "vBot/buffguild",
+      ---"vBot/buffguild",
       "vBot/alarms",
       "vBot/recoge",
       "vBot/pullitems",
       "vBot/antipush1",
       "vBot/FireBomb",
       "vBot/Ering",
+      "vBot/Inmortal",
       ----"vBot/Dropper",
       "zFreeScripts/z_Auto-Party",
       "vBot/ContainerManager",

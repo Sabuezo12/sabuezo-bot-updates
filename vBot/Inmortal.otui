@@ -1,0 +1,419 @@
+AutoProtectWindow < MainWindow
+  !text: tr('Inmortal Configuration')
+  size: 275 475
+  @onEscape: self:hide()
+
+  Panel
+    id: ering
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 155
+
+    BotSwitch
+      id: enabled
+      anchors.top: parent.top
+      anchors.left: parent.left
+      width: 80
+      height: 17
+      text-align: center
+      text: Magic Shield
+
+    Button
+      id: modeBtn
+      anchors.top: parent.top
+      anchors.left: enabled.right
+      anchors.right: parent.right
+      margin-left: 5
+      height: 17
+      text: Mode: Ring
+
+    Label
+      id: label
+      anchors.top: enabled.bottom
+      anchors.left: parent.left
+      anchors.right: parent.right
+      margin-top: 4
+      height: 17
+      color: #77D390
+      text-align: center
+      font: verdana-11px-rounded
+
+    Label
+      id: hpLabel
+      anchors.top: label.bottom
+      anchors.left: parent.left
+      margin-top: 4
+      width: 34
+      text: ON:
+      color: #dfdfdf
+      font: verdana-11px-rounded
+
+    HorizontalScrollBar
+      id: hpThreshold
+      anchors.verticalCenter: hpLabel.verticalCenter
+      anchors.left: hpLabel.right
+      anchors.right: parent.right
+      margin-left: 4
+      minimum: 1
+      maximum: 100
+      step: 1
+
+    Label
+      id: mpLabel
+      anchors.top: hpLabel.bottom
+      anchors.left: parent.left
+      margin-top: 5
+      width: 34
+      text: OFF:
+      color: #dfdfdf
+      font: verdana-11px-rounded
+
+    HorizontalScrollBar
+      id: mpThreshold
+      anchors.verticalCenter: mpLabel.verticalCenter
+      anchors.left: mpLabel.right
+      anchors.right: parent.right
+      margin-left: 4
+      minimum: 1
+      maximum: 100
+      step: 1
+
+    Panel
+      id: ringMode
+      anchors.top: mpThreshold.bottom
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.bottom: parent.bottom
+      margin-top: 15
+
+      Label
+        id: dangerLabel
+        anchors.top: parent.top
+        anchors.left: parent.left
+        margin-top: 2
+        text: ER:
+        color: #ff5959
+        font: verdana-11px-rounded
+
+      BotItem
+        id: dangerItem
+        anchors.verticalCenter: dangerLabel.verticalCenter
+        anchors.left: dangerLabel.right
+        margin-left: 4
+        width: 32
+        height: 32
+
+      Label
+        id: normalLabel
+        anchors.verticalCenter: dangerLabel.verticalCenter
+        anchors.left: dangerItem.right
+        margin-left: 10
+        text: Normal:
+        color: #dfdfdf
+        font: verdana-11px-rounded
+
+      BotItem
+        id: normalItem
+        anchors.verticalCenter: normalLabel.verticalCenter
+        anchors.left: normalLabel.right
+        margin-left: 4
+        width: 32
+        height: 32
+
+    Panel
+      id: spellMode
+      anchors.top: mpThreshold.bottom
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.bottom: parent.bottom
+      margin-top: 15
+      visible: false
+
+      Label
+        id: spellLabel
+        anchors.top: parent.top
+        anchors.left: parent.left
+        margin-top: 2
+        text: Spells:
+        color: #dfdfdf
+        font: verdana-11px-rounded
+
+      TextEdit
+        id: spellOn
+        anchors.verticalCenter: spellLabel.verticalCenter
+        anchors.left: spellLabel.right
+        margin-left: 4
+        width: 78
+        height: 20
+
+      TextEdit
+        id: spellOff
+        anchors.verticalCenter: spellLabel.verticalCenter
+        anchors.left: spellOn.right
+        margin-left: 4
+        width: 78
+        height: 20
+
+      Label
+        id: manaLabel
+        anchors.top: spellLabel.bottom
+        anchors.left: parent.left
+        margin-top: 12
+        text: HP Item:
+        color: #dfdfdf
+        font: verdana-11px-rounded
+
+      BotItem
+        id: manaItem
+        anchors.verticalCenter: manaLabel.verticalCenter
+        anchors.left: manaLabel.right
+        margin-left: 4
+        width: 20
+        height: 20
+        
+      Label
+        id: manaPctLabel
+        anchors.verticalCenter: manaLabel.verticalCenter
+        anchors.left: manaItem.right
+        margin-left: 4
+        width: 30
+        text: 50%
+        color: #dfdfdf
+        font: verdana-11px-rounded
+
+      HorizontalScrollBar
+        id: manaItemThreshold
+        anchors.verticalCenter: manaLabel.verticalCenter
+        anchors.left: manaPctLabel.right
+        anchors.right: parent.right
+        margin-left: 4
+        minimum: 1
+        maximum: 100
+        step: 1
+
+  HorizontalSeparator
+    id: sep1
+    anchors.top: ering.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 5
+
+  Panel
+    id: ring
+    anchors.top: sep1.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 5
+    height: 115
+
+    BotSwitch
+      id: enabled
+      anchors.top: parent.top
+      anchors.left: parent.left
+      anchors.right: parent.right
+      height: 17
+      text-align: center
+      text: Might / Ring
+
+    Label
+      id: label
+      anchors.top: enabled.bottom
+      anchors.left: parent.left
+      anchors.right: parent.right
+      margin-top: 4
+      height: 17
+      color: #77D390
+      text-align: center
+      font: verdana-11px-rounded
+
+    Label
+      id: hpLabel
+      anchors.top: label.bottom
+      anchors.left: parent.left
+      margin-top: 4
+      width: 34
+      text: HP:
+      color: #dfdfdf
+      font: verdana-11px-rounded
+
+    HorizontalScrollBar
+      id: hpThreshold
+      anchors.verticalCenter: hpLabel.verticalCenter
+      anchors.left: hpLabel.right
+      anchors.right: parent.right
+      margin-left: 4
+      minimum: 1
+      maximum: 100
+      step: 1
+
+    Label
+      id: mpLabel
+      anchors.top: hpLabel.bottom
+      anchors.left: parent.left
+      margin-top: 5
+      width: 34
+      text: MP:
+      color: #dfdfdf
+      font: verdana-11px-rounded
+
+    HorizontalScrollBar
+      id: mpThreshold
+      anchors.verticalCenter: mpLabel.verticalCenter
+      anchors.left: mpLabel.right
+      anchors.right: parent.right
+      margin-left: 4
+      minimum: 1
+      maximum: 100
+      step: 1
+
+    Label
+      id: dangerLabel
+      anchors.top: mpThreshold.bottom
+      anchors.left: parent.left
+      margin-top: 14
+      text: Ring:
+      color: #ff5959
+      font: verdana-11px-rounded
+
+    BotItem
+      id: dangerItem
+      anchors.verticalCenter: dangerLabel.verticalCenter
+      anchors.left: dangerLabel.right
+      margin-left: 4
+      width: 32
+      height: 32
+
+    Label
+      id: normalLabel
+      anchors.verticalCenter: dangerLabel.verticalCenter
+      anchors.left: dangerItem.right
+      margin-left: 10
+      text: Normal:
+      color: #dfdfdf
+      font: verdana-11px-rounded
+
+    BotItem
+      id: normalItem
+      anchors.verticalCenter: normalLabel.verticalCenter
+      anchors.left: normalLabel.right
+      margin-left: 4
+      width: 32
+      height: 32
+
+  HorizontalSeparator
+    id: sep2
+    anchors.top: ring.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 5
+
+  Panel
+    id: amulet
+    anchors.top: sep2.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 5
+    height: 115
+
+    BotSwitch
+      id: enabled
+      anchors.top: parent.top
+      anchors.left: parent.left
+      anchors.right: parent.right
+      height: 17
+      text-align: center
+      text: Amulet
+
+    Label
+      id: label
+      anchors.top: enabled.bottom
+      anchors.left: parent.left
+      anchors.right: parent.right
+      margin-top: 4
+      height: 17
+      color: #77D390
+      text-align: center
+      font: verdana-11px-rounded
+
+    Label
+      id: hpLabel
+      anchors.top: label.bottom
+      anchors.left: parent.left
+      margin-top: 4
+      width: 34
+      text: HP:
+      color: #dfdfdf
+      font: verdana-11px-rounded
+
+    HorizontalScrollBar
+      id: hpThreshold
+      anchors.verticalCenter: hpLabel.verticalCenter
+      anchors.left: hpLabel.right
+      anchors.right: parent.right
+      margin-left: 4
+      minimum: 1
+      maximum: 100
+      step: 1
+
+    Label
+      id: mpLabel
+      anchors.top: hpLabel.bottom
+      anchors.left: parent.left
+      margin-top: 5
+      width: 34
+      text: MP:
+      color: #dfdfdf
+      font: verdana-11px-rounded
+
+    HorizontalScrollBar
+      id: mpThreshold
+      anchors.verticalCenter: mpLabel.verticalCenter
+      anchors.left: mpLabel.right
+      anchors.right: parent.right
+      margin-left: 4
+      minimum: 1
+      maximum: 100
+      step: 1
+
+    Label
+      id: dangerLabel
+      anchors.top: mpThreshold.bottom
+      anchors.left: parent.left
+      margin-top: 14
+      text: Amulet:
+      color: #ff5959
+      font: verdana-11px-rounded
+
+    BotItem
+      id: dangerItem
+      anchors.verticalCenter: dangerLabel.verticalCenter
+      anchors.left: dangerLabel.right
+      margin-left: 4
+      width: 32
+      height: 32
+
+    Label
+      id: normalLabel
+      anchors.verticalCenter: dangerLabel.verticalCenter
+      anchors.left: dangerItem.right
+      margin-left: 10
+      text: Normal:
+      color: #dfdfdf
+      font: verdana-11px-rounded
+
+    BotItem
+      id: normalItem
+      anchors.verticalCenter: normalLabel.verticalCenter
+      anchors.left: normalLabel.right
+      margin-left: 4
+      width: 32
+      height: 32
+
+  Button
+    id: closeButton
+    !text: tr('Close')
+    font: cipsoftFont
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 45 21

@@ -4,7 +4,8 @@ local topY = 146
 local spacingY = 48
 
 local iconList = {
-  {id = "ERingIcon", text = "Ering", itemId = 3088, botScript = ERing, x = rightX, y = topY - 34, offColor = "red"},
+  {id = "ERingIcon", text = "Ering", itemId = 3088, botScript = ERing, x = leftX, y = topY - spacingY, offColor = "red"},
+  {id = "InmortalIcon", text = "Inmortal", itemId = 3081, botScript = Inmortal, x = rightX, y = topY - spacingY, offColor = "red"},
   {id = "CavebotIcon", text = "Cave", itemId = 12548, botScript = CaveBot, x = leftX, y = topY, offColor = "white"},
   {id = "TargetIcon", text = "Target", itemId = 7438, botScript = TargetBot, x = rightX, y = topY, offColor = "white"},
   {id = "RecogeTodoIcon", text = "Recoge\nTodo", itemId = {id = 3043, count = 100}, botScript = RecogeTodo, x = leftX, y = topY + spacingY},

@@ -42,18 +42,11 @@ storage.analyzerLayout = storage.analyzerLayout or {}
 local layoutConfig = storage.analyzerLayout
 layoutConfig.windows = layoutConfig.windows or {}
 local restoringLayout = false
-local useNativeMiniWindowLayout = false
-local ANALYZER_LAYOUT_VERSION = 6
+local useNativeMiniWindowLayout = true
+local ANALYZER_LAYOUT_VERSION = 7
 
 if layoutConfig.version ~= ANALYZER_LAYOUT_VERSION then
-  for _, data in pairs(layoutConfig.windows) do
-    if type(data) == "table" then
-      data.mode = "panel"
-      data.panel = "right"
-      data.parentId = nil
-      data.index = nil
-    end
-  end
+  layoutConfig.windows = {}
   layoutConfig.version = ANALYZER_LAYOUT_VERSION
 end
 
@@ -442,10 +435,13 @@ local function toggleWindow(window)
     end
   else
     if window.open then
-      window:open()
+      pcall(function() window:open() end)
     else
-      window:show()
+      pcall(function() window:show() end)
     end
+    pcall(function() window:show() end)
+    pcall(function() window:raise() end)
+    pcall(function() window:focus() end)
   end
   if window == xpWindow then saveAnalyzerWindowLayout("xp", window) end
   if window == skillWindow then saveAnalyzerWindowLayout("skill", window) end
@@ -459,10 +455,20 @@ local function toggleMainWindow()
     mainWindow:close()
   else
     if analyzerButton then analyzerButton:setOn(true) end
-    mainWindow:open()
+    pcall(function() mainWindow:open() end)
+    pcall(function() mainWindow:show() end)
+    pcall(function() mainWindow:raise() end)
+    pcall(function() mainWindow:focus() end)
   end
   saveAnalyzerWindowLayout("main", mainWindow)
 end
+
+local analyzerPanelButton
+pcall(function()
+  setDefaultTab("Main")
+  analyzerPanelButton = UI.Button("Analyzer", toggleMainWindow)
+  analyzerPanelButton:setTooltip("Open XP, skill, CaveBot and item analyzers.")
+end)
 
 local okButton, existingButton = pcall(function()
   local panel = modules.game_buttons.buttonsWindow.contentsPanel
@@ -470,13 +476,21 @@ local okButton, existingButton = pcall(function()
 end)
 
 analyzerButton = okButton and existingButton or nil
-analyzerButton = analyzerButton or modules.client_topmenu.getButton("botAnalyzersButton")
+if not analyzerButton then
+  local okTopButton, topButton = pcall(function()
+    return modules.client_topmenu.getButton("botAnalyzersButton")
+  end)
+  if okTopButton then analyzerButton = topButton end
+end
 if analyzerButton then
-  analyzerButton:destroy()
+  pcall(function() analyzerButton:destroy() end)
 end
 
-analyzerButton = modules.client_topmenu.addRightGameToggleButton("botAnalyzersButton", "vBot Analyzers", "/images/topbuttons/analyzers", toggleMainWindow, false, 999999)
-analyzerButton:setOn(false)
+local okCreateButton, createdButton = pcall(function()
+  return modules.client_topmenu.addRightGameToggleButton("botAnalyzersButton", "vBot Analyzers", "/images/topbuttons/analyzers", toggleMainWindow, false, 999999)
+end)
+analyzerButton = okCreateButton and createdButton or nil
+if analyzerButton then analyzerButton:setOn(false) end
 
 mainWindow.onClose = function()
   if analyzerButton then analyzerButton:setOn(false) end
@@ -580,9 +594,21 @@ local function trimData(values, limit)
 end
 
 local function level()
-  if type(lvl) == "function" then
-    return tonumber(lvl()) or 1
+  local readers = {
+    function() return lvl() end,
+    function() return player:getLevel() end,
+    function() return g_game.getLocalPlayer():getLevel() end,
+    function() return parseNumber(modules.game_skills.skillsWindow.contentsPanel.level.value:getText()) end
+  }
+
+  for _, reader in ipairs(readers) do
+    local ok, value = pcall(reader)
+    value = ok and tonumber(value)
+    if value and value > 0 then
+      return value
+    end
   end
+
   return 1
 end
 

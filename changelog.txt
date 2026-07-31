@@ -1,3 +1,10 @@
+2.0.28 - 2026-07-30
+- Conserva el Energy Ring clasico y agrega Inmortal como protector separado.
+- Ering e Inmortal se apagan entre si para evitar que compitan por el slot del ring.
+- Los iconos Ering e Inmortal quedan en una fila propia, sin empalmarse con Cave y Target.
+- Dummy Smart respeta el cooldown de 30 segundos y reconoce el mensaje exacto de inicio de entrenamiento.
+- Analyzer recupera ventanas fuera de pantalla y agrega acceso directo desde Main.
+
 2026.05.20.2
 - Updater muestra resumen visual de cambios al presionar Check.
 - Icono Cave actualizado a item 12548.
