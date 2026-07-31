@@ -1,3 +1,11 @@
+2.0.29 - 2026-07-31
+- Reemplaza el editor simple por un administrador de scripts con nombre, checkbox, edicion, renombrado, alta y borrado.
+- Conserva los scripts de cada perfil en storage y migra automaticamente el script anterior.
+- Permite desactivar y volver a activar macros y eventos sin perder el codigo guardado.
+- Reorganiza Player Lists, Analyzer, Container Manager e In-Game Script Editor dentro de Main.
+- Mantiene Zoom In y Zoom Out en Tools y compacta los paneles de version y Container Manager.
+- Amplia el editor de acciones del CaveBot para aprovechar mejor el ancho disponible.
+
 2.0.28 - 2026-07-30
 - Conserva el Energy Ring clasico y agrega Inmortal como protector separado.
 - Ering e Inmortal se apagan entre si para evitar que compitan por el slot del ring.

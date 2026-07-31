@@ -41,7 +41,7 @@
 
 local slegnaBanner = setupUI([[
 Panel
-  height: 62
+  height: 66
   margin-top: 2
   margin-left: 3
   margin-right: 3

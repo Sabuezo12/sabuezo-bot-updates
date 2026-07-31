@@ -22,7 +22,7 @@ if config.autoReload == nil then config.autoReload = true end
 
 local ui = setupUI([[
 Panel
-  height: 82
+  height: 58
 
   Label
     id: title
@@ -51,8 +51,8 @@ Panel
     anchors.top: title.bottom
     anchors.left: parent.left
     anchors.right: parent.right
-    height: 58
-    margin-top: 4
+    height: 32
+    margin-top: 3
     text-align: center
     font: verdana-11px-rounded
     background: #292A2A

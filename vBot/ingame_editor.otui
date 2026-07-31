@@ -1,0 +1,125 @@
+InGameScriptRow < UIWidget
+  background-color: alpha
+  focusable: true
+  height: 22
+  font: verdana-11px-rounded
+
+  $focus:
+    background-color: #00000066
+
+  CheckBox
+    id: enabled
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 4
+    size: 15 15
+    tooltip: Activar o desactivar este script.
+
+  Label
+    id: name
+    anchors.left: enabled.right
+    anchors.right: edit.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 5
+    margin-right: 5
+    text-align: left
+    text-auto-resize: false
+
+  Button
+    id: edit
+    anchors.right: remove.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 3
+    size: 48 18
+    text: Editar
+    tooltip: Editar el codigo de este script.
+
+  Button
+    id: remove
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 15
+    size: 20 18
+    text: X
+    tooltip: Eliminar este script y crear un respaldo.
+
+InGameScriptManagerWindow < MainWindow
+  id: InGameScriptManagerWindow
+  !text: tr('In-Game Scripts')
+  size: 380 240
+  @onEscape: self:hide()
+
+  Label
+    id: status
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 18
+    text-align: center
+    color: #b8c7cc
+    text: Scripts guardados
+
+  TextList
+    id: scriptList
+    anchors.top: status.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: separator.top
+    margin-top: 5
+    margin-bottom: 6
+    vertical-scrollbar: scriptListScrollBar
+
+  VerticalScrollBar
+    id: scriptListScrollBar
+    anchors.top: scriptList.top
+    anchors.bottom: scriptList.bottom
+    anchors.right: scriptList.right
+    step: 22
+    pixels-scroll: true
+
+  HorizontalSeparator
+    id: separator
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: scriptName.top
+    margin-bottom: 7
+
+  TextEdit
+    id: scriptName
+    anchors.left: parent.left
+    anchors.right: renameButton.left
+    anchors.bottom: closeButton.top
+    margin-right: 4
+    margin-bottom: 9
+    height: 20
+    font: verdana-11px-rounded
+    tooltip: Nombre del script nuevo o seleccionado.
+
+  Button
+    id: renameButton
+    anchors.right: addButton.left
+    anchors.bottom: closeButton.top
+    margin-right: 4
+    margin-bottom: 9
+    size: 72 20
+    text: Renombrar
+    tooltip: Cambiar el nombre del script seleccionado.
+
+  Button
+    id: addButton
+    anchors.right: parent.right
+    anchors.bottom: closeButton.top
+    margin-bottom: 9
+    size: 58 20
+    text: Nuevo
+    tooltip: Crear un script con el nombre escrito.
+
+  Button
+    id: closeButton
+    text: Cerrar
+    font: cipsoftFont
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 45 21
+    margin-right: 5
+    @onClick: self:getParent():hide()

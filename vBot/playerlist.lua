@@ -641,11 +641,14 @@ if rootWidget then
   ListWindow = UI.createWindow("PlayerListWindow", rootWidget)
   ListWindow:hide()
 
-  UI.Button("Player Lists", function()
+  setDefaultTab("Main")
+  local playerListButton = UI.Button("Player Lists", function()
     ListWindow:show()
     ListWindow:raise()
     ListWindow:focus()
   end)
+  playerListButton:setColor("#ffffff")
+  UI.Separator()
 
   ListWindow.settings.Members:setChecked(config.groupMembers)
   ListWindow.settings.Members.onClick = function(widget)

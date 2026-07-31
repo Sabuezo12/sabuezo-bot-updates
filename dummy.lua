@@ -443,3 +443,10 @@ function setDummySmartOn()
     lastPlayerObject = player
 end
 
+local editorLoaded, editorError = pcall(function()
+    dofile("/vBot/ingame_editor.lua")
+end)
+if not editorLoaded then
+    warn("In-Game Script Editor no pudo cargarse:\n" .. tostring(editorError))
+end
+

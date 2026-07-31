@@ -37,6 +37,7 @@ local loaderSections = {
       "vBot/extrasPvp",
       "vBot/GameBotServerTransport",
       "vBot/BotServer",
+      "vBot/playerlist",
       "vBot/combo_plus",
       ----"vBot/combo", -- replaced by combo_plus
       "vBot/TimerExecutor",
@@ -45,13 +46,11 @@ local loaderSections = {
       ----"vBot/magicbag", -- disabled: automatic magic bag selling
       "vBot/BugMapMouse",
       "vBot/keepwall",
-      "vBot/ingame_editor",
     }
   },
   {
     name = "Tools",
     files = {
-      "vBot/playerlist",
       ---"vBot/buffguild",
       "vBot/alarms",
       "vBot/recoge",
@@ -59,10 +58,8 @@ local loaderSections = {
       "vBot/antipush1",
       "vBot/FireBomb",
       "vBot/Ering",
-      "vBot/Inmortal",
       ----"vBot/Dropper",
       "zFreeScripts/z_Auto-Party",
-      "vBot/ContainerManager",
       ----"vBot/quiver_manager",
       ----"vBot/quiver_label",
       "vBot/tools",
@@ -93,6 +90,7 @@ local loaderSections = {
     name = "HP",
     files = {
       ----"vBot/superhealth",
+      "vBot/Inmortal",
       "vBot/Conditions",
       "vBot/Equipper",
       "vBot/friend_healer",
@@ -111,9 +109,10 @@ local loaderSections = {
     name = "Final",
     files = {
       "vBot/analyzer",
+      "vBot/ContainerManager",
       ----"vBot/xeno_menu", -- disabled: unused contextual menu
       "vBot/iconos",
-      "vBot/bot_tabs",
+      ----"vBot/bot_tabs", -- native tabs match vBot 4.8
       "zFreeScripts/CaveBotHUD",
     }
   }

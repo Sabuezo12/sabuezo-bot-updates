@@ -1,4 +1,4 @@
-setDefaultTab("tools")
+setDefaultTab("Main")
 
 -- general settings
 local cGreen = '#00FF00' -- green color for UI
@@ -57,8 +57,8 @@ end
 local config = storage[panelName]
 
 -- default switch
+UI.Separator()
 local cManager = macro(10000, "Container Manager", function() end)
-cManager.switch:setFont("verdana-11px-rounded")
 
 -- UI
 local CM = setupUI([[
@@ -74,7 +74,6 @@ Panel
     height: 17
     !text: tr('Full AFK:')
     tooltip: Stop cavebot to reopen BPs and how many BPs should be open to proceed caveboting.
-    font: verdana-11px-rounded
 
   SpinBox
     id: qtdFullAfk
@@ -89,7 +88,6 @@ Panel
     step: 1
     editable: true
     tooltip: How many BPs should be open to proceed caveboting
-    font: verdana-11px-rounded
 
   Button
     id: mainSetup
@@ -100,7 +98,6 @@ Panel
     margin-left: 3
     height: 18
     text: Setup
-    font: verdana-11px-rounded
 
   Button
     id: mainReopen
@@ -111,7 +108,6 @@ Panel
     margin-right: 2
     height: 17
     margin-top: 3
-    font: verdana-11px-rounded
 
   Button
     id: mainMinimize
@@ -121,7 +117,6 @@ Panel
     anchors.right: parent.right
     margin-right: 2
     height: 17
-    font: verdana-11px-rounded
   ]])
 CM:setId(panelName)
 
@@ -1036,4 +1031,3 @@ macro(20000,function()
 end)
 
 if cManager.isOn() and config.reopenAtLogin then reopenContainers() end
-UI.Separator()

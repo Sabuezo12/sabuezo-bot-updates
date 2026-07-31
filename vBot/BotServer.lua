@@ -1021,5 +1021,3 @@ end)
 -- vocation
 syncVocation(true)
 publishPresence(true)
-
-addSeparator()
