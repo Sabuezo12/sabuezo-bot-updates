@@ -2,7 +2,9 @@ setDefaultTab("Main")
 local regex = [["(.*?)"]]
 local panelName = "BOTserver"
 local DEFAULT_BOTSERVER_CHANNEL = "Slegna1324"
-local BOTSERVER_DEFAULTS_VERSION = 4
+local DEFAULT_WEBSOCKET_URL = "wss://sabuezo-botserver-render.onrender.com/"
+local DEFAULT_WEBSOCKET_TOKEN = "Slegna"
+local BOTSERVER_DEFAULTS_VERSION = 6
 local ui = setupUI([[
 Panel
   height: 18
@@ -32,8 +34,10 @@ local config = storage[panelName]
 if storage.BotServerDefaultsVersion ~= BOTSERVER_DEFAULTS_VERSION then
   storage.BotServerChannel = DEFAULT_BOTSERVER_CHANNEL
   config.enabled = true
-  config.transportMode = "guild"
+  config.transportMode = "websocket"
   config.guildChannelId = 0
+  config.webSocketUrl = DEFAULT_WEBSOCKET_URL
+  config.webSocketToken = DEFAULT_WEBSOCKET_TOKEN
   storage.BotServerDefaultsVersion = BOTSERVER_DEFAULTS_VERSION
 elseif config.enabled == nil then
   config.enabled = true
@@ -47,12 +51,15 @@ if config.outfit == nil then config.outfit = false end
 if config.broadcasts == nil then config.broadcasts = true end
 if config.minimapMembers == nil then config.minimapMembers = true end
 if config.transportMode ~= "guild" and config.transportMode ~= "party" and
-   config.transportMode ~= "auto" and config.transportMode ~= "opcode" then
-  config.transportMode = "guild"
+   config.transportMode ~= "opcode" and
+   config.transportMode ~= "websocket" then
+  config.transportMode = "websocket"
 end
 config.guildChannelId = math.max(0, math.min(65535, tonumber(config.guildChannelId) or 0))
 config.gameChannelId = math.max(0, math.min(65535, tonumber(config.gameChannelId) or 1))
 config.extendedOpcode = math.max(0, math.min(255, tonumber(config.extendedOpcode) or 201))
+config.webSocketUrl = DEFAULT_WEBSOCKET_URL
+config.webSocketToken = DEFAULT_WEBSOCKET_TOKEN
 config.mwalls = {}
 
 BotServer._rodMasterMainGeneration = (BotServer._rodMasterMainGeneration or 0) + 1
@@ -67,18 +74,31 @@ local lastPresenceSync = 0
 local lastPresencePositionKey = nil
 local lastPresenceMana = nil
 local lastPositionPresenceSync = 0
-local STATUS_UPDATE_INTERVAL = 3000
+local GAME_STATUS_UPDATE_INTERVAL = 3000
+local WEBSOCKET_MIN_STATUS_INTERVAL = 100
 local MEMBER_TIMEOUT = 30000
 local MEMBER_POSITION_TIMEOUT = 15000
 local MAX_MINIMAP_MARKERS = 16
 local MINIMAP_MARKER_COLOR = "#ff3030ff"
+local MINIMAP_MARKER_IMAGE = "/images/game/minimap/cross"
 local MINIMAP_OVERLAY_UPDATE = 300
 local clientId = nil
 local minimapOverlay = {
   widget = nil,
   parent = nil,
+  markers = {},
   nextUpdateAt = 0
 }
+local cyclopediaMinimapNextUpdateAt = 0
+
+local function statusUpdateInterval()
+  if config.transportMode == "websocket" then
+    local connectionPing = tonumber(BotServer and BotServer.ping) or 0
+    if connectionPing <= 0 then return WEBSOCKET_MIN_STATUS_INTERVAL end
+    return math.max(WEBSOCKET_MIN_STATUS_INTERVAL, math.ceil(connectionPing))
+  end
+  return GAME_STATUS_UPDATE_INTERVAL
+end
 
 local function currentBotServerListeners(listenerSocket)
   return config.enabled and BotServer._websocket and
@@ -254,7 +274,7 @@ local function publishPresence(force)
   local moved = selfPosKey and selfPosKey ~= lastPresencePositionKey
   local manaChanged = selfMana ~= lastPresenceMana
   local canSendStatus = (moved or manaChanged) and now and
-    now - lastPositionPresenceSync >= STATUS_UPDATE_INTERVAL
+    now - lastPositionPresenceSync >= statusUpdateInterval()
   if not force and not canSendStatus and now and now - lastPresenceSync < 5000 then return end
 
   local selfName = getSelfName()
@@ -285,6 +305,12 @@ end
 
 local function getMinimapWidget()
   if not modules or not modules.game_minimap then return nil end
+
+  if modules.game_minimap.getMiniMapUi then
+    local ok, minimap = pcall(modules.game_minimap.getMiniMapUi)
+    if ok and minimap then return minimap end
+  end
+
   return modules.game_minimap.minimapWidget
 end
 
@@ -314,7 +340,22 @@ local function destroyMemberMinimapOverlayWidgets(minimap, keepWidget)
 end
 
 local function hideMemberMinimapOverlay()
-  local minimap = getMinimapWidget()
+  local minimap = minimapOverlay.parent or getMinimapWidget()
+  local markers = minimapOverlay.markers
+  if minimap and type(minimap._sabuezoBotServerMarkers) == "table" then
+    markers = minimap._sabuezoBotServerMarkers
+  end
+  for _, marker in pairs(markers or {}) do
+    if marker.widget then
+      pcall(function() marker.widget:destroy() end)
+    elseif minimap and marker.id ~= nil and
+           type(minimap.removeWidget) == "function" then
+      pcall(function() minimap:removeWidget(marker.id) end)
+    end
+  end
+  minimapOverlay.markers = {}
+  if minimap then minimap._sabuezoBotServerMarkers = {} end
+
   destroyMemberMinimapOverlayWidgets(minimap)
 
   if minimapOverlay.widget then
@@ -600,6 +641,171 @@ local function setMinimapMarker(marker, x, y, tooltip)
   pcall(function() marker:setHeight(5) end)
 end
 
+local function nativeMinimapSupported(minimap)
+  return minimap and g_ui and type(g_ui.createWidget) == "function" and
+    type(minimap.centerInPosition) == "function"
+end
+
+local function nativeMarkerTooltip(memberName, info)
+  local tooltip = tostring(memberName)
+  if info and info.voc then
+    tooltip = tooltip .. "\nVoc: " .. tostring(info.voc)
+  end
+  return tooltip
+end
+
+local function updateNativeMemberMinimap(minimap, markerStorageKey, trackPrimary)
+  markerStorageKey = markerStorageKey or "_sabuezoBotServerMarkers"
+  if trackPrimary and minimapOverlay.parent ~= minimap then
+    hideMemberMinimapOverlay()
+    minimapOverlay.parent = minimap
+  end
+
+  destroyMemberMinimapOverlayWidgets(minimap)
+
+  if type(minimap[markerStorageKey]) ~= "table" then
+    minimap[markerStorageKey] = {}
+  end
+  local markers = minimap[markerStorageKey]
+  if trackPrimary then minimapOverlay.markers = markers end
+
+  local desired = {}
+  local markerCount = 0
+  local currentTime = now or 0
+  local selfName = getSelfName()
+  local nativeFailed = false
+  local cameraPosition = nil
+  if minimap.getCameraPosition then
+    local ok, position = pcall(function() return minimap:getCameraPosition() end)
+    if ok then cameraPosition = position end
+  end
+
+  for memberName, info in pairs(memberInfo) do
+    if markerCount >= MAX_MINIMAP_MARKERS then break end
+    if memberName ~= selfName and info and info.clientId ~= clientId and
+       hasPosition(info.pos) and
+       currentTime - (info.lastSeen or 0) <= MEMBER_POSITION_TIMEOUT then
+      markerCount = markerCount + 1
+      desired[memberName] = true
+
+      local position = {
+        x = tonumber(info.pos.x),
+        y = tonumber(info.pos.y),
+        z = tonumber(info.pos.z)
+      }
+      local posKey = positionKey(position)
+      local marker = markers[memberName]
+
+      if marker and not marker.widget then
+        if marker.id ~= nil and type(minimap.removeWidget) == "function" then
+          pcall(function() minimap:removeWidget(marker.id) end)
+        end
+        markers[memberName] = nil
+        marker = nil
+      end
+
+      if not marker then
+        local ok, widget = pcall(function()
+          local cross = g_ui.createWidget("MinimapCross", minimap)
+          if not cross then return nil end
+          cross:setId("botServerMember_" .. safeFileName(memberName))
+          if cross.setIcon then
+            cross:setIcon(MINIMAP_MARKER_IMAGE)
+          elseif cross.setImageSource then
+            cross:setImageSource(MINIMAP_MARKER_IMAGE)
+          end
+          if cross.setImageColor then cross:setImageColor(MINIMAP_MARKER_COLOR) end
+          if cross.setTooltip then cross:setTooltip(nativeMarkerTooltip(memberName, info)) end
+          if cross.setPhantom then cross:setPhantom(true) end
+          if cross.setFocusable then cross:setFocusable(false) end
+          minimap:centerInPosition(cross, position)
+          return cross
+        end)
+        if ok and widget then
+          marker = {widget = widget, posKey = posKey}
+          markers[memberName] = marker
+        else
+          nativeFailed = true
+        end
+      elseif marker.posKey ~= posKey then
+        local ok = pcall(function()
+          minimap:centerInPosition(marker.widget, position)
+        end)
+        if ok then marker.posKey = posKey else nativeFailed = true end
+      end
+
+      if marker and marker.widget then
+        pcall(function()
+          marker.widget:setVisible(not cameraPosition or
+            tonumber(cameraPosition.z) == tonumber(position.z))
+          marker.widget:setTooltip(nativeMarkerTooltip(memberName, info))
+        end)
+      end
+    end
+  end
+
+  for memberName, marker in pairs(markers) do
+    if not desired[memberName] then
+      if marker.widget then
+        pcall(function() marker.widget:destroy() end)
+      elseif marker.id ~= nil and type(minimap.removeWidget) == "function" then
+        pcall(function() minimap:removeWidget(marker.id) end)
+      end
+      markers[memberName] = nil
+    end
+  end
+  return not nativeFailed
+end
+
+local CYCLOPEDIA_MARKER_KEY = "_sabuezoBotServerCyclopediaMarkers"
+
+local function getCyclopediaMinimapWidget()
+  local mapCyclopedia = modules and modules.game_cyclopedia and
+    modules.game_cyclopedia.MapCyclopedia
+  if mapCyclopedia and type(mapCyclopedia.getMinimapWidget) == "function" then
+    local ok, minimap = pcall(function() return mapCyclopedia.getMinimapWidget() end)
+    if ok and minimap then return minimap end
+  end
+
+  local root = g_ui and g_ui.getRootWidget and g_ui.getRootWidget()
+  if not root or not root.recursiveGetChildById then return nil end
+  local ok, minimap = pcall(function()
+    local panel = root:recursiveGetChildById("MapDataPanel")
+    return panel and panel:recursiveGetChildById("minimap") or nil
+  end)
+  return ok and minimap or nil
+end
+
+local function destroyNativeMemberMarkers(minimap, markerStorageKey)
+  if not minimap or type(minimap[markerStorageKey]) ~= "table" then return end
+  for _, marker in pairs(minimap[markerStorageKey]) do
+    if marker.widget then
+      pcall(function() marker.widget:destroy() end)
+    elseif marker.id ~= nil and type(minimap.removeWidget) == "function" then
+      pcall(function() minimap:removeWidget(marker.id) end)
+    end
+  end
+  minimap[markerStorageKey] = {}
+end
+
+local function hideCyclopediaMemberMarkers()
+  local minimap = getCyclopediaMinimapWidget()
+  if minimap then destroyNativeMemberMarkers(minimap, CYCLOPEDIA_MARKER_KEY) end
+end
+
+local function updateCyclopediaMemberMinimap(force)
+  if not config.enabled or not config.minimapMembers then
+    hideCyclopediaMemberMarkers()
+    return
+  end
+  if not force and now and now < cyclopediaMinimapNextUpdateAt then return end
+  cyclopediaMinimapNextUpdateAt = (now or 0) + MINIMAP_OVERLAY_UPDATE
+
+  local minimap = getCyclopediaMinimapWidget()
+  if not nativeMinimapSupported(minimap) then return end
+  updateNativeMemberMinimap(minimap, CYCLOPEDIA_MARKER_KEY, false)
+end
+
 local function updateMemberMinimapOverlay(force)
   if not config.enabled or not config.minimapMembers then
     hideMemberMinimapOverlay()
@@ -610,6 +816,10 @@ local function updateMemberMinimapOverlay(force)
   minimapOverlay.nextUpdateAt = (now or 0) + MINIMAP_OVERLAY_UPDATE
 
   local minimap = getMinimapWidget()
+  if nativeMinimapSupported(minimap) then
+    if updateNativeMemberMinimap(minimap, "_sabuezoBotServerMarkers", true) then return end
+  end
+
   local overlay = createMemberMinimapOverlay()
   if not minimap or not overlay then return end
 
@@ -719,6 +929,7 @@ if rootWidget then
       memberInfo = {}
       lastPresenceSync = 0
       hideMemberMinimapOverlay()
+      hideCyclopediaMemberMarkers()
     end
     initBotServerListenFunctions()
     publishPresence(true)
@@ -740,18 +951,19 @@ if rootWidget then
     memberInfo = {}
     lastPresenceSync = 0
     hideMemberMinimapOverlay()
+    hideCyclopediaMemberMarkers()
   end
   local transportLabels = {
     guild = "Guild",
     party = "Party",
-    auto = "Auto",
-    opcode = "Extended Opcode"
+    opcode = "Extended Opcode",
+    websocket = "WebSocket"
   }
   local transportValues = {
     ["Guild"] = "guild",
     ["Party"] = "party",
-    ["Auto"] = "auto",
-    ["Extended Opcode"] = "opcode"
+    ["Extended Opcode"] = "opcode",
+    ["WebSocket"] = "websocket"
   }
   botServerWindow.Transport.TransportMode:setOption(transportLabels[config.transportMode] or "Guild")
   botServerWindow.Transport.TransportMode.onOptionChange = function(widget)
@@ -776,7 +988,7 @@ if rootWidget then
   end
   pcall(function()
     botServerWindow.Transport.TransportMode:setTooltip(
-      "Guild es el modo principal. Party es alternativo. Auto prueba Opcode y conserva Guild como respaldo.")
+      "WebSocket usa Render y es el modo mas rapido. Guild/Party usan el chat del juego.")
     botServerWindow.Transport.GuildChannelId:setTooltip(
       "ID del canal Guild. En protocolo 8.6 normalmente es 0.")
     botServerWindow.Transport.GameChannelId:setTooltip(
@@ -791,6 +1003,7 @@ if rootWidget then
     memberInfo = {}
     lastPresenceSync = 0
     hideMemberMinimapOverlay()
+    hideCyclopediaMemberMarkers()
   end
   botServerWindow.Features.Feature1:setOn(config.manaInfo)
   pcall(function() botServerWindow.Features.Feature1:setTooltip("Muestra mana de miembros conectados cuando esten visibles.") end)
@@ -826,14 +1039,16 @@ if rootWidget then
     widget:setOn(config.broadcasts)
   end
   botServerWindow.Features.Feature6:setOn(config.minimapMembers)
-  pcall(function() botServerWindow.Features.Feature6:setTooltip("Muestra miembros conectados como puntos temporales en el minimapa.") end)
+  pcall(function() botServerWindow.Features.Feature6:setTooltip("Muestra miembros conectados en el minimapa y Cyclopedia Map.") end)
   botServerWindow.Features.Feature6.onClick = function(widget)
     config.minimapMembers = not config.minimapMembers
     widget:setOn(config.minimapMembers)
     if config.minimapMembers then
       updateMemberMinimapOverlay(true)
+      updateCyclopediaMemberMinimap(true)
     else
       hideMemberMinimapOverlay()
+      hideCyclopediaMemberMarkers()
     end
   end
   botServerWindow.Features.Broadcast.onClick = function(widget)
@@ -948,24 +1163,25 @@ initBotServerListenFunctions()
 
 function updateStatusText()
   pruneMembers()
+  local statusText = "DISCONNECTED"
+  local statusLevel = "error"
+  if config.enabled and GameBotServerTransport and GameBotServerTransport.getStatus then
+    statusText, statusLevel = GameBotServerTransport.getStatus()
+  elseif BotServer._websocket then
+    statusText = "GAME: CONNECTED"
+    statusLevel = "connected"
+  end
+  local statusColor = statusLevel == "connected" and '#03AC13' or
+    (statusLevel == "waiting" and '#FFF380' or '#E3242B')
+  botServerWindow.Data.ServerStatus:setText(statusText)
+  botServerWindow.Data.ServerStatus:setColor(statusColor)
+  ui.botServer:setColor(statusColor)
   if BotServer._websocket then
-    local statusText = "GAME: CONNECTED"
-    local statusLevel = "connected"
-    if GameBotServerTransport and GameBotServerTransport.getStatus then
-      statusText, statusLevel = GameBotServerTransport.getStatus()
-    end
-    local statusColor = statusLevel == "connected" and '#03AC13' or
-      (statusLevel == "waiting" and '#FFF380' or '#E3242B')
-    botServerWindow.Data.ServerStatus:setText(statusText)
-    botServerWindow.Data.ServerStatus:setColor(statusColor)
-    ui.botServer:setColor(statusColor)
     botServerWindow.Data.Participants:setText(getMemberCount())
     botServerWindow.Data.Members:setTooltip(getMembersTooltip())
   else
-    botServerWindow.Data.ServerStatus:setText("DISCONNECTED")
-    ui.botServer:setColor('#E3242B')
-    botServerWindow.Data.ServerStatus:setColor('#E3242B')
     botServerWindow.Data.Participants:setText("-")
+    botServerWindow.Data.Members:setTooltip('')
   end
 end
 
@@ -976,8 +1192,10 @@ macro(100, function()
     syncVocation()
     refreshVisibleMemberMana()
     updateMemberMinimapOverlay()
+    updateCyclopediaMemberMinimap()
   else
     hideMemberMinimapOverlay()
+    hideCyclopediaMemberMarkers()
   end
 end)
 

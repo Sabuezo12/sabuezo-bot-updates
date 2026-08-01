@@ -4,8 +4,8 @@ BotServerTransportComboBox < ComboBox
   @onSetup: |
     self:addOption("Guild")
     self:addOption("Party")
-    self:addOption("Auto")
     self:addOption("Extended Opcode")
+    self:addOption("WebSocket")
 
 BotServerData < Panel
   size: 340 76
@@ -317,6 +317,7 @@ BotServerWindow < MainWindow
     anchors.verticalCenter: prev.verticalCenter
     anchors.left: parent.left
     margin-left: 5
+    width: 125
     height: 21
 
     $!on:

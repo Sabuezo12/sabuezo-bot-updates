@@ -1,3 +1,11 @@
+3.0.2 - 2026-08-01
+- Dummy Smart cuenta segundos, minutos y horas solamente despues de la confirmacion del servidor.
+- Reinicia el entrenamiento y respeta 30 segundos de espera al moverse, reconectar o recargar el bot.
+- BotServer usa WebSocket de Render por defecto con URL y token integrados.
+- Ajusta la frecuencia de presencia al ping, con un minimo de 100 ms para WebSocket.
+- Agrega marcadores de miembros al minimapa y al mapa de Cyclopedia cuando el cliente lo permite.
+- Mantiene Guild y Party como transportes manuales sin enviar paquetes si no estan seleccionados.
+
 3.0.1 - 2026-07-31
 - Corrige Inmortal para equipar Energy Ring directamente desde una mochila abierta.
 - Aplica el mismo movimiento directo a Might Ring y Stone Skin Amulet.

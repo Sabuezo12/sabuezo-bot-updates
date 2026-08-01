@@ -60,14 +60,18 @@ end
 
 -- =========================[ VARIÁVEIS DE CONTROLE ]======================
 local isCurrentlyTraining = false  -- Estado de treinamento
+local isWaitingForStart = false    -- Uso enviado; falta confirmacao do servidor
 local lastClickTime = 0            -- Timestamp do último clique
 local trainingStartTime = 0        -- Quando começou a treinar
+local startConfirmationDeadline = 0
 local nextTrainingAttempt = 0      -- Bloqueio imposto pelo servidor
 local waitingDummyKey = nil        -- Dummy usado para iniciar a espera estacionária
 local lastPlayerPosition = nil     -- Posição usada para detectar movimento
 local lastPlayerObject = player    -- Nova instância indica login/relogin
+local lastGameOnline = player ~= nil
 local CLICK_COOLDOWN = 3000        -- 3 segundos entre cliques no dummy
 local CANCEL_RESTART_DELAY = 30000 -- 30 segundos após cancelar/interromper
+local START_CONFIRMATION_TIMEOUT = 5000
 
 -- =========================[ FUNÇÕES AUXILIARES ]==========================
 
@@ -94,16 +98,30 @@ local function getDummyKey(dummy)
     return pos.x .. ":" .. pos.y .. ":" .. pos.z
 end
 
+local function isGameOnline()
+    if g_game and g_game.isOnline then
+        local ok, online = pcall(function() return g_game.isOnline() end)
+        if ok then return online end
+    end
+    return player ~= nil
+end
+
+local function clearTrainingState()
+    isCurrentlyTraining = false
+    isWaitingForStart = false
+    trainingStartTime = 0
+    startConfirmationDeadline = 0
+end
+
 local function scheduleStationaryWait()
     nextTrainingAttempt = now + CANCEL_RESTART_DELAY
     updateStatus("Espera: 30s", "#FFAA00")
 end
 
 local function stopTraining(reason)
-    if reason ~= "cancelled" and not isCurrentlyTraining then return end
+    if reason ~= "cancelled" and not isCurrentlyTraining and not isWaitingForStart then return end
 
-    isCurrentlyTraining = false
-    trainingStartTime = 0
+    clearTrainingState()
     lastClickTime = 0
 
     if reason == "cancelled" then
@@ -115,11 +133,41 @@ local function stopTraining(reason)
     end
 end
 
+local function resetAfterSessionChange(statusText)
+    clearTrainingState()
+    lastClickTime = 0
+    waitingDummyKey = nil
+    lastPlayerPosition = copyPosition(player and player:getPosition())
+
+    if isGameOnline() and player then
+        scheduleStationaryWait()
+        updateStatus((statusText or "Reinicio") .. ": 30s", "#FFAA00")
+    else
+        nextTrainingAttempt = 0
+        updateStatus("Desconectado", "#888888")
+    end
+end
+
+local function formatTrainingTime(totalSeconds)
+    local seconds = math.max(0, math.floor(totalSeconds))
+    local hours = math.floor(seconds / 3600)
+    local minutes = math.floor((seconds % 3600) / 60)
+    local remainingSeconds = seconds % 60
+
+    if hours > 0 then
+        return string.format("%dh %02dm %02ds", hours, minutes, remainingSeconds)
+    end
+    if minutes > 0 then
+        return string.format("%dm %02ds", minutes, remainingSeconds)
+    end
+    return string.format("%ds", remainingSeconds)
+end
+
 local function updateTrainingStatus()
     if not isCurrentlyTraining then return end
 
     local trainingTime = math.floor((now - trainingStartTime) / 1000)
-    updateStatus("Treinando (" .. trainingTime .. "s)", "#66FF66")
+    updateStatus("Treinando (" .. formatTrainingTime(trainingTime) .. ")", "#66FF66")
 end
 
 local function findNearbyDummy()
@@ -200,11 +248,10 @@ local function attackDummy(dummy)
         return false
     end
 
-    isCurrentlyTraining = true
-    trainingStartTime = now
-    nextTrainingAttempt = 0
+    isWaitingForStart = true
+    startConfirmationDeadline = now + START_CONFIRMATION_TIMEOUT
     lastClickTime = now
-    updateStatus("Treinando - aguardando fim...", "#66FF66")
+    updateStatus("Confirmando inicio...", "#FFAA00")
     return true
 end
 
@@ -299,6 +346,8 @@ onTextMessage(function(_, text)
             trainingStartTime = now
         end
         isCurrentlyTraining = true
+        isWaitingForStart = false
+        startConfirmationDeadline = 0
         nextTrainingAttempt = 0
         updateStatus("Treinando - aguardando fim...", "#66FF66")
     end
@@ -312,14 +361,19 @@ local function smartDummyLogic()
         return
     end
 
+    local online = isGameOnline()
+    if online ~= lastGameOnline then
+        lastGameOnline = online
+        lastPlayerObject = player
+        resetAfterSessionChange(online and "Reconectado" or nil)
+    end
+
+    if not online then return end
+
     local currentPlayer = player
     if currentPlayer ~= lastPlayerObject then
         lastPlayerObject = currentPlayer
-        isCurrentlyTraining = false
-        trainingStartTime = 0
-        nextTrainingAttempt = 0
-        waitingDummyKey = nil
-        lastPlayerPosition = nil
+        resetAfterSessionChange("Reconectado")
     end
 
     local currentPosition = currentPlayer and currentPlayer:getPosition()
@@ -329,9 +383,28 @@ local function smartDummyLogic()
                         not positionsMatch(lastPlayerPosition, currentPosition)
     lastPlayerPosition = copyPosition(currentPosition)
 
+    if playerMoved then
+        clearTrainingState()
+        lastClickTime = 0
+        scheduleStationaryWait()
+        updateStatus("Movimiento: 30s", "#FFAA00")
+    end
+
     -- Enquanto estiver treinando, nunca procurar nem usar outra barita.
     if isCurrentlyTraining then
         updateTrainingStatus()
+        return
+    end
+
+    if isWaitingForStart then
+        if now < startConfirmationDeadline then
+            local secondsLeft = math.max(1, math.ceil((startConfirmationDeadline - now) / 1000))
+            updateStatus("Confirmando: " .. secondsLeft .. "s", "#FFAA00")
+        else
+            clearTrainingState()
+            scheduleStationaryWait()
+            updateStatus("Sin confirmacion: 30s", "#FFAA00")
+        end
         return
     end
 
@@ -377,10 +450,13 @@ end)
 onPlayerPositionChange(function(newPosition, oldPosition)
     lastPlayerPosition = copyPosition(newPosition)
 
-    if not storage[panelName].enabled or isCurrentlyTraining then return end
-    if not waitingDummyKey or positionsMatch(newPosition, oldPosition) then return end
+    if not storage[panelName].enabled then return end
+    if positionsMatch(newPosition, oldPosition) then return end
 
+    clearTrainingState()
+    lastClickTime = 0
     scheduleStationaryWait()
+    updateStatus("Movimiento: 30s", "#FFAA00")
 end)
 
 -- Configurar UI inicial
@@ -390,19 +466,18 @@ ui.title.onClick = function(widget)
     widget:setOn(storage[panelName].enabled)
     
     if storage[panelName].enabled then
-        updateStatus("Ativado", "#66FF66")
         -- Reset do estado quando ativar
-        isCurrentlyTraining = false
+        clearTrainingState()
         lastClickTime = 0
-        trainingStartTime = 0
-        nextTrainingAttempt = 0
         waitingDummyKey = nil
         lastPlayerPosition = copyPosition(player and player:getPosition())
         lastPlayerObject = player
+        lastGameOnline = isGameOnline()
+        scheduleStationaryWait()
+        updateStatus("Activado: 30s", "#FFAA00")
     else
         updateStatus("Desligado", "#888888")
-        isCurrentlyTraining = false
-        trainingStartTime = 0
+        clearTrainingState()
         waitingDummyKey = nil
     end
 end
@@ -425,20 +500,29 @@ function setDummySmartOff()
     storage[panelName].enabled = false
     ui.title:setOn(false)
     updateStatus("Desligado", "#888888")
-    isCurrentlyTraining = false
+    clearTrainingState()
     waitingDummyKey = nil
 end
 
 function setDummySmartOn()
     storage[panelName].enabled = true
     ui.title:setOn(true)
-    updateStatus("Ativado", "#66FF66")
-    isCurrentlyTraining = false
+    clearTrainingState()
     lastClickTime = 0
-    trainingStartTime = 0
-    nextTrainingAttempt = 0
     waitingDummyKey = nil
     lastPlayerPosition = copyPosition(player and player:getPosition())
     lastPlayerObject = player
+    lastGameOnline = isGameOnline()
+    scheduleStationaryWait()
+    updateStatus("Activado: 30s", "#FFAA00")
+end
+
+-- Ao recarregar o bot, nunca conservar um treino presumido. O servidor precisa
+-- confirmar novamente depois de 30 segundos sem movimento.
+lastGameOnline = isGameOnline()
+if storage[panelName].enabled then
+    resetAfterSessionChange("Recarga")
+else
+    updateStatus("Desligado", "#888888")
 end
 

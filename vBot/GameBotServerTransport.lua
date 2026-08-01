@@ -1,4 +1,4 @@
--- BotServer transport over the current game connection.
+-- BotServer transport over WebSocket or the current game connection.
 -- Guild/Party channels work without server changes. Extended Opcode requires
 -- a compatible relay on the game server.
 
@@ -10,6 +10,8 @@ local generation = transport.generation
 
 local PACKET_PREFIX = "#SB2#"
 local PACKET_VERSION = 2
+local DEFAULT_WEBSOCKET_URL = "wss://sabuezo-botserver-render.onrender.com/"
+local DEFAULT_WEBSOCKET_TOKEN = "Slegna"
 local RAW_PARTY_OPCODE = 43
 local RAW_PARTY_RECORD_SIZE = 37
 local RAW_PARTY_MAX_MEMBERS = 32
@@ -43,7 +45,8 @@ local state = {
   seen = {},
   lastTopicSent = {},
   lastChatSent = 0,
-  sequence = 0
+  sequence = 0,
+  webSocketError = nil
 }
 transport.state = state
 
@@ -86,8 +89,11 @@ end
 local function normalizedMode(value)
   value = tostring(value or "guild"):lower()
   if value == "extended opcode" or value == "extended" then value = "opcode" end
-  if value ~= "guild" and value ~= "party" and value ~= "auto" and value ~= "opcode" then
-    value = "guild"
+  if value == "ws" or value == "render" then value = "websocket" end
+  if value == "auto" then value = "websocket" end
+  if value ~= "guild" and value ~= "party" and value ~= "opcode" and
+     value ~= "websocket" then
+    value = "websocket"
   end
   return value
 end
@@ -99,7 +105,37 @@ local function getConfig()
   config.guildChannelId = math.max(0, math.min(65535, tonumber(config.guildChannelId) or 0))
   config.gameChannelId = math.max(0, math.min(65535, tonumber(config.gameChannelId) or 1))
   config.extendedOpcode = math.max(0, math.min(255, tonumber(config.extendedOpcode) or 201))
+  config.webSocketUrl = DEFAULT_WEBSOCKET_URL
+  config.webSocketToken = DEFAULT_WEBSOCKET_TOKEN
   return config
+end
+
+local function trim(value)
+  return tostring(value or ""):match("^%s*(.-)%s*$")
+end
+
+local function urlEncode(value)
+  return tostring(value or ""):gsub("([^%w%-_%.~])", function(character)
+    return string.format("%%%02X", string.byte(character))
+  end)
+end
+
+local function buildWebSocketUrl()
+  local config = getConfig()
+  local url = trim(config.webSocketUrl)
+  local token = trim(config.webSocketToken)
+  if url == "" then return nil, "URL_REQUIRED" end
+
+  url = url:gsub("^https://", "wss://")
+  url = url:gsub("^http://", "ws://")
+  if not url:match("^wss?://") then url = "wss://" .. url end
+
+  local tokenInUrl = url:find("[?&]token=") ~= nil
+  if token == "" and not tokenInUrl then return nil, "TOKEN_REQUIRED" end
+  if token ~= "" and not tokenInUrl then
+    url = url .. (url:find("?", 1, true) and "&" or "?") .. "token=" .. urlEncode(token)
+  end
+  return url
 end
 
 local function validGeneration()
@@ -398,31 +434,96 @@ end
 
 local function installConsolePacketFilter()
   local gameConsole = modules and modules.game_console
-  if not gameConsole or type(gameConsole.addTabText) ~= "function" then
+  if not gameConsole then
     return false
   end
 
-  local previousWrapper = transport.consoleTalkFilter
-  local previousOriginal = transport.consoleOriginalOnTalk
-  if type(previousWrapper) == "function" then
-    if gameConsole.addTabText == previousWrapper and type(previousOriginal) == "function" then
-      gameConsole.addTabText = previousOriginal
+  local previousFilters = gameConsole._sabuezoBotServerFilters or
+    transport.consolePacketFilters or {}
+  for _, filter in pairs(previousFilters) do
+    if type(filter.owner) == "table" and
+       filter.owner[filter.method] == filter.wrapper and
+       type(filter.original) == "function" then
+      filter.owner[filter.method] = filter.original
     end
   end
+  transport.consolePacketFilters = {}
+  gameConsole._sabuezoBotServerFilters = transport.consolePacketFilters
 
-  local originalAddTabText = gameConsole.addTabText
-  local filteredAddTabText = function(text, speaktype, tab, creatureName)
-    if type(text) == "string" and
-       text:find(PACKET_PREFIX, 1, true) then
-      return
-    end
-    return originalAddTabText(text, speaktype, tab, creatureName)
+  -- Restore the wrapper used by older versions of this transport.
+  if type(transport.consoleTalkFilter) == "function" and
+     type(transport.consoleOriginalOnTalk) == "function" and
+     gameConsole.addTabText == transport.consoleTalkFilter then
+    gameConsole.addTabText = transport.consoleOriginalOnTalk
+  end
+  transport.consoleTalkFilter = nil
+  transport.consoleOriginalOnTalk = nil
+
+  local function isPacketText(value)
+    return type(value) == "string" and
+      value:find(PACKET_PREFIX, 1, true) ~= nil
   end
 
-  gameConsole.addTabText = filteredAddTabText
-  transport.consoleOriginalOnTalk = originalAddTabText
-  transport.consoleTalkFilter = filteredAddTabText
-  return true
+  local installed = 0
+  local function remember(owner, method, original, wrapper)
+    owner[method] = wrapper
+    table.insert(transport.consolePacketFilters, {
+      owner = owner,
+      method = method,
+      original = original,
+      wrapper = wrapper
+    })
+    installed = installed + 1
+  end
+
+  -- AstraClient routes incoming messages through a Chat instance. Restore
+  -- the class methods first so a bot reload cannot retain an older wrapper.
+  local chat = gameConsole.g_chat
+  local chatClass = gameConsole.Chat
+  if type(chat) == "table" and type(chatClass) == "table" and
+     type(chatClass.onTalk) == "function" then
+    chat.onTalk = chatClass.onTalk
+    if type(chatClass.addText) == "function" then
+      chat.addText = chatClass.addText
+    end
+
+    local originalOnTalk = chatClass.onTalk
+    local filteredOnTalk = function(self, sender, level, mode, text,
+                                    channelId, pos, statement, groupId)
+      if isPacketText(text) then return end
+      return originalOnTalk(self, sender, level, mode, text, channelId, pos,
+        statement, groupId)
+    end
+    remember(chat, "onTalk", originalOnTalk, filteredOnTalk)
+
+    if type(chatClass.addText) == "function" then
+      local originalAddText = function(text, speaktype, tabName, creatureName,
+                                       level, statement)
+        return chatClass.addText(chat, text, speaktype, tabName, creatureName,
+          level, statement)
+      end
+      local filteredAddText = function(text, speaktype, tabName, creatureName,
+                                       level, statement)
+        if isPacketText(text) then return end
+        return originalAddText(text, speaktype, tabName, creatureName, level,
+          statement)
+      end
+      remember(gameConsole, "addText", originalAddText, filteredAddText)
+    end
+    return installed > 0
+  end
+
+  -- OTCv8 Classic displays chat through addTabText.
+  if type(gameConsole.addTabText) == "function" then
+    local originalAddTabText = gameConsole.addTabText
+    local filteredAddTabText = function(text, speaktype, tab, creatureName)
+      if isPacketText(text) then return end
+      return originalAddTabText(text, speaktype, tab, creatureName)
+    end
+    remember(gameConsole, "addTabText", originalAddTabText,
+      filteredAddTabText)
+  end
+  return installed > 0
 end
 
 local function prepareChatChannel(mode)
@@ -513,7 +614,9 @@ function transport.init(clientName, room)
   state.clientName = tostring(clientName or currentCharacterName())
   state.room = tostring(room or "")
   state.requestedMode = getConfig().transportMode
-  if state.requestedMode == "opcode" then
+  if state.requestedMode == "websocket" then
+    state.activeMode = "websocket"
+  elseif state.requestedMode == "opcode" then
     state.activeMode = "opcode"
   elseif state.requestedMode == "party" then
     state.activeMode = "party"
@@ -528,16 +631,44 @@ function transport.init(clientName, room)
   state.seen = {}
   state.lastTopicSent = {}
   state.lastChatSent = 0
+  state.webSocketError = nil
+  state.socket = nil
+
+  if state.requestedMode == "websocket" then
+    local original = BotServer._gameTransportOriginal or {}
+    local webSocketUrl, urlError = buildWebSocketUrl()
+    if not webSocketUrl then
+      state.webSocketError = urlError
+      BotServer._websocket = nil
+      return false
+    end
+    if type(original.init) ~= "function" then
+      state.webSocketError = "UNSUPPORTED"
+      BotServer._websocket = nil
+      return false
+    end
+
+    BotServer.url = webSocketUrl
+    local ok, result = pcall(original.init, state.clientName, state.room)
+    if not ok or result == false or not BotServer._websocket then
+      state.webSocketError = "CONNECT_FAILED"
+      BotServer._websocket = nil
+      return false
+    end
+    state.socket = BotServer._websocket
+    return true
+  end
+
   state.socket = {gameTransport = true, generation = generation}
   BotServer._websocket = state.socket
   touchMember(state.clientName)
 
-  if state.requestedMode == "guild" or state.requestedMode == "auto" then
+  if state.requestedMode == "guild" then
     prepareChatChannel("guild")
   elseif state.requestedMode == "party" then
     prepareChatChannel("party")
   end
-  if state.requestedMode == "opcode" or state.requestedMode == "auto" then
+  if state.requestedMode == "opcode" then
     state.opcodeAvailable = registerOpcode()
     if state.opcodeAvailable then
       schedule(500, function()
@@ -551,16 +682,31 @@ function transport.init(clientName, room)
 end
 
 function transport.terminate()
+  local wasWebSocket = state.activeMode == "websocket"
   state.active = false
   state.pending = {}
   state.listeners = {}
+  if wasWebSocket then
+    local original = BotServer._gameTransportOriginal or {}
+    if type(original.terminate) == "function" then
+      pcall(original.terminate)
+    end
+  end
   state.socket = nil
+  state.webSocketError = nil
   BotServer._websocket = nil
+  BotServer.url = nil
   unregisterOwnedOpcode()
 end
 
 function transport.listen(topic, callback)
   if type(topic) ~= "string" or type(callback) ~= "function" then return false end
+  if state.activeMode == "websocket" then
+    local original = BotServer._gameTransportOriginal or {}
+    if type(original.listen) ~= "function" or not BotServer._websocket then return false end
+    local ok, result = pcall(original.listen, topic, callback)
+    return ok and result ~= false
+  end
   state.listeners[topic] = state.listeners[topic] or {}
   table.insert(state.listeners[topic], callback)
   return true
@@ -568,6 +714,12 @@ end
 
 function transport.send(topic, message)
   if not state.active or type(topic) ~= "string" then return false end
+  if state.activeMode == "websocket" then
+    local original = BotServer._gameTransportOriginal or {}
+    if type(original.send) ~= "function" or not BotServer._websocket then return false end
+    local ok, result = pcall(original.send, topic, message)
+    return ok and result ~= false
+  end
   if topic == "list" then
     dispatch("list", state.clientName, memberList())
     return true
@@ -584,6 +736,10 @@ function transport.send(topic, message)
     return packet and sendOpcodePacket(packet) or false
   end
 
+  if state.activeMode ~= "guild" and state.activeMode ~= "party" then
+    return false
+  end
+
   local packet = encodeChatPacket(topic, message)
   if not packet then return false end
   queueChatPacket(topic, packet)
@@ -596,26 +752,36 @@ function transport.setRoom(room)
   state.pending = {}
   state.seen = {}
   touchMember(state.clientName)
+  if state.active and state.activeMode == "websocket" then
+    transport.roomChangeGeneration = (transport.roomChangeGeneration or 0) + 1
+    local roomGeneration = transport.roomChangeGeneration
+    schedule(500, function()
+      if validGeneration() and state.active and state.activeMode == "websocket" and
+         transport.roomChangeGeneration == roomGeneration then
+        transport.restart()
+      end
+    end)
+    return
+  end
   if state.opcodeAvailable then sendProbe() end
 end
 
 function transport.getStatus()
   if not state.active then return "DISCONNECTED", "error" end
+  if state.requestedMode == "websocket" then
+    if state.webSocketError == "TOKEN_REQUIRED" then return "WS: TOKEN REQUIRED", "error" end
+    if state.webSocketError == "URL_REQUIRED" then return "WS: URL REQUIRED", "error" end
+    if state.webSocketError == "UNSUPPORTED" then return "WS: UNSUPPORTED", "error" end
+    if state.webSocketError == "CONNECT_FAILED" then return "WS: RETRYING", "waiting" end
+    if not BotServer._websocket then return "WS: RECONNECTING", "waiting" end
+    return "WS: RENDER", "connected"
+  end
   if not gameOnline() then return "GAME: OFFLINE", "waiting" end
 
   if state.requestedMode == "opcode" then
     if not state.opcodeAvailable then return "OPCODE: UNAVAILABLE", "error" end
     if not state.opcodeConfirmed then return "OPCODE: WAITING", "waiting" end
     return "GAME: OPCODE", "connected"
-  end
-  if state.requestedMode == "auto" and state.activeMode == "opcode" then
-    return "GAME: OPCODE", "connected"
-  end
-  if state.requestedMode == "auto" and not state.opcodeAvailable then
-    return "GAME: GUILD", "connected"
-  end
-  if state.requestedMode == "auto" then
-    return "GAME: GUILD/AUTO", "connected"
   end
   if state.requestedMode == "guild" then return "GAME: GUILD", "connected" end
   return "GAME: PARTY", "connected"
