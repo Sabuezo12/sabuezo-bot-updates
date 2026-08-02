@@ -1,3 +1,8 @@
+3.0.4 - 2026-08-01
+- El Exiva Tracker anuncia su capacidad al conectarse al BotServer.
+- Solo selecciona observadores que tengan una version compatible del tracker.
+- Evita ocupar espacios con clientes antiguos que no pueden responder al exiva coordinado.
+
 3.0.3 - 2026-08-01
 - Agrega Exiva Tracker coordinado mediante miembros conectados al BotServer.
 - Calcula una zona aproximada y la muestra en el minimapa y Cyclopedia Map.

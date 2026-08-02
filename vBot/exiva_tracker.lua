@@ -7,6 +7,10 @@ end
 
 local REQUEST_TOPIC = "exiva_req"
 local RESULT_TOPIC = "exiva_res"
+local CAPABILITY_TOPIC = "exiva_cap"
+local CAPABILITY_VERSION = 1
+local CAPABILITY_INTERVAL = 5000
+local CAPABILITY_TIMEOUT = 15000
 local MAX_OBSERVERS = 4
 local MEMBER_POSITION_MAX_AGE = 15000
 local DAMAGE_LIMIT = 500
@@ -32,6 +36,7 @@ local sessions = {}
 local queuedCasts = {}
 local pendingCasts = {}
 local estimates = {}
+local trackerMembers = {}
 local processedMessages = setmetatable({}, {__mode = "k"})
 local consoleInitialized = false
 local lastServerLogTab = nil
@@ -39,6 +44,7 @@ local lastLargeDamageAt = 0
 local suppressTarget = nil
 local suppressUntil = 0
 local nextMarkerUpdateAt = 0
+local lastCapabilitySentAt = 0
 
 local function clockMillis()
   if g_clock and g_clock.millis then return g_clock.millis() end
@@ -107,6 +113,21 @@ local function sendBotServer(topic, message)
   if not botServerReady() then return false end
   local ok, result = pcall(function() return BotServer.send(topic, message) end)
   return ok and result ~= false
+end
+
+local function sendCapability(force, requestReply)
+  if not botServerReady() then return false end
+  local current = clockMillis()
+  if not force and current - lastCapabilitySentAt < CAPABILITY_INTERVAL then
+    return false
+  end
+  lastCapabilitySentAt = current
+  trackerMembers[normalizedName(selfName())] = current
+  return sendBotServer(CAPABILITY_TOPIC, {
+    name = selfName(),
+    version = CAPABILITY_VERSION,
+    requestReply = requestReply == true
+  })
 end
 
 local function parseExivaCommand(text)
@@ -395,6 +416,8 @@ local function selectObservers()
   local selfPos = currentPosition()
   if not selfPos then return {}, nil end
   local ownName = selfName()
+  local capabilityTime = clockMillis()
+  trackerMembers[normalizedName(ownName)] = capabilityTime
   local candidates = {{name = ownName, pos = selfPos}}
   local known = {[normalizedName(ownName)] = true}
   local snapshot = {}
@@ -408,7 +431,10 @@ local function selectObservers()
     local key = normalizedName(memberName)
     local pos = info and copyPosition(info.pos)
     local age = info and info.lastSeen and current - info.lastSeen or 0
-    if not known[key] and pos and age <= MEMBER_POSITION_MAX_AGE then
+    local trackerAge = trackerMembers[key] and
+      capabilityTime - trackerMembers[key] or math.huge
+    if not known[key] and pos and age <= MEMBER_POSITION_MAX_AGE and
+      trackerAge <= CAPABILITY_TIMEOUT then
       known[key] = true
       table.insert(candidates, {name = memberName, pos = pos})
     end
@@ -644,6 +670,19 @@ local function registerBotServerListeners()
   if registeredSocket == socket then return true end
   registeredSocket = socket
   local listenerSocket = socket
+  trackerMembers = {[normalizedName(selfName())] = clockMillis()}
+  lastCapabilitySentAt = 0
+
+  local capabilityOk = BotServer.listen(CAPABILITY_TOPIC, function(sender, message)
+    if not activeGeneration() or BotServer._websocket ~= listenerSocket or
+      not trackerEnabled() or type(message) ~= "table" then return end
+    local memberName = trim(message.name) ~= "" and message.name or sender
+    if trim(sender) ~= "" and normalizedName(memberName) ~=
+      normalizedName(sender) then return end
+    if tonumber(message.version) ~= CAPABILITY_VERSION then return end
+    trackerMembers[normalizedName(memberName)] = clockMillis()
+    if message.requestReply == true then sendCapability(true, false) end
+  end)
 
   local requestOk = BotServer.listen(REQUEST_TOPIC, function(sender, message)
     if not activeGeneration() or BotServer._websocket ~= listenerSocket or
@@ -671,10 +710,11 @@ local function registerBotServerListeners()
     addObservation(session, observer, message)
   end)
 
-  if requestOk == false or resultOk == false then
+  if capabilityOk == false or requestOk == false or resultOk == false then
     registeredSocket = nil
     return false
   end
+  sendCapability(true, true)
   return true
 end
 
@@ -865,7 +905,7 @@ end)
 macro(100, function()
   if not activeGeneration() then return end
   pollServerLog()
-  registerBotServerListeners()
+  if registerBotServerListeners() then sendCapability(false, false) end
   local current = clockMillis()
 
   for sessionId, entry in pairs(queuedCasts) do
@@ -906,5 +946,6 @@ vBot.ExivaTracker = {
   parseResponse = parseExivaResponse,
   solveObservations = solveObservations,
   getSessions = function() return sessions end,
-  getEstimates = function() return estimates end
+  getEstimates = function() return estimates end,
+  getTrackerMembers = function() return trackerMembers end
 }
