@@ -10,7 +10,12 @@ for i, file in ipairs(configFiles) do
 end
 
 local function loadScript(name)
-  return dofile("/" .. name .. ".lua")
+  local path = "/" .. name .. ".lua"
+  if not g_resources.fileExists(path) then
+    warn("Bot: archivo faltante, se omitira hasta el siguiente update: " .. path)
+    return nil
+  end
+  return dofile(path)
 end
 
 -- Files are grouped by the tab where their visible panel belongs.
