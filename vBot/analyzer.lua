@@ -727,12 +727,6 @@ local function timeToLevel()
   return formatDuration(math.ceil(expLeft() / perHour * 3600))
 end
 
-local function drawGraph(graph, value)
-  if graph and graph.addValue then
-    graph:addValue(tonumber(value) or 0)
-  end
-end
-
 local skillOptions = {
   {name = "Fist", id = 0},
   {name = "Club", id = 1},
@@ -894,10 +888,6 @@ local xpHourLabel = UI.DualLabel("XP/h:", "0", {}, xpWindow.contentsPanel).right
 local nextLevelLabel = UI.DualLabel("Next Level:", "-", {}, xpWindow.contentsPanel).right
 local progressBar = UI.createWidget("AnalyzerProgressBar", xpWindow.contentsPanel)
 progressBar:setPercent(levelPercent())
-UI.Separator(xpWindow.contentsPanel)
-local xpGraph = UI.createWidget("AnalyzerGraph", xpWindow.contentsPanel)
-xpGraph:setTitle("XP/h")
-drawGraph(xpGraph, 0)
 
 local totalRoundsLabel = UI.DualLabel("Rounds:", "0", {}, statsWindow.contentsPanel).right
 local deathCountLabel = UI.DualLabel("Muertes:", "0", {}, statsWindow.contentsPanel).right
@@ -1190,10 +1180,6 @@ resetAnalyzerSessionData = function()
   vBot.CaveBotData.lastRefill = os.time()
   resetSupplyUsageStats()
 
-  if xpGraph and xpGraph.clear then
-    xpGraph:clear()
-    drawGraph(xpGraph, 0)
-  end
 end
 
 if mainWindow.contentsPanel.ResetSession then
@@ -1240,10 +1226,6 @@ macro(1000, function()
   skillNextLabel:setText(skillTimeToNext())
   skillSampleLabel:setText(skillSampleTime())
   skillProgressBar:setPercent(math.floor(skillSnapshot.percent))
-end)
-
-macro(60 * 1000, function()
-  drawGraph(xpGraph, expPerHour(true) or 0)
 end)
 
 Analyzer.getXpGained = function()
