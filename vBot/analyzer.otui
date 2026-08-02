@@ -76,7 +76,7 @@ AnalyzerSupplyRow < Panel
 
 AnalyzerGraph < UIGraph
   height: 140
-  capacity: 400
+  capacity: 60
   line-width: 1
   color: red
   margin-top: 5

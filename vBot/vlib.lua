@@ -433,7 +433,7 @@ end
 
 local function itemCounterKeepsKnownAmount(source)
     source = tostring(source or "")
-    return source == "log" or source == "buy"
+    return source == "log"
 end
 
 function vBot.ItemCounter.getAmount(id, visibleAmount)
