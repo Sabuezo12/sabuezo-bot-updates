@@ -11,11 +11,21 @@ end
 
 local function loadScript(name)
   local path = "/" .. name .. ".lua"
-  if not g_resources.fileExists(path) then
+  local loaded, result = pcall(dofile, path)
+  if loaded then return result end
+
+  local loadError = tostring(result)
+  local normalizedError = loadError:lower()
+  local missing = normalizedError:find("unable to open file", 1, true) or
+    normalizedError:find("cannot open", 1, true) or
+    normalizedError:find("no such file", 1, true)
+
+  if missing then
     warn("Bot: archivo faltante, se omitira hasta el siguiente update: " .. path)
     return nil
   end
-  return dofile(path)
+
+  error(result)
 end
 
 -- Files are grouped by the tab where their visible panel belongs.
