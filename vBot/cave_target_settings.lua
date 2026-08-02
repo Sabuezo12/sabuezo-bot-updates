@@ -80,7 +80,7 @@ addScrollBar("looting", "Max Loot Distance", 0, 50, 40, leftPanel, "Every loot c
 addScrollBar("lootDelay", "Loot Delay", 0, 2000, 200, leftPanel, "Wait time for loot container to open. Lower value means faster looting. \n WARNING if you are having looting issues(e.g. container is locked in closing/opnening), increase this value.")
 addScrollBar("huntRoutes", "Hunting Rounds Limit", 0, 300, 50, leftPanel, "Round limit for supply check, if character already made more rounds than set, on next supply check will return to city.")
 addScrollBar("killUnder", "Kill monsters below", 0, 100, 1, leftPanel, "Force TargetBot to kill added creatures when they are below set percentage of health - will ignore all other TargetBot settings.")
-addScrollBar("gotoMaxDistance", "Max GoTo Distance", 0, 127, 24, leftPanel, "Maximum distance to next goto waypoint for the bot to try to reach.")
+addScrollBar("gotoMaxDistance", "Max GoTo Distance", 0, 127, 37, leftPanel, "Maximum distance to next goto waypoint for the bot to try to reach.")
 addCheckBox("lootLast", "Start loot from last corpse", true, rightPanel, "Looting sequence will be reverted and bot will start looting newest bodies.")
 addCheckBox("joinBot", "Join TargetBot and CaveBot", false, rightPanel, "Cave and Target tabs will be joined into one.")
 addCheckBox("reachable", "Target only pathable mobs", false, rightPanel, "Ignore monsters that can't be reached.")

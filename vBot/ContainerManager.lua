@@ -96,17 +96,32 @@ local cManager = macro(10000, "Container Manager", function() end)
 -- The new client can resize a container after onContainerOpen finishes. Reapply
 -- minimize after layout settles so a hidden content panel cannot keep full height.
 local function minimizeContainerAfterLayout(container)
-  local function applyMinimize()
+  local function getWindow()
     if not container or not container.window then return end
-    local cWindow = container.window
-    local minimized = false
+    return container.window
+  end
 
+  local function isMinimized(cWindow)
+    if not cWindow then return false end
     if cWindow.isMinimized then
       local ok, value = pcall(function() return cWindow:isMinimized() end)
-      minimized = ok and value == true
+      return ok and value == true
     end
+    return false
+  end
 
-    if minimized and cWindow.maximize then
+  local function applyInitialMinimize()
+    local cWindow = getWindow()
+    if cWindow and not isMinimized(cWindow) and cWindow.minimize then
+      pcall(function() cWindow:minimize() end)
+    end
+  end
+
+  local function settleMinimizedLayout()
+    local cWindow = getWindow()
+    -- A manual maximize must win over the delayed layout correction.
+    if not cWindow or not isMinimized(cWindow) then return end
+    if cWindow.maximize then
       pcall(function() cWindow:maximize() end)
     end
     if cWindow.minimize then
@@ -114,8 +129,8 @@ local function minimizeContainerAfterLayout(container)
     end
   end
 
-  schedule(50, applyMinimize)
-  schedule(defaultDelay + 50, applyMinimize)
+  schedule(50, applyInitialMinimize)
+  schedule(defaultDelay + 50, settleMinimizedLayout)
 end
 
 local function resizeContainerAfterLayout(container)
