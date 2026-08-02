@@ -1,3 +1,10 @@
+3.0.3 - 2026-08-01
+- Agrega Exiva Tracker coordinado mediante miembros conectados al BotServer.
+- Calcula una zona aproximada y la muestra en el minimapa y Cyclopedia Map.
+- Distingue el objetivo con una X y conserva el pin normal para aliados conectados.
+- Elimina las marcas 15 segundos despues del ultimo exiva.
+- Los aliados muestran solamente su nombre y el tracker no genera mensajes amarillos.
+
 3.0.2 - 2026-08-01
 - Dummy Smart cuenta segundos, minutos y horas solamente despues de la confirmacion del servidor.
 - Reinicia el entrenamiento y respeta 30 segundos de espera al moverse, reconectar o recargar el bot.

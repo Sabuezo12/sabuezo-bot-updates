@@ -26,7 +26,8 @@ if not storage[panelName] then
   vocation = true,
   outfit = false,
   broadcasts = true,
-  minimapMembers = true
+  minimapMembers = true,
+  exivaTracker = true
 }
 end
 
@@ -50,6 +51,7 @@ if config.vocation == nil then config.vocation = true end
 if config.outfit == nil then config.outfit = false end
 if config.broadcasts == nil then config.broadcasts = true end
 if config.minimapMembers == nil then config.minimapMembers = true end
+if config.exivaTracker == nil then config.exivaTracker = true end
 if config.transportMode ~= "guild" and config.transportMode ~= "party" and
    config.transportMode ~= "opcode" and
    config.transportMode ~= "websocket" then
@@ -236,6 +238,32 @@ local function getMembersTooltip()
   end
   table.sort(names)
   return table.concat(names, "\n")
+end
+
+BotServer.getMemberSnapshot = function()
+  pruneMembers()
+  local snapshot = {}
+  for memberName, info in pairs(memberInfo) do
+    snapshot[memberName] = {
+      name = memberName,
+      clientId = info and info.clientId or nil,
+      voc = info and info.voc or nil,
+      mana = info and info.mana or nil,
+      pos = info and copyPosition(info.pos) or nil,
+      lastSeen = info and info.lastSeen or nil,
+      wallTime = info and info.wallTime or nil
+    }
+  end
+
+  local selfName = getSelfName()
+  snapshot[selfName] = snapshot[selfName] or {name = selfName}
+  snapshot[selfName].pos = getSelfPosition() or snapshot[selfName].pos
+  snapshot[selfName].lastSeen = now or snapshot[selfName].lastSeen
+  return snapshot
+end
+
+BotServer.isExivaTrackerEnabled = function()
+  return config.enabled and config.exivaTracker == true
 end
 
 local function safeFileName(value)
@@ -634,6 +662,7 @@ local function setMinimapMarker(marker, x, y, tooltip)
   pcall(function() marker:setBackgroundColor(MINIMAP_MARKER_COLOR) end)
   pcall(function() marker:setVisible(true) end)
   pcall(function() marker:setTooltip(tooltip or "") end)
+  pcall(function() marker:setPhantom(false) end)
   pcall(function() marker:setMarginLeft(math.floor(x)) end)
   pcall(function() marker:setMarginTop(math.floor(y)) end)
   pcall(function() marker:setSize({width = 5, height = 5}) end)
@@ -647,11 +676,7 @@ local function nativeMinimapSupported(minimap)
 end
 
 local function nativeMarkerTooltip(memberName, info)
-  local tooltip = tostring(memberName)
-  if info and info.voc then
-    tooltip = tooltip .. "\nVoc: " .. tostring(info.voc)
-  end
-  return tooltip
+  return tostring(memberName)
 end
 
 local function updateNativeMemberMinimap(minimap, markerStorageKey, trackPrimary)
@@ -716,7 +741,7 @@ local function updateNativeMemberMinimap(minimap, markerStorageKey, trackPrimary
           end
           if cross.setImageColor then cross:setImageColor(MINIMAP_MARKER_COLOR) end
           if cross.setTooltip then cross:setTooltip(nativeMarkerTooltip(memberName, info)) end
-          if cross.setPhantom then cross:setPhantom(true) end
+          if cross.setPhantom then cross:setPhantom(false) end
           if cross.setFocusable then cross:setFocusable(false) end
           minimap:centerInPosition(cross, position)
           return cross
@@ -739,6 +764,7 @@ local function updateNativeMemberMinimap(minimap, markerStorageKey, trackPrimary
           marker.widget:setVisible(not cameraPosition or
             tonumber(cameraPosition.z) == tonumber(position.z))
           marker.widget:setTooltip(nativeMarkerTooltip(memberName, info))
+          if marker.widget.setPhantom then marker.widget:setPhantom(false) end
         end)
       end
     end
@@ -851,8 +877,7 @@ local function updateMemberMinimapOverlay(force)
       local y = centerY + (info.pos.y - centerMapPos.y) * scale
       if x >= 0 and x <= width - 5 and y >= 0 and y <= height - 5 then
         markerIndex = markerIndex + 1
-        local tooltip = memberName .. "\nPos: " .. positionKey(info.pos)
-        if info.voc then tooltip = tooltip .. "\nVoc: " .. tostring(info.voc) end
+        local tooltip = tostring(memberName)
         setMinimapMarker(overlay["marker" .. markerIndex], clamp(x - 2, 0, width - 5), clamp(y - 2, 0, height - 5), tooltip)
       end
     end
@@ -1049,6 +1074,17 @@ if rootWidget then
     else
       hideMemberMinimapOverlay()
       hideCyclopediaMemberMarkers()
+    end
+  end
+  if botServerWindow.Features.Feature7 then
+    botServerWindow.Features.Feature7:setOn(config.exivaTracker)
+    pcall(function()
+      botServerWindow.Features.Feature7:setTooltip(
+        "Coordina exivas con miembros conectados y marca la zona estimada en los mapas.")
+    end)
+    botServerWindow.Features.Feature7.onClick = function(widget)
+      config.exivaTracker = not config.exivaTracker
+      widget:setOn(config.exivaTracker)
     end
   end
   botServerWindow.Features.Broadcast.onClick = function(widget)

@@ -254,6 +254,15 @@ FeaturePanel < Panel
     height: 21
     text: Broadcast
 
+  BotSwitch
+    id: Feature7
+    anchors.top: Feature4.top
+    anchors.left: Feature5.right
+    margin-left: 5
+    width: 64
+    height: 21
+    text: Exiva
+
   TextEdit
     id: broadcastText
     anchors.bottom: parent.bottom

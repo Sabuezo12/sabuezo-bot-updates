@@ -20,6 +20,7 @@ local loaderSections = {
     name = "Core",
     files = {
       "vBot/client_compat",
+      "vBot/layout_persistence",
       "vBot/items",
       "vBot/vlib",
       "vBot/ItemCounter",
@@ -37,6 +38,7 @@ local loaderSections = {
       "vBot/extrasPvp",
       "vBot/GameBotServerTransport",
       "vBot/BotServer",
+      "vBot/exiva_tracker",
       "vBot/playerlist",
       "vBot/combo_plus",
       ----"vBot/combo", -- replaced by combo_plus
