@@ -253,46 +253,46 @@ CaveBot.gotoNextWaypointInRange = function()
   local currentAction = ui.list:getFocusedChild()
   local index = ui.list:getChildIndex(currentAction)
   local actions = ui.list:getChildren()
+  local maxDist = tonumber(storage.extras.gotoMaxDistance) or 24
+  local recoveryDist = math.min(maxDist, 24)
+  local candidates = {}
 
-  -- start searching from current index
-  for i, child in ipairs(actions) do
-    if i > index then
-      local text = child:getText()
-      if string.starts(text, "goto:") then
-        local re = regexMatch(text, [[(?:goto:)([^,]+),([^,]+),([^,]+)]])
-        local pos = {x = tonumber(re[1][2]), y = tonumber(re[1][3]), z = tonumber(re[1][4])}
-        
-        if posz() == pos.z then
-          local maxDist = storage.extras.gotoMaxDistance
-          if distanceFromPlayer(pos) <= maxDist then
-            if findPath(player:getPosition(), pos, maxDist, { ignoreNonPathable = true }) then
-              ui.list:focusChild(ui.list:getChildByIndex(i-1))
-              return true
-            end
-          end
-        end
-      end
+  local function addCandidate(i, child, order)
+    local text = child:getText()
+    if not string.starts(text, "goto:") then return end
+    local re = regexMatch(text, [[(?:goto:)([^,]+),([^,]+),([^,]+)]])
+    if not re[1] then return end
+    local waypoint = {x = tonumber(re[1][2]), y = tonumber(re[1][3]), z = tonumber(re[1][4])}
+    if posz() ~= waypoint.z then return end
+    local distance = distanceFromPlayer(waypoint)
+    if distance <= recoveryDist then
+      table.insert(candidates, {index = i, pos = waypoint, distance = distance, order = order})
     end
   end
 
-  -- if not found then damn go from start
-  for i, child in ipairs(actions) do
-    if i <= index then
-      local text = child:getText()
-      if string.starts(text, "goto:") then
-        local re = regexMatch(text, [[(?:goto:)([^,]+),([^,]+),([^,]+)]])
-        local pos = {x = tonumber(re[1][2]), y = tonumber(re[1][3]), z = tonumber(re[1][4])}
+  local order = 0
+  for i = index + 1, #actions do
+    order = order + 1
+    addCandidate(i, actions[i], order)
+  end
+  for i = 1, index do
+    order = order + 1
+    addCandidate(i, actions[i], order)
+  end
 
-        if posz() == pos.z then
-          local maxDist = storage.extras.gotoMaxDistance
-          if distanceFromPlayer(pos) <= maxDist then
-            if findPath(player:getPosition(), pos, maxDist, { ignoreNonPathable = true }) then
-              ui.list:focusChild(ui.list:getChildByIndex(i-1))
-              return true
-            end
-          end
-        end
-      end
+  table.sort(candidates, function(a, b)
+    if a.distance == b.distance then return a.order < b.order end
+    return a.distance < b.distance
+  end)
+
+  local playerPos = player:getPosition()
+  for i = 1, math.min(#candidates, 8) do
+    local candidate = candidates[i]
+    if findPath(playerPos, candidate.pos, recoveryDist, { ignoreNonPathable = true }) then
+      local previousIndex = candidate.index - 1
+      if previousIndex < 1 then previousIndex = #actions end
+      ui.list:focusChild(ui.list:getChildByIndex(previousIndex))
+      return true
     end
   end
 

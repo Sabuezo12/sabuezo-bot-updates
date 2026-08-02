@@ -118,6 +118,24 @@ local function minimizeContainerAfterLayout(container)
   schedule(defaultDelay + 50, applyMinimize)
 end
 
+local function resizeContainerAfterLayout(container)
+  local function applyResize()
+    if not container or not container.window then return end
+    local cWindow = container.window
+    if cWindow.isMinimized then
+      local ok, minimized = pcall(function() return cWindow:isMinimized() end)
+      if ok and minimized then return end
+    end
+    if cWindow.setContentHeight then
+      pcall(function() cWindow:setContentHeight(34) end)
+    end
+  end
+
+  applyResize()
+  schedule(50, applyResize)
+  schedule(defaultDelay + 50, applyResize)
+end
+
 -- UI
 local CM = setupUI([[
 Panel
@@ -1223,7 +1241,7 @@ onContainerOpen(function(container, previousContainer)
 
   if not container.window then return end
   local cWindow = container.window
-  if settings.eResize then cWindow:setContentHeight(34) end
+  if settings.eResize then resizeContainerAfterLayout(container) end
   if isMainSource then
     cWindow:setText("Main Bp")
   elseif explicitRole and not index then
@@ -1271,13 +1289,19 @@ local openNextMacro = macro(defaultDelay,function()
     end
   end
 
-  for _, container in ipairs(getOrderedOpenContainers()) do
-    if queueConfiguredContainersFrom(container) then
+  local openContainers = getOrderedOpenContainers()
+  for _, container in ipairs(openContainers) do
+    local containerId = getContainerItemId(container)
+    local containerIndex = findContainerConfig(containerId)
+    local containerSettings = containerIndex and config.list[containerIndex] or nil
+    local shouldOpenInside = containerSettings and containerSettings.eEnabled and
+      containerSettings.eOpenNext or getExplicitSupplyRole(containerId)
+    if shouldOpenInside and queueConfiguredContainersFrom(container) then
       return delay(defaultDelay + 5)
     end
   end
 
-  openMain()
+  if #openContainers == 0 then openMain() end
 end)
 
 local sortItemsMacro = macro(defaultDelay, function(m)

@@ -1,3 +1,9 @@
+3.0.11 - 2026-08-02
+- Reduce Max GoTo Distance a 24 y limita el radio real de pathfinding para evitar macros lentas.
+- Actualiza los marcadores de aliados del BotServer cada 300 ms en el minimapa y Cyclopedia.
+- Container Manager conserva el tamano compacto despues de abrir una BP.
+- Open Containers Inside deja la BP abierta y no hace nada cuando no existen contenedores hijos.
+
 3.0.10 - 2026-08-02
 - Unifica Cave/Target, Scripts Basicos y Scripts PvP en la nueva ventana Bot Settings sin perder configuraciones guardadas.
 - Rediseña Icon Editor con edicion individual y conjunta, estilos Icono/Barra, opacidad, movimiento anclado y distribucion en tiempo real.

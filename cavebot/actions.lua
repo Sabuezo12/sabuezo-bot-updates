@@ -554,9 +554,13 @@ CaveBot.registerAction("goto", "green", function(value, retries, prev)
     return false -- different floor
   end
 
-  local maxDist = storage.extras.gotoMaxDistance or 40
+  local maxDist = tonumber(storage.extras.gotoMaxDistance) or 24
+  local directDistance = math.abs(pos.x-playerPos.x) + math.abs(pos.y-playerPos.y)
+  -- Preserve the configured waypoint limit without making a short blocked step
+  -- explore the full radius on every retry.
+  local pathSearchDist = math.min(maxDist, math.max(20, directDistance + 10))
   
-  if math.abs(pos.x-playerPos.x) + math.abs(pos.y-playerPos.y) > maxDist then
+  if directDistance > maxDist then
     noPath = noPath + 1
     pathfinder()
     return false -- too far way
@@ -581,12 +585,12 @@ CaveBot.registerAction("goto", "green", function(value, retries, prev)
     return "retry"
   end
   
-  if CaveBot.walkTo(pos, maxDist, { ignoreNonPathable = true, allowUnseen = true, allowOnlyVisibleTiles = false }) then
+  if CaveBot.walkTo(pos, pathSearchDist, { ignoreNonPathable = true, allowUnseen = true, allowOnlyVisibleTiles = false }) then
     return "retry"
   end
 
   -- check if there's a path to that place, ignore creatures and fields
-  local path = findPath(playerPos, pos, maxDist, { ignoreNonPathable = true, precision = 1, ignoreCreatures = true, allowUnseen = true, allowOnlyVisibleTiles = false  })
+  local path = findPath(playerPos, pos, pathSearchDist, { ignoreNonPathable = true, precision = 1, ignoreCreatures = true, allowUnseen = true, allowOnlyVisibleTiles = false  })
   if not path then
     if breakFurniture(pos, storage.extras.machete) then
       CaveBot.delay(1000)
@@ -599,7 +603,7 @@ CaveBot.registerAction("goto", "green", function(value, retries, prev)
   end
 
   -- check if there's a path to destination but consider Creatures (attack only if trapped)
-  local path2 = findPath(playerPos, pos, maxDist, { ignoreNonPathable = true, precision = 1 })
+  local path2 = findPath(playerPos, pos, pathSearchDist, { ignoreNonPathable = true, precision = 1 })
   if not path2 then
     local foundMonster = false
     for i, dir in ipairs(path) do
@@ -664,7 +668,7 @@ CaveBot.registerAction("goto", "green", function(value, retries, prev)
   end
 
   -- everything else failed, try to walk ignoring creatures, maybe will work
-  CaveBot.walkTo(pos, maxDist, { ignoreNonPathable = true, precision = 1, ignoreCreatures = true, allowUnseen = true, allowOnlyVisibleTiles = false })
+  CaveBot.walkTo(pos, pathSearchDist, { ignoreNonPathable = true, precision = 1, ignoreCreatures = true, allowUnseen = true, allowOnlyVisibleTiles = false })
   return "retry"
 end)
 
