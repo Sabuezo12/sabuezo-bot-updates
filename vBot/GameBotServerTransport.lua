@@ -46,7 +46,9 @@ local state = {
   lastTopicSent = {},
   lastChatSent = 0,
   sequence = 0,
-  webSocketError = nil
+  webSocketError = nil,
+  webSocketReconnectAttempts = 0,
+  nextWebSocketReconnectAt = 0
 }
 transport.state = state
 
@@ -483,6 +485,9 @@ local function installConsolePacketFilter()
   if type(chat) == "table" and type(chatClass) == "table" and
      type(chatClass.onTalk) == "function" then
     chat.onTalk = chatClass.onTalk
+    if type(chatClass.onTextMessage) == "function" then
+      chat.onTextMessage = chatClass.onTextMessage
+    end
     if type(chatClass.addText) == "function" then
       chat.addText = chatClass.addText
     end
@@ -491,10 +496,28 @@ local function installConsolePacketFilter()
     local filteredOnTalk = function(self, sender, level, mode, text,
                                     channelId, pos, statement, groupId)
       if isPacketText(text) then return end
+      if vBot and type(vBot.ExivaCalibrationCaptureConsoleText) == "function" then
+        pcall(vBot.ExivaCalibrationCaptureConsoleText, text, mode,
+          "Server Log", sender, level, statement)
+      end
       return originalOnTalk(self, sender, level, mode, text, channelId, pos,
         statement, groupId)
     end
     remember(chat, "onTalk", originalOnTalk, filteredOnTalk)
+
+    if type(chatClass.onTextMessage) == "function" then
+      local originalOnTextMessage = chatClass.onTextMessage
+      local filteredOnTextMessage = function(self, mode, text)
+        if isPacketText(text) then return end
+        if vBot and type(vBot.ExivaCalibrationCaptureConsoleText) == "function" then
+          pcall(vBot.ExivaCalibrationCaptureConsoleText, text, mode,
+            "Server Log")
+        end
+        return originalOnTextMessage(self, mode, text)
+      end
+      remember(chat, "onTextMessage", originalOnTextMessage,
+        filteredOnTextMessage)
+    end
 
     if type(chatClass.addText) == "function" then
       local originalAddText = function(text, speaktype, tabName, creatureName,
@@ -505,6 +528,10 @@ local function installConsolePacketFilter()
       local filteredAddText = function(text, speaktype, tabName, creatureName,
                                        level, statement)
         if isPacketText(text) then return end
+        if vBot and type(vBot.ExivaCalibrationCaptureConsoleText) == "function" then
+          pcall(vBot.ExivaCalibrationCaptureConsoleText, text, speaktype,
+            tabName, creatureName, level, statement)
+        end
         return originalAddText(text, speaktype, tabName, creatureName, level,
           statement)
       end
@@ -518,6 +545,10 @@ local function installConsolePacketFilter()
     local originalAddTabText = gameConsole.addTabText
     local filteredAddTabText = function(text, speaktype, tab, creatureName)
       if isPacketText(text) then return end
+      if vBot and type(vBot.ExivaCalibrationCaptureConsoleText) == "function" then
+        pcall(vBot.ExivaCalibrationCaptureConsoleText, text, speaktype,
+          tab, creatureName)
+      end
       return originalAddTabText(text, speaktype, tab, creatureName)
     end
     remember(gameConsole, "addTabText", originalAddTabText,
@@ -633,6 +664,8 @@ function transport.init(clientName, room)
   state.lastChatSent = 0
   state.webSocketError = nil
   state.socket = nil
+  state.webSocketReconnectAttempts = 0
+  state.nextWebSocketReconnectAt = 0
 
   if state.requestedMode == "websocket" then
     local original = BotServer._gameTransportOriginal or {}
@@ -653,6 +686,8 @@ function transport.init(clientName, room)
     if not ok or result == false or not BotServer._websocket then
       state.webSocketError = "CONNECT_FAILED"
       BotServer._websocket = nil
+      state.webSocketReconnectAttempts = 1
+      state.nextWebSocketReconnectAt = clockMillis() + 1000
       return false
     end
     state.socket = BotServer._websocket
@@ -694,6 +729,8 @@ function transport.terminate()
   end
   state.socket = nil
   state.webSocketError = nil
+  state.webSocketReconnectAttempts = 0
+  state.nextWebSocketReconnectAt = 0
   BotServer._websocket = nil
   BotServer.url = nil
   unregisterOwnedOpcode()
@@ -795,6 +832,47 @@ function transport.restart()
   if wasActive then transport.init(clientName, room) end
 end
 
+local function reconnectWebSocketIfNeeded()
+  if not state.active or state.activeMode ~= "websocket" or BotServer._websocket then
+    return
+  end
+
+  local current = clockMillis()
+  if current < (state.nextWebSocketReconnectAt or 0) then return end
+
+  local original = BotServer._gameTransportOriginal or {}
+  if type(original.init) ~= "function" then
+    state.webSocketError = "UNSUPPORTED"
+    state.nextWebSocketReconnectAt = current + 15000
+    return
+  end
+
+  local webSocketUrl, urlError = buildWebSocketUrl()
+  if not webSocketUrl then
+    state.webSocketError = urlError
+    state.nextWebSocketReconnectAt = current + 15000
+    return
+  end
+
+  local attempt = (state.webSocketReconnectAttempts or 0) + 1
+  state.webSocketReconnectAttempts = attempt
+  local retryDelay = math.min(15000, 1000 * (2 ^ math.min(4, attempt - 1)))
+  state.nextWebSocketReconnectAt = current + retryDelay
+  state.socket = nil
+  BotServer.url = webSocketUrl
+
+  local ok, result = pcall(original.init, state.clientName, state.room)
+  if ok and result ~= false and BotServer._websocket then
+    state.socket = BotServer._websocket
+    state.webSocketError = nil
+    state.webSocketReconnectAttempts = 0
+    state.nextWebSocketReconnectAt = 0
+  else
+    state.webSocketError = "CONNECT_FAILED"
+    BotServer._websocket = nil
+  end
+end
+
 BotServer.init = transport.init
 BotServer.terminate = transport.terminate
 BotServer.listen = transport.listen
@@ -816,6 +894,7 @@ end
 
 macro(50, function()
   if not validGeneration() then return end
+  reconnectWebSocketIfNeeded()
   pruneRuntime()
   flushChatQueue()
 end)

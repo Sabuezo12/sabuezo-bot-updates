@@ -5,20 +5,13 @@ local panelName = "extrasPvp"
 storage[panelName] = storage[panelName] or {}
 local settings = storage[panelName]
 
--- basic elements
-extrasPvp = UI.createWindow('ExtrasPvpWindow', rootWidget)
-extrasPvp:hide()
-extrasPvp.closeButton.onClick = function(widget)
-  extrasPvp:hide()
-end
-
--- available options for dest param
-local rightPanel = extrasPvp.content.right
-local leftPanel = extrasPvp.content.left
+-- Bot Settings keeps this script's storage and controls, but shares one window.
+extrasPvp = BotSettings.window
+local leftPanel, rightPanel = BotSettings.getColumns("pvp")
 
 -- objects made by Kondrah - taken from creature editor, minor changes to adapt
 local addCheckBox = function(id, title, defaultValue, dest, tooltip)
-  local widget = UI.createWidget('ExtrasPvpCheckBox', dest)
+  local widget = UI.createWidget('BotSettingsCheckBox', dest)
   widget.onClick = function()
     widget:setOn(not widget:isOn())
     settings[id] = widget:isOn()
@@ -34,7 +27,7 @@ local addCheckBox = function(id, title, defaultValue, dest, tooltip)
 end
 
 local addItem = function(id, title, defaultItem, dest, tooltip)
-  local widget = UI.createWidget('ExtrasPvpItem', dest)
+  local widget = UI.createWidget('BotSettingsItem', dest)
   widget.text:setText(title)
   widget.text:setTooltip(tooltip)
   widget.item:setTooltip(tooltip)
@@ -46,7 +39,7 @@ local addItem = function(id, title, defaultItem, dest, tooltip)
 end
 
 local addTextEdit = function(id, title, defaultValue, dest, tooltip)
-  local widget = UI.createWidget('ExtrasPvpTextEdit', dest)
+  local widget = UI.createWidget('BotSettingsTextEdit', dest)
   widget.text:setText(title)
   widget.textEdit:setText(settings[id] or defaultValue or "")
   widget.text:setTooltip(tooltip)
@@ -57,7 +50,7 @@ local addTextEdit = function(id, title, defaultValue, dest, tooltip)
 end
 
 local addScrollBar = function(id, title, min, max, defaultValue, dest, tooltip)
-  local widget = UI.createWidget('ExtrasPvpScrollBar', dest)
+  local widget = UI.createWidget('BotSettingsScrollBar', dest)
   widget.text:setTooltip(tooltip)
   widget.scroll:setRange(min, max)
   widget.scroll.onValueChange = function(scroll, value)
@@ -76,14 +69,6 @@ local addScrollBar = function(id, title, min, max, defaultValue, dest, tooltip)
   widget.scroll:setValue(settings[id] or defaultValue)
   widget.scroll.onValueChange(widget.scroll, widget.scroll:getValue())
 end
-
-local btExtrasPvp = UI.Button("Extras (PVP Scripts)", function()
-  extrasPvp:show()
-  extrasPvp:raise()
-  extrasPvp:focus()
-end)
-btExtrasPvp:setImageColor("orange")
-UI.Separator()
 
 addItem("mwRune", "MW Rune", 3180, leftPanel, "Magic Wall Rune.")
 addItem("mwObj", "Magic Wall", 2128, leftPanel, "Magic Wall Object.")

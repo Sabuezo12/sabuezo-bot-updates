@@ -4,6 +4,9 @@ local topY = 146
 local spacingY = 48
 local iconWidth = 58
 local iconHeight = 46
+local barWidth = 116
+local barHeight = 26
+local textAlignCenter = 48
 
 local iconList = {
   {id = "ERingIcon", text = "Ering", itemId = 3088, botScript = ERing, x = leftX, y = topY - spacingY, offColor = "#ff3b3b"},
@@ -30,7 +33,9 @@ local layoutDefaults = {
   gapX = rightX - leftX,
   gapY = spacingY,
   gridSize = 2,
-  snapEnabled = true
+  snapEnabled = true,
+  visualMode = "classic",
+  barOpacity = 70
 }
 
 if type(storage.iconEditor) ~= "table" then storage.iconEditor = {} end
@@ -42,6 +47,24 @@ for key, value in pairs(layoutDefaults) do
   if editorConfig.layout[key] == nil then editorConfig.layout[key] = value end
 end
 
+local function effectiveVisualMode(entry)
+  local mode = entry and entry.config and entry.config.visualMode or nil
+  if mode == "bar" or mode == "classic" then return mode end
+  return editorConfig.layout.visualMode == "bar" and "bar" or "classic"
+end
+
+local function isBarMode(entry)
+  return effectiveVisualMode(entry) == "bar"
+end
+
+local function currentIconWidth(entry)
+  return isBarMode(entry) and barWidth or iconWidth
+end
+
+local function currentIconHeight(entry)
+  return isBarMode(entry) and barHeight or iconHeight
+end
+
 local activeIcons = {}
 local iconById = {}
 local editorRows = {}
@@ -50,6 +73,9 @@ local selectedEntry
 local selectedOnColor = "#00d43a"
 local selectedOffColor = "#ff3b3b"
 local editMode = false
+local moveMode = "none"
+local syncingSelectedControls = false
+local syncingLayoutControls = false
 local selectEditorEntry
 local refreshEditorList
 
@@ -58,6 +84,12 @@ local function clamp(value, minimum, maximum)
   if value < minimum then return minimum end
   if maximum and value > maximum then return maximum end
   return value
+end
+
+local function barBackgroundColor()
+  local opacity = clamp(editorConfig.layout.barOpacity, 10, 100)
+  local alpha = math.floor((opacity * 255 / 100) + 0.5)
+  return string.format("#181818%02x", alpha)
 end
 
 local function roundToGrid(value)
@@ -107,6 +139,12 @@ local function isIconVisible(entry)
   return entry.config.visible ~= false
 end
 
+local function canDragEntry(entry)
+  if not editMode or not isIconVisible(entry) then return false end
+  if moveMode == "group" then return true end
+  return moveMode == "selected" and entry == selectedEntry
+end
+
 local function readScriptState(script)
   if not script or not script.isOn then return false end
   local ok, enabled = pcall(script.isOn)
@@ -118,6 +156,10 @@ local function setWidgetPosition(widget, x, y)
 
   x = math.max(0, math.floor(tonumber(x) or 0))
   y = math.max(0, math.floor(tonumber(y) or 0))
+  local widgetWidth = currentIconWidth()
+  local widgetHeight = currentIconHeight()
+  pcall(function() widgetWidth = tonumber(widget:getWidth()) or widgetWidth end)
+  pcall(function() widgetHeight = tonumber(widget:getHeight()) or widgetHeight end)
 
   local root = g_ui and g_ui.getRootWidget and g_ui.getRootWidget() or nil
   if root then
@@ -125,11 +167,11 @@ local function setWidgetPosition(widget, x, y)
     local okHeight, rootHeight = pcall(function() return root:getHeight() end)
     rootWidth = tonumber(rootWidth)
     rootHeight = tonumber(rootHeight)
-    if okWidth and rootWidth and rootWidth > iconWidth then
-      x = math.min(x, rootWidth - iconWidth)
+    if okWidth and rootWidth and rootWidth > widgetWidth then
+      x = math.min(x, rootWidth - widgetWidth)
     end
-    if okHeight and rootHeight and rootHeight > iconHeight then
-      y = math.min(y, rootHeight - iconHeight)
+    if okHeight and rootHeight and rootHeight > widgetHeight then
+      y = math.min(y, rootHeight - widgetHeight)
     end
   end
 
@@ -165,6 +207,8 @@ end
 
 local function findOverlappingIcon(entry, x, y, visible)
   if visible == false then return nil end
+  local widgetWidth = currentIconWidth(entry)
+  local widgetHeight = currentIconHeight(entry)
 
   for _, other in ipairs(activeIcons) do
     if other ~= entry and isIconVisible(other) then
@@ -172,7 +216,10 @@ local function findOverlappingIcon(entry, x, y, visible)
         x = effectiveX(other),
         y = effectiveY(other)
       }
-      if math.abs(x - otherPosition.x) < iconWidth and math.abs(y - otherPosition.y) < iconHeight then
+      local otherWidth = currentIconWidth(other)
+      local otherHeight = currentIconHeight(other)
+      if x < otherPosition.x + otherWidth and x + widgetWidth > otherPosition.x and
+        y < otherPosition.y + otherHeight and y + widgetHeight > otherPosition.y then
         return other
       end
     end
@@ -186,7 +233,12 @@ local function setTextColor(entry, enabled)
   local color = enabled and effectiveOnColor(entry) or effectiveOffColor(entry)
   local widget = entry.widget
   if widget.text then pcall(function() widget.text:setColor(color) end) end
-  if widget.setColor then pcall(function() widget:setColor(color) end) end
+  if isBarMode(entry) then
+    pcall(function() widget:setBackgroundColor(barBackgroundColor()) end)
+    pcall(function() widget:setBorderColor(color) end)
+  elseif widget.setColor then
+    pcall(function() widget:setColor(color) end)
+  end
 end
 
 local function saveIconState(id, enabled)
@@ -195,30 +247,55 @@ local function saveIconState(id, enabled)
   storage._icons[id].enabled = enabled == true
 end
 
-local function styleIcon(widget)
+local function styleIcon(widget, entry)
   if not widget then return end
+  local barMode = isBarMode(entry)
+  local widgetWidth = currentIconWidth(entry)
+  local widgetHeight = currentIconHeight(entry)
   pcall(function() widget:breakAnchors() end)
-  pcall(function() widget:setSize({height = iconHeight, width = iconWidth}) end)
+  pcall(function() widget:setSize({height = widgetHeight, width = widgetWidth}) end)
+  pcall(function() widget:setBackgroundColor(barMode and barBackgroundColor() or "alpha") end)
+  pcall(function() widget:setBorderWidth(barMode and 1 or 0) end)
 
   if widget.text then
     pcall(function() widget.text:breakAnchors() end)
     pcall(function() widget.text:setFont("verdana-11px-rounded") end)
-    pcall(function() widget.text:setTextAlign(AlignCenter) end)
-    pcall(function() widget.text:setSize({height = 24, width = iconWidth}) end)
-    pcall(function() widget.text:setWidth(iconWidth) end)
+    pcall(function() widget.text:setTextAlign(textAlignCenter) end)
+    pcall(function() widget.text:setTextWrap(false) end)
+    pcall(function() widget.text:setTextOffset({x = 0, y = 0}) end)
     pcall(function() widget.text:setMarginLeft(0) end)
     pcall(function() widget.text:setMarginRight(0) end)
-    pcall(function() widget.text:move(0, 23) end)
+    pcall(function() widget.text:setMarginTop(0) end)
+    pcall(function() widget.text:setMarginBottom(0) end)
+    if barMode then
+      pcall(function() widget.text:setTextAutoResize(false) end)
+      pcall(function() widget.text:setTextHorizontalAutoResize(false) end)
+      pcall(function() widget.text:setTextVerticalAutoResize(false) end)
+      pcall(function() widget.text:setSize({height = widgetHeight, width = widgetWidth}) end)
+      pcall(function() widget.text:addAnchor(AnchorLeft, "parent", AnchorLeft) end)
+      pcall(function() widget.text:addAnchor(AnchorRight, "parent", AnchorRight) end)
+      pcall(function() widget.text:addAnchor(AnchorTop, "parent", AnchorTop) end)
+      pcall(function() widget.text:addAnchor(AnchorBottom, "parent", AnchorBottom) end)
+    else
+      pcall(function() widget.text:setTextAutoResize(true) end)
+      pcall(function() widget.text:addAnchor(AnchorHorizontalCenter, "parent", AnchorHorizontalCenter) end)
+      pcall(function() widget.text:addAnchor(AnchorBottom, "parent", AnchorBottom) end)
+    end
+    pcall(function() widget.text:raise() end)
   end
 
   if widget.item then
-    pcall(function() widget.item:breakAnchors() end)
-    pcall(function() widget.item:setSize({height = 32, width = 32}) end)
-    pcall(function() widget.item:setMarginTop(0) end)
-    pcall(function() widget.item:setMarginLeft(13) end)
-    pcall(function() widget.item:setMarginRight(13) end)
-    pcall(function() widget.item:move(13, 0) end)
-    pcall(function() widget.item:lower() end)
+    pcall(function() widget.item:setVisible(not barMode) end)
+    if not barMode then
+      pcall(function() widget.item:breakAnchors() end)
+      pcall(function() widget.item:setSize({height = 32, width = 32}) end)
+      pcall(function() widget.item:setMarginTop(0) end)
+      pcall(function() widget.item:setMarginLeft(0) end)
+      pcall(function() widget.item:setMarginRight(0) end)
+      pcall(function() widget.item:addAnchor(AnchorTop, "parent", AnchorTop) end)
+      pcall(function() widget.item:addAnchor(AnchorHorizontalCenter, "parent", AnchorHorizontalCenter) end)
+      pcall(function() widget.item:lower() end)
+    end
   end
 end
 
@@ -232,7 +309,10 @@ local function applyIconVisual(entry, includePosition)
   local widget = entry.widget
 
   if widget.text then
-    pcall(function() widget.text:setText(effectiveText(entry)) end)
+    local text = effectiveText(entry)
+    if isBarMode(entry) then text = text:gsub("\n", " ") end
+    pcall(function() widget.text:setText(text) end)
+    pcall(function() widget.text:setTextAlign(textAlignCenter) end)
   end
 
   if widget.item then
@@ -240,7 +320,7 @@ local function applyIconVisual(entry, includePosition)
   end
 
   pcall(function() widget:setVisible(isIconVisible(entry)) end)
-  setIconDraggable(entry, editMode and isIconVisible(entry))
+  setIconDraggable(entry, canDragEntry(entry))
 
   if includePosition ~= false then
     local position = setWidgetPosition(widget, effectiveX(entry), effectiveY(entry))
@@ -253,7 +333,7 @@ local function applyIconVisual(entry, includePosition)
   setTextColor(entry, readScriptState(entry.botScript))
 end
 
-local function saveDraggedPosition(entry)
+local function saveDraggedPosition(entry, allowOverlap)
   if not entry or not editMode then return end
   local position = getWidgetPosition(entry.widget)
   if not position then return end
@@ -263,7 +343,7 @@ local function saveDraggedPosition(entry)
     position.y = roundToGrid(position.y)
   end
 
-  local overlapping = findOverlappingIcon(entry, position.x, position.y, isIconVisible(entry))
+  local overlapping = not allowOverlap and findOverlappingIcon(entry, position.x, position.y, isIconVisible(entry)) or nil
   if overlapping then
     setWidgetPosition(entry.widget, effectiveX(entry), effectiveY(entry))
     if editorWindow then
@@ -283,8 +363,10 @@ local function saveDraggedPosition(entry)
   end
 
   if selectedEntry == entry and editorWindow then
+    syncingSelectedControls = true
     editorWindow.selectedX:setValue(position.x)
     editorWindow.selectedY:setValue(position.y)
+    syncingSelectedControls = false
     editorWindow.iconStatus:setText("Posicion guardada")
     editorWindow.iconStatus:setColor("#8cff9a")
   end
@@ -353,7 +435,7 @@ for _, data in ipairs(iconList) do
       table.insert(activeIcons, entry)
       iconById[entry.id] = entry
 
-      styleIcon(widget)
+      styleIcon(widget, entry)
       widget.onGeometryChange = function() end
 
       widget.onDragEnter = function(changedWidget, mousePos)
@@ -364,6 +446,55 @@ for _, data in ipairs(iconList) do
           x = mousePos.x - changedWidget:getX(),
           y = mousePos.y - changedWidget:getY()
         }
+        changedWidget.dragGroup = {
+          x = changedWidget:getX(),
+          y = changedWidget:getY(),
+          entries = {},
+          minX = nil,
+          minY = nil,
+          maxRight = nil,
+          maxBottom = nil,
+          layoutOriginX = tonumber(editorConfig.layout.originX) or layoutDefaults.originX,
+          layoutOriginY = tonumber(editorConfig.layout.originY) or layoutDefaults.originY,
+          deltaX = 0,
+          deltaY = 0
+        }
+
+        local dragEntries = moveMode == "group" and activeIcons or {entry}
+        for _, draggedEntry in ipairs(dragEntries) do
+          local draggedWidget = draggedEntry.widget
+          local position = getWidgetPosition(draggedWidget)
+          if draggedWidget and position then
+            pcall(function() draggedWidget:breakAnchors() end)
+            local captured = {
+              entry = draggedEntry,
+              widget = draggedWidget,
+              x = position.x,
+              y = position.y,
+              children = {}
+            }
+
+            for _, child in ipairs({draggedWidget.text, draggedWidget.item}) do
+              if child then
+                local childPosition = getWidgetPosition(child)
+                if childPosition then
+                  pcall(function() child:breakAnchors() end)
+                  table.insert(captured.children, {
+                    widget = child,
+                    x = childPosition.x,
+                    y = childPosition.y
+                  })
+                end
+              end
+            end
+
+            table.insert(changedWidget.dragGroup.entries, captured)
+            changedWidget.dragGroup.minX = math.min(changedWidget.dragGroup.minX or position.x, position.x)
+            changedWidget.dragGroup.minY = math.min(changedWidget.dragGroup.minY or position.y, position.y)
+            changedWidget.dragGroup.maxRight = math.max(changedWidget.dragGroup.maxRight or 0, position.x + draggedWidget:getWidth())
+            changedWidget.dragGroup.maxBottom = math.max(changedWidget.dragGroup.maxBottom or 0, position.y + draggedWidget:getHeight())
+          end
+        end
         if selectEditorEntry then selectEditorEntry(entry) end
         return true
       end
@@ -374,19 +505,84 @@ for _, data in ipairs(iconList) do
         local root = g_ui.getRootWidget()
         local rootWidth = root and tonumber(root:getWidth()) or 0
         local rootHeight = root and tonumber(root:getHeight()) or 0
-        local maxX = math.max(0, rootWidth - changedWidget:getWidth())
-        local maxY = math.max(0, rootHeight - changedWidget:getHeight())
-        local x = math.min(math.max(0, mousePos.x - changedWidget.movingReference.x), maxX)
-        local y = math.min(math.max(0, mousePos.y - changedWidget.movingReference.y), maxY)
+        local group = changedWidget.dragGroup
+        if not group then return false end
+        local desiredX = mousePos.x - changedWidget.movingReference.x
+        local desiredY = mousePos.y - changedWidget.movingReference.y
+        local deltaX = desiredX - group.x
+        local deltaY = desiredY - group.y
 
-        changedWidget:move(x, y)
+        deltaX = math.max(-(group.minX or 0), deltaX)
+        deltaY = math.max(-(group.minY or 0), deltaY)
+        if rootWidth > 0 then
+          deltaX = math.min(rootWidth - (group.maxRight or rootWidth), deltaX)
+        end
+        if rootHeight > 0 then
+          deltaY = math.min(rootHeight - (group.maxBottom or rootHeight), deltaY)
+        end
+
+        group.deltaX = math.floor(deltaX)
+        group.deltaY = math.floor(deltaY)
+        for _, captured in ipairs(group.entries) do
+          local x = captured.x + group.deltaX
+          local y = captured.y + group.deltaY
+          pcall(function() captured.widget:move(x, y) end)
+          for _, child in ipairs(captured.children) do
+            pcall(function() child.widget:move(child.x + group.deltaX, child.y + group.deltaY) end)
+          end
+
+          local row = editorRows[captured.entry.id]
+          if row and row.coords then row.coords:setText(x .. ", " .. y) end
+          if selectedEntry == captured.entry and editorWindow then
+            syncingSelectedControls = true
+            editorWindow.selectedX:setValue(x)
+            editorWindow.selectedY:setValue(y)
+            syncingSelectedControls = false
+            editorWindow.iconStatus:setText("X: " .. x .. "   Y: " .. y)
+            editorWindow.iconStatus:setColor("#ffd166")
+          end
+        end
+
+        if moveMode == "group" and editorWindow then
+          syncingLayoutControls = true
+          editorWindow.originX:setValue(group.layoutOriginX + group.deltaX)
+          editorWindow.originY:setValue(group.layoutOriginY + group.deltaY)
+          syncingLayoutControls = false
+        end
         return true
       end
 
       widget.onDragLeave = function(changedWidget)
         if not changedWidget.movingReference then return false end
+        local group = changedWidget.dragGroup
         changedWidget.movingReference = nil
-        saveDraggedPosition(entry)
+        if group then
+          for _, captured in ipairs(group.entries) do
+            styleIcon(captured.widget, captured.entry)
+            applyIconVisual(captured.entry, false)
+            saveDraggedPosition(captured.entry, moveMode == "group")
+          end
+
+          if moveMode == "group" then
+            local originX = group.layoutOriginX + group.deltaX
+            local originY = group.layoutOriginY + group.deltaY
+            if editorConfig.layout.snapEnabled ~= false then
+              originX = roundToGrid(originX)
+              originY = roundToGrid(originY)
+            end
+            editorConfig.layout.originX = math.max(0, originX)
+            editorConfig.layout.originY = math.max(0, originY)
+            if editorWindow then
+              syncingLayoutControls = true
+              editorWindow.originX:setValue(editorConfig.layout.originX)
+              editorWindow.originY:setValue(editorConfig.layout.originY)
+              syncingLayoutControls = false
+              editorWindow.iconStatus:setText("Conjunto movido")
+              editorWindow.iconStatus:setColor("#8cff9a")
+            end
+          end
+        end
+        changedWidget.dragGroup = nil
         return true
       end
 
@@ -444,14 +640,19 @@ local function fillSelectedEditor(entry)
 
   selectedOnColor = effectiveOnColor(entry)
   selectedOffColor = effectiveOffColor(entry)
+  syncingSelectedControls = true
   editorWindow.selectedName:setText(editorText(effectiveText(entry)))
   editorWindow.selectedItem:setItemId(effectiveItemId(entry))
   editorWindow.selectedVisible:setChecked(isIconVisible(entry))
   editorWindow.selectedX:setValue(effectiveX(entry))
   editorWindow.selectedY:setValue(effectiveY(entry))
+  if editorWindow.selectedVisualMode then
+    editorWindow.selectedVisualMode:setOption(isBarMode(entry) and "Barra" or "Icono")
+  end
+  syncingSelectedControls = false
   setPreviewColor(editorWindow.onColorPreview, selectedOnColor)
   setPreviewColor(editorWindow.offColorPreview, selectedOffColor)
-  editorWindow.iconStatus:setText(entry.id)
+  editorWindow.iconStatus:setText(effectiveX(entry) .. ", " .. effectiveY(entry))
   editorWindow.iconStatus:setColor("#b8c7cc")
 end
 
@@ -460,12 +661,21 @@ selectEditorEntry = function(entry)
   selectedEntry = entry
   fillSelectedEditor(entry)
 
+  if moveMode == "selected" then
+    for _, candidate in ipairs(activeIcons) do
+      setIconDraggable(candidate, canDragEntry(candidate))
+    end
+  end
+
   local row = editorRows[entry.id]
   if row then pcall(function() row:focus() end) end
 end
 
 refreshEditorList = function()
   if not editorWindow or not editorWindow.iconList then return end
+  if editorWindow.listTitle then
+    editorWindow.listTitle:setText("Iconos (" .. #activeIcons .. ")")
+  end
   editorWindow.iconList:destroyChildren()
   editorRows = {}
 
@@ -487,16 +697,6 @@ refreshEditorList = function()
 
     row.visible.onClick = function(widget)
       local newVisible = not isIconVisible(entry)
-      local overlapping = findOverlappingIcon(entry, effectiveX(entry), effectiveY(entry), newVisible)
-      if overlapping then
-        widget:setChecked(false)
-        if editorWindow then
-          editorWindow.iconStatus:setText("Espacio ocupado por " .. effectiveText(overlapping):gsub("\n", " "))
-          editorWindow.iconStatus:setColor("#ff8a8a")
-        end
-        return
-      end
-
       entry.config.visible = newVisible
       widget:setChecked(isIconVisible(entry))
       applyIconVisual(entry, false)
@@ -530,18 +730,24 @@ if rootWidget then
   end
 end
 
-local function setEditMode(enabled)
-  editMode = enabled == true
-  if editorWindow and editorWindow.moveMode then
-    editorWindow.moveMode:setChecked(editMode)
+local function setMoveMode(mode)
+  if mode ~= "selected" and mode ~= "group" then mode = "none" end
+  moveMode = mode
+  editMode = moveMode ~= "none"
+  if editorWindow then
+    editorWindow.moveSelected:setChecked(moveMode == "selected")
+    editorWindow.moveGroup:setChecked(moveMode == "group")
   end
 
   for _, entry in ipairs(activeIcons) do
-    setIconDraggable(entry, editMode and isIconVisible(entry))
+    setIconDraggable(entry, canDragEntry(entry))
   end
 
   if editorWindow then
-    editorWindow.iconStatus:setText(editMode and "Arrastra los iconos" or "Movimiento desactivado")
+    local status = "Movimiento desactivado"
+    if moveMode == "selected" then status = "Arrastra el icono seleccionado" end
+    if moveMode == "group" then status = "Arrastra cualquier icono para mover todos" end
+    editorWindow.iconStatus:setText(status)
     editorWindow.iconStatus:setColor(editMode and "#ffd166" or "#b8c7cc")
   end
 end
@@ -552,14 +758,18 @@ local function readLayoutControls()
   layout.originX = clamp(editorWindow.originX:getValue(), 0, 4000)
   layout.originY = clamp(editorWindow.originY:getValue(), 0, 4000)
   layout.columns = clamp(editorWindow.columns:getValue(), 1, 8)
-  layout.gapX = clamp(editorWindow.gapX:getValue(), iconWidth, 200)
-  layout.gapY = clamp(editorWindow.gapY:getValue(), iconHeight, 200)
+  layout.gapX = clamp(editorWindow.gapX:getValue(), 1, 300)
+  layout.gapY = clamp(editorWindow.gapY:getValue(), 1, 300)
   layout.gridSize = clamp(editorWindow.gridSize:getValue(), 1, 32)
+  if editorWindow.barOpacity then
+    layout.barOpacity = clamp(editorWindow.barOpacity:getValue(), 10, 100)
+  end
 end
 
 local function fillLayoutControls()
   if not editorWindow then return end
   local layout = editorConfig.layout
+  syncingLayoutControls = true
   editorWindow.originX:setValue(tonumber(layout.originX) or layoutDefaults.originX)
   editorWindow.originY:setValue(tonumber(layout.originY) or layoutDefaults.originY)
   editorWindow.columns:setValue(tonumber(layout.columns) or layoutDefaults.columns)
@@ -567,12 +777,20 @@ local function fillLayoutControls()
   editorWindow.gapY:setValue(tonumber(layout.gapY) or layoutDefaults.gapY)
   editorWindow.gridSize:setValue(tonumber(layout.gridSize) or layoutDefaults.gridSize)
   editorWindow.snapEnabled:setChecked(layout.snapEnabled ~= false)
-  editorWindow.moveMode:setChecked(editMode)
+  editorWindow.moveSelected:setChecked(moveMode == "selected")
+  editorWindow.moveGroup:setChecked(moveMode == "group")
+  if editorWindow.visualMode then
+    editorWindow.visualMode:setOption(isBarMode() and "Barra" or "Icono")
+  end
+  if editorWindow.barOpacity then
+    editorWindow.barOpacity:setValue(clamp(layout.barOpacity, 10, 100))
+  end
+  syncingLayoutControls = false
 end
 
-local function alignIconsToGrid()
+local function alignIconsToGrid(useStoredLayout, keepControlFocus)
   if not editorWindow then return end
-  readLayoutControls()
+  if not useStoredLayout then readLayoutControls() end
   local layout = editorConfig.layout
   local columns = math.max(1, tonumber(layout.columns) or 2)
   local positions = {}
@@ -590,17 +808,19 @@ local function alignIconsToGrid()
     local row = math.floor((index - 1) / columns)
     local x = math.floor(layout.originX + column * layout.gapX)
     local y = math.floor(layout.originY + row * layout.gapY)
+    local widgetWidth = currentIconWidth(entry)
+    local widgetHeight = currentIconHeight(entry)
 
-    if rootWidth and x + iconWidth > rootWidth then
+    if rootWidth and x + widgetWidth > rootWidth then
       editorWindow.iconStatus:setText("La distribucion excede el ancho")
       editorWindow.iconStatus:setColor("#ff8a8a")
-      fillLayoutControls()
+      if not keepControlFocus then fillLayoutControls() end
       return
     end
-    if rootHeight and y + iconHeight > rootHeight then
+    if rootHeight and y + widgetHeight > rootHeight then
       editorWindow.iconStatus:setText("La distribucion excede el alto")
       editorWindow.iconStatus:setColor("#ff8a8a")
-      fillLayoutControls()
+      if not keepControlFocus then fillLayoutControls() end
       return
     end
 
@@ -613,19 +833,61 @@ local function alignIconsToGrid()
     applyIconVisual(position.entry, true)
   end
 
-  fillLayoutControls()
+  if not keepControlFocus then fillLayoutControls() end
   refreshEditorList()
   editorWindow.iconStatus:setText("Iconos alineados")
   editorWindow.iconStatus:setColor("#8cff9a")
+end
+
+local changingVisualMode = false
+local function setVisualMode(mode)
+  mode = mode == "bar" and "bar" or "classic"
+  if changingVisualMode then return end
+  changingVisualMode = true
+
+  readLayoutControls()
+  editorConfig.layout.visualMode = mode
+
+  for _, entry in ipairs(activeIcons) do
+    entry.config.visualMode = nil
+    styleIcon(entry.widget, entry)
+    applyIconVisual(entry, true)
+  end
+
+  fillLayoutControls()
+  refreshEditorList()
+
+  editorWindow.iconStatus:setText(mode == "bar" and "Modo Barra aplicado" or "Modo Icono aplicado")
+  editorWindow.iconStatus:setColor("#8cff9a")
+  changingVisualMode = false
 end
 
 local function resetEntry(entry)
   if not entry then return end
   editorConfig.icons[entry.id] = {}
   entry.config = editorConfig.icons[entry.id]
+  styleIcon(entry.widget, entry)
   applyIconVisual(entry, true)
   updateRow(entry)
   if selectedEntry == entry then fillSelectedEditor(entry) end
+end
+
+local function applySelectedPositionFromControls()
+  if syncingSelectedControls or not editorWindow or not selectedEntry then return end
+  local x = clamp(editorWindow.selectedX:getValue(), 0, 4000)
+  local y = clamp(editorWindow.selectedY:getValue(), 0, 4000)
+  selectedEntry.config.x = math.floor(x)
+  selectedEntry.config.y = math.floor(y)
+  applyIconVisual(selectedEntry, true)
+  updateRow(selectedEntry)
+  editorWindow.iconStatus:setText("X: " .. selectedEntry.config.x .. "   Y: " .. selectedEntry.config.y)
+  editorWindow.iconStatus:setColor("#8cff9a")
+end
+
+local function previewLayoutFromControls()
+  if syncingLayoutControls or changingVisualMode or not editorWindow then return end
+  readLayoutControls()
+  alignIconsToGrid(true, true)
 end
 
 if editorWindow then
@@ -657,31 +919,46 @@ if editorWindow then
     end
   end
 
+  editorWindow.selectedX.onValueChange = function()
+    applySelectedPositionFromControls()
+  end
+
+  editorWindow.selectedY.onValueChange = function()
+    applySelectedPositionFromControls()
+  end
+
+  if editorWindow.selectedVisualMode then
+    editorWindow.selectedVisualMode.onOptionChange = function(widget)
+      if syncingSelectedControls or not selectedEntry then return end
+      local option = widget:getCurrentOption()
+      local mode = option and option.text == "Barra" and "bar" or "classic"
+      if mode == effectiveVisualMode(selectedEntry) then return end
+      selectedEntry.config.visualMode = mode
+      styleIcon(selectedEntry.widget, selectedEntry)
+      applyIconVisual(selectedEntry, true)
+      updateRow(selectedEntry)
+      editorWindow.iconStatus:setText(mode == "bar" and "Barra aplicada" or "Icono aplicado")
+      editorWindow.iconStatus:setColor("#8cff9a")
+    end
+  end
+
+  editorWindow.selectedVisible.onClick = function(widget)
+    if not selectedEntry then return end
+    selectedEntry.config.visible = not isIconVisible(selectedEntry)
+    widget:setChecked(isIconVisible(selectedEntry))
+    applyIconVisual(selectedEntry, false)
+    updateRow(selectedEntry)
+  end
+
   editorWindow.applyIcon.onClick = function()
     if not selectedEntry then return end
 
     local configuredText = iconText(editorWindow.selectedName:getText())
     local newVisible = editorWindow.selectedVisible:isChecked()
-    local newX = clamp(editorWindow.selectedX:getValue(), 0, 4000)
-    local newY = clamp(editorWindow.selectedY:getValue(), 0, 4000)
-
-    if editorConfig.layout.snapEnabled ~= false then
-      newX = roundToGrid(newX)
-      newY = roundToGrid(newY)
-    end
-
-    local overlapping = findOverlappingIcon(selectedEntry, newX, newY, newVisible)
-    if overlapping then
-      editorWindow.iconStatus:setText("Espacio ocupado por " .. effectiveText(overlapping):gsub("\n", " "))
-      editorWindow.iconStatus:setColor("#ff8a8a")
-      return
-    end
 
     selectedEntry.config.text = configuredText ~= "" and configuredText or nil
     selectedEntry.config.itemId = math.max(0, tonumber(editorWindow.selectedItem:getItemId()) or 0)
     selectedEntry.config.visible = newVisible
-    selectedEntry.config.x = newX
-    selectedEntry.config.y = newY
     selectedEntry.config.onColor = selectedOnColor
     selectedEntry.config.offColor = selectedOffColor
 
@@ -699,9 +976,12 @@ if editorWindow then
     editorWindow.iconStatus:setColor("#ffd166")
   end
 
-  editorWindow.moveMode.onClick = function(widget)
-    setEditMode(not editMode)
-    widget:setChecked(editMode)
+  editorWindow.moveSelected.onClick = function()
+    setMoveMode(moveMode == "selected" and "none" or "selected")
+  end
+
+  editorWindow.moveGroup.onClick = function()
+    setMoveMode(moveMode == "group" and "none" or "group")
   end
 
   editorWindow.snapEnabled.onClick = function(widget)
@@ -710,18 +990,50 @@ if editorWindow then
   end
 
   editorWindow.gridSize.onValueChange = function(widget, value)
+    if syncingLayoutControls then return end
     editorConfig.layout.gridSize = clamp(value, 1, 32)
   end
 
-  editorWindow.alignGrid.onClick = alignIconsToGrid
+  editorWindow.originX.onValueChange = previewLayoutFromControls
+  editorWindow.originY.onValueChange = previewLayoutFromControls
+  editorWindow.columns.onValueChange = previewLayoutFromControls
+  editorWindow.gapX.onValueChange = previewLayoutFromControls
+  editorWindow.gapY.onValueChange = previewLayoutFromControls
+
+  if editorWindow.visualMode then
+    editorWindow.visualMode.onOptionChange = function(widget)
+      if changingVisualMode or syncingLayoutControls then return end
+      local option = widget:getCurrentOption()
+      local mode = option and option.text == "Barra" and "bar" or "classic"
+      if mode ~= editorConfig.layout.visualMode then setVisualMode(mode) end
+    end
+  end
+
+  if editorWindow.barOpacity then
+    editorWindow.barOpacity.onValueChange = function(widget, value)
+      if syncingLayoutControls then return end
+      editorConfig.layout.barOpacity = clamp(value, 10, 100)
+      for _, entry in ipairs(activeIcons) do
+        if isBarMode(entry) then
+          setTextColor(entry, readScriptState(entry.botScript))
+        end
+      end
+    end
+  end
+
+  editorWindow.alignGrid.onClick = function()
+    alignIconsToGrid(false)
+  end
 
   editorWindow.resetAll.onClick = function()
+    setMoveMode("none")
     editorConfig.icons = {}
     for key, value in pairs(layoutDefaults) do editorConfig.layout[key] = value end
     editorConfig.layout.snapEnabled = true
 
     for _, entry in ipairs(activeIcons) do
       entry.config = getIconConfig(entry.id)
+      styleIcon(entry.widget, entry)
       applyIconVisual(entry, true)
     end
 
@@ -734,7 +1046,7 @@ if editorWindow then
   local previousVisibilityChange = editorWindow.onVisibilityChange
   editorWindow.onVisibilityChange = function(widget, visible)
     if previousVisibilityChange then previousVisibilityChange(widget, visible) end
-    if not visible then setEditMode(false) end
+    if not visible then setMoveMode("none") end
   end
 
   fillLayoutControls()

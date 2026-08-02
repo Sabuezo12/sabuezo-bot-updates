@@ -1,24 +1,15 @@
-setDefaultTab("Cave")
-
 -- securing storage namespace
 local panelName = "extras"
 storage[panelName] = storage[panelName] or {}
 local settings = storage[panelName]
 
--- basic elements
-CaveBotConfigsWindow = UI.createWindow('CaveBotConfigsWindow', rootWidget)
-CaveBotConfigsWindow:hide()
-CaveBotConfigsWindow.closeButton.onClick = function(widget)
-  CaveBotConfigsWindow:hide()
-end
-
--- available options for dest param
-local rightPanel = CaveBotConfigsWindow.content.right
-local leftPanel = CaveBotConfigsWindow.content.left
+-- Bot Settings keeps this script's storage and controls, but shares one window.
+CaveBotConfigsWindow = BotSettings.window
+local leftPanel, rightPanel = BotSettings.getColumns("cave")
 
 -- objects made by Kondrah - taken from creature editor, minor changes to adapt
 local addCheckBox = function(id, title, defaultValue, dest, tooltip)
-  local widget = UI.createWidget('ExtrasCheckBox', dest)
+  local widget = UI.createWidget('BotSettingsCheckBox', dest)
   widget.onClick = function()
     widget:setOn(not widget:isOn())
     settings[id] = widget:isOn()
@@ -34,7 +25,7 @@ local addCheckBox = function(id, title, defaultValue, dest, tooltip)
 end
 
 local addItem = function(id, title, defaultItem, dest, tooltip)
-  local widget = UI.createWidget('CaveBotConfigsItem', dest)
+  local widget = UI.createWidget('BotSettingsItem', dest)
   widget.text:setText(title)
   widget.text:setTooltip(tooltip)
   widget.item:setTooltip(tooltip)
@@ -46,7 +37,7 @@ local addItem = function(id, title, defaultItem, dest, tooltip)
 end
 
 local addTextEdit = function(id, title, defaultValue, dest, tooltip)
-  local widget = UI.createWidget('CaveBotConfigsTextEdit', dest)
+  local widget = UI.createWidget('BotSettingsTextEdit', dest)
   widget.text:setText(title)
   widget.textEdit:setText(settings[id] or defaultValue or "")
   widget.text:setTooltip(tooltip)
@@ -57,7 +48,7 @@ local addTextEdit = function(id, title, defaultValue, dest, tooltip)
 end
 
 local addScrollBar = function(id, title, min, max, defaultValue, dest, tooltip)
-  local widget = UI.createWidget('CaveBotConfigsScrollBar', dest)
+  local widget = UI.createWidget('BotSettingsScrollBar', dest)
   widget.text:setTooltip(tooltip)
   widget.scroll:setRange(min, max)
   widget.scroll.onValueChange = function(scroll, value)
@@ -76,16 +67,6 @@ local addScrollBar = function(id, title, min, max, defaultValue, dest, tooltip)
   widget.scroll:setValue(settings[id] or defaultValue)
   widget.scroll.onValueChange(widget.scroll, widget.scroll:getValue())
 end
-
-local btCave = UI.Button('Cave / Target', function()
-  CaveBotConfigsWindow:show()
-  CaveBotConfigsWindow:raise()
-  CaveBotConfigsWindow:focus()
-end)
-btCave:setColor('orange')
-btCave:setImageColor('#2de0d7')
-btCave:setFont("verdana-11px-rounded")
-UI.Separator()
 
 --- to maintain order, add options right after another:
 --- add object
@@ -182,3 +163,26 @@ if true then
 end
 
 addCheckBox("showTargetPriority", "Show Target Priority", false, rightPanel)
+
+local hudSettingsName = "caveBotHud"
+if type(storage[hudSettingsName]) ~= "table" then
+  storage[hudSettingsName] = {}
+end
+local hudSettings = storage[hudSettingsName]
+if hudSettings.enabled == nil then
+  hudSettings.enabled = true
+end
+
+local hudToggle = UI.createWidget("BotSettingsCheckBox", rightPanel)
+hudToggle:setText("CaveBot HUD")
+hudToggle:setTooltip("Muestra u oculta la informacion del CaveBot sobre el mapa.")
+hudToggle:setOn(hudSettings.enabled ~= false)
+hudToggle.onClick = function(widget)
+  local enabled = not widget:isOn()
+  widget:setOn(enabled)
+  hudSettings.enabled = enabled
+
+  if CaveBotHUD and CaveBotHUD.setEnabled then
+    CaveBotHUD.setEnabled(enabled)
+  end
+end

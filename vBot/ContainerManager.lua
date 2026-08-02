@@ -55,10 +55,68 @@ if type(storage[panelName]) ~= "table" then
   }
 end
 local config = storage[panelName]
+if type(config.inmortalSupplies) ~= "table" then
+  config.inmortalSupplies = {}
+end
+config.inmortalSupplies.mightContainerId = tonumber(config.inmortalSupplies.mightContainerId) or 0
+config.inmortalSupplies.ssaContainerId = tonumber(config.inmortalSupplies.ssaContainerId) or 0
+
+local function getExplicitSupplyContainerId(supplyKey)
+  if supplyKey == "might" then
+    return config.inmortalSupplies.mightContainerId
+  elseif supplyKey == "ssa" then
+    return config.inmortalSupplies.ssaContainerId
+  end
+  return 0
+end
+
+local function getExplicitSupplyRole(containerId)
+  containerId = tonumber(containerId)
+  if not containerId or containerId <= 0 then return nil end
+
+  local isMight = config.inmortalSupplies.mightContainerId == containerId
+  local isSsa = config.inmortalSupplies.ssaContainerId == containerId
+  if isMight and isSsa then return "Inmortal BP" end
+  if isMight then return "Might BP" end
+  if isSsa then return "SSA BP" end
+  return nil
+end
+
+local function getExplicitSupplyPriority(containerId)
+  local role = getExplicitSupplyRole(containerId)
+  if role == "Might BP" or role == "Inmortal BP" then return #config.list + 1 end
+  if role == "SSA BP" then return #config.list + 2 end
+  return nil
+end
 
 -- default switch
 UI.Separator()
 local cManager = macro(10000, "Container Manager", function() end)
+
+-- The new client can resize a container after onContainerOpen finishes. Reapply
+-- minimize after layout settles so a hidden content panel cannot keep full height.
+local function minimizeContainerAfterLayout(container)
+  local function applyMinimize()
+    if not container or not container.window then return end
+    local cWindow = container.window
+    local minimized = false
+
+    if cWindow.isMinimized then
+      local ok, value = pcall(function() return cWindow:isMinimized() end)
+      minimized = ok and value == true
+    end
+
+    if minimized and cWindow.maximize then
+      pcall(function() cWindow:maximize() end)
+    end
+    if cWindow.minimize then
+      pcall(function() cWindow:minimize() end)
+    end
+  end
+
+  schedule(50, applyMinimize)
+  schedule(defaultDelay + 50, applyMinimize)
+end
 
 -- UI
 local CM = setupUI([[
@@ -228,10 +286,32 @@ BackpackName < Label
     height: 15
     tooltip: Auto Next Page Container
 
+  Button
+    id: eDown
+    !text: tr('v')
+    font: verdana-11px-rounded
+    anchors.right: ePages.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 1
+    width: 15
+    height: 15
+    tooltip: Move backpack down
+
+  Button
+    id: eUp
+    !text: tr('^')
+    font: verdana-11px-rounded
+    anchors.right: eDown.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 1
+    width: 15
+    height: 15
+    tooltip: Move backpack up
+
 CMUI < MainWindow
   !text: tr('Container Manager - By Sabuezo')
   font: verdana-11px-rounded
-  size: 550 250
+  size: 585 315
   @onEscape: self:hide()
 
   TextList
@@ -239,7 +319,7 @@ CMUI < MainWindow
     anchors.left: parent.left
     anchors.top: parent.top
     anchors.bottom: separator.top
-    width: 250
+    width: 285
     margin-bottom: 6
     margin-top: 3
     margin-left: 3
@@ -298,7 +378,7 @@ CMUI < MainWindow
     anchors.left: prev.left
     anchors.right: parent.right
     anchors.top: prev.bottom
-    anchors.bottom: separator.top
+    anchors.bottom: immortalSeparator.top
     margin-bottom: 6
     margin-top: 3
 
@@ -329,6 +409,66 @@ CMUI < MainWindow
     width: 40
     font: verdana-11px-rounded
     color: red
+
+  HorizontalSeparator
+    id: immortalSeparator
+    anchors.left: lblName.left
+    anchors.right: parent.right
+    anchors.bottom: inmortalSupplies.top
+    margin-bottom: 4
+
+  Panel
+    id: inmortalSupplies
+    anchors.left: lblName.left
+    anchors.right: parent.right
+    anchors.bottom: separator.top
+    height: 54
+    margin-bottom: 4
+
+    Label
+      id: immortalTitle
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.top: parent.top
+      height: 17
+      text: Inmortal BPs
+      text-align: center
+      color: #9dff9d
+      font: verdana-11px-rounded
+
+    Label
+      id: mightLabel
+      anchors.left: parent.left
+      anchors.top: immortalTitle.bottom
+      width: 58
+      height: 32
+      text: Might BP:
+      text-align: left
+      font: verdana-11px-rounded
+
+    BotItem
+      id: mightContainer
+      anchors.left: mightLabel.right
+      anchors.verticalCenter: mightLabel.verticalCenter
+      size: 32 32
+      tooltip: Backpack used for Might Rings
+
+    Label
+      id: ssaLabel
+      anchors.left: parent.horizontalCenter
+      anchors.top: immortalTitle.bottom
+      width: 48
+      height: 32
+      text: SSA BP:
+      text-align: left
+      font: verdana-11px-rounded
+
+    BotItem
+      id: ssaContainer
+      anchors.left: ssaLabel.right
+      anchors.verticalCenter: ssaLabel.verticalCenter
+      size: 32 32
+      tooltip: Backpack used for Stone Skin Amulets
 
   HorizontalSeparator
     id: separator
@@ -425,7 +565,7 @@ CMUI < MainWindow
     anchors.fill: separator
     height: 3
     minimum: 170
-    maximum: 245
+    maximum: 310
     margin-left: 3
     margin-right: 3
     background: #ffffff88
@@ -436,7 +576,7 @@ CMUI < MainWindow
 local cList = {}
 local function parseContainerList()
   cList = {}
-  for e, entry in pairs(config.list) do
+  for _, entry in ipairs(config.list) do
     if entry.eEnabled then
       table.insert(cList, entry.eId)
     end
@@ -449,9 +589,9 @@ parseContainerList()
 local sList = {}
 local function parseSortItems()
   sList = {}
-  for e, entry in pairs(config.list) do
+  for _, entry in ipairs(config.list) do
     if entry.eEnabled and entry.eItems then
-      for i, item in pairs(entry.eItems) do
+      for _, item in ipairs(entry.eItems) do
         local id = type(item) == 'table' and item.id or item
         if id then
           sList[id] = entry.eId
@@ -477,7 +617,7 @@ end
 
 -- find container config by ID
 local function findContainerConfig(id)
-  for e, entry in pairs(config.list) do
+  for e, entry in ipairs(config.list) do
     if entry.eId == id then
       return e
     end
@@ -509,9 +649,7 @@ if rootWidget then
   -- minimize all
   CM.mainMinimize.onClick = function(widget)
     for i, container in pairs(g_game.getContainers()) do
-      local cWindow = container.window
-      cWindow:setContentHeight(34)
-      cWindow:minimize()
+      minimizeContainerAfterLayout(container)
     end
   end
 
@@ -569,6 +707,17 @@ if rootWidget then
   end
   CMUI.openQuiver:setChecked(config.openQuiver)
 
+  -- Inmortal supply backpacks
+  CMUI.inmortalSupplies.mightContainer:setItemId(config.inmortalSupplies.mightContainerId)
+  CMUI.inmortalSupplies.mightContainer.onItemChange = function(widget)
+    config.inmortalSupplies.mightContainerId = widget:getItemId()
+  end
+
+  CMUI.inmortalSupplies.ssaContainer:setItemId(config.inmortalSupplies.ssaContainerId)
+  CMUI.inmortalSupplies.ssaContainer.onItemChange = function(widget)
+    config.inmortalSupplies.ssaContainerId = widget:getItemId()
+  end
+
   -- Refresh Sort Items Panel
   local function refreshSortList(k, t)
     t = t or {}
@@ -591,98 +740,112 @@ if rootWidget then
   end
 
   -- Containers List
-  local refreshEntryList = function(tFocus)
+  local refreshEntryList
+  refreshEntryList = function(tFocus)
     if config.list and #config.list > 0 then
       -- Clear List
-      for i, child in pairs(CMUI.containerList:getChildren()) do
-        child:destroy()
-      end
+      CMUI.containerList:destroyChildren()
       -- Entry List
-      for e, entry in pairs(config.list) do
+      for e, entry in ipairs(config.list) do
+        local entryIndex = e
+        local entryConfig = entry
         -- Entry Config
         local label = g_ui.createWidget("BackpackName", CMUI.containerList)
         label.onMouseRelease = function()
           clearErrors()
-          CMUI.contId:setItemId(entry.eId)
-          CMUI.contName:setText(entry.eName)
-          entry.eItems = entry.eItems or {}
+          CMUI.contId:setItemId(entryConfig.eId)
+          CMUI.contName:setText(entryConfig.eName)
+          entryConfig.eItems = entryConfig.eItems or {}
           -- CMUI.sortList:setItems(entry.eItems)
-          refreshSortList(e, entry.eItems)
+          refreshSortList(entryIndex, entryConfig.eItems)
         end
         -- Entry Enabled
         label.eEnabled.onClick = function(widget)
-          entry.eEnabled = not entry.eEnabled
-          label.eEnabled:setChecked(entry.eEnabled)
-          label.eEnabled:setImageColor(entry.eEnabled and cGreen or cRed)
+          entryConfig.eEnabled = not entryConfig.eEnabled
+          label.eEnabled:setChecked(entryConfig.eEnabled)
+          label.eEnabled:setImageColor(entryConfig.eEnabled and cGreen or cRed)
           parseTables()
         end
         -- Entry Remove
         label.eRemove.onClick = function(widget)
-          table.remove(config.list, e)
-          label:destroy()
+          table.remove(config.list, entryIndex)
           parseTables()
+          refreshEntryList()
+        end
+        -- Entry Order
+        label.eUp.onClick = function()
+          if entryIndex <= 1 then return end
+          config.list[entryIndex - 1], config.list[entryIndex] = config.list[entryIndex], config.list[entryIndex - 1]
+          parseTables()
+          refreshEntryList(entryIndex - 1)
+        end
+        label.eDown.onClick = function()
+          if entryIndex >= #config.list then return end
+          config.list[entryIndex + 1], config.list[entryIndex] = config.list[entryIndex], config.list[entryIndex + 1]
+          parseTables()
+          refreshEntryList(entryIndex + 1)
         end
         -- Entry Minimized
-        label.eMinimize:setChecked(entry.eMinimize)
+        label.eMinimize:setChecked(entryConfig.eMinimize)
         label.eMinimize.onClick = function(widget)
-          entry.eMinimize = not entry.eMinimize
-          label.eMinimize:setChecked(entry.eMinimize)
-          label.eMinimize:setColor(entry.eMinimize and cGreen or cRed)
+          entryConfig.eMinimize = not entryConfig.eMinimize
+          label.eMinimize:setChecked(entryConfig.eMinimize)
+          label.eMinimize:setColor(entryConfig.eMinimize and cGreen or cRed)
         end
         -- Entry OpenNext
         label.eOpenNext.onClick = function(widget)
-          entry.eOpenNext = not entry.eOpenNext
-          label.eOpenNext:setChecked(entry.eOpenNext)
-          label.eOpenNext:setColor(entry.eOpenNext and cGreen or cRed)
+          entryConfig.eOpenNext = not entryConfig.eOpenNext
+          label.eOpenNext:setChecked(entryConfig.eOpenNext)
+          label.eOpenNext:setColor(entryConfig.eOpenNext and cGreen or cRed)
           parseTables()
         end
         -- Entry Resize
         label.eResize.onClick = function(widget)
-          entry.eResize = not entry.eResize
-          label.eResize:setChecked(entry.eResize)
-          label.eResize:setColor(entry.eResize and cGreen or cRed)
+          entryConfig.eResize = not entryConfig.eResize
+          label.eResize:setChecked(entryConfig.eResize)
+          label.eResize:setColor(entryConfig.eResize and cGreen or cRed)
         end
         -- Entry Rename
         label.eRename.onClick = function(widget)
-          entry.eRename = not entry.eRename
-          label.eRename:setChecked(entry.eRename)
-          label.eRename:setColor(entry.eRename and cGreen or cRed)
+          entryConfig.eRename = not entryConfig.eRename
+          label.eRename:setChecked(entryConfig.eRename)
+          label.eRename:setColor(entryConfig.eRename and cGreen or cRed)
         end
         -- Entry Infinite
         label.eInfinite.onClick = function(widget)
-          entry.eInfinite = not entry.eInfinite
-          label.eInfinite:setChecked(entry.eInfinite)
-          label.eInfinite:setColor(entry.eInfinite and cGreen or cRed)
+          entryConfig.eInfinite = not entryConfig.eInfinite
+          label.eInfinite:setChecked(entryConfig.eInfinite)
+          label.eInfinite:setColor(entryConfig.eInfinite and cGreen or cRed)
         end
         -- Entry Open Next if Full
         label.eFull.onClick = function(widget)
-          entry.eFull = not entry.eFull
-          label.eFull:setChecked(entry.eFull)
-          label.eFull:setColor(entry.eFull and cGreen or cRed)
+          entryConfig.eFull = not entryConfig.eFull
+          label.eFull:setChecked(entryConfig.eFull)
+          label.eFull:setColor(entryConfig.eFull and cGreen or cRed)
         end
         -- Entry Pages
         label.ePages.onClick = function(widget)
-          entry.ePages = not entry.ePages
-          label.ePages:setChecked(entry.ePages)
-          label.ePages:setColor(entry.ePages and cGreen or cRed)
+          entryConfig.ePages = not entryConfig.ePages
+          label.ePages:setChecked(entryConfig.ePages)
+          label.ePages:setColor(entryConfig.ePages and cGreen or cRed)
         end
         -- Show Entry
-        label:setText(entry.eName)
-        label.eEnabled:setChecked(entry.eEnabled)
-        label.eEnabled:setImageColor(entry.eEnabled and cGreen or cRed)
-        label.eMinimize:setColor(entry.eMinimize and cGreen or cRed)
-        label.eOpenNext:setColor(entry.eOpenNext and cGreen or cRed)
-        label.eRename:setColor(entry.eRename and cGreen or cRed)
-        label.eInfinite:setColor(entry.eInfinite and cGreen or cRed)
-        label.eFull:setColor(entry.eFull and cGreen or cRed)
-        label.ePages:setColor(entry.ePages and cGreen or cRed)
-        label.eResize:setColor(entry.eResize and cGreen or cRed)
+        label:setText(entryConfig.eName)
+        label.eEnabled:setChecked(entryConfig.eEnabled)
+        label.eEnabled:setImageColor(entryConfig.eEnabled and cGreen or cRed)
+        label.eMinimize:setColor(entryConfig.eMinimize and cGreen or cRed)
+        label.eOpenNext:setColor(entryConfig.eOpenNext and cGreen or cRed)
+        label.eRename:setColor(entryConfig.eRename and cGreen or cRed)
+        label.eInfinite:setColor(entryConfig.eInfinite and cGreen or cRed)
+        label.eFull:setColor(entryConfig.eFull and cGreen or cRed)
+        label.ePages:setColor(entryConfig.ePages and cGreen or cRed)
+        label.eResize:setColor(entryConfig.eResize and cGreen or cRed)
+        label.eUp:setEnabled(entryIndex > 1)
+        label.eDown:setEnabled(entryIndex < #config.list)
 
         -- Focus Entry
-        if tFocus then
-          if entry.eId == tFocus then
-            CMUI.containerList:focusChild(label)
-          end
+        if tFocus == entryIndex then
+          CMUI.containerList:focusChild(label)
         end
       end
     end
@@ -729,7 +892,7 @@ if rootWidget then
       else -- new entry
         table.insert(config.list,t)
       end
-      refreshEntryList(id)
+      refreshEntryList(index or #config.list)
       parseTables()
     else
       if id <= 100 then CMUI.contId:setImageColor('red') end
@@ -869,23 +1032,65 @@ end
 local containersToOpen = {}
 -- Containers with pages table
 local pageContainers = {}
+local supplyRequestAfter = {}
+
+local function getContainerItemId(container)
+  if not container then return nil end
+  local containerItem = container:getContainerItem()
+  return containerItem and containerItem:getId() or nil
+end
+
+local function getOrderedOpenContainers()
+  local containers = {}
+
+  for _, container in pairs(g_game.getContainers()) do
+    if not container.lootContainer then
+      table.insert(containers, container)
+    end
+  end
+
+  table.sort(containers, function(a, b)
+    local aId = getContainerItemId(a)
+    local bId = getContainerItemId(b)
+    local aIndex = isMainBackpackContainer(a) and 0 or (findContainerConfig(aId) or getExplicitSupplyPriority(aId) or 10000)
+    local bIndex = isMainBackpackContainer(b) and 0 or (findContainerConfig(bId) or getExplicitSupplyPriority(bId) or 10000)
+    return aIndex < bIndex
+  end)
+
+  return containers
+end
 
 local function queueContainerToOpen(item)
   if not item then return false end
   local id = item:getId()
   local index = findContainerConfig(id)
-  if not index then return false end
-  local settings = config.list[index]
-  if not settings or not settings.eEnabled then return false end
+  local explicitPriority = getExplicitSupplyPriority(id)
+  if not index and not explicitPriority then return false end
+  local settings = index and config.list[index] or nil
+  if settings and not settings.eEnabled and not explicitPriority then return false end
   if getContainerByItem(id) then return false end
 
-  for _, queuedItem in pairs(containersToOpen) do
-    if queuedItem == item then
-      return true
+  for _, queued in ipairs(containersToOpen) do
+    if queued.item == item then
+      return false
     end
   end
 
-  table.insert(containersToOpen, item)
+  local queued = {
+    item = item,
+    id = id,
+    priority = index or explicitPriority
+  }
+  local insertAt = #containersToOpen + 1
+
+  for position, current in ipairs(containersToOpen) do
+    if queued.priority < current.priority then
+      insertAt = position
+      break
+    end
+  end
+
+  table.insert(containersToOpen, insertAt, queued)
   return true
 end
 
@@ -905,6 +1110,8 @@ end
 -- Reopen Containers (this one must be Global)
 function reopenContainers()
   if cManager:isOff() then return end
+  containersToOpen = {}
+  pageContainers = {}
   for _, cont in pairs(g_game.getContainers()) do g_game.close(cont) end
   if config.onFullAfk then 
     schedule((config.qtdFullAfk + 2) * defaultDelay, function()
@@ -916,13 +1123,94 @@ function reopenContainers()
   end)
 end
 
+local function findContainerItem(container, containerId)
+  if not container then return nil end
+
+  for _, item in ipairs(container:getItems()) do
+    if item:getId() == containerId and (not item.isContainer or item:isContainer()) then
+      return item
+    end
+  end
+
+  return nil
+end
+
+local function openedContainersHaveItem(itemId)
+  for _, container in ipairs(getOrderedOpenContainers()) do
+    for _, item in ipairs(container:getItems()) do
+      if item:getId() == itemId then
+        return true
+      end
+    end
+  end
+
+  return false
+end
+
+local function openNextSupplyContainer(itemId, hintedContainerId, relatedItemIds, supplyKey)
+  itemId = tonumber(itemId)
+  if not itemId or itemId <= 0 or cManager:isOff() then return false end
+  if openedContainersHaveItem(itemId) then return false end
+
+  local explicitContainerId = getExplicitSupplyContainerId(supplyKey)
+  local hasExplicitContainer = explicitContainerId and explicitContainerId > 100
+  local targetContainerId = hasExplicitContainer and explicitContainerId or (sList[itemId] or tonumber(hintedContainerId))
+
+  if not targetContainerId and type(relatedItemIds) == "table" then
+    for _, relatedItemId in ipairs(relatedItemIds) do
+      targetContainerId = sList[tonumber(relatedItemId)]
+      if targetContainerId then break end
+    end
+  end
+
+  local targetIndex = targetContainerId and findContainerConfig(targetContainerId) or false
+  local settings = targetIndex and config.list[targetIndex] or nil
+
+  if not hasExplicitContainer and (not settings or not settings.eEnabled or not settings.eOpenNext) then return false end
+
+  local time = now or 0
+  if time < (supplyRequestAfter[itemId] or 0) then return true end
+  supplyRequestAfter[itemId] = time + 1000
+
+  local current = getContainerByItem(targetContainerId)
+  local nextItem = findContainerItem(current, targetContainerId)
+
+  if nextItem then
+    g_game.open(nextItem, current)
+    return true
+  end
+
+  for _, source in ipairs(getOrderedOpenContainers()) do
+    if source ~= current then
+      nextItem = findContainerItem(source, targetContainerId)
+      if nextItem then
+        g_game.open(nextItem, current)
+        return true
+      end
+    end
+  end
+
+  return false
+end
+
+ContainerManager = ContainerManager or {}
+ContainerManager.requestItemContainer = openNextSupplyContainer
+ContainerManager.getOrder = function()
+  local order = {}
+  for index, entry in ipairs(config.list) do
+    order[index] = entry.eId
+  end
+  return order
+end
+
 onContainerOpen(function(container, previousContainer)
   if cManager:isOff() then return end
   if container.lootContainer then return end
   local cId = container:getContainerItem():getId()
   local isMainSource = isMainBackpackContainer(container)
   local index = findContainerConfig(cId)
-  if not index and not isMainSource then return end
+  local explicitRole = getExplicitSupplyRole(cId)
+  if not index and not isMainSource and not explicitRole then return end
   local settings = index and config.list[index] or {
     eEnabled = true,
     eOpenNext = true,
@@ -931,17 +1219,19 @@ onContainerOpen(function(container, previousContainer)
     eMinimize = false,
     ePages = false
   }
-  if not settings.eEnabled then return end
+  if not settings.eEnabled and not explicitRole then return end
 
   if not container.window then return end
   local cWindow = container.window
   if settings.eResize then cWindow:setContentHeight(34) end
   if isMainSource then
     cWindow:setText("Main Bp")
+  elseif explicitRole and not index then
+    cWindow:setText(explicitRole)
   elseif settings.eRename then
     cWindow:setText(settings.eName)
   end
-  if settings.eMinimize then cWindow:minimize() end
+  if settings.eMinimize then minimizeContainerAfterLayout(container) end
 
   -- auto next page
   if settings.ePages and container:hasPages() then
@@ -951,7 +1241,7 @@ onContainerOpen(function(container, previousContainer)
     end
   end
 
-  if settings.eOpenNext then
+  if settings.eOpenNext or explicitRole then
     queueConfiguredContainersFrom(container)
   end
 end)
@@ -972,13 +1262,16 @@ end)
 -- Containers to be opened
 local openNextMacro = macro(defaultDelay,function()
   if cManager:isOff() then return end
-  for e, entry in pairs(containersToOpen) do
-    g_game.open(entry,nil)
-    table.remove(containersToOpen,e)
-    return delay(defaultDelay + 5)
+
+  while #containersToOpen > 0 do
+    local entry = table.remove(containersToOpen, 1)
+    if entry.item and not getContainerByItem(entry.id) then
+      g_game.open(entry.item, nil)
+      return delay(defaultDelay + 5)
+    end
   end
 
-  for _, container in pairs(g_game.getContainers()) do
+  for _, container in ipairs(getOrderedOpenContainers()) do
     if queueConfiguredContainersFrom(container) then
       return delay(defaultDelay + 5)
     end

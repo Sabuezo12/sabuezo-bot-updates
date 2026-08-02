@@ -7,8 +7,10 @@ if type(storage[panelName]) ~= "table" then
   }
 end
 local config = storage[panelName]
-config.enabled = true
+config.enabled = config.enabled ~= false
 config.maxSupplies = tonumber(config.maxSupplies) or 5
+
+CaveBotHUD = CaveBotHUD or {}
 
 local hudPanel = setupUI([[
 CaveBotHudLabel < Label
@@ -282,8 +284,9 @@ end
 
 local function updateHud()
   local caveOn = isOn(CaveBot)
-  hudPanel:setVisible(caveOn == true)
-  if not caveOn then
+  local visible = config.enabled and caveOn == true
+  hudPanel:setVisible(visible)
+  if not visible then
     return
   end
 
@@ -334,6 +337,15 @@ local function updateHud()
 
   hideUnused(line)
   hudPanel:setHeight(math.max(12, (line - 1) * 13))
+end
+
+function CaveBotHUD.setEnabled(enabled)
+  config.enabled = enabled ~= false
+  updateHud()
+end
+
+function CaveBotHUD.isEnabled()
+  return config.enabled == true
 end
 
 macro(1000, function()

@@ -1,3 +1,11 @@
+3.0.10 - 2026-08-02
+- Unifica Cave/Target, Scripts Basicos y Scripts PvP en la nueva ventana Bot Settings sin perder configuraciones guardadas.
+- Rediseña Icon Editor con edicion individual y conjunta, estilos Icono/Barra, opacidad, movimiento anclado y distribucion en tiempo real.
+- TargetBot deja de iniciar ataques con Kill monsters below cuando esta apagado y CaveBot reduce calculos pesados al romper obstaculos.
+- Dummy Smart no inicia espera por movimiento sin un dummy cercano, elimina el prefijo Status y conserva sus tiempos de entrenamiento.
+- Container Manager agrega orden manual de BPs, seccion para Might/SSA, apertura de la siguiente BP y minimizado estable en el cliente nuevo.
+- CaveBot HUD puede activarse desde Bot Settings, WebSocket se reconecta automaticamente y el editor de acciones usa dos columnas.
+
 3.0.9 - 2026-08-02
 - Corrige falsos avisos de archivos faltantes al recargar el bot en el cliente Anvard.
 - El Loader intenta cargar cada script directamente y solo lo omite cuando realmente no existe.

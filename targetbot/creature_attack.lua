@@ -228,6 +228,9 @@ function rePosition(minTiles)
 end
 
 TargetBot.Creature.attack = function(params, targets, isLooting) -- params {config, creature, danger, priority}
+  -- A delayed TargetBot cycle must never issue a new attack after the bot was disabled.
+  if not TargetBot.isOn or not TargetBot.isOn() then return end
+
   if player:isWalking() then
     lastWalk = now
   end

@@ -41,7 +41,7 @@ Panel
     anchors.right: parent.right
     anchors.bottom: parent.bottom
     text-align: center
-    text: Status: Desligado
+    text: Desligado
     font: verdana-11px-antialised
     color: #888888
     margin-top: 2
@@ -76,7 +76,7 @@ local START_CONFIRMATION_TIMEOUT = 5000
 -- =========================[ FUNÇÕES AUXILIARES ]==========================
 
 local function updateStatus(text, color)
-    ui.status:setText("Status: " .. text)
+    ui.status:setText(text)
     ui.status:setColor(color or "#888888")
 end
 local function copyPosition(pos)
@@ -171,6 +171,7 @@ local function updateTrainingStatus()
 end
 
 local function findNearbyDummy()
+    if not player then return nil end
     -- Procura por dummies próximos (até 7 SQMs)
     local playerPos = player:getPosition()
     if not playerPos then return nil end
@@ -383,11 +384,19 @@ local function smartDummyLogic()
                         not positionsMatch(lastPlayerPosition, currentPosition)
     lastPlayerPosition = copyPosition(currentPosition)
 
+    local dummyAfterMovement = nil
     if playerMoved then
         clearTrainingState()
         lastClickTime = 0
-        scheduleStationaryWait()
-        updateStatus("Movimiento: 30s", "#FFAA00")
+        dummyAfterMovement = findNearbyDummy()
+        if dummyAfterMovement then
+            scheduleStationaryWait()
+            updateStatus("Movimiento: 30s", "#FFAA00")
+        else
+            nextTrainingAttempt = 0
+            waitingDummyKey = nil
+            updateStatus("Sin dummy", "#FF6666")
+        end
     end
 
     -- Enquanto estiver treinando, nunca procurar nem usar outra barita.
@@ -408,7 +417,7 @@ local function smartDummyLogic()
         return
     end
 
-    local dummy = findNearbyDummy()
+    local dummy = dummyAfterMovement or findNearbyDummy()
     if not dummy then
         waitingDummyKey = nil
         updateStatus("Sin dummy", "#FF6666")
@@ -455,8 +464,14 @@ onPlayerPositionChange(function(newPosition, oldPosition)
 
     clearTrainingState()
     lastClickTime = 0
-    scheduleStationaryWait()
-    updateStatus("Movimiento: 30s", "#FFAA00")
+    if findNearbyDummy() then
+        scheduleStationaryWait()
+        updateStatus("Movimiento: 30s", "#FFAA00")
+    else
+        nextTrainingAttempt = 0
+        waitingDummyKey = nil
+        updateStatus("Sin dummy", "#FF6666")
+    end
 end)
 
 -- Configurar UI inicial

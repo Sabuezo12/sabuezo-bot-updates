@@ -49,6 +49,7 @@ local loaderSections = {
     files = {
       "vBot/main",
       "vBot/Updater",
+      "vBot/BotSettings",
       "vBot/extras",
       "vBot/extrasPvp",
       "vBot/GameBotServerTransport",

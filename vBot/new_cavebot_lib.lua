@@ -23,13 +23,27 @@ local LOCKER_ACCESSTILE_MODIFIERS = {
 }
 
 local function CaveBotConfigParse()
-	local name = storage["_configs"]["targetbot_configs"]["selected"]
-    if not name then 
-        return warn("[vBot] Please create a new TargetBot config and reset bot")
+    local configs = storage and storage["_configs"]
+    local targetConfigs = configs and configs["targetbot_configs"]
+    local name = targetConfigs and targetConfigs["selected"]
+    if not name or name == "" then
+        return nil
     end
-	local file = configDir .. "/targetbot_configs/" .. name .. ".json"
-	local data = g_resources.readFileContents(file)
-	return Config.parse(data)['looting']
+
+    local file = configDir .. "/targetbot_configs/" .. name .. ".json"
+    if not g_resources.fileExists(file) then
+        return nil
+    end
+
+    local data = g_resources.readFileContents(file)
+    if not data or data == "" then
+        return nil
+    end
+
+    local ok, parsed = pcall(function()
+        return Config.parse(data)
+    end)
+    return ok and type(parsed) == "table" and parsed["looting"] or nil
 end
 
 local function getNearTiles(pos)
@@ -75,7 +89,8 @@ CaveBot.Status = "waiting"
 --- Parses config and extracts loot list.
 -- @return table
 function CaveBot.GetLootItems()
-    local t = CaveBotConfigParse() and CaveBotConfigParse()["items"] or nil
+    local looting = CaveBotConfigParse()
+    local t = looting and looting["items"] or nil
 
     local returnTable = {}
     if type(t) == "table" then
@@ -107,7 +122,8 @@ end
 --- Parses config and extracts loot containers.
 -- @return table
 function CaveBot.GetLootContainers()
-    local t = CaveBotConfigParse() and CaveBotConfigParse()["containers"] or nil
+    local looting = CaveBotConfigParse()
+    local t = looting and looting["containers"] or nil
 
     local returnTable = {}
     if type(t) == "table" then

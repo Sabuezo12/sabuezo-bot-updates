@@ -591,6 +591,50 @@ local function findItemSmart(itemId)
   return nil
 end
 
+local supplyContainerHints = {}
+
+local function findSupplyContainerId(itemId)
+  local validIds = {[itemId] = true}
+  local inactiveItemId = inactiveId(itemId)
+  local activeItemId = activeId(itemId)
+  if inactiveItemId then validIds[inactiveItemId] = true end
+  if activeItemId then validIds[activeItemId] = true end
+
+  for _, container in pairs(g_game.getContainers()) do
+    if not container.lootContainer then
+      for _, item in ipairs(container:getItems()) do
+        if validIds[item:getId()] then
+          local containerItem = container:getContainerItem()
+          return containerItem and containerItem:getId() or nil
+        end
+      end
+    end
+  end
+
+  return nil
+end
+
+local function maintainSupplyContainer(section, supplyKey)
+  if not section.enabled then return end
+
+  local itemId = tonumber(section.dangerItem)
+  if not itemId or itemId <= 0 then return end
+
+  local containerId = findSupplyContainerId(itemId)
+  if containerId then
+    supplyContainerHints[itemId] = containerId
+    return
+  end
+
+  if ContainerManager and ContainerManager.requestItemContainer then
+    pcall(ContainerManager.requestItemContainer, itemId, supplyContainerHints[itemId], {
+      config.ering.dangerItem,
+      config.ring.dangerItem,
+      config.amulet.dangerItem
+    }, supplyKey)
+  end
+end
+
 local function moveItemToSlot(itemId, slot, slotKey)
   if not itemId or itemId <= 0 then return false end
 
@@ -896,4 +940,10 @@ macro(20, function()
   handleSpellShield()
   handleFinger()
   handleNeck()
+end)
+
+macro(500, function()
+  if not config.enabled then return end
+  maintainSupplyContainer(config.ring, "might")
+  maintainSupplyContainer(config.amulet, "ssa")
 end)

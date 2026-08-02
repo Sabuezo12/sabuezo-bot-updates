@@ -90,9 +90,9 @@ CaveBotEditorPanel < Panel
     margin-top: 2
     layout:
       type: grid
-      cell-size: 86 20
+      cell-size: 78 20
       cell-spacing: 1
-      flow: true
+      num-columns: 2
       fit-children: true
 
   Label

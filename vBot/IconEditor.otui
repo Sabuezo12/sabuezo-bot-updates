@@ -39,7 +39,7 @@ IconEditorRow < UIWidget
     anchors.right: parent.right
     anchors.verticalCenter: parent.verticalCenter
     margin-right: 15
-    width: 64
+    width: 70
     height: 18
     text-align: right
     color: #a8a8a8
@@ -58,10 +58,17 @@ IconEditorColorSwatch < UIWidget
     border-width: 2
     border-color: #ffffff
 
+IconEditorModeComboBoxPopupMenu < ComboBoxPopupMenu
+IconEditorModeComboBoxPopupMenuButton < ComboBoxPopupMenuButton
+IconEditorModeComboBox < ComboBox
+  @onSetup: |
+    self:addOption("Icono")
+    self:addOption("Barra")
+
 IconEditorWindow < MainWindow
   id: IconEditorWindow
   !text: tr('Icon Editor')
-  size: 620 460
+  size: 680 538
   @onEscape: self:hide()
 
   Label
@@ -69,9 +76,12 @@ IconEditorWindow < MainWindow
     anchors.top: parent.top
     anchors.left: parent.left
     width: 245
-    height: 18
+    height: 22
     text: Iconos
     color: #9dd1ce
+    background-color: #132d2f99
+    border-width: 1
+    border-color: #365052
     font: verdana-11px-rounded
     text-align: center
 
@@ -80,7 +90,7 @@ IconEditorWindow < MainWindow
     anchors.top: listTitle.bottom
     anchors.left: parent.left
     anchors.bottom: bottomSeparator.top
-    margin-top: 4
+    margin-top: 5
     margin-bottom: 8
     width: 245
     padding: 2
@@ -110,9 +120,12 @@ IconEditorWindow < MainWindow
     anchors.left: middleSeparator.right
     anchors.right: parent.right
     margin-left: 9
-    height: 18
-    text: Icono seleccionado
+    height: 22
+    text: EDICION INDIVIDUAL
     color: #9dd1ce
+    background-color: #132d2f99
+    border-width: 1
+    border-color: #365052
     font: verdana-11px-rounded
     text-align: center
 
@@ -121,7 +134,7 @@ IconEditorWindow < MainWindow
     anchors.top: selectedTitle.bottom
     anchors.left: selectedTitle.left
     margin-top: 9
-    width: 58
+    width: 62
     height: 18
     text: Nombre:
 
@@ -139,8 +152,8 @@ IconEditorWindow < MainWindow
     id: itemLabel
     anchors.top: nameLabel.bottom
     anchors.left: selectedTitle.left
-    margin-top: 11
-    width: 58
+    margin-top: 10
+    width: 62
     height: 18
     text: Item:
 
@@ -162,11 +175,29 @@ IconEditorWindow < MainWindow
     text: Visible
 
   Label
-    id: positionLabel
+    id: selectedStyleLabel
     anchors.top: selectedItem.bottom
     anchors.left: selectedTitle.left
-    margin-top: 8
-    width: 58
+    margin-top: 7
+    width: 62
+    height: 18
+    text: Estilo:
+
+  IconEditorModeComboBox
+    id: selectedVisualMode
+    anchors.left: selectedStyleLabel.right
+    anchors.verticalCenter: selectedStyleLabel.verticalCenter
+    margin-left: 5
+    width: 112
+    height: 22
+    tooltip: Cambia solamente el icono seleccionado.
+
+  Label
+    id: positionLabel
+    anchors.top: selectedStyleLabel.bottom
+    anchors.left: selectedTitle.left
+    margin-top: 9
+    width: 62
     height: 18
     text: Posicion:
 
@@ -175,7 +206,7 @@ IconEditorWindow < MainWindow
     anchors.left: positionLabel.right
     anchors.verticalCenter: positionLabel.verticalCenter
     margin-left: 5
-    width: 15
+    width: 14
     height: 18
     text: X
 
@@ -184,19 +215,19 @@ IconEditorWindow < MainWindow
     anchors.left: xLabel.right
     anchors.verticalCenter: positionLabel.verticalCenter
     margin-left: 3
-    width: 82
+    width: 72
     minimum: 0
     maximum: 4000
     step: 1
     editable: true
-    tooltip: Coordenada horizontal del icono.
+    tooltip: Se aplica inmediatamente al icono seleccionado.
 
   Label
     id: yLabel
     anchors.left: selectedX.right
     anchors.verticalCenter: positionLabel.verticalCenter
-    margin-left: 14
-    width: 15
+    margin-left: 10
+    width: 14
     height: 18
     text: Y
 
@@ -205,26 +236,36 @@ IconEditorWindow < MainWindow
     anchors.left: yLabel.right
     anchors.verticalCenter: positionLabel.verticalCenter
     margin-left: 3
-    width: 82
+    width: 72
     minimum: 0
     maximum: 4000
     step: 1
     editable: true
-    tooltip: Coordenada vertical del icono.
+    tooltip: Se aplica inmediatamente al icono seleccionado.
+
+  CheckBox
+    id: moveSelected
+    anchors.left: selectedY.right
+    anchors.right: parent.right
+    anchors.verticalCenter: positionLabel.verticalCenter
+    margin-left: 12
+    height: 18
+    text: Mover solo este
+    tooltip: Permite arrastrar unicamente el icono seleccionado.
 
   HorizontalSeparator
     id: colorSeparator
     anchors.top: positionLabel.bottom
     anchors.left: selectedTitle.left
     anchors.right: parent.right
-    margin-top: 9
+    margin-top: 10
 
   Label
     id: onColorLabel
     anchors.top: colorSeparator.bottom
     anchors.left: selectedTitle.left
     margin-top: 8
-    width: 92
+    width: 82
     height: 18
     text: Color ON:
 
@@ -276,7 +317,7 @@ IconEditorWindow < MainWindow
     anchors.top: onColorLabel.bottom
     anchors.left: selectedTitle.left
     margin-top: 8
-    width: 92
+    width: 82
     height: 18
     text: Color OFF:
 
@@ -335,131 +376,121 @@ IconEditorWindow < MainWindow
     id: applyIcon
     anchors.top: offColorLabel.bottom
     anchors.left: selectedTitle.left
-    margin-top: 11
-    width: 78
+    margin-top: 10
+    width: 112
     height: 21
-    text: Aplicar
-    tooltip: Guardar y aplicar los cambios del icono seleccionado.
+    text: Guardar aspecto
+    tooltip: Guardar nombre, item, visibilidad y colores del icono.
 
   Button
     id: resetIcon
     anchors.left: applyIcon.right
     anchors.verticalCenter: applyIcon.verticalCenter
-    margin-left: 6
-    width: 96
+    margin-left: 7
+    width: 104
     height: 21
     text: Restablecer
     tooltip: Volver este icono a su aspecto y posicion original.
-
-  Label
-    id: iconStatus
-    anchors.left: resetIcon.right
-    anchors.right: parent.right
-    anchors.verticalCenter: applyIcon.verticalCenter
-    margin-left: 8
-    height: 21
-    text-align: center
-    color: #b8c7cc
-    text: Selecciona un icono
 
   HorizontalSeparator
     id: layoutSeparator
     anchors.top: applyIcon.bottom
     anchors.left: selectedTitle.left
     anchors.right: parent.right
-    margin-top: 12
+    margin-top: 11
 
   Label
     id: layoutTitle
     anchors.top: layoutSeparator.bottom
     anchors.left: selectedTitle.left
     anchors.right: parent.right
-    margin-top: 7
-    height: 18
-    text: Distribucion y movimiento
+    margin-top: 6
+    height: 22
+    text: CONJUNTO DE ICONOS
     color: #9dd1ce
+    background-color: #132d2f99
+    border-width: 1
+    border-color: #365052
     font: verdana-11px-rounded
     text-align: center
 
-  CheckBox
-    id: moveMode
+  Label
+    id: styleLabel
     anchors.top: layoutTitle.bottom
     anchors.left: selectedTitle.left
-    margin-top: 8
-    width: 126
+    margin-top: 9
+    width: 48
     height: 18
-    text: Mover iconos
-    tooltip: Permite arrastrar los iconos directamente sobre la pantalla.
+    text: Estilo:
+
+  IconEditorModeComboBox
+    id: visualMode
+    anchors.left: styleLabel.right
+    anchors.verticalCenter: styleLabel.verticalCenter
+    margin-left: 5
+    width: 100
+    height: 22
+    tooltip: Cambia todos los iconos entre item tradicional y barra rectangular.
+
+  Label
+    id: opacityLabel
+    anchors.left: visualMode.right
+    anchors.verticalCenter: styleLabel.verticalCenter
+    margin-left: 18
+    width: 62
+    height: 18
+    text: Opac. %:
+    text-align: right
+
+  SpinBox
+    id: barOpacity
+    anchors.left: opacityLabel.right
+    anchors.verticalCenter: styleLabel.verticalCenter
+    margin-left: 7
+    width: 52
+    minimum: 10
+    maximum: 100
+    step: 5
+    editable: true
+    tooltip: Opacidad del fondo de todas las barras.
+
+  CheckBox
+    id: moveGroup
+    anchors.top: styleLabel.bottom
+    anchors.left: selectedTitle.left
+    margin-top: 10
+    width: 142
+    height: 18
+    text: Mover conjunto
+    tooltip: Arrastra cualquier icono para desplazar todo el conjunto.
 
   CheckBox
     id: snapEnabled
-    anchors.left: moveMode.right
-    anchors.verticalCenter: moveMode.verticalCenter
+    anchors.left: moveGroup.right
+    anchors.verticalCenter: moveGroup.verticalCenter
     margin-left: 12
-    width: 170
+    width: 150
     height: 18
     text: Ajustar a cuadricula
-    tooltip: Redondea la posicion del icono al paso indicado.
+    tooltip: Redondea la posicion al paso indicado al terminar un arrastre.
 
   Label
     id: gridLabel
-    anchors.top: moveMode.bottom
+    anchors.top: moveGroup.bottom
     anchors.left: selectedTitle.left
     margin-top: 9
-    width: 72
+    width: 62
     height: 18
-    text: Paso (px):
-    tooltip: Distancia en pixeles entre cada posicion permitida al mover.
+    text: Paso px:
 
   SpinBox
     id: gridSize
     anchors.left: gridLabel.right
     anchors.verticalCenter: gridLabel.verticalCenter
-    margin-left: 4
-    width: 62
+    margin-left: 5
+    width: 58
     minimum: 1
     maximum: 32
-    step: 1
-    editable: true
-    tooltip: Con paso 2, el icono se ajusta a 206, 208, 210 y asi sucesivamente.
-
-  Label
-    id: originXLabel
-    anchors.top: gridLabel.bottom
-    anchors.left: selectedTitle.left
-    margin-top: 9
-    width: 54
-    height: 18
-    text: Origen X
-
-  SpinBox
-    id: originX
-    anchors.left: originXLabel.right
-    anchors.verticalCenter: originXLabel.verticalCenter
-    margin-left: 4
-    width: 70
-    minimum: 0
-    maximum: 4000
-    step: 1
-    editable: true
-
-  Label
-    id: originYLabel
-    anchors.left: originX.right
-    anchors.verticalCenter: originXLabel.verticalCenter
-    margin-left: 18
-    width: 54
-    height: 18
-    text: Origen Y
-
-  SpinBox
-    id: originY
-    anchors.left: originYLabel.right
-    anchors.verticalCenter: originXLabel.verticalCenter
-    margin-left: 4
-    width: 70
-    minimum: 0
-    maximum: 4000
     step: 1
     editable: true
 
@@ -467,10 +498,10 @@ IconEditorWindow < MainWindow
     id: columnsLabel
     anchors.left: gridSize.right
     anchors.verticalCenter: gridLabel.verticalCenter
-    margin-left: 24
-    width: 55
+    margin-left: 28
+    width: 66
     height: 18
-    text: Columnas
+    text: Columnas:
 
   SpinBox
     id: columns
@@ -482,56 +513,121 @@ IconEditorWindow < MainWindow
     maximum: 8
     step: 1
     editable: true
+    tooltip: Redistribuye el conjunto inmediatamente.
+
+  Label
+    id: originXLabel
+    anchors.top: gridLabel.bottom
+    anchors.left: selectedTitle.left
+    margin-top: 9
+    width: 62
+    height: 18
+    text: Origen X:
+
+  SpinBox
+    id: originX
+    anchors.left: originXLabel.right
+    anchors.verticalCenter: originXLabel.verticalCenter
+    margin-left: 5
+    width: 72
+    minimum: 0
+    maximum: 4000
+    step: 1
+    editable: true
+    tooltip: Mueve inmediatamente el origen horizontal del conjunto.
+
+  Label
+    id: originYLabel
+    anchors.left: originX.right
+    anchors.verticalCenter: originXLabel.verticalCenter
+    margin-left: 18
+    width: 62
+    height: 18
+    text: Origen Y:
+
+  SpinBox
+    id: originY
+    anchors.left: originYLabel.right
+    anchors.verticalCenter: originXLabel.verticalCenter
+    margin-left: 5
+    width: 72
+    minimum: 0
+    maximum: 4000
+    step: 1
+    editable: true
+    tooltip: Mueve inmediatamente el origen vertical del conjunto.
 
   Label
     id: gapXLabel
     anchors.top: originXLabel.bottom
     anchors.left: selectedTitle.left
-    margin-top: 8
-    width: 54
+    margin-top: 9
+    width: 62
     height: 18
-    text: Espacio X
+    text: Espacio X:
 
   SpinBox
     id: gapX
     anchors.left: gapXLabel.right
     anchors.verticalCenter: gapXLabel.verticalCenter
-    margin-left: 4
-    width: 58
-    minimum: 58
-    maximum: 200
+    margin-left: 5
+    width: 72
+    minimum: 1
+    maximum: 300
     step: 1
     editable: true
+    tooltip: Separacion horizontal; admite valores desde 1 pixel.
 
   Label
     id: gapYLabel
     anchors.left: gapX.right
     anchors.verticalCenter: gapXLabel.verticalCenter
-    margin-left: 8
-    width: 54
+    margin-left: 18
+    width: 62
     height: 18
-    text: Espacio Y
+    text: Espacio Y:
 
   SpinBox
     id: gapY
     anchors.left: gapYLabel.right
     anchors.verticalCenter: gapXLabel.verticalCenter
-    margin-left: 4
-    width: 58
-    minimum: 46
-    maximum: 200
+    margin-left: 5
+    width: 72
+    minimum: 1
+    maximum: 300
     step: 1
     editable: true
+    tooltip: Separacion vertical; admite valores desde 1 pixel.
 
   Button
     id: alignGrid
-    anchors.left: gapY.right
-    anchors.right: parent.right
-    anchors.verticalCenter: gapXLabel.verticalCenter
-    margin-left: 12
+    anchors.top: gapXLabel.bottom
+    anchors.left: selectedTitle.left
+    margin-top: 10
+    width: 138
     height: 21
-    text: Alinear
-    tooltip: Ordenar todos los iconos usando origen, columnas y separaciones.
+    text: Aplicar distribucion
+    tooltip: Reaplicar origen, columnas y separaciones al conjunto.
+
+  Button
+    id: resetAll
+    anchors.left: alignGrid.right
+    anchors.verticalCenter: alignGrid.verticalCenter
+    margin-left: 8
+    width: 118
+    height: 21
+    text: Restablecer todo
+
+  Label
+    id: iconStatus
+    anchors.left: resetAll.right
+    anchors.right: parent.right
+    anchors.verticalCenter: alignGrid.verticalCenter
+    margin-left: 9
+    height: 21
+    text-align: center
+    color: #b8c7cc
+    text: Selecciona un icono
 
   HorizontalSeparator
     id: bottomSeparator
@@ -541,19 +637,10 @@ IconEditorWindow < MainWindow
     margin-bottom: 8
 
   Button
-    id: resetAll
-    anchors.left: parent.left
-    anchors.bottom: parent.bottom
-    width: 112
-    height: 21
-    text: Restablecer todo
-    tooltip: Recuperar nombres, items, colores y posiciones originales.
-
-  Button
     id: closeButton
     anchors.right: parent.right
     anchors.bottom: parent.bottom
-    width: 55
+    width: 60
     height: 21
-    text: Close
+    text: Cerrar
     @onClick: self:getParent():hide()

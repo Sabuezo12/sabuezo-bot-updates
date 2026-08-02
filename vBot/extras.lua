@@ -5,20 +5,13 @@ local panelName = "extras"
 storage[panelName] = storage[panelName] or {}
 local settings = storage[panelName]
 
--- basic elements
-extrasWindow = UI.createWindow('ExtrasWindow', rootWidget)
-extrasWindow:hide()
-extrasWindow.closeButton.onClick = function(widget)
-  extrasWindow:hide()
-end
-
--- available options for dest param
-local rightPanel = extrasWindow.content.right
-local leftPanel = extrasWindow.content.left
+-- Bot Settings keeps this script's storage and controls, but shares one window.
+extrasWindow = BotSettings.window
+local leftPanel, rightPanel = BotSettings.getColumns("basic")
 
 -- objects made by Kondrah - taken from creature editor, minor changes to adapt
 local addCheckBox = function(id, title, defaultValue, dest, tooltip)
-  local widget = UI.createWidget('ExtrasCheckBox', dest)
+  local widget = UI.createWidget('BotSettingsCheckBox', dest)
   widget.onClick = function()
     widget:setOn(not widget:isOn())
     settings[id] = widget:isOn()
@@ -44,7 +37,7 @@ local addCheckBox = function(id, title, defaultValue, dest, tooltip)
 end
 
 local addItem = function(id, title, defaultItem, dest, tooltip)
-  local widget = UI.createWidget('ExtrasItem', dest)
+  local widget = UI.createWidget('BotSettingsItem', dest)
   widget.text:setText(title)
   widget.text:setTooltip(tooltip)
   widget.item:setTooltip(tooltip)
@@ -56,7 +49,7 @@ local addItem = function(id, title, defaultItem, dest, tooltip)
 end
 
 local addTextEdit = function(id, title, defaultValue, dest, tooltip)
-  local widget = UI.createWidget('ExtrasTextEdit', dest)
+  local widget = UI.createWidget('BotSettingsTextEdit', dest)
   widget.text:setText(title)
   widget.textEdit:setText(settings[id] or defaultValue or "")
   widget.text:setTooltip(tooltip)
@@ -67,7 +60,7 @@ local addTextEdit = function(id, title, defaultValue, dest, tooltip)
 end
 
 local addScrollBar = function(id, title, min, max, defaultValue, dest, tooltip)
-  local widget = UI.createWidget('ExtrasScrollBar', dest)
+  local widget = UI.createWidget('BotSettingsScrollBar', dest)
   widget.text:setTooltip(tooltip)
   widget.scroll:setRange(min, max)
   widget.scroll.onValueChange = function(scroll, value)
@@ -86,13 +79,6 @@ local addScrollBar = function(id, title, min, max, defaultValue, dest, tooltip)
   widget.scroll:setValue(settings[id] or defaultValue)
   widget.scroll.onValueChange(widget.scroll, widget.scroll:getValue())
 end
-
-local btExtras = UI.Button("Extras (Basic Scripts)", function()
-  extrasWindow:show()
-  extrasWindow:raise()
-  extrasWindow:focus()
-end)
-btExtras:setImageColor("#9799a8")
 
 addItem("rope", "Rope Item", 3003, leftPanel, "This item will be used in various bot related scripts as default rope item.")
 addItem("shovel", "Shovel Item", 3457, leftPanel, "This item will be used in various bot related scripts as default shovel item.")

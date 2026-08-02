@@ -72,21 +72,23 @@ local furnitureIgnore = { 2986 }
 local function breakFurniture(destPos)
   if isInPz() then return false end
   local candidate = {thing=nil, dist=100}
+  local playerPos = player:getPosition()
   for i, tile in ipairs(g_map.getTiles(posz())) do
     local walkable = tile:isWalkable()
     local topThing = tile:getTopThing()
     local isWg = topThing and topThing:getId() == 2130
     if topThing and (isWg or not table.find(furnitureIgnore, topThing:getId()) and topThing:isItem()) then
       local moveable = not topThing:isNotMoveable()
-      local tpos = tile:getPosition()
-      local path = findPath(player:getPosition(), tpos, 7, { ignoreNonPathable = true, precision = 1 })
+      if isWg or (not walkable and moveable) then
+        local tpos = tile:getPosition()
+        if getDistanceBetween(playerPos, tpos) <= 7 then
+          local path = findPath(playerPos, tpos, 7, { ignoreNonPathable = true, precision = 1 })
+          if path then
+            local distance = getDistanceBetween(destPos, tpos)
 
-      if path then
-        if isWg or (not walkable and moveable) then
-          local distance = getDistanceBetween(destPos, tpos)
-
-          if distance < candidate.dist then
-            candidate = {thing=topThing, dist=distance}
+            if distance < candidate.dist then
+              candidate = {thing=topThing, dist=distance}
+            end
           end
         end
       end
