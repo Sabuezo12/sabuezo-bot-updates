@@ -607,7 +607,10 @@ local function processDamageText(text)
   local amount = lower:match("you lose ([%d,]+) hitpoints") or
     lower:match("you lost ([%d,]+) hitpoints") or
     lower:match("you were hit for ([%d,]+) hitpoints")
-  amount = amount and tonumber(amount:gsub(",", "")) or nil
+  if amount then
+    amount = amount:gsub(",", "")
+    amount = tonumber(amount)
+  end
   if amount and amount > DAMAGE_LIMIT then lastLargeDamageAt = clockMillis() end
 end
 

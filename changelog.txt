@@ -1,3 +1,8 @@
+3.0.5 - 2026-08-02
+- Corrige la lectura de dano del Exiva Tracker.
+- Evita el error tonumber (base out of range) al procesar el Server Log.
+- Mantiene la espera de 2 segundos despues de recibir mas de 500 de dano.
+
 3.0.4 - 2026-08-01
 - El Exiva Tracker anuncia su capacidad al conectarse al BotServer.
 - Solo selecciona observadores que tengan una version compatible del tracker.
