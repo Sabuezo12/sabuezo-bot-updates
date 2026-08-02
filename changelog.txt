@@ -1,3 +1,8 @@
+3.0.12 - 2026-08-02
+- Evita el cierre fatal de Dummy Smart al leer tiles invalidados durante el movimiento.
+- Retrasa la busqueda del dummy hasta que el mapa termina de actualizar la posicion.
+- Limita la deteccion de dummies a zonas de proteccion y protege las llamadas C++ del cliente.
+
 3.0.11 - 2026-08-02
 - Reduce Max GoTo Distance a 24 y limita el radio real de pathfinding para evitar macros lentas.
 - Actualiza los marcadores de aliados del BotServer cada 300 ms en el minimapa y Cyclopedia.

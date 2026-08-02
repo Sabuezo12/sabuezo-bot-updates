@@ -171,25 +171,36 @@ local function updateTrainingStatus()
 end
 
 local function findNearbyDummy()
-    if not player then return nil end
-    -- Procura por dummies próximos (até 7 SQMs)
-    local playerPos = player:getPosition()
-    if not playerPos then return nil end
-    
-    for _, tile in ipairs(g_map.getTiles(playerPos.z)) do
-        local tilePos = tile:getPosition()
-        local distance = getDistanceBetween(playerPos, tilePos)
-        
-        if distance <= 7 then
-            local items = tile.getItems and tile:getItems() or {}
-            for _, item in ipairs(items) do
-                if item:getId() == storage[panelName].id2 then
-                    return item
+    if not player or not g_map or not g_map.getTile then return nil end
+    if type(isInPz) == "function" then
+        local okPz, inProtectionZone = pcall(isInPz)
+        if okPz and not inProtectionZone then return nil end
+    end
+    local okPosition, playerPos = pcall(function() return player:getPosition() end)
+    if not okPosition or not playerPos then return nil end
+
+    for offsetX = -7, 7 do
+        for offsetY = -7, 7 do
+            local tilePos = {
+                x = playerPos.x + offsetX,
+                y = playerPos.y + offsetY,
+                z = playerPos.z
+            }
+            local okTile, tile = pcall(function() return g_map.getTile(tilePos) end)
+            if okTile and tile then
+                local okItems, items = pcall(function() return tile:getItems() end)
+                if okItems and type(items) == "table" then
+                    for _, item in ipairs(items) do
+                        local okId, itemId = pcall(function() return item:getId() end)
+                        if okId and itemId == storage[panelName].id2 then
+                            return item
+                        end
+                    end
                 end
             end
         end
     end
-    
+
     return nil
 end
 
@@ -464,14 +475,21 @@ onPlayerPositionChange(function(newPosition, oldPosition)
 
     clearTrainingState()
     lastClickTime = 0
-    if findNearbyDummy() then
-        scheduleStationaryWait()
-        updateStatus("Movimiento: 30s", "#FFAA00")
-    else
-        nextTrainingAttempt = 0
-        waitingDummyKey = nil
-        updateStatus("Sin dummy", "#FF6666")
-    end
+    local expectedPosition = copyPosition(newPosition)
+    schedule(150, function()
+        if not storage[panelName].enabled or not expectedPosition then return end
+        local okPosition, currentPosition = pcall(function() return player:getPosition() end)
+        if not okPosition or not positionsMatch(currentPosition, expectedPosition) then return end
+
+        if findNearbyDummy() then
+            scheduleStationaryWait()
+            updateStatus("Movimiento: 30s", "#FFAA00")
+        else
+            nextTrainingAttempt = 0
+            waitingDummyKey = nil
+            updateStatus("Sin dummy", "#FF6666")
+        end
+    end)
 end)
 
 -- Configurar UI inicial
