@@ -171,6 +171,8 @@ local function ensureAction(action)
   end
   action.enabled = action.enabled == true
   if not actionTypes[action.actionType] then action.actionType = "Say" end
+  action.name = trim(action.name)
+  if action.name == "" then action.name = action.actionType end
   action.interval = tonumber(action.interval) or 60
   if action.interval < 1 then action.interval = 1 end
   if action.interval > 86400 then action.interval = 86400 end
@@ -203,6 +205,15 @@ local function setStatus(action, text, color)
     state.status:setText(text or "-")
     state.status:setColor(color or "#aaaaaa")
   end
+end
+
+local function formatRemaining(seconds)
+  seconds = math.max(0, math.floor(tonumber(seconds) or 0))
+  if seconds < 60 then return tostring(seconds) .. "s" end
+  if seconds < 3600 then
+    return string.format("%dm %02ds", math.floor(seconds / 60), seconds % 60)
+  end
+  return string.format("%dh %02dm", math.floor(seconds / 3600), math.floor((seconds % 3600) / 60))
 end
 
 local function shouldSkip(action)
@@ -242,6 +253,41 @@ local function executeAction(action)
   return false, "Bad type"
 end
 
+local function retryDelayMs(action)
+  return math.min(5000, math.max(1000, math.floor(intervalMs(action) / 10)))
+end
+
+local function runAndSchedule(action)
+  local data = getRuntime(action)
+  if data.running then return false, "Busy" end
+
+  data.running = true
+  local ok, result, detail = pcall(executeAction, action)
+  data.running = false
+
+  local success = ok and result == true
+  local err = ok and detail or result
+  if success then
+    data.nextAt = now + intervalMs(action)
+    data.lastAt = now
+    data.lastError = nil
+    setStatus(action, "Hecho", "#8cff9a")
+    if action.once then
+      action.enabled = false
+      local state = rowStates[action.id]
+      if state and state.widget and state.widget.enabled then
+        state.widget.enabled:setChecked(false)
+      end
+    end
+  else
+    data.nextAt = now + retryDelayMs(action)
+    data.lastError = tostring(err or "Failed")
+    setStatus(action, data.lastError:sub(1, 14), "#ff8888")
+  end
+
+  return success, err
+end
+
 local function updateStatus(action)
   action = ensureAction(action)
   if not config.enabled then
@@ -261,7 +307,7 @@ local function updateStatus(action)
 
   local data = getRuntime(action)
   local remain = math.max(0, math.ceil(((data.nextAt or now) - now) / 1000))
-  setStatus(action, remain <= 0 and "Ready" or (tostring(remain) .. "s"), remain <= 0 and "#8cff9a" or "#9dd1ce")
+  setStatus(action, remain <= 0 and "Listo" or formatRemaining(remain), remain <= 0 and "#8cff9a" or "#9dd1ce")
 end
 
 local function resetTimers()
@@ -276,10 +322,83 @@ end
 
 local refreshRows
 
+local function updateActionInputs(row, action)
+  local kind = action.actionType
+  local needsItem = kind == "Use Item" or kind == "Use Self" or kind == "Use Target" or kind == "Use Tile"
+  local needsValue = kind == "Say" or kind == "Cast" or kind == "Use Tile" or kind == "Lua"
+
+  row.item:setVisible(needsItem)
+  row.value:setVisible(needsValue)
+
+  if needsValue then
+    pcall(function()
+      row.value:breakAnchors()
+      row.value:addAnchor(AnchorLeft, needsItem and "item" or "secondsLabel", AnchorRight)
+      row.value:addAnchor(AnchorRight, "parent", AnchorRight)
+      row.value:addAnchor(AnchorTop, "actionType", AnchorTop)
+      row.value:setMarginLeft(7)
+      row.value:setMarginRight(8)
+    end)
+  end
+
+  if kind == "Use Tile" then
+    row.value:setTooltip("Offset de la casilla: x,y")
+  elseif kind == "Lua" then
+    row.value:setTooltip("Codigo Lua a ejecutar")
+  elseif kind == "Say" or kind == "Cast" then
+    row.value:setTooltip("Texto o palabras del hechizo")
+  else
+    row.value:setTooltip("Esta accion no necesita texto")
+  end
+end
+
+local function updateWindowSummary()
+  if not window then return end
+
+  local active = 0
+  local nextRemain = nil
+  for _, action in ipairs(config.actions) do
+    action = ensureAction(action)
+    if action.enabled then
+      active = active + 1
+      local data = getRuntime(action)
+      local remain = math.max(0, math.ceil(((data.nextAt or now) - now) / 1000))
+      if nextRemain == nil or remain < nextRemain then nextRemain = remain end
+    end
+  end
+
+  if window.master then window.master:setOn(config.enabled == true) end
+  if window.empty then window.empty:setVisible(#config.actions == 0) end
+  if not window.summary then return end
+
+  if not config.enabled then
+    window.summary:setText("Pausado | " .. (active == 1 and "1 activa" or (active .. " activas")))
+    window.summary:setColor("#ffd166")
+  elseif active == 0 then
+    window.summary:setText("Sin acciones activas")
+    window.summary:setColor("#aaaaaa")
+  else
+    local activeText = active == 1 and "1 activa" or (active .. " activas")
+    window.summary:setText(activeText .. " | proxima " .. formatRemaining(nextRemain or 0))
+    window.summary:setColor("#9dd1ce")
+  end
+end
+
+local function resizeWindow()
+  if not window or not window.setHeight then return end
+  local desired = math.min(420, math.max(220, 129 + (#config.actions * 95)))
+  pcall(function() window:setHeight(desired) end)
+end
+
 local function bindActionRow(row, action, index)
   action = ensureAction(action)
   config.actions[index] = action
   rowStates[action.id] = {widget = row, status = row.status}
+
+  row.name:setText(action.name)
+  row.name.onTextChange = function(widget, text)
+    action.name = trim(text)
+  end
 
   row.enabled:setChecked(action.enabled)
   row.enabled.onClick = function(widget)
@@ -293,7 +412,13 @@ local function bindActionRow(row, action, index)
   if row.actionType.setOption then row.actionType:setOption(action.actionType) end
   row.actionType.onOptionChange = function(widget)
     local option = widget:getCurrentOption()
+    local previousType = action.actionType
     action.actionType = option and option.text or "Say"
+    if action.name == "" or action.name == previousType then
+      action.name = action.actionType
+      row.name:setText(action.name)
+    end
+    updateActionInputs(row, action)
     updateStatus(action)
   end
 
@@ -345,6 +470,22 @@ local function bindActionRow(row, action, index)
     widget:setChecked(action.once)
   end
 
+  row.duplicate.onClick = function()
+    table.insert(config.actions, index + 1, ensureAction({
+      enabled = action.enabled,
+      name = action.name .. " copia",
+      actionType = action.actionType,
+      interval = action.interval,
+      value = action.value,
+      item = action.item,
+      skipPz = action.skipPz,
+      skipAttack = action.skipAttack,
+      runOnStart = false,
+      once = action.once
+    }))
+    refreshRows()
+  end
+
   row.run.onClick = function()
     local skipped, reason = shouldSkip(action)
     if skipped then
@@ -352,17 +493,8 @@ local function bindActionRow(row, action, index)
       return
     end
 
-    local ok, err = executeAction(action)
-    if ok then
-      getRuntime(action).nextAt = now + intervalMs(action)
-      setStatus(action, "Done", "#8cff9a")
-      if action.once then
-        action.enabled = false
-        row.enabled:setChecked(false)
-      end
-    else
-      setStatus(action, tostring(err or "Failed"):sub(1, 12), "#ff8888")
-    end
+    runAndSchedule(action)
+    updateWindowSummary()
   end
 
   row.remove.onClick = function()
@@ -371,6 +503,7 @@ local function bindActionRow(row, action, index)
     refreshRows()
   end
 
+  updateActionInputs(row, action)
   updateStatus(action)
 end
 
@@ -383,16 +516,22 @@ refreshRows = function()
     local row = UI.createWidget("TimerExecutorActionRow", window.list)
     bindActionRow(row, action, index)
   end
+
+  resizeWindow()
+  updateWindowSummary()
 end
 
 local rootWidget = g_ui.getRootWidget()
 if rootWidget then
+  local previousWindow = rootWidget:recursiveGetChildById("TimerExecutorWindow")
+  if previousWindow then previousWindow:destroy() end
   window = UI.createWindow("TimerExecutorWindow", rootWidget)
   window:hide()
 
   window.add.onClick = function()
     table.insert(config.actions, ensureAction({
       enabled = true,
+      name = "Nueva accion",
       actionType = "Say",
       interval = 60,
       value = "",
@@ -407,6 +546,17 @@ if rootWidget then
 
   window.reset.onClick = function()
     resetTimers()
+    updateWindowSummary()
+  end
+
+
+  window.master:setOn(config.enabled)
+  window.master.onClick = function(widget)
+    config.enabled = not config.enabled
+    widget:setOn(config.enabled)
+    ui.enabled:setOn(config.enabled)
+    resetTimers()
+    updateWindowSummary()
   end
 
   refreshRows()
@@ -417,6 +567,7 @@ ui.enabled.onClick = function(widget)
   config.enabled = not config.enabled
   widget:setOn(config.enabled)
   resetTimers()
+  updateWindowSummary()
 end
 
 ui.setup.onClick = function()
@@ -435,11 +586,13 @@ TimerExecutor = {
     config.enabled = true
     ui.enabled:setOn(true)
     resetTimers()
+    updateWindowSummary()
   end,
   setOff = function()
     config.enabled = false
     ui.enabled:setOn(false)
     resetTimers()
+    updateWindowSummary()
   end,
   show = function()
     if ui.setup and ui.setup.onClick then ui.setup.onClick() end
@@ -458,20 +611,7 @@ macro(250, function()
       else
         local data = getRuntime(action)
         if now >= data.nextAt then
-          local ok, err = executeAction(action)
-          if ok then
-            data.nextAt = now + intervalMs(action)
-            setStatus(action, "Done", "#8cff9a")
-            if action.once then
-              action.enabled = false
-              if rowStates[action.id] and rowStates[action.id].widget then
-                rowStates[action.id].widget.enabled:setChecked(false)
-              end
-            end
-          else
-            data.nextAt = now + 1000
-            setStatus(action, tostring(err or "Failed"):sub(1, 12), "#ff8888")
-          end
+          runAndSchedule(action)
         else
           updateStatus(action)
         end
@@ -480,4 +620,6 @@ macro(250, function()
       updateStatus(action)
     end
   end
+
+  updateWindowSummary()
 end)

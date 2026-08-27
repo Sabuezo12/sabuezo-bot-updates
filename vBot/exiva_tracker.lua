@@ -10,12 +10,15 @@ local RESULT_TOPIC = "exiva_res"
 local CAPABILITY_TOPIC = "exiva_cap"
 local CAPABILITY_VERSION = 1
 local CAPABILITY_INTERVAL = 5000
-local CAPABILITY_TIMEOUT = 15000
-local MAX_OBSERVERS = 4
-local MEMBER_POSITION_MAX_AGE = 15000
+local CAPABILITY_TIMEOUT = 30000
+local MAX_OBSERVERS = 6
+local MEMBER_POSITION_MAX_AGE = 30000
 local DAMAGE_LIMIT = 500
 local DAMAGE_SAFE_TIME = 2000
 local CAST_TIMEOUT = 9000
+local CAST_RETRY_INTERVAL = 1400
+local MAX_CAST_ATTEMPTS = 3
+local CAPABILITY_DISCOVERY_DELAY = 450
 local SESSION_TIMEOUT = 14000
 local SESSION_PURGE_TIME = 30000
 local ESTIMATE_LIFETIME = 15000
@@ -26,8 +29,7 @@ local UNBOUNDED_SEARCH_RADIUS = 4096
 local TAN_22_5 = math.sqrt(2) - 1
 local MAIN_MARKER_KEY = "_sabuezoExivaTrackerMarkers"
 local CYCLOPEDIA_MARKER_KEY = "_sabuezoExivaTrackerCyclopediaMarkers"
-local CENTER_MARKER_IMAGE = "/images/game/minimap/flag4"
-local CORNER_MARKER_IMAGE = "/images/game/minimap/waypoint"
+local TARGET_MARKER_IMAGE = "/images/game/minimap/cross"
 
 BotServer._exivaTrackerGeneration = (BotServer._exivaTrackerGeneration or 0) + 1
 local generation = BotServer._exivaTrackerGeneration
@@ -532,6 +534,7 @@ end
 
 local function beginManualSession(target)
   if not trackerEnabled() then return end
+  sendCapability(true, true)
   local selected, observerPos = selectObservers()
   if not observerPos then return end
 
@@ -551,6 +554,21 @@ local function beginManualSession(target)
   }
 
   sendBotServer(REQUEST_TOPIC, message)
+  schedule(CAPABILITY_DISCOVERY_DELAY, function()
+    if not activeGeneration() or not trackerEnabled() then return end
+    local currentSession = sessions[session.id]
+    if not currentSession or clockMillis() > currentSession.expiresAt then return end
+
+    local refreshed = selectObservers()
+    currentSession.selected = refreshed
+    sendBotServer(REQUEST_TOPIC, {
+      id = currentSession.id,
+      target = currentSession.target,
+      coordinator = currentSession.coordinator,
+      selected = refreshed,
+      requestTime = os.time()
+    })
+  end)
 end
 
 local function queueRemoteCast(session)
@@ -558,7 +576,9 @@ local function queueRemoteCast(session)
   queuedCasts[session.id] = {
     sessionId = session.id,
     target = session.target,
-    expiresAt = clockMillis() + SESSION_TIMEOUT
+    expiresAt = clockMillis() + SESSION_TIMEOUT,
+    attempts = 0,
+    nextAttemptAt = 0
   }
 end
 
@@ -567,14 +587,15 @@ local function castQueuedExiva(entry)
   local observerPos = currentPosition()
   if not session or not observerPos then return false end
 
+  local current = clockMillis()
   pendingCasts[entry.sessionId] = {
     target = entry.target,
     observerPos = observerPos,
-    castAt = clockMillis(),
-    expiresAt = clockMillis() + CAST_TIMEOUT
+    castAt = current,
+    expiresAt = current + CAST_TIMEOUT
   }
   suppressTarget = normalizedName(entry.target)
-  suppressUntil = clockMillis() + 2500
+  suppressUntil = current + 2500
 
   local command = 'exiva "' .. entry.target:gsub('"', "") .. '"'
   local ok = pcall(function()
@@ -586,7 +607,15 @@ local function castQueuedExiva(entry)
       error("talk unavailable")
     end
   end)
-  if not ok then pendingCasts[entry.sessionId] = nil end
+  if not ok then
+    pendingCasts[entry.sessionId] = nil
+    entry.nextAttemptAt = current + 500
+    return false
+  end
+
+  entry.attempts = (tonumber(entry.attempts) or 0) + 1
+  entry.lastAttemptAt = current
+  entry.nextAttemptAt = current + CAST_RETRY_INTERVAL
   return ok
 end
 
@@ -627,6 +656,7 @@ local function processResponseText(text)
   if not bestId then return end
   local pending = pendingCasts[bestId]
   pendingCasts[bestId] = nil
+  queuedCasts[bestId] = nil
   publishObservation(sessions[bestId], bestParsed, pending.observerPos)
 end
 
@@ -801,30 +831,23 @@ local function destroyMapMarkers(minimap, storageKey)
 end
 
 local function markerPoints(estimate)
-  local points = {{
-    id = "center",
-    pos = estimate.position,
-    image = CENTER_MARKER_IMAGE
-  }}
-  if estimate.maxX - estimate.minX <= 600 and estimate.maxY - estimate.minY <= 600 then
-    local corners = {
-      {estimate.minX, estimate.minY}, {estimate.maxX, estimate.minY},
-      {estimate.minX, estimate.maxY}, {estimate.maxX, estimate.maxY}
-    }
-    local known = {[positionKey(estimate.position)] = true}
-    for index, corner in ipairs(corners) do
-      local pos = {x = corner[1], y = corner[2], z = estimate.position.z}
-      local key = positionKey(pos)
-      if not known[key] then
-        known[key] = true
-        table.insert(points, {
-          id = "corner" .. index,
-          pos = pos,
-          image = CORNER_MARKER_IMAGE
-        })
-      end
+  local points = {}
+  local floors = estimate.floors
+  if type(floors) ~= "table" or #floors == 0 then
+    floors = {estimate.position.z}
+  end
+
+  for _, floor in ipairs(floors) do
+    local z = tonumber(floor)
+    if z then
+      table.insert(points, {
+        id = "floor" .. tostring(z),
+        pos = {x = estimate.position.x, y = estimate.position.y, z = z},
+        image = TARGET_MARKER_IMAGE
+      })
     end
   end
+
   return points
 end
 
@@ -899,6 +922,11 @@ onTalk(function(speaker, level, mode, text)
   local target = parseExivaCommand(text)
   if not target then return end
   if suppressTarget == normalizedName(target) and clockMillis() <= suppressUntil then
+    for sessionId, entry in pairs(queuedCasts) do
+      if normalizedName(entry.target) == suppressTarget and entry.lastAttemptAt then
+        queuedCasts[sessionId] = nil
+      end
+    end
     suppressTarget = nil
     return
   end
@@ -914,9 +942,11 @@ macro(100, function()
   for sessionId, entry in pairs(queuedCasts) do
     if current > entry.expiresAt then
       queuedCasts[sessionId] = nil
-    elseif trackerEnabled() and current - lastLargeDamageAt >= DAMAGE_SAFE_TIME then
-      castQueuedExiva(entry)
-      queuedCasts[sessionId] = nil
+    elseif trackerEnabled() and current - lastLargeDamageAt >= DAMAGE_SAFE_TIME and
+        current >= (tonumber(entry.nextAttemptAt) or 0) then
+      if castQueuedExiva(entry) and entry.attempts >= MAX_CAST_ATTEMPTS then
+        queuedCasts[sessionId] = nil
+      end
     end
   end
   for sessionId, pending in pairs(pendingCasts) do

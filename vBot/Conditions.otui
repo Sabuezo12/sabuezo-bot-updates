@@ -1,0 +1,460 @@
+UturaComboBoxPopupMenu < ComboBoxPopupMenu
+UturaComboBoxPopupMenuButton < ComboBoxPopupMenuButton
+UturaComboBox < ComboBox
+  @onSetup: |
+    self:addOption("Utura")
+    self:addOption("Utura Gran")
+
+ConditionSpinBox < SpinBox
+  size: 58 20
+  minimum: 0
+  maximum: 9999
+  step: 1
+  editable: true
+  text-align: center
+  font: verdana-11px-rounded
+
+ConditionSectionTitle < Label
+  height: 20
+  background-color: #15383c
+  color: #d8ffff
+  font: verdana-11px-rounded
+  text-align: center
+
+ConditionName < Label
+  width: 74
+  height: 20
+  color: #ffaa00
+  font: verdana-11px-rounded
+  text-align: left
+
+AntiParalyseConditions < Panel
+  id: Anti
+  image-source: /images/ui/panel_flat
+  image-border: 6
+  height: 104
+
+  ConditionSectionTitle
+    id: title
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin: 5
+    text: ANTI-PARALYZE
+
+  CheckBox
+    id: CureParalyse
+    anchors.top: title.bottom
+    anchors.left: title.left
+    margin-top: 9
+    width: 72
+    height: 20
+    text: Activar
+    tooltip: Cura la paralisis con prioridad sobre las demas condiciones.
+
+  Label
+    id: spellLabel
+    anchors.verticalCenter: CureParalyse.verticalCenter
+    anchors.left: CureParalyse.right
+    margin-left: 12
+    width: 38
+    text: Spell:
+    font: verdana-11px-rounded
+
+  TextEdit
+    id: ParalyseSpell
+    anchors.verticalCenter: CureParalyse.verticalCenter
+    anchors.left: spellLabel.right
+    margin-left: 4
+    width: 142
+    height: 20
+    font: verdana-11px-rounded
+    tooltip: Hechizo principal para quitar la paralisis.
+
+  Label
+    id: manaLabel
+    anchors.verticalCenter: CureParalyse.verticalCenter
+    anchors.left: ParalyseSpell.right
+    margin-left: 14
+    width: 38
+    text: Mana:
+    font: verdana-11px-rounded
+
+  ConditionSpinBox
+    id: ParalyseCost
+    anchors.verticalCenter: CureParalyse.verticalCenter
+    anchors.left: manaLabel.right
+    margin-left: 4
+
+  CheckBox
+    id: UseHasteFallback
+    anchors.top: CureParalyse.bottom
+    anchors.left: CureParalyse.left
+    margin-top: 7
+    width: 230
+    height: 20
+    text: Usar Haste como respaldo
+    tooltip: Si el hechizo principal no esta disponible, intenta el Haste configurado.
+
+  Label
+    anchors.verticalCenter: UseHasteFallback.verticalCenter
+    anchors.right: title.right
+    width: 205
+    height: 20
+    text: Prioridad inmediata
+    text-align: right
+    color: #7de58a
+    font: verdana-11px-rounded
+
+CureConditions < Panel
+  id: Cure
+  image-source: /images/ui/panel_flat
+  image-border: 6
+  width: 242
+  height: 224
+
+  ConditionSectionTitle
+    id: title
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin: 5
+    text: CURAR CONDICIONES
+
+  ConditionName
+    id: poisonLabel
+    anchors.top: title.bottom
+    anchors.left: title.left
+    margin-top: 7
+    text: Poison
+
+  ConditionSpinBox
+    id: PoisonCost
+    anchors.verticalCenter: poisonLabel.verticalCenter
+    anchors.left: poisonLabel.right
+    margin-left: 5
+
+  CheckBox
+    id: CurePoison
+    anchors.verticalCenter: poisonLabel.verticalCenter
+    anchors.right: title.right
+    width: 52
+    text: Curar
+
+  ConditionName
+    id: curseLabel
+    anchors.top: poisonLabel.bottom
+    anchors.left: poisonLabel.left
+    margin-top: 4
+    text: Curse
+
+  ConditionSpinBox
+    id: CurseCost
+    anchors.verticalCenter: curseLabel.verticalCenter
+    anchors.left: curseLabel.right
+    margin-left: 5
+
+  CheckBox
+    id: CureCurse
+    anchors.verticalCenter: curseLabel.verticalCenter
+    anchors.right: title.right
+    width: 52
+    text: Curar
+
+  ConditionName
+    id: bleedLabel
+    anchors.top: curseLabel.bottom
+    anchors.left: curseLabel.left
+    margin-top: 4
+    text: Bleed
+
+  ConditionSpinBox
+    id: BleedCost
+    anchors.verticalCenter: bleedLabel.verticalCenter
+    anchors.left: bleedLabel.right
+    margin-left: 5
+
+  CheckBox
+    id: CureBleed
+    anchors.verticalCenter: bleedLabel.verticalCenter
+    anchors.right: title.right
+    width: 52
+    text: Curar
+
+  ConditionName
+    id: burnLabel
+    anchors.top: bleedLabel.bottom
+    anchors.left: bleedLabel.left
+    margin-top: 4
+    text: Burn
+
+  ConditionSpinBox
+    id: BurnCost
+    anchors.verticalCenter: burnLabel.verticalCenter
+    anchors.left: burnLabel.right
+    margin-left: 5
+
+  CheckBox
+    id: CureBurn
+    anchors.verticalCenter: burnLabel.verticalCenter
+    anchors.right: title.right
+    width: 52
+    text: Curar
+
+  ConditionName
+    id: electrifyLabel
+    anchors.top: burnLabel.bottom
+    anchors.left: burnLabel.left
+    margin-top: 4
+    text: Electrify
+
+  ConditionSpinBox
+    id: ElectrifyCost
+    anchors.verticalCenter: electrifyLabel.verticalCenter
+    anchors.left: electrifyLabel.right
+    margin-left: 5
+
+  CheckBox
+    id: CureElectrify
+    anchors.verticalCenter: electrifyLabel.verticalCenter
+    anchors.right: title.right
+    width: 52
+    text: Curar
+
+  HorizontalSeparator
+    id: safetySeparator
+    anchors.top: electrifyLabel.bottom
+    anchors.left: title.left
+    anchors.right: title.right
+    margin-top: 5
+
+  Label
+    id: damageLabel
+    anchors.top: safetySeparator.bottom
+    anchors.left: title.left
+    margin-top: 5
+    width: 115
+    height: 20
+    text: Dano fuerte (HP):
+    font: verdana-11px-rounded
+
+  ConditionSpinBox
+    id: SignificantDamage
+    anchors.verticalCenter: damageLabel.verticalCenter
+    anchors.right: title.right
+    width: 70
+    minimum: 1
+    tooltip: Un golpe o varios golpes en 350 ms que alcancen este dano reinician la espera.
+
+  Label
+    id: hpLabel
+    anchors.top: damageLabel.bottom
+    anchors.left: damageLabel.left
+    margin-top: 3
+    width: 115
+    height: 20
+    text: Vida minima (%):
+    font: verdana-11px-rounded
+
+  ConditionSpinBox
+    id: CureMinHp
+    anchors.verticalCenter: hpLabel.verticalCenter
+    anchors.right: title.right
+    width: 70
+    maximum: 100
+    tooltip: Las curaciones se permiten al alcanzar este porcentaje de vida.
+
+HoldConditions < Panel
+  id: Hold
+  image-source: /images/ui/panel_flat
+  image-border: 6
+  width: 242
+  height: 224
+
+  ConditionSectionTitle
+    id: title
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin: 5
+    text: MANTENER BUFFS
+
+  ConditionName
+    id: hasteLabel
+    anchors.top: title.bottom
+    anchors.left: title.left
+    margin-top: 7
+    text: Haste
+
+  ConditionSpinBox
+    id: HasteCost
+    anchors.verticalCenter: hasteLabel.verticalCenter
+    anchors.left: hasteLabel.right
+    margin-left: 5
+
+  CheckBox
+    id: HoldHaste
+    anchors.verticalCenter: hasteLabel.verticalCenter
+    anchors.right: title.right
+    width: 70
+    text: Mantener
+
+  Label
+    id: hasteSpellLabel
+    anchors.top: hasteLabel.bottom
+    anchors.left: hasteLabel.left
+    margin-top: 4
+    width: 45
+    height: 20
+    text: Spell:
+    font: verdana-11px-rounded
+
+  TextEdit
+    id: HasteSpell
+    anchors.verticalCenter: hasteSpellLabel.verticalCenter
+    anchors.left: hasteSpellLabel.right
+    margin-left: 5
+    width: 155
+    height: 20
+    font: verdana-11px-rounded
+
+  ConditionName
+    id: utamoLabel
+    anchors.top: hasteSpellLabel.bottom
+    anchors.left: hasteLabel.left
+    margin-top: 4
+    text: Utamo Vita
+
+  ConditionSpinBox
+    id: UtamoCost
+    anchors.verticalCenter: utamoLabel.verticalCenter
+    anchors.left: utamoLabel.right
+    margin-left: 5
+
+  CheckBox
+    id: HoldUtamo
+    anchors.verticalCenter: utamoLabel.verticalCenter
+    anchors.right: title.right
+    width: 70
+    text: Mantener
+
+  ConditionName
+    id: utanaLabel
+    anchors.top: utamoLabel.bottom
+    anchors.left: utamoLabel.left
+    margin-top: 4
+    text: Utana Vid
+
+  ConditionSpinBox
+    id: UtanaCost
+    anchors.verticalCenter: utanaLabel.verticalCenter
+    anchors.left: utanaLabel.right
+    margin-left: 5
+
+  CheckBox
+    id: HoldUtana
+    anchors.verticalCenter: utanaLabel.verticalCenter
+    anchors.right: title.right
+    width: 70
+    text: Mantener
+
+  ConditionName
+    id: recoveryLabel
+    anchors.top: utanaLabel.bottom
+    anchors.left: utanaLabel.left
+    margin-top: 4
+    text: Recovery
+
+  ConditionSpinBox
+    id: UturaCost
+    anchors.verticalCenter: recoveryLabel.verticalCenter
+    anchors.left: recoveryLabel.right
+    margin-left: 5
+
+  CheckBox
+    id: HoldUtura
+    anchors.verticalCenter: recoveryLabel.verticalCenter
+    anchors.right: title.right
+    width: 70
+    text: Mantener
+
+  Label
+    id: recoverySpellLabel
+    anchors.top: recoveryLabel.bottom
+    anchors.left: recoveryLabel.left
+    margin-top: 4
+    width: 45
+    height: 20
+    text: Spell:
+    font: verdana-11px-rounded
+
+  UturaComboBox
+    id: UturaType
+    anchors.verticalCenter: recoverySpellLabel.verticalCenter
+    anchors.left: recoverySpellLabel.right
+    margin-left: 5
+    width: 155
+    height: 20
+    font: verdana-11px-rounded
+
+  CheckBox
+    id: IgnoreInPz
+    anchors.top: recoverySpellLabel.bottom
+    anchors.left: recoverySpellLabel.left
+    margin-top: 6
+    width: 205
+    height: 18
+    text: No lanzar buffs en PZ
+
+  CheckBox
+    id: StopHaste
+    anchors.top: IgnoreInPz.bottom
+    anchors.left: IgnoreInPz.left
+    margin-top: 3
+    width: 205
+    height: 18
+    text: Pausar Haste al atacar
+
+ConditionsWindow < MainWindow
+  id: ConditionsWindow
+  !text: tr('Conditions')
+  size: 516 382
+  @onEscape: self:hide()
+
+  AntiParalyseConditions
+    id: Anti
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 8
+    margin-left: 8
+    margin-right: 8
+
+  CureConditions
+    id: Cure
+    anchors.top: Anti.bottom
+    anchors.left: Anti.left
+    margin-top: 8
+
+  HoldConditions
+    id: Hold
+    anchors.top: Anti.bottom
+    anchors.right: Anti.right
+    margin-top: 8
+
+  HorizontalSeparator
+    id: separator
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: closeButton.top
+    margin-left: 8
+    margin-right: 8
+    margin-bottom: 8
+
+  Button
+    id: closeButton
+    !text: tr('Close')
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 52 21
+    margin-right: 8

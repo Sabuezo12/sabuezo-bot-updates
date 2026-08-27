@@ -4,7 +4,7 @@ local topY = 146
 local spacingY = 48
 local iconWidth = 58
 local iconHeight = 46
-local barWidth = 116
+local barWidth = 104
 local barHeight = 26
 local textAlignCenter = 48
 
@@ -24,6 +24,7 @@ local iconList = {
   {id = "FireBombIcon", text = "Fire\nBomb", itemId = 3192, botScript = FireBomb, x = leftX, y = topY + (spacingY * 5), offColor = "#ffffff"},
   {id = "BugMapIcon", text = "Bug\nMap", botScript = BugMapMouse, x = rightX, y = topY + (spacingY * 5), offColor = "#ffffff"},
   {id = "KeepWallIcon", text = "Keep\nWall", itemId = KeepWall and KeepWall.getRuneId and KeepWall.getRuneId() or 3180, botScript = KeepWall, x = leftX, y = topY + (spacingY * 6), offColor = "#ffffff"},
+  {id = "TimerExecutorIcon", text = "Timer", itemId = 3053, botScript = TimerExecutor, x = rightX, y = topY + (spacingY * 6), offColor = "#ffffff"},
 }
 
 local layoutDefaults = {

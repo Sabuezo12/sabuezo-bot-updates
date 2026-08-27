@@ -122,7 +122,9 @@ config.amulet = normalizeSection(config.amulet, defaultSection(false, 80, 80, 30
 -- =========================
 local safeDelay = 2000
 local damageSampleMs = 100
-local moveDelayMin = 50
+local moveDelayMin = 35
+local moveDelayMax = 110
+local globalMoveGap = 25
 
 local dangerActionButtons = {
   ering = "8.3",
@@ -195,6 +197,9 @@ local lastMove = {
   neck = 0,
   manaItem = 0
 }
+local lastGlobalMove = 0
+local itemSearchAfter = {}
+local actionButtonCache = {}
 
 local lastSpellCast = 0
 local lastUtamoCast = 0
@@ -491,21 +496,27 @@ local function updateCounterSlots()
 end
 
 local function canMove(slotKey)
-  local pingDelay = g_game.getPing and g_game.getPing() * 2 or 0
-  local delayMs = math.max(pingDelay, moveDelayMin)
+  local ping = g_game.getPing and tonumber(g_game.getPing()) or 0
+  local delayMs = math.max(moveDelayMin, math.min(moveDelayMax, math.floor((ping * 0.65) + 20)))
 
   if now - (lastMove[slotKey] or 0) < delayMs then
     return false
   end
 
-  lastMove[slotKey] = now
+  if now - lastGlobalMove < globalMoveGap then return false end
+
   return true
+end
+
+local function markMove(slotKey)
+  lastMove[slotKey] = now
+  lastGlobalMove = now
 end
 
 local function safeCall(fn, ...)
   if type(fn) ~= "function" then return false end
-  local ok = pcall(fn, ...)
-  return ok
+  local ok, result = pcall(fn, ...)
+  return ok and result ~= false
 end
 
 local function executeActionButton(actionButtonId)
@@ -515,8 +526,12 @@ local function executeActionButton(actionButtonId)
     return false
   end
 
-  local root = g_ui.getRootWidget()
-  local button = root and root:recursiveGetChildById(actionButtonId)
+  local button = actionButtonCache[actionButtonId]
+  if not button then
+    local root = g_ui.getRootWidget()
+    button = root and root:recursiveGetChildById(actionButtonId)
+    if button then actionButtonCache[actionButtonId] = button end
+  end
 
   if not button then return false end
 
@@ -571,6 +586,7 @@ end
 
 local function findItemSmart(itemId)
   if not itemId or itemId <= 0 then return nil end
+  if now < (itemSearchAfter[itemId] or 0) then return nil end
 
   local ids = {
     itemId,
@@ -583,11 +599,13 @@ local function findItemSmart(itemId)
       local item = findItem(id)
 
       if item then
+        itemSearchAfter[itemId] = 0
         return item
       end
     end
   end
 
+  itemSearchAfter[itemId] = now + 60
   return nil
 end
 
@@ -635,15 +653,32 @@ local function maintainSupplyContainer(section, supplyKey)
   end
 end
 
+local urgentSupplyAfter = {}
+local function requestDangerSupply(itemId)
+  itemId = tonumber(itemId)
+  if not itemId or now < (urgentSupplyAfter[itemId] or 0) then return end
+  urgentSupplyAfter[itemId] = now + 250
+
+  if itemId == tonumber(config.amulet.dangerItem) then
+    maintainSupplyContainer(config.amulet, "ssa")
+  elseif itemId == tonumber(config.ring.dangerItem) then
+    maintainSupplyContainer(config.ring, "might")
+  elseif itemId == tonumber(config.ering.dangerItem) then
+    maintainSupplyContainer(config.ering, "ering")
+  end
+end
+
 local function moveItemToSlot(itemId, slot, slotKey)
   if not itemId or itemId <= 0 then return false end
 
   local item = findItemSmart(itemId)
 
   if item and canMove(slotKey) then
-    suppressCounterSlot(slotKey)
-    g_game.move(item, {x = 65535, y = slot, z = 0}, 1)
-    return true
+    if safeCall(g_game.move, item, {x = 65535, y = slot, z = 0}, 1) then
+      suppressCounterSlot(slotKey)
+      markMove(slotKey)
+      return true
+    end
   end
 
   return false
@@ -651,19 +686,27 @@ end
 
 local function equipDangerItem(itemId, slot, slotKey, actionButtonId)
   if not itemId or itemId <= 0 then return false end
-  if not canMove(slotKey) then return false end
-
-  suppressCounterSlot(slotKey)
 
   local item = findItemSmart(itemId)
 
   if item then
-    g_game.move(item, {x = 65535, y = slot, z = 0}, 1)
-    return true
+    if not canMove(slotKey) then return false end
+    if safeCall(g_game.move, item, {x = 65535, y = slot, z = 0}, 1) then
+      suppressCounterSlot(slotKey)
+      markMove(slotKey)
+      return true
+    end
+    return false
   end
 
-  if equipItemById(itemId) then return true end
-  if executeActionButton(actionButtonId) then return true end
+  requestDangerSupply(itemId)
+  if not canMove(slotKey) then return false end
+
+  if equipItemById(itemId) or executeActionButton(actionButtonId) then
+    suppressCounterSlot(slotKey)
+    markMove(slotKey)
+    return true
+  end
 
   return false
 end
@@ -672,9 +715,11 @@ local function unequipToBack(slotItem, slotKey)
   if not slotItem then return false end
 
   if canMove(slotKey) then
-    suppressCounterSlot(slotKey)
-    g_game.move(slotItem, {x = 65535, y = backSlot, z = 0}, 1)
-    return true
+    if safeCall(g_game.move, slotItem, {x = 65535, y = backSlot, z = 0}, 1) then
+      suppressCounterSlot(slotKey)
+      markMove(slotKey)
+      return true
+    end
   end
 
   return false
@@ -929,17 +974,48 @@ local function handleNeck()
 end
 
 -- =========================
--- MACRO PRINCIPAL
+-- CICLO PRINCIPAL: eventos para respuesta inmediata y macro para reintentos.
 -- =========================
-macro(20, function()
-  updateCounterSlots()
+local cycleRunning = false
+local function runProtectionCycle()
+  if not config.enabled then return end
+  if cycleRunning then return end
 
+  cycleRunning = true
+  local ok, err = pcall(function()
+    updateDangerTimer()
+    handleSpellShield()
+    handleFinger()
+    handleNeck()
+  end)
+  cycleRunning = false
+  if not ok then error(err) end
+end
+
+macro(10, function()
+  runProtectionCycle()
+end)
+
+macro(50, function()
+  updateCounterSlots()
+end)
+
+onPlayerHealthChange(function(healthPercent)
   if not config.enabled then return end
 
-  updateDangerTimer()
-  handleSpellShield()
-  handleFinger()
-  handleNeck()
+  local hp = tonumber(healthPercent) or hppercent() or 100
+  if hp < lastHp then
+    lastDangerAt = now
+    lastSlotDangerAt.finger = now
+    lastSlotDangerAt.neck = now
+  end
+  lastHp = hp
+  lastSampleAt = now
+  runProtectionCycle()
+end)
+
+onManaChange(function()
+  if config.enabled then runProtectionCycle() end
 end)
 
 macro(500, function()

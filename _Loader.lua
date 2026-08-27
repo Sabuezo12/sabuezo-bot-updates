@@ -69,7 +69,7 @@ local loaderSections = {
   {
     name = "Tools",
     files = {
-      ---"vBot/buffguild",
+      "vBot/Buffguild",
       "vBot/alarms",
       "vBot/recoge",
       "vBot/pullitems",

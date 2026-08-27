@@ -20,6 +20,10 @@ local itemCounterFuzzyNames = {}
 local itemCounterAliases = {}
 local itemCounterRegisteredIds = {}
 local itemCounterAmmoState = {}
+local itemCounterVisibleState = {}
+
+local ITEM_COUNTER_VISIBLE_CONFIRM_MS = 1200
+local ITEM_COUNTER_EXACT_CONFIRM_MS = 2200
 
 local CUSTOM_COOLDOWN_LIMIT = 80
 local customCooldownOrder = {}
@@ -190,6 +194,27 @@ local function resolveItemCounterId(id)
     id = tonumber(id)
     if not id then return nil end
     return itemCounterAliases[id] or id
+end
+
+local function itemCounterNowMs()
+    local tick = tonumber(now) or math.floor(os.clock() * 1000)
+    return (os.time() * 1000) + (tick % 1000)
+end
+
+local function observeItemCounterVisible(id, amount)
+    id = resolveItemCounterId(id)
+    amount = math.max(0, tonumber(amount) or 0)
+    if not id then return nil, itemCounterNowMs() end
+
+    local currentTime = itemCounterNowMs()
+    local key = tostring(id)
+    local state = itemCounterVisibleState[key]
+    if not state or tonumber(state.amount) ~= amount then
+        state = {amount = amount, since = currentTime}
+        itemCounterVisibleState[key] = state
+    end
+    state.lastSeen = currentTime
+    return state, currentTime
 end
 
 local function isNumericItemCounterName(name)
@@ -374,6 +399,17 @@ function vBot.ItemCounter.set(id, count, source, usedDelta)
     itemCounterStore.items[key].count = math.max(0, count)
     itemCounterStore.items[key].source = source or "log"
     itemCounterStore.items[key].updated = os.time()
+    itemCounterStore.items[key].updatedMs = itemCounterNowMs()
+
+    if source ~= "visible" then
+        local visible = player and player.getItemsCount and player:getItemsCount(id) or 0
+        local currentTime = itemCounterNowMs()
+        itemCounterVisibleState[key] = {
+            amount = math.max(0, tonumber(visible) or 0),
+            since = currentTime,
+            lastSeen = currentTime
+        }
+    end
 
     usedDelta = tonumber(usedDelta)
     if usedDelta ~= nil then
@@ -433,13 +469,15 @@ end
 
 local function itemCounterKeepsKnownAmount(source)
     source = tostring(source or "")
-    return source == "log"
+    return source == "log" or source == "confirmed" or source == "buy" or source == "move" or source == "slot"
 end
 
 function vBot.ItemCounter.getAmount(id, visibleAmount)
     id = resolveItemCounterId(id)
     visibleAmount = tonumber(visibleAmount) or 0
     if not id then return visibleAmount end
+
+    local visibleState, currentTime = observeItemCounterVisible(id, visibleAmount)
 
     if itemCounterIsVisibleOnly(id) then
         vBot.ItemCounter.set(id, visibleAmount, "visible", 0)
@@ -451,15 +489,60 @@ function vBot.ItemCounter.getAmount(id, visibleAmount)
     if not entry then return visibleAmount end
 
     local known = tonumber(entry.count)
-    local keepKnown = known ~= nil and itemCounterKeepsKnownAmount(entry.source)
+    local source = tostring(entry.source or "")
+    local keepKnown = known ~= nil and itemCounterKeepsKnownAmount(source)
 
-    if visibleAmount > 0 and not keepKnown and (not known or visibleAmount > known or entry.source ~= "log") then
+    if known == nil then
+        if visibleAmount > 0 then vBot.ItemCounter.set(id, visibleAmount, "visible", 0) end
+        return visibleAmount
+    end
+
+    local stableFor = visibleState and math.max(0, currentTime - (tonumber(visibleState.since) or currentTime)) or 0
+    local sourceAge = math.max(0, currentTime - (tonumber(entry.updatedMs) or currentTime))
+
+    if source == "log" or source == "confirmed" then
+        -- Server Log is authoritative while consuming items. A stable higher
+        -- visible amount means a refill or a newly opened supply backpack.
+        if visibleAmount > known and stableFor >= ITEM_COUNTER_VISIBLE_CONFIRM_MS then
+            vBot.ItemCounter.set(id, visibleAmount, "confirmed", 0)
+            return visibleAmount
+        end
+        return known
+    end
+
+    if keepKnown then
+        -- Buying and scripted moves update the counter before the client has
+        -- refreshed its containers. Reconcile only after that view settles.
+        if visibleAmount == known then return known end
+        if visibleAmount > 0 and stableFor >= ITEM_COUNTER_EXACT_CONFIRM_MS and
+            sourceAge >= ITEM_COUNTER_EXACT_CONFIRM_MS then
+            vBot.ItemCounter.set(id, visibleAmount, "confirmed", 0)
+            return visibleAmount
+        end
+        return known
+    end
+
+    if visibleAmount ~= known then
         vBot.ItemCounter.set(id, visibleAmount, "visible")
         known = visibleAmount
     end
 
     if known then return known end
     return visibleAmount
+end
+
+function vBot.ItemCounter.refreshVisible()
+    local tracked = {}
+    for key in pairs(itemCounterStore.supplyItems) do tracked[key] = true end
+    for key in pairs(itemCounterStore.watchItems) do tracked[key] = true end
+
+    for key in pairs(tracked) do
+        local id = tonumber(key)
+        if id and player and player.getItemsCount then
+            local visible = tonumber(player:getItemsCount(id)) or 0
+            vBot.ItemCounter.getAmount(id, visible)
+        end
+    end
 end
 
 function vBot.ItemCounter.getAmountInfo(id, visibleAmount)
@@ -556,6 +639,8 @@ function vBot.ItemCounter.parseLog(text)
 
     local lowered = text:lower()
     local amount, name = lowered:match("using one of%s+(%d+)%s+(.+)")
+    if not amount then amount, name = lowered:match("used one of%s+(%d+)%s+(.+)") end
+    if not amount then amount, name = lowered:match("use one of%s+(%d+)%s+(.+)") end
     if amount and name then
         name = normalizeItemCounterName(name)
         local id = findItemCounterIdByLogName(name, tonumber(amount))
@@ -608,7 +693,9 @@ function vBot.ItemCounter.parseLog(text)
         return
     end
 
-    name = lowered:match("using the last%s+(.+)")
+    name = lowered:match("using the last%s+(.+)") or
+        lowered:match("used the last%s+(.+)") or
+        lowered:match("use the last%s+(.+)")
     if name then
         name = normalizeItemCounterName(name)
         local id = findItemCounterIdByLogName(name, 1)

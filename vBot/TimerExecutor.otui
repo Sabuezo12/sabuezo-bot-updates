@@ -13,143 +13,167 @@ TimerExecutorActionTypeBox < ComboBox
     self:addOption("Lua")
 
 TimerExecutorActionRow < Panel
-  height: 92
-  margin-top: 3
-  background-color: #00000022
+  height: 88
+  margin-top: 4
+  background-color: #101b1d88
+  border-width: 1
+  border-color: #314246
 
   CheckBox
     id: enabled
     anchors.left: parent.left
     anchors.top: parent.top
-    margin-left: 3
-    margin-top: 3
+    margin-left: 6
+    margin-top: 6
     width: 18
     height: 18
-    tooltip: Enable this action
+    tooltip: Activar esta accion
 
-  TimerExecutorActionTypeBox
-    id: actionType
+  TextEdit
+    id: name
     anchors.left: enabled.right
     anchors.top: enabled.top
     margin-left: 4
-    width: 104
-
-  SpinBox
-    id: interval
-    anchors.left: actionType.right
-    anchors.top: actionType.top
-    margin-left: 4
-    width: 68
+    width: 184
     height: 20
-    minimum: 1
-    maximum: 86400
-    step: 1
-    editable: true
-    focusable: true
-    tooltip: Seconds between executions
-
-  Label
-    id: secondsLabel
-    anchors.left: interval.right
-    anchors.verticalCenter: interval.verticalCenter
-    margin-left: 3
-    width: 16
     font: verdana-11px-rounded
-    text: s
+    tooltip: Nombre de la accion
 
   Button
     id: remove
     anchors.right: parent.right
     anchors.top: parent.top
-    margin-top: 3
-    margin-right: 3
-    width: 22
+    margin-top: 5
+    margin-right: 7
+    width: 24
     height: 20
     text: X
-    tooltip: Remove action
+    tooltip: Eliminar accion
 
   Button
     id: run
     anchors.right: remove.left
     anchors.top: remove.top
     margin-right: 4
-    width: 38
+    width: 60
     height: 20
-    text: Run
-    tooltip: Execute now
-
-  BotItem
-    id: item
-    anchors.left: parent.left
-    anchors.top: enabled.bottom
-    margin-left: 4
-    margin-top: 5
-
-  TextEdit
-    id: value
-    anchors.left: item.right
-    anchors.right: parent.right
-    anchors.top: item.top
-    margin-left: 8
-    margin-right: 5
-    height: 20
-    font: verdana-11px-rounded
-    tooltip: Text, spell words, x,y tile offset, or Lua code
-
-  CheckBox
-    id: skipPz
-    anchors.left: value.left
-    anchors.top: value.bottom
-    margin-top: 5
-    width: 44
-    height: 18
-    text: PZ
-    tooltip: Skip while in protection zone
-
-  CheckBox
-    id: skipAttack
-    anchors.left: skipPz.right
-    anchors.top: skipPz.top
-    margin-left: 8
-    width: 52
-    height: 18
-    text: ATK
-    tooltip: Skip while attacking
-
-  CheckBox
-    id: runOnStart
-    anchors.left: skipAttack.right
-    anchors.top: skipPz.top
-    margin-left: 8
-    width: 58
-    height: 18
-    text: Start
-    tooltip: Run when the module is enabled
-
-  CheckBox
-    id: once
-    anchors.left: runOnStart.right
-    anchors.top: skipPz.top
-    margin-left: 8
-    width: 54
-    height: 18
-    text: Once
-    tooltip: Disable this action after it runs
+    text: Ejecutar
+    tooltip: Ejecutar ahora
 
   Label
     id: status
-    anchors.right: parent.right
-    anchors.verticalCenter: once.verticalCenter
-    margin-right: 6
-    width: 110
+    anchors.right: run.left
+    anchors.verticalCenter: run.verticalCenter
+    margin-right: 7
+    width: 82
     text-align: right
     font: verdana-11px-rounded
     color: #aaaaaa
     text: -
 
+  TimerExecutorActionTypeBox
+    id: actionType
+    anchors.left: parent.left
+    anchors.top: enabled.bottom
+    margin-left: 6
+    margin-top: 7
+    width: 108
+
+  SpinBox
+    id: interval
+    anchors.left: actionType.right
+    anchors.top: actionType.top
+    margin-left: 5
+    width: 70
+    height: 20
+    minimum: 1
+    maximum: 86400
+    step: 1
+    editable: true
+    focusable: true
+    tooltip: Segundos entre ejecuciones
+
+  Label
+    id: secondsLabel
+    anchors.left: interval.right
+    anchors.verticalCenter: interval.verticalCenter
+    margin-left: 3
+    width: 14
+    font: verdana-11px-rounded
+    text: s
+
+  BotItem
+    id: item
+    anchors.left: secondsLabel.right
+    anchors.verticalCenter: actionType.verticalCenter
+    margin-left: 5
+
+  TextEdit
+    id: value
+    anchors.left: item.right
+    anchors.right: parent.right
+    anchors.top: actionType.top
+    margin-left: 7
+    margin-right: 6
+    height: 20
+    font: verdana-11px-rounded
+    tooltip: Texto, hechizo, offset x,y o codigo Lua
+
+  CheckBox
+    id: skipPz
+    anchors.left: parent.left
+    anchors.top: actionType.bottom
+    margin-left: 7
+    margin-top: 9
+    width: 92
+    height: 18
+    text: Evitar PZ
+    tooltip: No ejecutar dentro de protection zone
+
+  CheckBox
+    id: skipAttack
+    anchors.left: skipPz.right
+    anchors.top: skipPz.top
+    margin-left: 5
+    width: 112
+    height: 18
+    text: Evitar ataque
+    tooltip: No ejecutar mientras atacas
+
+  CheckBox
+    id: runOnStart
+    anchors.left: skipAttack.right
+    anchors.top: skipPz.top
+    margin-left: 5
+    width: 104
+    height: 18
+    text: Al iniciar
+    tooltip: Ejecutar al encender Timer Executor
+
+  CheckBox
+    id: once
+    anchors.left: runOnStart.right
+    anchors.top: skipPz.top
+    margin-left: 5
+    width: 82
+    height: 18
+    text: Una vez
+    tooltip: Desactivar despues de una ejecucion correcta
+
+  Button
+    id: duplicate
+    anchors.right: parent.right
+    anchors.verticalCenter: once.verticalCenter
+    margin-right: 6
+    width: 64
+    height: 20
+    text: Duplicar
+    tooltip: Crear una copia de esta accion
+
 TimerExecutorWindow < MainWindow
+  id: TimerExecutorWindow
   !text: tr('Timer Executor')
-  size: 540 420
+  size: 560 360
   @onEscape: self:hide()
 
   Label
@@ -157,28 +181,55 @@ TimerExecutorWindow < MainWindow
     anchors.left: parent.left
     anchors.right: parent.right
     anchors.top: parent.top
+    height: 22
     text-align: center
     font: verdana-11px-rounded
     color: #9dd1ce
-    text: Timed Actions
+    background-color: #132d2f99
+    border-width: 1
+    border-color: #365052
+    text: ACCIONES PROGRAMADAS
+
+  Label
+    id: summary
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: title.bottom
+    margin-top: 6
+    height: 18
+    text-align: center
+    font: verdana-11px-rounded
+    color: #9dd1ce
+    text: Sin acciones activas
 
   ScrollablePanel
     id: list
     anchors.left: parent.left
     anchors.right: parent.right
-    anchors.top: title.bottom
+    anchors.top: summary.bottom
     anchors.bottom: bottomSep.top
-    margin-top: 7
+    margin-top: 3
     margin-bottom: 8
+    margin-right: 14
     padding: 2
     vertical-scrollbar: listScrollBar
     layout: verticalBox
+
+  Label
+    id: empty
+    anchors.horizontalCenter: list.horizontalCenter
+    anchors.verticalCenter: list.verticalCenter
+    width: 220
+    height: 36
+    text-align: center
+    color: #888888
+    text: No hay acciones programadas
 
   VerticalScrollBar
     id: listScrollBar
     anchors.top: list.top
     anchors.bottom: list.bottom
-    anchors.right: list.right
+    anchors.right: parent.right
     step: 20
     pixels-scroll: true
 
@@ -193,26 +244,36 @@ TimerExecutorWindow < MainWindow
     id: add
     anchors.left: parent.left
     anchors.bottom: parent.bottom
-    width: 70
+    width: 74
     height: 21
-    text: New
-    tooltip: Add action
+    text: Nueva
+    tooltip: Agregar accion
 
   Button
     id: reset
     anchors.left: add.right
     anchors.bottom: parent.bottom
     margin-left: 6
-    width: 70
+    width: 78
     height: 21
-    text: Reset
-    tooltip: Restart timers
+    text: Reiniciar
+    tooltip: Reiniciar todos los contadores
+
+  BotSwitch
+    id: master
+    anchors.left: reset.right
+    anchors.bottom: parent.bottom
+    margin-left: 8
+    width: 108
+    height: 21
+    text-align: center
+    text: Executor
 
   Button
     id: closeButton
     anchors.right: parent.right
     anchors.bottom: parent.bottom
-    width: 55
+    width: 58
     height: 21
-    text: Close
+    text: Cerrar
     @onClick: self:getParent():hide()

@@ -209,6 +209,9 @@ refreshRows()
 
 macro(250, function()
   if not settings.enabled then return end
+  if vBot.ItemCounter and vBot.ItemCounter.refreshVisible then
+    vBot.ItemCounter.refreshVisible()
+  end
   if vBot.ItemCounter and vBot.ItemCounter.updateAmmo then
     vBot.ItemCounter.updateAmmo()
   end

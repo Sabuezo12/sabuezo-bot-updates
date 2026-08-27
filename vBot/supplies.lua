@@ -505,6 +505,10 @@ end
 Supplies.hasEnough = function()
   local data = Supplies.getItemsData()
 
+  if vBot.ItemCounter and vBot.ItemCounter.refreshVisible then
+    vBot.ItemCounter.refreshVisible()
+  end
+
   for id, values in pairs(data) do
     id = tonumber(id)
     registerSupplyCounter(id, values)

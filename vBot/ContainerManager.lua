@@ -1002,6 +1002,34 @@ local function isQuiverOpened()
   return false
 end
 
+local mainOpenAfter = 0
+
+local function useMainContainer(item)
+  if not item then return false end
+
+  local time = now or 0
+  if time < mainOpenAfter then return false end
+  mainOpenAfter = time + (defaultDelay * 2)
+  g_game.use(item)
+  return true
+end
+
+local function getPurseItem()
+  if type(getPurse) == "function" then
+    local ok, item = pcall(getPurse)
+    if ok and item then return item end
+  end
+
+  local player = g_game.getLocalPlayer()
+  local purseSlot = InventorySlotPurse or SlotPurse or 11
+  if not player or not player.getInventoryItem then return nil end
+
+  local ok, item = pcall(function()
+    return player:getInventoryItem(purseSlot)
+  end)
+  return ok and item or nil
+end
+
 -- Open Main Containers: Back, Purse, Bag and Quiver
 local function openMain()
 
@@ -1009,7 +1037,7 @@ local function openMain()
   if config.openBack and not isMainOpened() then
     local back = getBack()
     if back and back:isContainer() then
-      return g_game.use(back)
+      return useMainContainer(back)
     end
   end
 
@@ -1019,17 +1047,14 @@ local function openMain()
     for i=1,#t do
       local slot = t[i]
       if slot and slot:isContainer() then
-        return g_game.use(slot)
+        return useMainContainer(slot)
       end
     end
   end
 
   -- Open Purse
   if config.openPurse and not getContainerByItem(purseId) then
-    local purse = getPurse()
-    if purse and purse:isContainer() then
-      return g_game.use(purse)
-    end
+    return useMainContainer(getPurseItem())
   end
   
 end
@@ -1145,6 +1170,7 @@ function reopenContainers()
   if cManager:isOff() then return end
   containersToOpen = {}
   pageContainers = {}
+  mainOpenAfter = 0
   for _, cont in pairs(g_game.getContainers()) do g_game.close(cont) end
   if config.onFullAfk then 
     schedule((config.qtdFullAfk + 2) * defaultDelay, function()
@@ -1241,13 +1267,14 @@ onContainerOpen(function(container, previousContainer)
   if container.lootContainer then return end
   local cId = container:getContainerItem():getId()
   local isMainSource = isMainBackpackContainer(container)
+  local isPurseSource = config.openPurse and cId == purseId
   local index = findContainerConfig(cId)
   local explicitRole = getExplicitSupplyRole(cId)
-  if not index and not isMainSource and not explicitRole then return end
+  if not index and not isMainSource and not isPurseSource and not explicitRole then return end
   local settings = index and config.list[index] or {
     eEnabled = true,
     eOpenNext = true,
-    eResize = false,
+    eResize = isPurseSource,
     eRename = false,
     eMinimize = false,
     ePages = false
@@ -1256,9 +1283,11 @@ onContainerOpen(function(container, previousContainer)
 
   if not container.window then return end
   local cWindow = container.window
-  if settings.eResize then resizeContainerAfterLayout(container) end
+  if settings.eResize or isPurseSource then resizeContainerAfterLayout(container) end
   if isMainSource then
     cWindow:setText("Main Bp")
+  elseif isPurseSource and not index then
+    cWindow:setText("Purse")
   elseif explicitRole and not index then
     cWindow:setText(explicitRole)
   elseif settings.eRename then
@@ -1316,7 +1345,7 @@ local openNextMacro = macro(defaultDelay,function()
     end
   end
 
-  if #openContainers == 0 then openMain() end
+  openMain()
 end)
 
 local sortItemsMacro = macro(defaultDelay, function(m)
