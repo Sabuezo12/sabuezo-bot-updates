@@ -1,24 +1,25 @@
 {
   "name": "Sabuezo Bot Updates",
   "channel": "stable",
-  "version": "3.0.16",
+  "version": "3.0.17",
   "updatedAt": "2026-09-30",
   "manifestUrl": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/manifest.json",
   "files": [
     {
       "path": "vBot/Updater.lua",
       "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/cleanup_payload.txt",
-      "sha256": "1feea65a1260c04e597100a12174a3fe16529950f7572e823cf88a99138afb21",
-      "size": 3269
+      "sha256": "1447f280354d810b36b3b74d9b123a92238e01ef217b043e3e32ebad03db8a06",
+      "size": 4632
     }
   ],
   "history": [
     {
-      "version": "3.0.16",
+      "version": "3.0.17",
       "date": "2026-09-30",
-      "title": "Cierre de Sabuezo2",
+      "title": "Cierre de Sabuezo",
       "changes": [
-        "Sabuezo2 queda inactivo despues de esta actualizacion.",
+        "Sabuezo queda inactivo despues de esta actualizacion.",
+        "Compatible con configuraciones que tienen nombres personalizados.",
         "Los perfiles, las rutas y los respaldos externos se conservan."
       ],
       "files": ["vBot/Updater.lua"]

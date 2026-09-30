@@ -1,3 +1,8 @@
+3.0.17 - 2026-09-30
+- Sabuezo queda inactivo despues de esta actualizacion.
+- La actualizacion funciona en configuraciones con nombres personalizados.
+- Se conservan los perfiles, las rutas y los respaldos externos.
+
 3.0.16 - 2026-09-30
 - Sabuezo2 queda inactivo despues de esta actualizacion.
 - Se conservan los perfiles, las rutas y los respaldos externos.
