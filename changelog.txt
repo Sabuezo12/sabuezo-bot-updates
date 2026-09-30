@@ -1,3 +1,8 @@
+3.0.15 - 2026-09-30
+- Retira de GitHub los archivos Lua de la version actual.
+- Al abrir Sabuezo2, el updater descarga una rutina de limpieza y elimina los 59 Lua administrados y sus copias internas.
+- Conserva perfiles, rutas y respaldos ZIP externos. Deja dummy.lua vacio para que el cliente abra la configuracion sin ejecutar el bot.
+
 3.0.14 - 2026-08-26
 - Activa Buff Guild desde el loader para que quede disponible despues de actualizar y recargar el bot.
 - Exiva Tracker admite hasta seis observadores, refresca capacidades y reintenta lanzamientos que no fueron confirmados.
