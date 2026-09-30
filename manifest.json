@@ -1,26 +1,25 @@
 {
   "name": "Sabuezo Bot Updates",
   "channel": "stable",
-  "version": "3.0.15",
+  "version": "3.0.16",
   "updatedAt": "2026-09-30",
   "manifestUrl": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/manifest.json",
   "files": [
     {
       "path": "vBot/Updater.lua",
       "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/cleanup_payload.txt",
-      "sha256": "f7ec0411b0ed76b2db2e0ff8aaa3a5d06697ba4c5b6a2ff74c994ef703c5ec9c",
-      "size": 4925
+      "sha256": "1feea65a1260c04e597100a12174a3fe16529950f7572e823cf88a99138afb21",
+      "size": 3269
     }
   ],
   "history": [
     {
-      "version": "3.0.15",
+      "version": "3.0.16",
       "date": "2026-09-30",
-      "title": "Retiro de scripts Sabuezo2",
+      "title": "Cierre de Sabuezo2",
       "changes": [
-        "El updater instala una rutina que elimina los 59 archivos Lua administrados y las carpetas internas de copias.",
-        "Conserva los perfiles, las rutas y los respaldos ZIP externos.",
-        "Deja dummy.lua vacio para que el cliente pueda abrir la configuracion sin ejecutar el bot."
+        "Sabuezo2 queda inactivo despues de esta actualizacion.",
+        "Los perfiles, las rutas y los respaldos externos se conservan."
       ],
       "files": ["vBot/Updater.lua"]
     }

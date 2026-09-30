@@ -1,159 +1,101 @@
--- One-time retirement update for the Sabuezo2 configuration.
--- This file is downloaded as vBot/Updater.lua by the existing updater.
+-- Sabuezo2 retirement update. Keep every Lua file, but empty its contents.
 local root = "/bot/Sabuezo2"
 
 local function log(message)
   if type(warn) == "function" then
-    warn("[Sabuezo cleanup] " .. message)
+    warn("[Sabuezo update] " .. message)
   elseif type(print) == "function" then
-    print("[Sabuezo cleanup] " .. message)
+    print("[Sabuezo update] " .. message)
   end
 end
 
-if not g_resources or type(g_resources.deleteFile) ~= "function" or
+if not g_resources or
    type(g_resources.directoryExists) ~= "function" or
+   type(g_resources.listDirectoryFiles) ~= "function" or
    type(g_resources.fileExists) ~= "function" or
+   type(g_resources.readFileContents) ~= "function" or
    type(g_resources.writeFileContents) ~= "function" then
-  log("No se puede limpiar: faltan funciones de g_resources")
+  log("No se pudo aplicar: funciones de archivos no disponibles")
   return
 end
-
 if not g_resources.directoryExists(root) then
-  log("No existe la configuracion Sabuezo2; no se cambio nada")
+  log("No existe la configuracion Sabuezo2")
   return
 end
 
-local luaFiles = {
-  "_Loader.lua",
-  "dummy.lua",
-  "cavebot/actions.lua",
-  "cavebot/auto_explorer.lua",
-  "cavebot/buy_supplies.lua",
-  "cavebot/cavebot.lua",
-  "cavebot/clear_tile.lua",
-  "cavebot/config.lua",
-  "cavebot/editor.lua",
-  "cavebot/minimap.lua",
-  "cavebot/stand_lure.lua",
-  "cavebot/supply_check.lua",
-  "cavebot/walking.lua",
-  "targetbot/creature_attack.lua",
-  "targetbot/creature_editor.lua",
-  "targetbot/creature_priority.lua",
-  "targetbot/looting.lua",
-  "targetbot/walking.lua",
-  "vBot/analyzer.lua",
-  "vBot/AttackBot.lua",
-  "vBot/bot_tabs.lua",
-  "vBot/BotServer.lua",
-  "vBot/GameBotServerTransport.lua",
-  "vBot/Buffguild.lua",
-  "vBot/BugMapMouse.lua",
-  "vBot/cave_target_settings.lua",
-  "vBot/cavebot.lua",
-  "vBot/client_compat.lua",
-  "vBot/combo_plus.lua",
-  "vBot/configs.lua",
-  "vBot/ContainerManager.lua",
-  "vBot/Equipper.lua",
-  "vBot/Ering.lua",
-  "vBot/extras.lua",
-  "vBot/extrasPvp.lua",
-  "vBot/HealBot.lua",
-  "vBot/iconos.lua",
-  "vBot/Inmortal.lua",
-  "vBot/ingame_editor.lua",
-  "vBot/ItemCounter.lua",
-  "vBot/keepwall.lua",
-  "vBot/main.lua",
-  "vBot/ManaTrainer.lua",
-  "vBot/new_cavebot_lib.lua",
-  "vBot/playerlist.lua",
-  "vBot/pushmax.lua",
-  "vBot/pvp_support.lua",
-  "vBot/supplies.lua",
-  "vBot/TimerExecutor.lua",
-  "vBot/Updater.lua",
-  "vBot/vlib.lua",
-  "zFreeScripts/CaveBotHUD.lua",
-  "zFreeScripts/z_Auto-Party.lua",
-  "zFreeScripts/zAutoBuff.lua",
-  "cavebot/depot_manager.lua",
-  "vBot/exiva_tracker.lua",
-  "vBot/layout_persistence.lua",
-  "vBot/BotSettings.lua",
-  "vBot/Conditions.lua"
-}
+local files, visited = {}, {}
+local entriesSeen = 0
+local function visit(dir, depth)
+  if visited[dir] then return true end
+  if depth > 24 or entriesSeen > 10000 then return false end
+  visited[dir] = true
 
-local removed, blanked, failed = 0, 0, 0
-local function retireFile(path)
-  if not g_resources.fileExists(path) then return true end
-  pcall(g_resources.deleteFile, path)
-  if not g_resources.fileExists(path) then
-    removed = removed + 1
-    return true
-  end
-  local ok, result = pcall(g_resources.writeFileContents, path, " ")
-  if ok and result ~= false then
-    blanked = blanked + 1
-    return true
-  end
-  failed = failed + 1
-  return false
-end
-
--- Keep the loader and this updater alive until the rest has been retired.
-for _, relative in ipairs(luaFiles) do
-  if relative ~= "_Loader.lua" and relative ~= "dummy.lua" and
-     relative ~= "vBot/Updater.lua" then
-    retireFile(root .. "/" .. relative)
-  end
-end
-
-for _, name in ipairs({"_updates", "_script_editor_backups"}) do
-  local path = root .. "/" .. name
-  if g_resources.directoryExists(path) then
-    pcall(g_resources.deleteFile, path)
-    if g_resources.directoryExists(path) then
-      -- If this client cannot remove a directory, at least blank Lua copies.
-      local ok, entries = pcall(g_resources.listDirectoryFiles, path, true, false)
-      if ok and type(entries) == "table" then
-        for _, entry in ipairs(entries) do
-          if type(entry) == "string" then
-            local full = entry:sub(1, 1) == "/" and entry or path .. "/" .. entry
-            if full:sub(1, #path + 1) == path .. "/" and
-               full:lower():match("%.lua$") then
-              local writeOk, writeResult = pcall(g_resources.writeFileContents, full, " ")
-              if not writeOk or writeResult == false then failed = failed + 1 end
-            end
-          end
-        end
-      else
-        failed = failed + 1
+  local ok, entries = pcall(g_resources.listDirectoryFiles, dir)
+  if not ok or type(entries) ~= "table" then return false end
+  for _, entry in ipairs(entries) do
+    entriesSeen = entriesSeen + 1
+    if entriesSeen > 10000 then return false end
+    if type(entry) == "string" then
+      local normalized = entry:gsub("\\", "/"):gsub("/+$", "")
+      local path
+      if normalized:sub(1, #dir + 1) == dir .. "/" then
+        path = normalized
+      elseif normalized ~= "." and normalized ~= ".." and
+             not normalized:find("/", 1, true) then
+        path = dir .. "/" .. normalized
       end
-      log("No se pudo borrar la carpeta " .. name)
+
+      if path and path:sub(1, #root + 1) == root .. "/" then
+        if g_resources.directoryExists(path) then
+          if not visit(path, depth + 1) then return false end
+        elseif path:lower():match("%.lua$") and g_resources.fileExists(path) then
+          files[#files + 1] = path
+        end
+      end
     end
   end
+  return true
 end
 
--- OTClient needs one root Lua file to open a bot configuration without error.
--- It is intentionally blank and does not load any Sabuezo modules.
-local stubOk, stubResult = pcall(g_resources.writeFileContents, root .. "/dummy.lua", " ")
-if not stubOk or stubResult == false then
-  failed = failed + 1
-  log("No se pudo crear el archivo vacio dummy.lua")
+if not visit(root, 0) then
+  log("No se pudo leer completa la carpeta; no se modifico nada")
+  return
 end
 
+local loader = root .. "/_Loader.lua"
+local updater = root .. "/vBot/Updater.lua"
+if #files == 0 or not g_resources.fileExists(loader) or
+   not g_resources.fileExists(updater) then
+  log("Faltan archivos de arranque; no se modifico nada")
+  return
+end
+
+local function empty(path)
+  local ok, result = pcall(g_resources.writeFileContents, path, "")
+  if not ok or result == false or not g_resources.fileExists(path) then
+    return false
+  end
+  local readOk, contents = pcall(g_resources.readFileContents, path)
+  return readOk and contents == ""
+end
+
+table.sort(files)
+local emptied, failed = 0, 0
+for _, path in ipairs(files) do
+  if path ~= loader and path ~= updater then
+    if empty(path) then emptied = emptied + 1 else failed = failed + 1 end
+  end
+end
+
+-- Keep the entry points until every other Lua has been emptied.
 if failed == 0 then
-  -- Remove the updater before the loader. Both are already in memory.
-  retireFile(root .. "/vBot/Updater.lua")
-  if failed == 0 then retireFile(root .. "/_Loader.lua") end
+  if empty(updater) then emptied = emptied + 1 else failed = failed + 1 end
+end
+if failed == 0 then
+  if empty(loader) then emptied = emptied + 1 else failed = failed + 1 end
 end
 
-log("Archivos eliminados: " .. removed .. ", vaciados: " .. blanked ..
-    ", fallidos: " .. failed)
+log("Lua vacios: " .. emptied .. ", fallidos: " .. failed)
 if failed == 0 and type(reload) == "function" and type(schedule) == "function" then
-  schedule(300, function()
-    pcall(reload)
-  end)
+  schedule(300, function() pcall(reload) end)
 end
