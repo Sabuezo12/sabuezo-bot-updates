@@ -6,6 +6,75 @@ CaveBotSetProfileCheckBox < BotSwitch
   height: 20
   margin-top: 3
 
+CaveBotDepotModeButton < BotSwitch
+  height: 24
+  margin-top: 4
+  text-align: center
+
+CaveBotDepotActionWindow < MainWindow
+  text: Depot
+  width: 320
+  height: 235
+  padding: 18
+
+  Label
+    id: description
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    text-align: center
+    text-wrap: true
+    text-auto-resize: true
+    text: Select what this waypoint should do.
+
+  CaveBotDepotModeButton
+    id: deposit
+    anchors.top: description.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 12
+    text: Deposit
+
+  CaveBotDepotModeButton
+    id: withdraw
+    anchors.top: deposit.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    text: Withdraw
+
+  CaveBotDepotModeButton
+    id: all
+    anchors.top: withdraw.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    text: Deposit + Withdraw
+
+  Label
+    id: preview
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: ok.top
+    margin-bottom: 10
+    height: 32
+    text-align: center
+    text-wrap: true
+    text: -
+
+  Button
+    id: ok
+    !text: tr('Ok')
+    anchors.bottom: parent.bottom
+    anchors.right: next.left
+    margin-right: 10
+    width: 60
+
+  Button
+    id: cancel
+    !text: tr('Cancel')
+    anchors.bottom: parent.bottom
+    anchors.right: parent.right
+    width: 60
+
 CaveBotSetProfileEditorWindow < MainWindow
   text: Set CaveBot profile
   width: 360

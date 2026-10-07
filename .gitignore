@@ -1,0 +1,12 @@
+storage/
+vBot_configs/
+cavebot_configs/
+targetbot_configs/
+layout/
+_updates/
+_archive/
+_script_editor_backups/
+*.bak*
+*.key.txt
+.env*
+node_modules/

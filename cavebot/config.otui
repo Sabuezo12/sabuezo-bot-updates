@@ -1,238 +1,263 @@
-CaveBotConfigPanel < Panel
-  id: cavebotEditor
-  visible: false
-  
-  layout:
-    type: verticalBox
-    fit-children: true
-  
-  HorizontalSeparator
-    margin-top: 5
-
-  Label
-    text-align: center
-    text: CaveBot Config
-    margin-top: 5
-
 CaveBotConfigNumberValuePanel < Panel
-  height: 20
-  margin-top: 5
-  
+  height: 26
+  margin-top: 4
+
   BotTextEdit
     id: value
     anchors.right: parent.right
     anchors.top: parent.top
     anchors.bottom: parent.bottom
-    margin-right: 5
-    width: 50
+    width: 70
 
   Label
     id: title
     anchors.left: parent.left
-    anchors.verticalCenter: prev.verticalCenter
-    margin-left: 5
+    anchors.right: value.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 8
+    height: 18
+    text-align: left
 
 CaveBotConfigBooleanValuePanel < Panel
-  height: 20
-  margin-top: 5
-  
+  height: 26
+  margin-top: 4
+
   BotSwitch
     id: value
     anchors.right: parent.right
     anchors.top: parent.top
     anchors.bottom: parent.bottom
-    margin-right: 5
-    width: 50
-    
+    width: 70
+
     $on:
       text: On
-      
+
     $!on:
       text: Off
 
   Label
     id: title
     anchors.left: parent.left
-    anchors.verticalCenter: prev.verticalCenter
-    margin-left: 5
+    anchors.right: value.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 8
+    height: 18
+    text-align: left
 
 CaveBotConfigTextValuePanel < Panel
-  height: 20
-  margin-top: 5
-  
+  height: 26
+  margin-top: 4
+
   BotTextEdit
     id: value
     anchors.right: parent.right
     anchors.top: parent.top
     anchors.bottom: parent.bottom
-    margin-right: 5
-    width: 80
+    width: 110
 
   Label
     id: title
     anchors.left: parent.left
-    anchors.verticalCenter: prev.verticalCenter
-    margin-left: 5
+    anchors.right: value.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 8
+    height: 18
+    text-align: left
 
 CaveBotConfigChoiceValuePanel < Panel
-  height: 20
-  margin-top: 5
-  
+  height: 26
+  margin-top: 4
+
   Button
     id: value
     anchors.right: parent.right
     anchors.top: parent.top
     anchors.bottom: parent.bottom
-    margin-right: 5
-    width: 80
+    width: 110
 
   Label
     id: title
     anchors.left: parent.left
-    anchors.verticalCenter: prev.verticalCenter
-    margin-left: 5
+    anchors.right: value.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 8
+    height: 18
+    text-align: left
 
 CaveBotDeathSafetyPanel < Panel
   id: deathSafety
-  margin-top: 7
-  layout:
-    type: verticalBox
-    fit-children: true
-
-  HorizontalSeparator
-    margin-top: 2
-    margin-bottom: 3
+  anchors.fill: parent
 
   Label
     id: title
-    text: Seguridad por muertes
-    text-align: center
-    margin-top: 2
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 18
+    text: Muertes
+    text-align: left
 
   Panel
     id: statusRow
-    height: 22
+    anchors.top: title.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
     margin-top: 4
+    height: 26
 
     Button
       id: resetButton
-      text: Reset
+      text: Reiniciar
       anchors.right: parent.right
       anchors.top: parent.top
       anchors.bottom: parent.bottom
-      margin-right: 5
-      width: 54
+      width: 70
 
     Label
       id: deathCounterLabel
-      text: Muertes: 0
+      text: 0 muertes
       anchors.left: parent.left
       anchors.right: resetButton.left
       anchors.verticalCenter: parent.verticalCenter
-      margin-left: 5
-      margin-right: 4
+      margin-right: 8
+      height: 18
+      text-align: left
 
   Panel
     id: limitRow
-    height: 20
-    margin-top: 3
+    anchors.top: statusRow.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 6
+    height: 26
 
     BotTextEdit
       id: limitEdit
       anchors.right: parent.right
       anchors.top: parent.top
       anchors.bottom: parent.bottom
-      margin-right: 5
-      width: 50
+      width: 70
 
     Label
-      text: Limite
+      id: limitTitle
+      text: Limite de muertes
       anchors.left: parent.left
-      anchors.verticalCenter: limitEdit.verticalCenter
-      margin-left: 5
+      anchors.right: limitEdit.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-right: 8
+      height: 18
+      text-align: left
+
+  Label
+    id: actionTitle
+    anchors.top: limitRow.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 10
+    height: 18
+    text: Al llegar al limite:
+    text-align: left
 
   Panel
     id: actionRow
-    height: 22
-    margin-top: 3
-
-    Button
-      id: waitButton
-      text: Esperar
-      anchors.right: parent.right
-      anchors.top: parent.top
-      anchors.bottom: parent.bottom
-      margin-right: 5
-      width: 52
-
-    Button
-      id: labelButton
-      text: Label
-      anchors.right: waitButton.left
-      anchors.top: parent.top
-      anchors.bottom: parent.bottom
-      margin-right: 3
-      width: 44
+    anchors.top: actionTitle.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 6
+    height: 26
 
     Button
       id: stopButton
       text: Stop
-      anchors.right: labelButton.left
+      anchors.left: parent.left
       anchors.top: parent.top
       anchors.bottom: parent.bottom
-      margin-right: 3
-      width: 42
+      width: 78
+
+    Button
+      id: labelButton
+      text: Label
+      anchors.left: stopButton.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      margin-left: 4
+      width: 78
+
+    Button
+      id: waitButton
+      text: Esperar
+      anchors.left: labelButton.right
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      margin-left: 4
 
   Panel
     id: labelRow
-    height: 20
-    margin-top: 3
+    anchors.top: actionRow.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 8
+    height: 26
+    visible: false
 
     BotTextEdit
       id: labelEdit
       anchors.right: parent.right
       anchors.top: parent.top
       anchors.bottom: parent.bottom
-      margin-right: 5
-      width: 100
+      width: 150
 
     Label
-      text: Label
+      id: labelTitle
+      text: Label destino
       anchors.left: parent.left
-      anchors.verticalCenter: labelEdit.verticalCenter
-      margin-left: 5
+      anchors.right: labelEdit.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-right: 8
+      height: 18
+      text-align: left
 
   Panel
     id: waitRow
-    height: 20
-    margin-top: 3
+    anchors.top: actionRow.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 8
+    height: 26
+    visible: false
 
     BotTextEdit
       id: waitEdit
       anchors.right: parent.right
       anchors.top: parent.top
       anchors.bottom: parent.bottom
-      margin-right: 5
-      width: 50
+      width: 70
 
     Label
-      text: Espera min
+      id: waitTitle
+      text: Espera (minutos)
       anchors.left: parent.left
-      anchors.verticalCenter: waitEdit.verticalCenter
-      margin-left: 5
+      anchors.right: waitEdit.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-right: 8
+      height: 18
+      text-align: left
 
   Panel
     id: antiRedRow
-    height: 20
-    margin-top: 4
+    anchors.top: actionRow.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 48
+    height: 26
 
     BotSwitch
       id: antiRedSwitch
       anchors.right: parent.right
       anchors.top: parent.top
       anchors.bottom: parent.bottom
-      margin-right: 5
-      width: 50
+      width: 70
 
       $on:
         text: On
@@ -241,7 +266,172 @@ CaveBotDeathSafetyPanel < Panel
         text: Off
 
     Label
+      id: antiRedTitle
       text: Anti Red
       anchors.left: parent.left
-      anchors.verticalCenter: antiRedSwitch.verticalCenter
-      margin-left: 5
+      anchors.right: antiRedSwitch.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-right: 8
+      height: 18
+      text-align: left
+
+  Label
+    id: help
+    anchors.top: antiRedRow.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 12
+    height: 42
+    text: Stop detiene los bots. Label salta al destino indicado. Esperar pausa y retoma la hunt.
+    text-wrap: true
+    text-align: topLeft
+    color: #aaaaaa
+
+CaveBotConfigWindow < MainWindow
+  id: cavebotConfigWindow
+  text: CaveBot Config - Sabuezo
+  size: 660 430
+  padding-top: 32
+
+  Label
+    id: description
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 18
+    text: Configura el movimiento y la seguridad de la ruta.
+    text-align: left
+    color: #aaaaaa
+
+  Button
+    id: closeButton
+    anchors.bottom: parent.bottom
+    anchors.right: parent.right
+    size: 85 24
+    text: Cerrar
+
+  Label
+    id: savedHint
+    anchors.bottom: parent.bottom
+    anchors.left: parent.left
+    anchors.right: closeButton.left
+    margin-right: 12
+    height: 24
+    text: Los cambios se guardan automaticamente en la ruta seleccionada.
+    text-align: left
+    color: #03C04A
+
+  FlatPanel
+    id: movement
+    anchors.left: parent.left
+    anchors.top: description.bottom
+    anchors.bottom: closeButton.top
+    margin-top: 12
+    margin-bottom: 12
+    width: 306
+    padding: 10
+
+    Label
+      id: title
+      anchors.top: parent.top
+      anchors.left: parent.left
+      anchors.right: parent.right
+      height: 18
+      text: Movimiento
+      text-align: left
+      color: #03C04A
+
+    VerticalScrollBar
+      id: scrollbar
+      anchors.top: title.bottom
+      anchors.right: parent.right
+      anchors.bottom: parent.bottom
+      margin-top: 8
+      width: 10
+      step: 30
+      pixels-scroll: true
+
+    ScrollablePanel
+      id: options
+      anchors.top: title.bottom
+      anchors.left: parent.left
+      anchors.right: scrollbar.left
+      anchors.bottom: parent.bottom
+      margin-top: 8
+      margin-right: 8
+      vertical-scrollbar: scrollbar
+
+      CaveBotConfigNumberValuePanel
+        id: ping
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+      CaveBotConfigNumberValuePanel
+        id: walkDelay
+        anchors.top: ping.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+      CaveBotConfigBooleanValuePanel
+        id: mapClick
+        anchors.top: walkDelay.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+      CaveBotConfigNumberValuePanel
+        id: mapClickDelay
+        anchors.top: mapClick.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+      CaveBotConfigBooleanValuePanel
+        id: ignoreFields
+        anchors.top: mapClickDelay.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+      CaveBotConfigBooleanValuePanel
+        id: skipBlocked
+        anchors.top: ignoreFields.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+      CaveBotConfigNumberValuePanel
+        id: useDelay
+        anchors.top: skipBlocked.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+      CaveBotConfigBooleanValuePanel
+        id: pauseWhileFollowing
+        anchors.top: useDelay.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+  FlatPanel
+    id: security
+    anchors.left: movement.right
+    anchors.right: parent.right
+    anchors.top: movement.top
+    anchors.bottom: movement.bottom
+    margin-left: 12
+    padding: 10
+
+    Label
+      id: title
+      anchors.top: parent.top
+      anchors.left: parent.left
+      anchors.right: parent.right
+      height: 18
+      text: Seguridad
+      text-align: left
+      color: #ffcc66
+
+    Panel
+      id: contents
+      anchors.top: title.bottom
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.bottom: parent.bottom
+      margin-top: 8

@@ -1,0 +1,178 @@
+TargetBotCreatureEditorAmount < Panel
+  height: 29
+  margin-top: 4
+
+  Label
+    id: caption
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    height: 14
+    text-align: center
+
+  HorizontalScrollBar
+    id: scroll
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: caption.bottom
+    margin-top: 2
+
+TargetBotCreatureEditorOption < BotSwitch
+  height: 20
+  margin-top: 6
+
+TargetBotCreatureEditorCard < Panel
+  padding: 8
+  border-width: 1
+  border-color: #777777
+  background-color: #00000020
+
+  Label
+    id: title
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    height: 18
+    color: #73e0de
+
+  Panel
+    id: fields
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: title.bottom
+    margin-top: 6
+    layout:
+      type: verticalBox
+      fit-children: true
+
+TargetBotCreatureEditorWindow < MainWindow
+  text: TargetBot - Configurar criatura
+  width: 760
+  height: 590
+  padding-left: 14
+  padding-right: 14
+  padding-top: 34
+  padding-bottom: 14
+
+  Label
+    id: nameLabel
+    anchors.left: parent.left
+    anchors.verticalCenter: name.verticalCenter
+    width: 66
+    height: 16
+    text: Objetivo:
+
+  TextEdit
+    id: name
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-left: 72
+    height: 24
+
+  Label
+    id: hint
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: name.bottom
+    margin-top: 6
+    height: 16
+    text: Usa * para cualquier nombre, ? para un caracter, y comas para varios objetivos.
+    color: #bcbcbc
+
+  Panel
+    id: content
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: hint.bottom
+    anchors.bottom: message.top
+    margin-top: 8
+    margin-bottom: 8
+
+    TargetBotCreatureEditorCard
+      id: movement
+      anchors.left: parent.left
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      width: 238
+
+    TargetBotCreatureEditorCard
+      id: pull
+      anchors.left: movement.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      margin-left: 8
+      width: 238
+
+    TargetBotCreatureEditorCard
+      id: combat
+      anchors.left: pull.right
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      margin-left: 8
+
+      Label
+        id: legend
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: fields.bottom
+        margin-top: 18
+        height: 18
+        color: #73e0de
+        text: Verde: activo | Rojo: apagado
+
+      Label
+        id: explanation
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: legend.bottom
+        margin-top: 8
+        height: 90
+        text-wrap: true
+        text-align: topLeft
+        color: #bcbcbc
+        text: Ajusta las cantidades con las barras bajo cada opcion. Keep Distance activa tambien el antitrap y utiliza la distancia indicada.
+
+  Label
+    id: message
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: footer.top
+    margin-bottom: 8
+    height: 30
+    text-wrap: true
+    text-align: topLeft
+    color: #f0ce6e
+
+  Panel
+    id: footer
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    height: 26
+
+    Button
+      id: help
+      anchors.left: parent.left
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      width: 90
+      text: Ayuda
+
+    Button
+      id: ok
+      anchors.right: cancel.left
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      margin-right: 8
+      width: 100
+      text: Guardar
+
+    Button
+      id: cancel
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      width: 90
+      text: Cancelar

@@ -560,7 +560,7 @@ SettingsPanel < Panel
     margin-left: 5
 
 AttackBotWindow < MainWindow
-  size: 535 300
+  size: 535 332
   padding: 15
   text: AttackBot v2
   @onEscape: self:hide()
@@ -569,17 +569,40 @@ AttackBotWindow < MainWindow
     id: mainLabel
     anchors.left: parent.left
     anchors.right: parent.right
-    anchors.top: parent.top
-    margin-top: 10
+    anchors.top: vocation.bottom
+    margin-top: 8
     margin-left: 2
     !text: tr('More important methods come first (Example: Exori gran above Exori)')
     text-align: left
     font: verdana-11px-rounded
     color: #aeaeae  
 
+  Label
+    id: vocationLabel
+    anchors.top: parent.top
+    anchors.left: parent.left
+    margin-top: 5
+    width: 70
+    text: Vocacion:
+
+  AttackProfileVocationBox
+    id: vocation
+    anchors.left: vocationLabel.right
+    anchors.verticalCenter: vocationLabel.verticalCenter
+    width: 145
+
+  Label
+    id: vocationHint
+    anchors.left: vocation.right
+    anchors.right: parent.right
+    anchors.verticalCenter: vocation.verticalCenter
+    margin-left: 10
+    font: verdana-11px-rounded
+    text: Spells separados por vocacion
+
   SettingsPanel
     id: settingsPanel
-    anchors.top: prev.bottom
+    anchors.top: mainLabel.bottom
     margin-top: 10
     anchors.left: parent.left
     margin-left: 2
@@ -632,3 +655,168 @@ AttackBotWindow < MainWindow
     size: 50 21
     font: cipsoftFont
     text: Settings
+
+  Button
+    id: spellCatalog
+    anchors.left: settings.right
+    anchors.verticalCenter: settings.verticalCenter
+    margin-left: 8
+    size: 100 21
+    font: cipsoftFont
+    text: Nuevos spells
+
+AttackSpellVocationBoxPopupMenu < ComboBoxPopupMenu
+AttackSpellVocationBoxPopupMenuButton < ComboBoxPopupMenuButton
+AttackSpellVocationBox < ComboBox
+  @onSetup: |
+    self:addOption("Paladin")
+    self:addOption("Monk")
+    self:addOption("Sorcerer")
+    self:addOption("Druid")
+    self:addOption("Knight")
+
+AttackProfileVocationBoxPopupMenu < ComboBoxPopupMenu
+AttackProfileVocationBoxPopupMenuButton < ComboBoxPopupMenuButton
+AttackProfileVocationBox < ComboBox
+  @onSetup: |
+    self:addOption("Paladin")
+    self:addOption("Monk")
+    self:addOption("Sorcerer")
+    self:addOption("Druid")
+    self:addOption("Knight")
+    self:addOption("Personalizado")
+
+AttackSpellChoiceBoxPopupMenu < ComboBoxPopupMenu
+AttackSpellChoiceBoxPopupMenuButton < ComboBoxPopupMenuButton
+AttackSpellChoiceBox < ComboBox
+
+AttackSpellCatalogWindow < MainWindow
+  size: 485 390
+  text: AttackBot - Nuevos spells
+  @onEscape: self:hide()
+
+  AttackSpellVocationBox
+    id: vocation
+    anchors.top: parent.top
+    anchors.left: parent.left
+    width: 105
+
+  AttackSpellChoiceBox
+    id: spellChoice
+    anchors.top: vocation.top
+    anchors.left: vocation.right
+    anchors.right: parent.right
+    margin-left: 8
+
+  Label
+    id: details
+    anchors.top: vocation.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 10
+    height: 132
+    text-wrap: true
+    text-align: top-left
+    font: verdana-11px-rounded
+
+  Label
+    anchors.top: details.bottom
+    anchors.left: parent.left
+    text: Rango inicial:
+    width: 85
+
+  SpinBox
+    id: spellRange
+    anchors.top: prev.top
+    anchors.left: prev.right
+    width: 40
+    minimum: 1
+    maximum: 10
+    value: 7
+    editable: true
+
+  Label
+    anchors.top: spellRange.top
+    anchors.left: spellRange.right
+    margin-left: 12
+    width: 108
+    text: Harmony minimo:
+
+  SpinBox
+    id: minimumHarmony
+    anchors.top: prev.top
+    anchors.left: prev.right
+    width: 40
+    minimum: 0
+    maximum: 5
+    value: 0
+    editable: true
+    tooltip: 0 permite lanzar sin comprobar Harmony. Un minimo mayor requiere getHarmony en el cliente.
+
+  Label
+    anchors.top: spellRange.bottom
+    anchors.left: parent.left
+    margin-top: 8
+    width: 85
+    text: Max. cadena:
+
+  SpinBox
+    id: chainTargets
+    anchors.top: prev.top
+    anchors.left: prev.right
+    width: 40
+    minimum: 1
+    maximum: 20
+    value: 1
+    editable: true
+
+  Label
+    anchors.top: chainTargets.top
+    anchors.left: chainTargets.right
+    margin-left: 12
+    width: 108
+    text: Rango del salto:
+
+  SpinBox
+    id: chainJump
+    anchors.top: prev.top
+    anchors.left: prev.right
+    width: 40
+    minimum: 1
+    maximum: 10
+    value: 1
+    editable: true
+
+  Label
+    id: status
+    anchors.top: chainTargets.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 10
+    height: 50
+    text-wrap: true
+    font: verdana-11px-rounded
+    text: Se agregan desactivados al perfil actual. Activa los que conoces y ajusta CD/patron con doble clic. Las areas de cadena son estimadas.
+
+  Button
+    id: addSelected
+    anchors.bottom: closeButton.top
+    anchors.left: parent.left
+    margin-bottom: 8
+    width: 140
+    text: Aplicar seleccionado
+
+  Button
+    id: addVocation
+    anchors.bottom: addSelected.bottom
+    anchors.left: addSelected.right
+    margin-left: 8
+    width: 140
+    text: Completar lista
+
+  Button
+    id: closeButton
+    anchors.bottom: parent.bottom
+    anchors.right: parent.right
+    width: 65
+    text: Cerrar

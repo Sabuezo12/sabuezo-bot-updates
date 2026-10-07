@@ -147,12 +147,7 @@ CaveBotPanel < Panel
     $!on:
       text: Show waypoints editor
 
-  BotSwitch
+  Button
     id: showConfig
     margin-top: 2
-    
-    $on:
-      text: Hide config
-      
-    $!on:
-      text: Show config
+    text: CaveBot Config

@@ -1,0 +1,392 @@
+ImbuementScrollPanel < Panel
+  height: 38
+
+  Button
+    id: settings
+    anchors.top: parent.top
+    anchors.right: parent.right
+    size: 45 18
+    text: Setup
+
+  BotSwitch
+    id: title
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: settings.left
+    margin-right: 3
+    height: 18
+    text: Imbuement Scrolls
+    text-align: center
+
+  Label
+    id: status
+    anchors.top: title.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 3
+    height: 17
+    text: Desactivado
+    text-align: center
+    font: verdana-11px-rounded
+    color: #aaaaaa
+
+ImbuementScrollSlot < BotItem
+  size: 32 32
+  border-width: 0
+  $on:
+    image-source: /images/ui/item
+  $checked:
+    border-width: 1
+    border-color: #FABD02
+
+ImbuementScrollTrackerEffect < Panel
+  size: 34 34
+  image-source: /images/game/imbuing/slot_inactive
+  image-clip: 0 0 64 64
+  image-smooth: false
+
+  Label
+    id: duration
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 2
+    height: 13
+    text-align: center
+    font: verdana-11px-rounded
+    color: #ffffff
+    phantom: true
+
+ImbuementScrollEquipmentRow < Panel
+  height: 34
+  anchors.left: parent.left
+  anchors.right: parent.right
+  anchors.top: parent.top
+
+  ImbuementScrollSlot
+    id: gear
+    size: 34 34
+    anchors.left: parent.left
+    anchors.top: parent.top
+
+  ImbuementScrollTrackerEffect
+    id: buff1
+    anchors.left: gear.right
+    anchors.top: parent.top
+    margin-left: 3
+
+  ImbuementScrollTrackerEffect
+    id: buff2
+    anchors.left: buff1.right
+    anchors.top: parent.top
+    margin-left: 3
+
+  ImbuementScrollTrackerEffect
+    id: buff3
+    anchors.left: buff2.right
+    anchors.top: parent.top
+    margin-left: 3
+
+ImbuementScrollEquipment < FlatPanel
+  width: 190
+  padding: 10
+
+  Label
+    id: title
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.top
+    height: 18
+    text: Equipo
+    text-align: left
+    color: #03C04A
+    font: verdana-11px-rounded
+
+  VerticalScrollBar
+    id: scrollbar
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    anchors.right: parent.right
+    margin-top: 16
+    margin-bottom: 56
+    width: 10
+    step: 37
+    pixels-scroll: true
+
+  ScrollablePanel
+    id: list
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    anchors.left: parent.left
+    anchors.right: scrollbar.left
+    margin-top: 16
+    margin-bottom: 56
+    margin-right: 3
+    vertical-scrollbar: scrollbar
+    layout: anchor
+
+  Label
+    id: selectedPiece
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    margin-bottom: 31
+    height: 18
+    text: Pieza: Casco
+    text-align: center
+    font: verdana-11px-rounded
+    color: #FABD02
+
+  Button
+    id: cloneEq
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    margin-bottom: 4
+    height: 21
+    text: Copiar equipo actual
+    tooltip: Copia todo tu equipo. Selecciona una pieza de la lista para configurar sus scrolls.
+
+
+ImbuementScrollEffect < Panel
+  height: 56
+
+  CheckBox
+    id: enabled
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-top: 8
+    size: 15 15
+    tooltip: Mantener este efecto
+
+  BotItem
+    id: scroll
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-top: 2
+    size: 34 34
+    tooltip: Arrastra el scroll de este efecto
+
+  ComboBox
+    id: effect
+    anchors.left: enabled.right
+    anchors.right: scroll.left
+    anchors.top: parent.top
+    margin-left: 5
+    margin-right: 8
+    margin-top: 4
+    height: 22
+    font: verdana-11px-rounded
+
+  Label
+    id: duration
+    anchors.left: effect.left
+    anchors.right: scroll.left
+    anchors.top: parent.top
+    margin-right: 8
+    margin-top: 32
+    height: 21
+    text: Sin configurar
+    text-align: left
+    font: verdana-11px-rounded
+    color: #aaaaaa
+
+ImbuementScrollPiece < FlatPanel
+  padding: 10
+
+  Label
+    id: title
+    anchors.verticalCenter: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 18
+    text: Casco
+    text-align: left
+    font: verdana-11px-rounded
+    color: #FABD02
+
+  Label
+    id: instructions
+    anchors.left: parent.left
+    anchors.right: scrollHeading.left
+    anchors.top: parent.top
+    margin-top: 12
+    height: 18
+    text: Efecto a mantener
+    text-align: left
+    font: verdana-11px-rounded
+
+  Label
+    id: scrollHeading
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-top: 12
+    size: 40 18
+    text: Scroll
+    text-align: center
+    font: verdana-11px-rounded
+
+  ImbuementScrollEffect
+    id: effect1
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-top: 32
+
+  ImbuementScrollEffect
+    id: effect2
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-top: 92
+
+  ImbuementScrollEffect
+    id: effect3
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-top: 152
+
+  Label
+    id: status
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    height: 26
+    text: Copia tu equipo y arrastra sus scrolls.
+    text-align: left
+    text-wrap: true
+    font: verdana-11px-rounded
+    color: #9dd1ce
+
+ImbuementScrollWindow < MainWindow
+  size: 650 420
+  text: Auto Imbuements - Sabuezo
+  @onEscape: self:hide()
+
+  Button
+    id: removeProfile
+    anchors.right: parent.right
+    anchors.top: parent.top
+    size: 65 21
+    text: Borrar
+
+  Button
+    id: addProfile
+    anchors.right: removeProfile.left
+    anchors.top: parent.top
+    margin-right: 5
+    size: 65 21
+    text: Nuevo
+
+  Label
+    id: profileLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-top: 3
+    size: 52 18
+    text: Perfil:
+    text-align: left
+
+  ComboBox
+    id: profiles
+    anchors.left: parent.left
+    anchors.right: addProfile.left
+    anchors.top: parent.top
+    margin-left: 58
+    margin-right: 8
+    height: 22
+    font: verdana-11px-rounded
+
+  Button
+    id: saveProfile
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-top: 30
+    size: 88 21
+    text: Guardar
+    tooltip: Guardar todo el equipo y sus scrolls en este perfil
+
+  Label
+    id: nameLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-top: 33
+    size: 52 18
+    text: Nombre:
+    text-align: left
+
+  BotTextEdit
+    id: name
+    anchors.left: parent.left
+    anchors.right: saveProfile.left
+    anchors.top: parent.top
+    margin-left: 58
+    margin-right: 8
+    margin-top: 30
+    height: 21
+
+  ImbuementScrollEquipment
+    id: setup
+    anchors.left: parent.left
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    margin-top: 66
+    margin-bottom: 36
+
+  ImbuementScrollPiece
+    id: piece
+    anchors.left: setup.right
+    anchors.right: parent.right
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    margin-left: 12
+    margin-top: 66
+    margin-bottom: 36
+
+  HorizontalSeparator
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    margin-bottom: 29
+
+  CheckBox
+    id: onlyPz
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    margin-bottom: 2
+    size: 110 18
+    text: Solo en PZ
+
+  BotSwitch
+    id: enabled
+    anchors.left: onlyPz.right
+    anchors.bottom: parent.bottom
+    margin-left: 8
+    size: 80 21
+    text: Activar
+
+  Button
+    id: refresh
+    anchors.left: enabled.right
+    anchors.bottom: parent.bottom
+    margin-left: 8
+    size: 86 21
+    text: Releer
+    tooltip: Pedir al cliente los tiempos de los imbuements
+
+  Button
+    id: retry
+    anchors.left: refresh.right
+    anchors.bottom: parent.bottom
+    margin-left: 8
+    size: 86 21
+    text: Reintentar
+    tooltip: Reiniciar los intentos de los efectos de esta pieza
+
+  Button
+    id: close
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 62 21
+    text: Cerrar

@@ -1,0 +1,70 @@
+KeepWallWindow < MainWindow
+  !text: tr('KeepWall Settings')
+  size: 200 215
+  @onEscape: self:hide()
+
+  Label
+    id: runeLabel
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    text-align: center
+    text: Wall Rune
+
+  BotItem
+    id: runeId
+    anchors.horizontalCenter: parent.horizontalCenter
+    anchors.top: runeLabel.bottom
+    margin-top: 8
+
+  BotLabel
+    id: delayText
+    anchors.top: runeId.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 12
+    text-align: center
+
+  HorizontalScrollBar
+    id: delay
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: delayText.bottom
+    margin-top: 6
+    minimum: 1000
+    maximum: 2000
+    step: 100
+
+  Label
+    id: hotkeyLabel
+    anchors.top: delay.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 10
+    text-align: center
+    text: Toggle Hotkey
+
+  Button
+    id: hotkeyButton
+    anchors.top: hotkeyLabel.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 5
+    height: 20
+    text: None
+
+  HorizontalSeparator
+    id: separator
+    anchors.right: parent.right
+    anchors.left: parent.left
+    anchors.bottom: closeButton.top
+    margin-bottom: 8
+
+  Button
+    id: closeButton
+    !text: tr('Close')
+    font: cipsoftFont
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 45 21
+    margin-right: 5

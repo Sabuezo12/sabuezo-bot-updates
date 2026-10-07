@@ -22,7 +22,7 @@ ConditionSectionTitle < Label
   text-align: center
 
 ConditionName < Label
-  width: 74
+  width: 94
   height: 20
   color: #ffaa00
   font: verdana-11px-rounded
@@ -32,7 +32,7 @@ AntiParalyseConditions < Panel
   id: Anti
   image-source: /images/ui/panel_flat
   image-border: 6
-  height: 104
+  height: 96
 
   ConditionSectionTitle
     id: title
@@ -50,7 +50,7 @@ AntiParalyseConditions < Panel
     width: 72
     height: 20
     text: Activar
-    tooltip: Cura la paralisis con prioridad sobre las demas condiciones.
+    tooltip: Quita la paralisis con prioridad, incluso en PZ o atacando monstruos.
 
   Label
     id: spellLabel
@@ -66,7 +66,7 @@ AntiParalyseConditions < Panel
     anchors.verticalCenter: CureParalyse.verticalCenter
     anchors.left: spellLabel.right
     margin-left: 4
-    width: 142
+    width: 220
     height: 20
     font: verdana-11px-rounded
     tooltip: Hechizo principal para quitar la paralisis.
@@ -94,14 +94,15 @@ AntiParalyseConditions < Panel
     width: 230
     height: 20
     text: Usar Haste como respaldo
-    tooltip: Si el hechizo principal no esta disponible, intenta el Haste configurado.
+    tooltip: Si el principal no esta disponible o sigues paralizado, intenta el Haste configurado respetando sus cooldowns.
 
   Label
+    id: AntiStatus
     anchors.verticalCenter: UseHasteFallback.verticalCenter
     anchors.right: title.right
     width: 205
     height: 20
-    text: Prioridad inmediata
+    text: Anti: esperando
     text-align: right
     color: #7de58a
     font: verdana-11px-rounded
@@ -110,8 +111,8 @@ CureConditions < Panel
   id: Cure
   image-source: /images/ui/panel_flat
   image-border: 6
-  width: 242
-  height: 224
+  width: 286
+  height: 248
 
   ConditionSectionTitle
     id: title
@@ -138,7 +139,7 @@ CureConditions < Panel
     id: CurePoison
     anchors.verticalCenter: poisonLabel.verticalCenter
     anchors.right: title.right
-    width: 52
+    width: 70
     text: Curar
 
   ConditionName
@@ -158,7 +159,7 @@ CureConditions < Panel
     id: CureCurse
     anchors.verticalCenter: curseLabel.verticalCenter
     anchors.right: title.right
-    width: 52
+    width: 70
     text: Curar
 
   ConditionName
@@ -178,7 +179,7 @@ CureConditions < Panel
     id: CureBleed
     anchors.verticalCenter: bleedLabel.verticalCenter
     anchors.right: title.right
-    width: 52
+    width: 70
     text: Curar
 
   ConditionName
@@ -198,7 +199,7 @@ CureConditions < Panel
     id: CureBurn
     anchors.verticalCenter: burnLabel.verticalCenter
     anchors.right: title.right
-    width: 52
+    width: 70
     text: Curar
 
   ConditionName
@@ -218,7 +219,7 @@ CureConditions < Panel
     id: CureElectrify
     anchors.verticalCenter: electrifyLabel.verticalCenter
     anchors.right: title.right
-    width: 52
+    width: 70
     text: Curar
 
   HorizontalSeparator
@@ -229,47 +230,31 @@ CureConditions < Panel
     margin-top: 5
 
   Label
-    id: damageLabel
+    id: zoneRule
     anchors.top: safetySeparator.bottom
     anchors.left: title.left
     margin-top: 5
-    width: 115
+    width: 266
     height: 20
-    text: Dano fuerte (HP):
+    text: PZ y combate: opciones a la derecha
     font: verdana-11px-rounded
-
-  ConditionSpinBox
-    id: SignificantDamage
-    anchors.verticalCenter: damageLabel.verticalCenter
-    anchors.right: title.right
-    width: 70
-    minimum: 1
-    tooltip: Un golpe o varios golpes en 350 ms que alcancen este dano reinician la espera.
 
   Label
-    id: hpLabel
-    anchors.top: damageLabel.bottom
-    anchors.left: damageLabel.left
+    id: combatRule
+    anchors.top: zoneRule.bottom
+    anchors.left: zoneRule.left
     margin-top: 3
-    width: 115
+    width: 266
     height: 20
-    text: Vida minima (%):
+    text: No afectan Anti-Paralyze
     font: verdana-11px-rounded
-
-  ConditionSpinBox
-    id: CureMinHp
-    anchors.verticalCenter: hpLabel.verticalCenter
-    anchors.right: title.right
-    width: 70
-    maximum: 100
-    tooltip: Las curaciones se permiten al alcanzar este porcentaje de vida.
 
 HoldConditions < Panel
   id: Hold
   image-source: /images/ui/panel_flat
   image-border: 6
-  width: 242
-  height: 224
+  width: 310
+  height: 248
 
   ConditionSectionTitle
     id: title
@@ -296,7 +281,7 @@ HoldConditions < Panel
     id: HoldHaste
     anchors.verticalCenter: hasteLabel.verticalCenter
     anchors.right: title.right
-    width: 70
+    width: 90
     text: Mantener
 
   Label
@@ -314,7 +299,7 @@ HoldConditions < Panel
     anchors.verticalCenter: hasteSpellLabel.verticalCenter
     anchors.left: hasteSpellLabel.right
     margin-left: 5
-    width: 155
+    width: 250
     height: 20
     font: verdana-11px-rounded
 
@@ -335,7 +320,7 @@ HoldConditions < Panel
     id: HoldUtamo
     anchors.verticalCenter: utamoLabel.verticalCenter
     anchors.right: title.right
-    width: 70
+    width: 90
     text: Mantener
 
   ConditionName
@@ -355,7 +340,7 @@ HoldConditions < Panel
     id: HoldUtana
     anchors.verticalCenter: utanaLabel.verticalCenter
     anchors.right: title.right
-    width: 70
+    width: 90
     text: Mantener
 
   ConditionName
@@ -375,7 +360,7 @@ HoldConditions < Panel
     id: HoldUtura
     anchors.verticalCenter: recoveryLabel.verticalCenter
     anchors.right: title.right
-    width: 70
+    width: 90
     text: Mantener
 
   Label
@@ -393,7 +378,7 @@ HoldConditions < Panel
     anchors.verticalCenter: recoverySpellLabel.verticalCenter
     anchors.left: recoverySpellLabel.right
     margin-left: 5
-    width: 155
+    width: 250
     height: 20
     font: verdana-11px-rounded
 
@@ -402,23 +387,27 @@ HoldConditions < Panel
     anchors.top: recoverySpellLabel.bottom
     anchors.left: recoverySpellLabel.left
     margin-top: 6
-    width: 205
+    width: 295
     height: 18
-    text: No lanzar buffs en PZ
+    text: No lanzar en PZ
+    tooltip: Pausa curas, buffs y Recovery en PZ. Anti-Paralyze queda independiente.
+    font: verdana-11px-rounded
 
   CheckBox
-    id: StopHaste
+    id: PauseWhileAttacking
     anchors.top: IgnoreInPz.bottom
     anchors.left: IgnoreInPz.left
     margin-top: 3
-    width: 205
+    width: 295
     height: 18
-    text: Pausar Haste al atacar
+    text: Pausar en combate (PvE/PvP)
+    tooltip: Pausa curas y buffs con estado de combate, un objetivo activo o monstruos a 7 casillas. Exana Pox, Utura y Utura Gran siempre esperan a salir de combate. Anti-Paralyze queda independiente.
+    font: verdana-11px-rounded
 
 ConditionsWindow < MainWindow
   id: ConditionsWindow
   !text: tr('Conditions')
-  size: 516 382
+  size: 660 464
   @onEscape: self:hide()
 
   AntiParalyseConditions
@@ -434,13 +423,13 @@ ConditionsWindow < MainWindow
     id: Cure
     anchors.top: Anti.bottom
     anchors.left: Anti.left
-    margin-top: 8
+    margin-top: 10
 
   HoldConditions
     id: Hold
     anchors.top: Anti.bottom
     anchors.right: Anti.right
-    margin-top: 8
+    margin-top: 10
 
   HorizontalSeparator
     id: separator

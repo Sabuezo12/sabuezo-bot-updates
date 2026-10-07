@@ -80,7 +80,7 @@ DepotItemRow < Panel
     margin-left: 4
     width: 52
     height: 12
-    text: Source
+    text: Storage
     text-align: center
     font: verdana-11px-rounded
     color: #c8c8c8
@@ -177,7 +177,7 @@ DepositerPanel < MainWindow
     anchors.left: parent.left
     anchors.right: parent.right
     height: 30
-    text: Configure items to deposit or withdraw from depot.
+    text: Configure items to deposit or withdraw from depot, inbox or stash.
     text-align: center
     font: verdana-11px-rounded
     color: #d8d8d8

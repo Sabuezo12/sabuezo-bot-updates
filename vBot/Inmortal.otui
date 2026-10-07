@@ -1,14 +1,26 @@
 AutoProtectWindow < MainWindow
-  !text: tr('Inmortal Configuration')
-  size: 275 475
+  !text: tr('Inmortal by Sabuezo')
+  size: 275 510
   @onEscape: self:hide()
 
-  Panel
-    id: ering
+  Label
+    id: counts
     anchors.top: parent.top
     anchors.left: parent.left
     anchors.right: parent.right
+    height: 28
+    font: verdana-11px-rounded
+    text-align: center
+    color: #d8e8ff
+    tooltip: ~ = ultimo total conocido. ? = sin datos.
+
+  Panel
+    id: ering
+    anchors.top: counts.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
     height: 155
+    margin-top: 6
 
     BotSwitch
       id: enabled
@@ -115,6 +127,7 @@ AutoProtectWindow < MainWindow
 
       BotItem
         id: normalItem
+        tooltip: Vuelve tras 0.5 s con HP/MP 10 puntos por encima de sus limites (maximo 100%).
         anchors.verticalCenter: normalLabel.verticalCenter
         anchors.left: normalLabel.right
         margin-left: 4
@@ -295,6 +308,7 @@ AutoProtectWindow < MainWindow
 
     BotItem
       id: normalItem
+      tooltip: Vuelve tras 0.5 s con HP/MP 10 puntos por encima de sus limites (maximo 100%).
       anchors.verticalCenter: normalLabel.verticalCenter
       anchors.left: normalLabel.right
       margin-left: 4
@@ -404,11 +418,21 @@ AutoProtectWindow < MainWindow
 
     BotItem
       id: normalItem
+      tooltip: Vuelve tras 0.5 s con HP/MP 10 puntos por encima de sus limites (maximo 100%).
       anchors.verticalCenter: normalLabel.verticalCenter
       anchors.left: normalLabel.right
       margin-left: 4
       width: 32
       height: 32
+
+  BotSwitch
+    id: showHud
+    text: Mostrar HUD
+    tooltip: Muestra SSA, Might Rings y MSP (Magic shield potion) en la esquina inferior derecha del juego.
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    size: 130 21
+    text-align: center
 
   Button
     id: closeButton
