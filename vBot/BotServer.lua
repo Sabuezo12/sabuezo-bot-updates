@@ -22,9 +22,6 @@ ui:setId(panelName)
 if not storage[panelName] then
   storage[panelName] = {
   manaInfo = true,
-  mwallInfo = true,
-  vocation = true,
-  outfit = false,
   broadcasts = true,
   minimapMembers = true,
   exivaTracker = true
@@ -46,9 +43,6 @@ else
   config.enabled = config.enabled == true
 end
 if config.manaInfo == nil then config.manaInfo = true end
-if config.mwallInfo == nil then config.mwallInfo = true end
-if config.vocation == nil then config.vocation = true end
-if config.outfit == nil then config.outfit = false end
 if config.broadcasts == nil then config.broadcasts = true end
 if config.minimapMembers == nil then config.minimapMembers = true end
 if config.exivaTracker == nil then config.exivaTracker = true end
@@ -62,15 +56,19 @@ config.gameChannelId = math.max(0, math.min(65535, tonumber(config.gameChannelId
 config.extendedOpcode = math.max(0, math.min(255, tonumber(config.extendedOpcode) or 201))
 config.webSocketUrl = DEFAULT_WEBSOCKET_URL
 config.webSocketToken = DEFAULT_WEBSOCKET_TOKEN
-config.mwalls = {}
+-- Retired BotServer features; vocation outfits now belong to Player List.
+config.mwallInfo = nil
+config.mwalls = nil
+config.vocation = nil
+config.outfit = nil
 
 BotServer._rodMasterMainGeneration = (BotServer._rodMasterMainGeneration or 0) + 1
 local botServerListenGeneration = BotServer._rodMasterMainGeneration
 local botServerListenSocket = nil
-local lastVocationSync = 0
 local serverCount = {}
 local ServerMembers = nil
 local members = {}
+vBot.BotServerMembers = {}
 local memberInfo = {}
 local lastPresenceSync = 0
 local lastPresencePositionKey = nil
@@ -81,8 +79,10 @@ local WEBSOCKET_MIN_STATUS_INTERVAL = 100
 local MEMBER_TIMEOUT = 30000
 local MEMBER_POSITION_TIMEOUT = 15000
 local MAX_MINIMAP_MARKERS = 16
-local MINIMAP_MARKER_COLOR = "#ff3030ff"
-local MINIMAP_MARKER_IMAGE = "/images/game/minimap/flag4"
+local MINIMAP_MARKER_COLOR = "#ffffffff"
+local MINIMAP_MARKER_SIZE = 13
+local MINIMAP_MARKER_IMAGE = (type(configDir) == "string" and configDir or "/bot/pruebas") ..
+  "/vBot/map_markers/member-diamond.png"
 local MINIMAP_OVERLAY_UPDATE = 300
 local clientId = nil
 local minimapOverlay = {
@@ -160,12 +160,16 @@ end
 local function touchMember(memberName, info)
   if type(memberName) ~= "string" or memberName == "" then return end
   members[memberName] = now or 0
+  if not vBot.BotServerMembers[memberName] then
+    vBot.BotServerMembers[memberName] = true
+    CachedFriends = {}
+    CachedEnemies = {}
+  end
 
   if type(info) == "table" then
     local current = memberInfo[memberName] or {}
     current.name = memberName
     current.clientId = info.clientId or current.clientId
-    current.voc = info.voc or current.voc
     current.mana = normalizeManaPercent(info.mana) or current.mana
     current.pos = copyPosition(info.pos) or current.pos
     current.lastSeen = now or 0
@@ -207,6 +211,9 @@ local function pruneMembers()
     if currentTime - lastSeen > MEMBER_TIMEOUT then
       members[memberName] = nil
       memberInfo[memberName] = nil
+      vBot.BotServerMembers[memberName] = nil
+      CachedFriends = {}
+      CachedEnemies = {}
     end
   end
 
@@ -247,7 +254,6 @@ BotServer.getMemberSnapshot = function()
     snapshot[memberName] = {
       name = memberName,
       clientId = info and info.clientId or nil,
-      voc = info and info.voc or nil,
       mana = info and info.mana or nil,
       pos = info and copyPosition(info.pos) or nil,
       lastSeen = info and info.lastSeen or nil,
@@ -271,14 +277,6 @@ local function safeFileName(value)
   value = value:gsub("[^%w%-_]", "_")
   if value == "" then value = "default" end
   return value
-end
-
-local function pruneMwalls()
-  for pos, expires in pairs(config.mwalls) do
-    if not expires or expires < now then
-      config.mwalls[pos] = nil
-    end
-  end
 end
 
 local function sendBotServer(topic, message)
@@ -312,23 +310,13 @@ local function publishPresence(force)
     lastPresenceMana = selfMana
     lastPositionPresenceSync = now or 0
   end
-  touchMember(selfName, {clientId = clientId, voc = player:getVocation(), mana = selfMana, pos = selfPos})
+  touchMember(selfName, {clientId = clientId, mana = selfMana, pos = selfPos})
   sendBotServer("presence", {
     clientId = clientId,
     name = selfName,
-    voc = player:getVocation(),
     mana = selfMana,
     pos = selfPos
   })
-end
-
-local function syncVocation(force)
-  if not config.enabled or not config.vocation then return end
-  if not force and now and now - lastVocationSync < 10000 then return end
-
-  lastVocationSync = now or 0
-  sendBotServer("voc", player:getVocation())
-  sendBotServer("voc", "yes")
 end
 
 local function getMinimapWidget()
@@ -659,15 +647,14 @@ end
 
 local function setMinimapMarker(marker, x, y, tooltip)
   if not marker then return end
-  pcall(function() marker:setBackgroundColor(MINIMAP_MARKER_COLOR) end)
+  pcall(function() marker:setBackgroundColor("alpha") end)
+  pcall(function() marker:setImageSource(MINIMAP_MARKER_IMAGE) end)
   pcall(function() marker:setVisible(true) end)
   pcall(function() marker:setTooltip(tooltip or "") end)
   pcall(function() marker:setPhantom(false) end)
   pcall(function() marker:setMarginLeft(math.floor(x)) end)
   pcall(function() marker:setMarginTop(math.floor(y)) end)
-  pcall(function() marker:setSize({width = 5, height = 5}) end)
-  pcall(function() marker:setWidth(5) end)
-  pcall(function() marker:setHeight(5) end)
+  pcall(function() marker:setSize({width = MINIMAP_MARKER_SIZE, height = MINIMAP_MARKER_SIZE}) end)
 end
 
 local function nativeMinimapSupported(minimap)
@@ -731,14 +718,11 @@ local function updateNativeMemberMinimap(minimap, markerStorageKey, trackPrimary
 
       if not marker then
         local ok, widget = pcall(function()
-          local cross = g_ui.createWidget("MinimapCross", minimap)
+          local cross = g_ui.createWidget("UIWidget", minimap)
           if not cross then return nil end
           cross:setId("botServerMember_" .. safeFileName(memberName))
-          if cross.setIcon then
-            cross:setIcon(MINIMAP_MARKER_IMAGE)
-          elseif cross.setImageSource then
-            cross:setImageSource(MINIMAP_MARKER_IMAGE)
-          end
+          cross:setSize({width = MINIMAP_MARKER_SIZE, height = MINIMAP_MARKER_SIZE})
+          cross:setImageSource(MINIMAP_MARKER_IMAGE)
           if cross.setImageColor then cross:setImageColor(MINIMAP_MARKER_COLOR) end
           if cross.setTooltip then cross:setTooltip(nativeMarkerTooltip(memberName, info)) end
           if cross.setPhantom then cross:setPhantom(false) end
@@ -875,10 +859,10 @@ local function updateMemberMinimapOverlay(force)
       currentTime - (info.lastSeen or 0) <= MEMBER_POSITION_TIMEOUT and info.pos.z == centerMapPos.z then
       local x = centerX + (info.pos.x - centerMapPos.x) * scale
       local y = centerY + (info.pos.y - centerMapPos.y) * scale
-      if x >= 0 and x <= width - 5 and y >= 0 and y <= height - 5 then
+      if x >= 0 and x <= width - MINIMAP_MARKER_SIZE and y >= 0 and y <= height - MINIMAP_MARKER_SIZE then
         markerIndex = markerIndex + 1
         local tooltip = tostring(memberName)
-        setMinimapMarker(overlay["marker" .. markerIndex], clamp(x - 2, 0, width - 5), clamp(y - 2, 0, height - 5), tooltip)
+        setMinimapMarker(overlay["marker" .. markerIndex], clamp(x - 6, 0, width - MINIMAP_MARKER_SIZE), clamp(y - 6, 0, height - MINIMAP_MARKER_SIZE), tooltip)
       end
     end
   end
@@ -913,13 +897,11 @@ local function restartGameTransport()
   schedule(100, function()
     if not config.enabled then return end
     initBotServerListenFunctions()
-    syncVocation(true)
     publishPresence(true)
     updateStatusText()
   end)
 end
 
-vBot.BotServerMembers = {}
 
 rootWidget = g_ui.getRootWidget()
 if rootWidget then
@@ -952,6 +934,9 @@ if rootWidget then
       serverCount = {}
       members = {}
       memberInfo = {}
+      vBot.BotServerMembers = {}
+      CachedFriends = {}
+      CachedEnemies = {}
       lastPresenceSync = 0
       hideMemberMinimapOverlay()
       hideCyclopediaMemberMarkers()
@@ -974,6 +959,9 @@ if rootWidget then
     end
     members = {}
     memberInfo = {}
+    vBot.BotServerMembers = {}
+    CachedFriends = {}
+    CachedEnemies = {}
     lastPresenceSync = 0
     hideMemberMinimapOverlay()
     hideCyclopediaMemberMarkers()
@@ -1026,6 +1014,9 @@ if rootWidget then
     botServerWindow.Data.Channel:setText(storage.BotServerChannel)
     members = {}
     memberInfo = {}
+    vBot.BotServerMembers = {}
+    CachedFriends = {}
+    CachedEnemies = {}
     lastPresenceSync = 0
     hideMemberMinimapOverlay()
     hideCyclopediaMemberMarkers()
@@ -1035,27 +1026,6 @@ if rootWidget then
   botServerWindow.Features.Feature1.onClick = function(widget)
     config.manaInfo = not config.manaInfo
     widget:setOn(config.manaInfo)
-  end
-  botServerWindow.Features.Feature2:setOn(config.mwallInfo)
-  pcall(function() botServerWindow.Features.Feature2:setTooltip("Comparte Magic Walls detectadas con el canal.") end)
-  botServerWindow.Features.Feature2.onClick = function(widget)
-    config.mwallInfo = not config.mwallInfo
-    widget:setOn(config.mwallInfo)
-  end
-  botServerWindow.Features.Feature3:setOn(config.vocation)
-  pcall(function() botServerWindow.Features.Feature3:setTooltip("Comparte vocacion para Player List y marcas del bot.") end)
-  botServerWindow.Features.Feature3.onClick = function(widget)
-    config.vocation = not config.vocation
-    if config.vocation then
-      syncVocation(true)
-    end
-    widget:setOn(config.vocation)
-  end
-  botServerWindow.Features.Feature4:setOn(config.outfit)
-  pcall(function() botServerWindow.Features.Feature4:setTooltip("Opcion heredada para vocacion por outfit.") end)
-  botServerWindow.Features.Feature4.onClick = function(widget)
-    config.outfit = not config.outfit
-    widget:setOn(config.outfit)
   end
   botServerWindow.Features.Feature5:setOn(config.broadcasts)
   pcall(function() botServerWindow.Features.Feature5:setTooltip("Permite recibir mensajes broadcast del canal.") end)
@@ -1135,30 +1105,11 @@ function initBotServerListenFunctions()
 
     touchMember(memberName, {
       clientId = type(message) == "table" and message.clientId or nil,
-      voc = type(message) == "table" and message.voc or nil,
       mana = type(message) == "table" and message.mana or nil,
       pos = type(message) == "table" and message.pos or nil
     })
     if type(message) == "table" then
       applyVisibleMemberMana(memberName, message.mana)
-    end
-    if type(message) == "table" and message.voc then
-      vBot.BotServerMembers[memberName] = message.voc
-    end
-  end)
-
-  -- mwalls
-  BotServer.listen("mwall", function(name, message)
-    if not currentBotServerListeners(listenerSocket) then return end
-    if config.mwallInfo and type(message) == "table" then
-      local pos = message["pos"]
-      local duration = tonumber(message["duration"]) or 0
-      if pos and duration > 0 then
-        pruneMwalls()
-        if not config.mwalls[pos] or config.mwalls[pos] < now then
-          config.mwalls[pos] = now + duration - 150 -- 150 is latency correction
-        end
-      end
     end
   end)
 
@@ -1173,17 +1124,6 @@ function initBotServerListenFunctions()
     end
   end)
 
-  -- vocation
-  BotServer.listen("voc", function(name, message)
-    if not currentBotServerListeners(listenerSocket) then return end
-    if message == "yes" and config.vocation then
-      sendBotServer("voc", player:getVocation())
-    else
-      touchMember(name, {voc = message})
-      vBot.BotServerMembers[name] = message
-    end
-  end)
-
   -- broadcast
   BotServer.listen("broadcast", function(name, message)
     if not currentBotServerListeners(listenerSocket) then return end
@@ -1191,8 +1131,6 @@ function initBotServerListenFunctions()
       broadcastMessage(name..": "..message)
     end
   end)
-
-  syncVocation(true)
   publishPresence(true)
 end
 initBotServerListenFunctions()
@@ -1225,7 +1163,6 @@ macro(100, function()
   if config.enabled then
     initBotServerListenFunctions()
     publishPresence()
-    syncVocation()
     refreshVisibleMemberMana()
     updateMemberMinimapOverlay()
     updateCyclopediaMemberMinimap()
@@ -1236,7 +1173,6 @@ macro(100, function()
 end)
 
 macro(1000, function()
-  pruneMwalls()
   pruneMembers()
   if config.enabled then
     initBotServerListenFunctions()
@@ -1259,19 +1195,4 @@ botServerWindow.closeButton.onClick = function(widget)
     botServerWindow:hide()
 end
 
-onAddThing(function(tile, thing)
-  if config.enabled and config.mwallInfo then
-    if thing:isItem() and thing:getId() == 2129 then
-      pruneMwalls()
-      local pos = tile:getPosition().x .. "," .. tile:getPosition().y .. "," .. tile:getPosition().z
-      if not config.mwalls[pos] or config.mwalls[pos] < now then
-        config.mwalls[pos] = now + 20000
-        sendBotServer("mwall", {pos=pos, duration=20000})
-      end
-    end
-  end
-end)
-
--- vocation
-syncVocation(true)
 publishPresence(true)

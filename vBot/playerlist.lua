@@ -2,7 +2,7 @@
   Player List + vocation tags.
 
   Vocation can be set manually from the list context menu, imported by other
-  scripts, or detected from BotServer / visible guild members when available.
+  scripts, or detected from look text / visible guild members when available.
 ]]
 
 local link = "https://www.gunzodus.net/character/show/"
@@ -33,6 +33,7 @@ if not storage[panelName] then
     guildName = defaultGuildName,
     autoDetectGuild = true,
     outfits = false,
+    vocationOutfits = false,
     marks = false,
     highlight = false
   }
@@ -49,6 +50,7 @@ config.guildName = config.guildName or defaultGuildName
 if config.autoDetectGuild == nil then config.autoDetectGuild = true end
 if config.groupMembers == nil then config.groupMembers = true end
 if config.autoGuildMembers == nil then config.autoGuildMembers = true end
+if config.vocationOutfits == nil then config.vocationOutfits = false end
 
 local playerTables = {config.friendList, config.enemyList, config.blackList}
 local friendListWidget
@@ -146,21 +148,8 @@ local function getStoredVocation(name)
   return normalizeVocation(config.vocations[key] or config.vocations[name])
 end
 
-local function getBotServerVocation(name)
-  if not vBot or not vBot.BotServerMembers then return nil end
-  local voc = normalizeVocation(vBot.BotServerMembers[name])
-  if voc then return voc end
-
-  local key = normalizeName(name)
-  for memberName, memberVoc in pairs(vBot.BotServerMembers) do
-    if normalizeName(memberName) == key then
-      return normalizeVocation(memberVoc)
-    end
-  end
-end
-
 local function getPlayerVocation(name)
-  return getStoredVocation(name) or getBotServerVocation(name)
+  return getStoredVocation(name)
 end
 
 local function getVocationLabel(name)
@@ -459,12 +448,25 @@ local function autoAddGuildMember(creature)
   addGuildFriend(name, voc)
 end
 
+-- Keep the original type/addons so disabling the local override restores them.
+local vocationOutfitOverrides = setmetatable({}, {__mode = "k"})
+
 local function applyStatus(creature)
   if not creature:isPlayer() or creature:isLocalPlayer() then return end
   autoAddGuildMember(creature)
 
   local creatureName = creature:getName()
   local outfit = creature:getOutfit()
+  local outfitChanged = false
+  local previous = vocationOutfitOverrides[creature]
+  if previous then
+    if outfit.type == previous.appliedType and outfit.addons == 3 then
+      outfit.type = previous.originalType
+      outfit.addons = previous.originalAddons
+      outfitChanged = true
+    end
+    vocationOutfitOverrides[creature] = nil
+  end
 
   if isFriend(creatureName) then
     if config.highlight then
@@ -475,13 +477,18 @@ local function applyStatus(creature)
       outfit.body = 88
       outfit.legs = 88
       outfit.feet = 88
-
-      local voc = getPlayerVocation(creatureName)
-      if storage.BOTserver and storage.BOTserver.outfit and voc and vocInfo[voc] and vocInfo[voc].outfit then
-        outfit.addons = 3
-        outfit.type = vocInfo[voc].outfit
-      end
-      creature:setOutfit(outfit)
+      outfitChanged = true
+    end
+    local voc = config.vocationOutfits and getPlayerVocation(creatureName)
+    if voc and vocInfo[voc] and vocInfo[voc].outfit then
+      vocationOutfitOverrides[creature] = {
+        originalType = outfit.type,
+        originalAddons = outfit.addons,
+        appliedType = vocInfo[voc].outfit
+      }
+      outfit.type = vocInfo[voc].outfit
+      outfit.addons = 3
+      outfitChanged = true
     end
   elseif isEnemy(creatureName) then
     if config.highlight then
@@ -492,10 +499,15 @@ local function applyStatus(creature)
       outfit.body = 94
       outfit.legs = 94
       outfit.feet = 94
-      creature:setOutfit(outfit)
+      outfitChanged = true
     end
   end
+  if outfitChanged then creature:setOutfit(outfit) end
 end
+
+onCreatureDisappear(function(creature)
+  vocationOutfitOverrides[creature] = nil
+end)
 
 local function getSafeSpectators()
   if not player or not player.getPosition or not g_map or not g_map.getSpectators then
@@ -727,6 +739,13 @@ if rootWidget then
     refreshStatus()
   end
 
+  ListWindow.settings.VocationOutfit:setChecked(config.vocationOutfits)
+  ListWindow.settings.VocationOutfit.onClick = function(widget)
+    config.vocationOutfits = not config.vocationOutfits
+    widget:setChecked(config.vocationOutfits)
+    refreshStatus()
+  end
+
   ListWindow.settings.NeutralsAreEnemy:setChecked(config.marks)
   ListWindow.settings.NeutralsAreEnemy.onClick = function(widget)
     config.marks = not config.marks
@@ -865,12 +884,5 @@ end)
 macro(1000, function()
   if config.autoGuildMembers then
     PlayerList.autoAddVisibleGuildMembers()
-  else
-    for name, voc in pairs(vBot.BotServerMembers or {}) do
-      local normalizedVoc = normalizeVocation(voc)
-      if normalizedVoc and getStoredVocation(name) ~= normalizedVoc then
-        setPlayerVocation(name, normalizedVoc)
-      end
-    end
   end
 end)

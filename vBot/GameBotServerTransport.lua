@@ -26,13 +26,11 @@ local MEMBER_TIMEOUT = 35000
 local SEEN_TIMEOUT = 60000
 local TOPIC_INTERVALS = {
   presence = 3000,
-  mana = 3000,
-  voc = 10000
+  mana = 3000
 }
 local COALESCED_TOPICS = {
   presence = true,
-  mana = true,
-  voc = true
+  mana = true
 }
 
 local state = {
@@ -606,7 +604,7 @@ local function queueChatPacket(topic, packet)
   local interval = TOPIC_INTERVALS[topic] or 0
   local lastSent = state.lastTopicSent[topic]
   local dueAt = lastSent and math.max(current, lastSent + interval) or current
-  local priority = (topic == "broadcast" or topic == "mwall") and 0 or 1
+  local priority = topic == "broadcast" and 0 or 1
 
   state.pending[pendingKey(topic, packet)] = {
     topic = topic,
@@ -769,12 +767,6 @@ function transport.send(topic, message)
   end
   if topic == "list" then
     dispatch("list", state.clientName, memberList())
-    return true
-  end
-
-  -- Presence already carries vocation, so chat transports do not need
-  -- separate vocation packets.
-  if topic == "voc" and state.activeMode ~= "opcode" then
     return true
   end
 

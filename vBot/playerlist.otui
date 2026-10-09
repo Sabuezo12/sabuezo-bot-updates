@@ -60,6 +60,11 @@ Settings < FlatPanel
     text: Color listed player outfits to red or blue.
 
   SettingCheckBox
+    id: VocationOutfit
+    text: Outfit by vocation (friends).
+    tooltip: Uses vocations stored in Player List or detected by look. Independent of outfit colors; disabled by default.
+
+  SettingCheckBox
     id: NeutralsAreEnemy
     text: Consider every non friend player as enemy.
 
@@ -131,7 +136,7 @@ tPanel < Panel
 
 PlayerListWindow < MainWindow
   !text: tr('Player List')
-  size: 430 420
+  size: 430 450
   @onEscape: self:hide()
 
   TabBar

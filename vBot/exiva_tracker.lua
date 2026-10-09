@@ -17,6 +17,9 @@ local DAMAGE_LIMIT = 500
 local DAMAGE_SAFE_TIME = 2000
 local CAST_TIMEOUT = 9000
 local CAST_RETRY_INTERVAL = 1400
+local AUTOMATIC_TALK_LIFETIME = 30000
+local AUTOMATIC_ECHO_DUPLICATE_TIME = 100
+local CLOSED_REQUEST_LIFETIME = 60000
 local MAX_CAST_ATTEMPTS = 3
 local CAPABILITY_DISCOVERY_DELAY = 450
 local SESSION_TIMEOUT = 14000
@@ -29,12 +32,26 @@ local UNBOUNDED_SEARCH_RADIUS = 4096
 local TAN_22_5 = math.sqrt(2) - 1
 local MAIN_MARKER_KEY = "_sabuezoExivaTrackerMarkers"
 local CYCLOPEDIA_MARKER_KEY = "_sabuezoExivaTrackerCyclopediaMarkers"
-local TARGET_MARKER_IMAGE = "/images/game/minimap/cross"
+local TARGET_MARKER_IMAGE = (type(configDir) == "string" and configDir or "/bot/pruebas") ..
+  "/vBot/map_markers/exiva-target.png"
+local GUIDE_DOT_IMAGE = (type(configDir) == "string" and configDir or "/bot/pruebas") ..
+  "/vBot/map_markers/exiva-guide-dot.png"
+local GUIDE_ARROW_IMAGE = (type(configDir) == "string" and configDir or "/bot/pruebas") ..
+  "/vBot/map_markers/exiva-guide-arrows.png"
+local GUIDE_ARROW_SIZE = 17
+local GUIDE_ARROW_DIRECTIONS = 16
+local GUIDE_EDGE_MARGIN = 12
+local GUIDE_MAX_DOTS = 40
+local GUIDE_MAX_ARROWS = 6
+local LARGE_MAP_MIN_WIDTH = 560
+local LARGE_MAP_MIN_HEIGHT = 360
+local LARGE_MAP_SETTLE_TIME = 180
 
 BotServer._exivaTrackerGeneration = (BotServer._exivaTrackerGeneration or 0) + 1
 local generation = BotServer._exivaTrackerGeneration
 local registeredSocket = nil
 local sessions = {}
+local latestSessions = {}
 local queuedCasts = {}
 local pendingCasts = {}
 local estimates = {}
@@ -43,8 +60,13 @@ local processedMessages = setmetatable({}, {__mode = "k"})
 local consoleInitialized = false
 local lastServerLogTab = nil
 local lastLargeDamageAt = 0
-local suppressTarget = nil
-local suppressUntil = 0
+local previousTracker = vBot and vBot.ExivaTracker
+BotServer._exivaAutomaticTalks = BotServer._exivaAutomaticTalks or {}
+BotServer._exivaAutomaticEchoes = BotServer._exivaAutomaticEchoes or {}
+BotServer._exivaClosedRequests = BotServer._exivaClosedRequests or {}
+local automaticTalks = BotServer._exivaAutomaticTalks
+local automaticEchoes = BotServer._exivaAutomaticEchoes
+local closedRequests = BotServer._exivaClosedRequests
 local nextMarkerUpdateAt = 0
 local lastCapabilitySentAt = 0
 
@@ -94,6 +116,88 @@ end
 
 local function positionKey(value)
   return value and table.concat({value.x, value.y, value.z}, ",") or ""
+end
+
+-- Correlate every automatic spell with its own speech acknowledgement.
+-- These tickets survive bot reloads so an in-flight echo cannot start a search.
+local function pruneAutomaticTalks(current)
+  for target, tickets in pairs(automaticTalks) do
+    for index = #tickets, 1, -1 do
+      if current > tickets[index].expiresAt then table.remove(tickets, index) end
+    end
+    if #tickets == 0 then automaticTalks[target] = nil end
+  end
+  for target, echo in pairs(automaticEchoes) do
+    if current - echo.receivedAt > AUTOMATIC_ECHO_DUPLICATE_TIME then automaticEchoes[target] = nil end
+  end
+  for id, expiresAt in pairs(closedRequests) do
+    if current > expiresAt then closedRequests[id] = nil end
+  end
+end
+
+local function rememberAutomaticTalk(sessionId, target)
+  local key = normalizedName(target)
+  local ticket = {sessionId = sessionId, expiresAt = clockMillis() + AUTOMATIC_TALK_LIFETIME}
+  automaticTalks[key] = automaticTalks[key] or {}
+  table.insert(automaticTalks[key], ticket)
+  return ticket
+end
+
+local function forgetAutomaticTalk(target, ticket)
+  local key = normalizedName(target)
+  local tickets = automaticTalks[key] or {}
+  for index = #tickets, 1, -1 do
+    if tickets[index] == ticket then table.remove(tickets, index) end
+  end
+  if #tickets == 0 then automaticTalks[key] = nil end
+end
+
+local function consumeAutomaticTalk(target, signature)
+  local current = clockMillis()
+  pruneAutomaticTalks(current)
+  local key = normalizedName(target)
+  local tickets = automaticTalks[key]
+  if tickets and #tickets > 0 then
+    local ticket = table.remove(tickets, 1)
+    if #tickets == 0 then automaticTalks[key] = nil end
+    automaticEchoes[key] = {receivedAt = current, signature = signature}
+    return true, ticket.sessionId
+  end
+  local echo = automaticEchoes[key]
+  -- Some clients deliver the same speech callback twice in the same frame.
+  -- Only deduplicate an acknowledged automatic command, for a short interval.
+  return echo and echo.signature == signature and
+    current - echo.receivedAt <= AUTOMATIC_ECHO_DUPLICATE_TIME or false
+end
+
+local function completeRemoteCast(sessionId)
+  local session = sessions[sessionId]
+  if session then session.remoteCastDone = true end
+  queuedCasts[sessionId] = nil
+  closedRequests[sessionId] = clockMillis() + CLOSED_REQUEST_LIFETIME
+end
+
+local function cancelSessionCasts(remoteOnly)
+  for id, session in pairs(sessions) do
+    if not session.castCancelled and
+      (not remoteOnly or normalizedName(session.coordinator) ~= normalizedName(selfName())) then
+      session.castCancelled = true
+      completeRemoteCast(id)
+      pendingCasts[id] = nil
+    end
+  end
+end
+
+-- Old remote sessions were interrupted by this reload, never resume their casts.
+if previousTracker and type(previousTracker.getSessions) == "function" then
+  local ok, previousSessions = pcall(previousTracker.getSessions)
+  if ok and type(previousSessions) == "table" then
+    for id, session in pairs(previousSessions) do
+      if normalizedName(session.coordinator) ~= normalizedName(selfName()) then
+        closedRequests[id] = clockMillis() + CLOSED_REQUEST_LIFETIME
+      end
+    end
+  end
 end
 
 local function trackerEnabled()
@@ -471,10 +575,6 @@ end
 
 local function newSession(message)
   local current = clockMillis()
-  local targetKey = normalizedName(message.target)
-  if estimates[targetKey] then
-    estimates[targetKey].expiresAt = current + ESTIMATE_LIFETIME
-  end
   local session = {
     id = tostring(message.id),
     target = trim(message.target),
@@ -487,11 +587,14 @@ local function newSession(message)
     recalculateAt = nil
   }
   sessions[session.id] = session
+  latestSessions[normalizedName(session.target)] = session.id
   return session
 end
 
 local function addObservation(session, observer, message)
-  if not session or type(message) ~= "table" then return false end
+  if not session or session.castCancelled or clockMillis() > session.expiresAt or
+    latestSessions[normalizedName(session.target)] ~= session.id or
+    type(message) ~= "table" then return false end
   local observerPos = copyPosition(message.observerPos)
   local minDistance = tonumber(message.minDistance)
   if not observerPos or not minDistance then return false end
@@ -505,6 +608,11 @@ local function addObservation(session, observer, message)
     text = trim(message.text),
     receivedAt = clockMillis()
   }
+  local previous = session.observations[normalizedName(observer)]
+  if previous and positionKey(previous.observerPos) == positionKey(observation.observerPos) and
+    previous.minDistance == observation.minDistance and previous.maxDistance == observation.maxDistance and
+    previous.direction == observation.direction and previous.floor == observation.floor and
+    previous.text == observation.text then return false end
   session.observations[normalizedName(observer)] = observation
   session.recalculateAt = clockMillis() + RECALCULATE_DELAY
   return true
@@ -543,6 +651,7 @@ local function beginManualSession(target)
     requestTime = os.time()
   }
   local session = newSession(message)
+  session.requestSocket = BotServer._websocket
   pendingCasts[session.id] = {
     target = target,
     observerPos = observerPos,
@@ -554,7 +663,9 @@ local function beginManualSession(target)
   schedule(CAPABILITY_DISCOVERY_DELAY, function()
     if not activeGeneration() or not trackerEnabled() then return end
     local currentSession = sessions[session.id]
-    if not currentSession or clockMillis() > currentSession.expiresAt then return end
+    if not currentSession or currentSession.castCancelled or
+      clockMillis() > currentSession.expiresAt or
+      currentSession.requestSocket ~= BotServer._websocket then return end
 
     local refreshed = selectObservers()
     currentSession.selected = refreshed
@@ -569,11 +680,15 @@ local function beginManualSession(target)
 end
 
 local function queueRemoteCast(session)
-  if not session or pendingCasts[session.id] or queuedCasts[session.id] then return end
+  if not session or session.remoteCastDone or session.castCancelled or
+    closedRequests[session.id] or clockMillis() > session.expiresAt or
+    session.observations[normalizedName(selfName())] or
+    pendingCasts[session.id] or queuedCasts[session.id] then return end
   queuedCasts[session.id] = {
     sessionId = session.id,
     target = session.target,
-    expiresAt = clockMillis() + SESSION_TIMEOUT,
+    expiresAt = session.expiresAt,
+    requestSocket = BotServer._websocket,
     attempts = 0,
     nextAttemptAt = 0
   }
@@ -582,38 +697,40 @@ end
 local function castQueuedExiva(entry)
   local session = sessions[entry.sessionId]
   local observerPos = currentPosition()
-  if not session or not observerPos then return false end
+  if not session or not observerPos or session.castCancelled or session.remoteCastDone or
+    not botServerReady() or entry.requestSocket ~= BotServer._websocket or
+    clockMillis() > session.expiresAt then return false end
 
   local current = clockMillis()
+  entry.attempts = (tonumber(entry.attempts) or 0) + 1
+  entry.lastAttemptAt = current
+  entry.nextAttemptAt = current + CAST_RETRY_INTERVAL
   pendingCasts[entry.sessionId] = {
+    automatic = true,
     target = entry.target,
     observerPos = observerPos,
     castAt = current,
     expiresAt = current + CAST_TIMEOUT
   }
-  suppressTarget = normalizedName(entry.target)
-  suppressUntil = current + 2500
+  local ticket = rememberAutomaticTalk(entry.sessionId, entry.target)
 
   local command = 'exiva "' .. entry.target:gsub('"', "") .. '"'
-  local ok = pcall(function()
+  local ok, result = pcall(function()
     if type(say) == "function" then
-      say(command)
+      return say(command)
     elseif g_game and type(g_game.talk) == "function" then
-      g_game.talk(command)
+      return g_game.talk(command)
     else
       error("talk unavailable")
     end
   end)
-  if not ok then
+  if not ok or result == false then
+    forgetAutomaticTalk(entry.target, ticket)
     pendingCasts[entry.sessionId] = nil
     entry.nextAttemptAt = current + 500
     return false
   end
-
-  entry.attempts = (tonumber(entry.attempts) or 0) + 1
-  entry.lastAttemptAt = current
-  entry.nextAttemptAt = current + CAST_RETRY_INTERVAL
-  return ok
+  return true
 end
 
 local function flattenConsoleText(value)
@@ -653,7 +770,7 @@ local function processResponseText(text)
   if not bestId then return end
   local pending = pendingCasts[bestId]
   pendingCasts[bestId] = nil
-  queuedCasts[bestId] = nil
+  if pending.automatic then completeRemoteCast(bestId) else queuedCasts[bestId] = nil end
   publishObservation(sessions[bestId], bestParsed, pending.observerPos)
 end
 
@@ -725,6 +842,7 @@ local function registerBotServerListeners()
   if not botServerReady() then return false end
   local socket = BotServer._websocket
   if registeredSocket == socket then return true end
+  if registeredSocket then cancelSessionCasts(true) end
   registeredSocket = socket
   local listenerSocket = socket
   trackerMembers = {[normalizedName(selfName())] = clockMillis()}
@@ -744,14 +862,21 @@ local function registerBotServerListeners()
   local requestOk = BotServer.listen(REQUEST_TOPIC, function(sender, message)
     if not activeGeneration() or BotServer._websocket ~= listenerSocket or
       not trackerEnabled() or type(message) ~= "table" then return end
-    if type(message.id) ~= "string" or trim(message.target) == "" then return end
-    if trim(message.coordinator) ~= "" and normalizedName(sender) ~=
-      normalizedName(message.coordinator) then return end
+    if type(message.id) ~= "string" or type(message.target) ~= "string" or
+      trim(message.target) == "" or type(message.coordinator) ~= "string" or
+      trim(message.coordinator) == "" or normalizedName(sender) ~=
+      normalizedName(message.coordinator) or closedRequests[message.id] then return end
+    if normalizedName(message.coordinator) == normalizedName(selfName()) then return end
 
     local session = sessions[message.id] or newSession(message)
-    if selectedContains(message.selected, selfName()) and
-      normalizedName(selfName()) ~= normalizedName(message.coordinator) then
+    if session.castCancelled or session.remoteCastDone or clockMillis() > session.expiresAt or
+      normalizedName(session.target) ~= normalizedName(message.target) or
+      normalizedName(session.coordinator) ~= normalizedName(message.coordinator) then return end
+    session.selected = message.selected or {}
+    if selectedContains(session.selected, selfName()) then
       queueRemoteCast(session)
+    else
+      queuedCasts[session.id] = nil
     end
   end)
 
@@ -762,8 +887,10 @@ local function registerBotServerListeners()
     local observer = trim(sender) ~= "" and sender or message.observer
     if trim(message.observer) ~= "" and
       normalizedName(observer) ~= normalizedName(message.observer) then return end
-    local session = sessions[message.id] or newSession(message)
-    if normalizedName(session.target) ~= normalizedName(message.target) then return end
+    local session = sessions[message.id]
+    if not session or session.castCancelled or clockMillis() > session.expiresAt or
+      normalizedName(session.target) ~= normalizedName(message.target) or
+      normalizedName(session.coordinator) ~= normalizedName(message.coordinator) then return end
     addObservation(session, observer, message)
   end)
 
@@ -781,11 +908,20 @@ local function floorsText(floors)
   return table.concat(values, ",")
 end
 
+local function estimateInitiator(estimate)
+  local coordinator = trim(estimate.coordinator)
+  return coordinator ~= "" and "Inicio: " .. coordinator or nil
+end
+
 local function estimateTooltip(target, estimate)
   local suffix = estimate.unbounded and " (busqueda limitada)" or ""
   return table.concat({
     target,
-    "Estimado: " .. positionKey(estimate.position),
+    estimateInitiator(estimate) or "Inicio: sin datos",
+    "Referencia aproximada: " .. positionKey(estimate.position),
+    "Recuadro amarillo: limites aproximados de busqueda",
+    "Guia punteada: rumbo directo hacia la estimacion",
+    "Lectura hace " .. math.max(0, math.floor((clockMillis() - estimate.updatedAt) / 1000)) .. " s",
     "Zona X: " .. estimate.minX .. " - " .. estimate.maxX,
     "Zona Y: " .. estimate.minY .. " - " .. estimate.maxY,
     "Pisos: " .. floorsText(estimate.floors),
@@ -795,14 +931,37 @@ local function estimateTooltip(target, estimate)
 end
 
 local function recalculateSession(session)
+  session.recalculateAt = nil
+  local targetKey = normalizedName(session.target)
+  -- An older round must never overwrite or remove a newer round's estimate.
+  if latestSessions[targetKey] ~= session.id or session.castCancelled or
+    clockMillis() > session.expiresAt then return end
   local observations = observationsFromSession(session)
   if #observations == 0 then return end
   local estimate = solveObservations(observations)
-  session.recalculateAt = nil
-  if not estimate then return end
+  if not estimate then
+    estimates[normalizedName(session.target)] = nil
+    return
+  end
 
+  -- A point remains a useful reference while fresh readings still allow it.
+  -- Recompute the uncertainty area normally; move the point when it is excluded.
+  local previous = estimates[targetKey]
+  local reference = previous and previous.position
+  if reference and previous.expiresAt > clockMillis() and
+    reference.x >= estimate.minX and reference.x <= estimate.maxX and
+    reference.y >= estimate.minY and reference.y <= estimate.maxY and
+    allObservationsMatch(reference.x, reference.y, reference.z, observations) then
+    estimate.position = copyPosition(reference)
+  end
   estimate.target = session.target
-  estimate.updatedAt = clockMillis()
+  estimate.coordinator = session.coordinator
+  estimate.sessionId = session.id
+  local newestReading = 0
+  for _, observation in ipairs(observations) do
+    newestReading = math.max(newestReading, observation.receivedAt or session.createdAt)
+  end
+  estimate.updatedAt = newestReading
   estimate.expiresAt = estimate.updatedAt + ESTIMATE_LIFETIME
   estimates[normalizedName(session.target)] = estimate
 end
@@ -820,14 +979,160 @@ local function connectedMemberNames()
   return names
 end
 
+-- A destroyed OTC userdata may crash even when looking up isDestroyed.
+-- Record destruction while onDestroy is still valid; later use only Lua keys.
+local lifeOwner = (modules and modules.game_minimap) or BotServer
+-- OTC can return distinct Lua userdata for the same native widget.
+-- Table keys use raw userdata identity, so match native equality explicitly.
+local mapLife = lifeOwner._pruebasMapLife
+if not mapLife or mapLife.version ~= 2 then
+  local dead = mapLife and mapLife.dead or setmetatable({}, {__mode = "k"})
+  mapLife = {version = 2, dead = dead, watched = {}, retiredMaps = {}}
+  lifeOwner._pruebasMapLife = mapLife
+
+  function mapLife.isDead(widget)
+    if not widget then return true end
+    for known in pairs(mapLife.dead) do if known == widget then return true end end
+    for _, known in ipairs(mapLife.retiredMaps) do if known == widget then return true end end
+    return false
+  end
+
+  local function callDestroy(callback, ...)
+    if type(callback) == "function" then return callback(...) end
+    if type(callback) == "table" then
+      for _, handler in pairs(callback) do
+        if type(handler) == "function" then
+          local result = handler(...)
+          if result then return result end
+        end
+      end
+    end
+  end
+
+  function mapLife.watch(widget, owner, callback)
+    if mapLife.isDead(widget) then return false end
+    local entry
+    for known, watched in pairs(mapLife.watched) do
+      if known == widget then entry = watched; break end
+    end
+    if not entry then
+      entry = {widget = widget, callbacks = {}, original = widget.onDestroy}
+      mapLife.watched[widget] = entry
+      widget.onDestroy = function(self, ...)
+        local known = entry.widget
+        mapLife.dead[known], mapLife.dead[self] = true, true
+        mapLife.watched[known] = nil
+        if entry.callbacks.drag or entry.callbacks.exiva or entry.callbacks.dragProfile then
+          table.insert(mapLife.retiredMaps, known)
+          if #mapLife.retiredMaps > 32 then table.remove(mapLife.retiredMaps, 1) end
+        end
+        -- Dispose the canonical Lua record, even if self is a fresh userdata.
+        for _, dispose in pairs(entry.callbacks) do dispose(known) end
+        return callDestroy(entry.original, self, ...)
+      end
+    end
+    if owner and callback then entry.callbacks[owner] = callback end
+    return true
+  end
+end
+
+
+-- Keep overlay ownership in Lua; obsolete map userdata must never be indexed.
+local previousVisualState = BotServer._exivaVisualState
+local visualState = previousVisualState
+if not visualState or visualState.version ~= 4 then
+  visualState = {version = 4, maps = {}, roots = {}, serial = 0}
+  BotServer._exivaVisualState = visualState
+end
+
+local function uiRoot()
+  if not g_ui or type(g_ui.getRootWidget) ~= "function" then return nil end
+  return g_ui.getRootWidget()
+end
+
+-- Retire pre-v3 overlays using the current UI tree, never their saved handles.
+if not previousVisualState or previousVisualState.version ~= 4 then
+  local root = uiRoot()
+  if root then
+    local function retireLegacy(parent)
+      for _, child in ipairs(parent:getChildren()) do
+        local id = child:getId() or ""
+        if id:match("^exivaSearchArea_") or id:match("^exivaGuide_") or
+           id:match("^exivaTracker_") then
+          child:destroy()
+        else
+          retireLegacy(child)
+        end
+      end
+    end
+    retireLegacy(root)
+  end
+end
+
+local function canonicalMap(minimap)
+  for known in pairs(visualState.maps) do
+    if known == minimap then return known end
+  end
+  return minimap
+end
+
+local function mapData(minimap, storageKey)
+  minimap = canonicalMap(minimap)
+  local owned = visualState.maps[minimap]
+  if not owned then owned = {}; visualState.maps[minimap] = owned end
+  local data = owned[storageKey]
+  if not data then data = {}; owned[storageKey] = data end
+  return data
+end
+
+local function liveMap(minimap)
+  return minimap and not mapLife.isDead(minimap) and minimap or nil
+end
+
+local function trackMap(minimap, storageKey)
+  if not liveMap(minimap) then return false end
+  mapData(minimap, storageKey)
+  minimap = canonicalMap(minimap)
+  mapLife.watch(minimap, "exiva", function() visualState.maps[minimap] = nil end)
+  return true
+end
+
+local function watchVisual(widget, prefix)
+  if not widget then return nil end
+  visualState.serial = visualState.serial + 1
+  local id = prefix .. "_" .. tostring(generation) .. "_" .. tostring(visualState.serial)
+  widget:setId(id)
+  visualState.roots[widget] = {id = id}
+  mapLife.watch(widget, "exivaVisual", function() visualState.roots[widget] = nil end)
+  return widget
+end
+
+local function visualPresent(minimap, widget)
+  local record = widget and visualState.roots[widget]
+  if not record or mapLife.dead[widget] then return false end
+  -- Only the current map is queried; a removed overlay is never inspected.
+  return minimap:getChildById(record.id) == widget
+end
+
+local function destroyVisual(widget)
+  local record = widget and visualState.roots[widget]
+  if not record then return end
+  local root = uiRoot()
+  local current = root and root:recursiveGetChildById(record.id)
+  if current then current:destroy() end
+  visualState.roots[widget] = nil
+  mapLife.dead[widget] = true
+end
+
+
 local function getMainMinimap()
   local minimapModule = modules and modules.game_minimap
   if not minimapModule then return nil end
   if type(minimapModule.getMiniMapUi) == "function" then
     local ok, minimap = pcall(minimapModule.getMiniMapUi)
-    if ok and minimap then return minimap end
+    if ok and liveMap(minimap) then return minimap end
   end
-  return minimapModule.minimapWidget
+  return liveMap(minimapModule.minimapWidget)
 end
 
 local cachedCyclopediaMinimap = nil
@@ -837,18 +1142,12 @@ local function getCyclopediaMinimap()
     modules.game_cyclopedia.MapCyclopedia
   if mapCyclopedia and type(mapCyclopedia.getMinimapWidget) == "function" then
     local ok, minimap = pcall(function() return mapCyclopedia.getMinimapWidget() end)
-    if ok and minimap then return minimap end
+    if ok and minimap then return liveMap(minimap) end
   end
 
   local current = clockMillis()
   if current < nextCyclopediaLookupAt then
-    if not cachedCyclopediaMinimap then return nil end
-    if type(cachedCyclopediaMinimap.isDestroyed) ~= "function" then
-      return cachedCyclopediaMinimap
-    end
-    local ok, destroyed = pcall(function() return cachedCyclopediaMinimap:isDestroyed() end)
-    if ok and not destroyed then return cachedCyclopediaMinimap end
-    cachedCyclopediaMinimap = nil
+    return liveMap(cachedCyclopediaMinimap)
   end
   nextCyclopediaLookupAt = current + 1000
   cachedCyclopediaMinimap = nil
@@ -863,14 +1162,524 @@ local function getCyclopediaMinimap()
 end
 
 local function destroyMapMarkers(minimap, storageKey)
-  if not minimap or type(minimap[storageKey]) ~= "table" then return end
-  for _, marker in pairs(minimap[storageKey]) do
-    if marker.widget then pcall(function() marker.widget:destroy() end) end
+  minimap = minimap and canonicalMap(minimap)
+  local owned = minimap and visualState.maps[minimap]
+  local data = owned and owned[storageKey]
+  if not data then return end
+  for _, marker in pairs(data[storageKey] or {}) do
+    if marker.widget then pcall(destroyVisual, marker.widget) end
   end
-  minimap[storageKey] = {}
+  data[storageKey] = {}
+  local areaKey = storageKey .. "_areas"
+  for _, area in pairs(data[areaKey] or {}) do
+    pcall(destroyVisual, area)
+  end
+  data[areaKey] = {}
+  local guideKey = storageKey .. "_guide"
+  local guide = data[guideKey]
+  if guide and guide.widget then pcall(destroyVisual, guide.widget) end
+  data[guideKey] = nil
+  data[storageKey .. "_activity"] = nil
+  if owned then
+    owned[storageKey] = nil
+    if not hasEntries(owned) then visualState.maps[minimap] = nil end
+  end
 end
 
-local function markerPoints(estimate)
+-- The rectangle encloses the candidates; it is not an exact target position.
+local function minimapProjection(minimap)
+  if type(minimap.getTilePosition) ~= "function" or
+     type(minimap.getPosition) ~= "function" or
+     type(minimap.getSize) ~= "function" then return nil end
+  local ok, projection = pcall(function()
+    local size, origin = minimap:getSize(), minimap:getPosition()
+    local width, height = tonumber(size.width), tonumber(size.height)
+    if not width or not height or width < 20 or height < 20 then return nil end
+    local cx, cy = math.floor(width / 2), math.floor(height / 2)
+    local sx = math.max(8, math.min(32, math.floor(width / 3)))
+    local sy = math.max(8, math.min(32, math.floor(height / 3)))
+    local function tile(x, y)
+      return copyPosition(minimap:getTilePosition({x = origin.x + x, y = origin.y + y}))
+    end
+    local center = tile(cx, cy)
+    local left, right = tile(cx - sx, cy), tile(cx + sx, cy)
+    local top, bottom = tile(cx, cy - sy), tile(cx, cy + sy)
+    if not center or not left or not right or not top or not bottom then return nil end
+    local dx, dy = right.x - left.x, bottom.y - top.y
+    if dx <= 0 or dy <= 0 then return nil end
+    return {width = width, height = height, cx = cx, cy = cy, center = center,
+      originX = origin.x, originY = origin.y,
+      scaleX = 2 * sx / dx, scaleY = 2 * sy / dy}
+  end)
+  return ok and projection or nil
+end
+
+-- Keep overlay sprites out of anchor-layout and mouse-event work during panning.
+local function setVisualVisible(widget, visible)
+  if not widget or mapLife.dead[widget] then return end
+  if widget._exivaVisualVisible ~= visible then
+    widget:setVisible(visible)
+    widget._exivaVisualVisible = visible
+  end
+end
+
+local function setVisualRect(widget, x, y, width, height)
+  if not widget or mapLife.dead[widget] then return end
+  x, y, width, height = math.floor(x), math.floor(y), math.floor(width), math.floor(height)
+  local old = widget._exivaVisualRect
+  if old and old.x == x and old.y == y and old.width == width and old.height == height then return end
+  widget:setRect({x = x, y = y, width = width, height = height})
+  widget._exivaVisualRect = {x = x, y = y, width = width, height = height}
+end
+
+local function estimateOnFloor(estimate, floor)
+  for _, z in ipairs(estimate.floors or {estimate.position.z}) do
+    if tonumber(z) == tonumber(floor) then return true end
+  end
+  return false
+end
+
+local function createSearchArea(minimap, targetKey)
+  local overlay = setupUI([[
+Panel
+  anchors.fill: parent
+  enabled: false
+  phantom: true
+  focusable: false
+  background-color: alpha
+
+  UIWidget
+    id: shade
+    phantom: true
+    focusable: false
+    background-color: #ffd34d18
+
+  UIWidget
+    id: topEdge
+    phantom: true
+    focusable: false
+    background-color: #ffd34de6
+
+  UIWidget
+    id: bottomEdge
+    phantom: true
+    focusable: false
+    background-color: #ffd34de6
+
+  UIWidget
+    id: leftEdge
+    phantom: true
+    focusable: false
+    background-color: #ffd34de6
+
+  UIWidget
+    id: rightEdge
+    phantom: true
+    focusable: false
+    background-color: #ffd34de6
+]], minimap)
+  watchVisual(overlay, "exivaSearchArea_" .. safeId(targetKey))
+  return overlay
+end
+
+local function setSearchAreaPart(widget, x, y, width, height, viewWidth, viewHeight, originX, originY)
+  -- Clip each edge separately: do not invent a border at the viewport edge.
+  local left, top = math.max(0, x), math.max(0, y)
+  local right, bottom = math.min(viewWidth, x + width), math.min(viewHeight, y + height)
+  if right <= left or bottom <= top then setVisualVisible(widget, false) return end
+  setVisualRect(widget, originX + math.floor(left), originY + math.floor(top),
+    math.max(1, math.ceil(right - left)), math.max(1, math.ceil(bottom - top)))
+  setVisualVisible(widget, true)
+end
+
+local function updateSearchAreas(minimap, storageKey, connectedMembers, projection)
+  local areaKey = storageKey .. "_areas"
+  mapData(minimap, storageKey)[areaKey] = mapData(minimap, storageKey)[areaKey] or {}
+  local areas, desired = mapData(minimap, storageKey)[areaKey], {}
+  if projection then
+    for targetKey, estimate in pairs(estimates) do
+      if estimate.expiresAt > clockMillis() and not connectedMembers[targetKey] and
+         estimateOnFloor(estimate, projection.center.z) then
+        desired[targetKey] = true
+        local area = areas[targetKey]
+        if not visualPresent(minimap, area) then
+          if area then destroyVisual(area) end
+          area = nil
+          local ok, value = pcall(createSearchArea, minimap, targetKey)
+          if ok then area = value; areas[targetKey] = area end
+        end
+        if area then
+          setVisualVisible(area, true)
+          local left = projection.cx + (estimate.minX - projection.center.x - 0.5) * projection.scaleX
+          local right = projection.cx + (estimate.maxX - projection.center.x + 0.5) * projection.scaleX
+          local top = projection.cy + (estimate.minY - projection.center.y - 0.5) * projection.scaleY
+          local bottom = projection.cy + (estimate.maxY - projection.center.y + 0.5) * projection.scaleY
+          pcall(function()
+            local function part(widget, x, y, width, height)
+              setSearchAreaPart(widget, x, y, width, height, projection.width, projection.height,
+                projection.originX, projection.originY)
+            end
+            part(area.shade, left, top, right - left, bottom - top)
+            part(area.topEdge, left, top, right - left, 2)
+            part(area.bottomEdge, left, bottom - 2, right - left, 2)
+            part(area.leftEdge, left, top, 2, bottom - top)
+            part(area.rightEdge, right - 2, top, 2, bottom - top)
+          end)
+        end
+      end
+    end
+  end
+  for targetKey, area in pairs(areas) do
+    if not desired[targetKey] then
+      pcall(destroyVisual, area)
+      areas[targetKey] = nil
+    end
+  end
+end
+
+
+-- Visual direction guide: the destination is an estimate, not a walking route.
+local function destroyExivaGuide(minimap, storageKey)
+  local key = storageKey .. "_guide"
+  local guide = mapData(minimap, storageKey)[key]
+  if guide and guide.widget then pcall(destroyVisual, guide.widget) end
+  mapData(minimap, storageKey)[key] = nil
+end
+
+local function createExivaGuide(minimap, storageKey)
+  local overlay = setupUI([[
+Panel
+  anchors.fill: parent
+  enabled: false
+  phantom: true
+  focusable: false
+  background-color: alpha
+
+  Label
+    id: caption
+    size: 160 32
+    text-align: left
+    font: verdana-11px-rounded
+    color: #ffe38a
+    background-color: #141414cc
+    phantom: true
+    focusable: false
+    visible: false
+]], minimap)
+  watchVisual(overlay, "exivaGuide_" .. safeId(storageKey))
+  return {widget = overlay, items = {}, dots = {}, arrows = {}, used = 0,
+    dotUsed = 0, arrowUsed = 0, needsRaise = true}
+end
+
+local function hideExivaGuide(minimap, storageKey)
+  local guide = mapData(minimap, storageKey)[storageKey .. "_guide"]
+  if guide and not visualPresent(minimap, guide.widget) then
+    destroyExivaGuide(minimap, storageKey)
+    return
+  end
+  if guide then
+    setVisualVisible(guide.widget, false)
+    guide.renderKey = nil
+  end
+end
+
+local function guideItem(guide, x, y, direction)
+  local pool, index
+  if direction == nil then
+    guide.dotUsed = guide.dotUsed + 1
+    pool, index = guide.dots, guide.dotUsed
+  else
+    guide.arrowUsed = guide.arrowUsed + 1
+    pool, index = guide.arrows, guide.arrowUsed
+  end
+  local widget = pool[index]
+  if not widget then
+    widget = g_ui.createWidget("UIWidget", guide.widget)
+    widget:setPhantom(true)
+    widget:setFocusable(false)
+    pool[index] = widget
+    guide.needsRaise = true
+  end
+  guide.used = guide.used + 1
+  guide.items[guide.used] = widget
+  local size = direction and GUIDE_ARROW_SIZE or 5
+  local image = direction and GUIDE_ARROW_IMAGE or GUIDE_DOT_IMAGE
+  local imageKey = image .. ":" .. tostring(direction or "dot")
+  if widget._exivaGuideImage ~= imageKey then
+    if widget._exivaGuideSource ~= image then
+      widget:setImageSource(image)
+      widget._exivaGuideSource = image
+    end
+    widget:setImageClip({x = direction and direction * GUIDE_ARROW_SIZE or 0,
+      y = 0, width = size, height = size})
+    widget._exivaGuideImage = imageKey
+  end
+  setVisualRect(widget, guide.originX + math.floor(x - size / 2 + 0.5),
+    guide.originY + math.floor(y - size / 2 + 0.5), size, size)
+  setVisualVisible(widget, true)
+  return widget
+end
+
+local function finishExivaGuide(guide)
+  for i = guide.dotUsed + 1, #guide.dots do setVisualVisible(guide.dots[i], false) end
+  for i = guide.arrowUsed + 1, #guide.arrows do setVisualVisible(guide.arrows[i], false) end
+  for i = guide.used + 1, #guide.items do guide.items[i] = nil end
+  setVisualVisible(guide.widget, true)
+  if guide.needsRaise then
+    guide.widget:raise()
+    for i = 1, guide.arrowUsed do guide.arrows[i]:raise() end
+    guide.widget.caption:raise()
+    guide.layerVersion = (guide.layerVersion or 0) + 1
+    guide.needsRaise = false
+  end
+end
+
+-- Clip a segment to the viewport. Both ends may be outside after panning.
+local function clipGuideSegment(x, y, dx, dy, width, height)
+  local first, last = 0, 1
+  local function axis(origin, delta, low, high)
+    if math.abs(delta) < 0.00001 then return origin >= low and origin <= high end
+    local a, b = (low - origin) / delta, (high - origin) / delta
+    if a > b then a, b = b, a end
+    first, last = math.max(first, a), math.min(last, b)
+    return first <= last
+  end
+  if not axis(x, dx, GUIDE_EDGE_MARGIN, width - GUIDE_EDGE_MARGIN) or
+     not axis(y, dy, GUIDE_EDGE_MARGIN, height - GUIDE_EDGE_MARGIN) then return nil end
+  return first, last
+end
+
+local function guideDirection(dx, dy)
+  local selected, best = 0, -math.huge
+  for direction = 0, GUIDE_ARROW_DIRECTIONS - 1 do
+    local angle = direction * 2 * math.pi / GUIDE_ARROW_DIRECTIONS
+    local score = dx * math.cos(angle) + dy * math.sin(angle)
+    if score > best then selected, best = direction, score end
+  end
+  return selected
+end
+
+local function guideFloorHint(estimate, ownFloor)
+  local floors = estimate.floors or {estimate.position.z}
+  if #floors == 1 and tonumber(floors[1]) == ownFloor then return "" end
+  local above, below = #floors > 0, #floors > 0
+  for _, z in ipairs(floors) do
+    z = tonumber(z)
+    if not z or z >= ownFloor then above = false end
+    if not z or z <= ownFloor then below = false end
+  end
+  if above then return "Arriba" end
+  if below then return "Abajo" end
+  return "Piso sin confirmar"
+end
+
+local function guideCaption(guide, text, x, y, width, height, startX, startY)
+  local longest, lineCount = 0, 0
+  for line in text:gmatch("[^\n]+") do
+    longest = math.max(longest, #line); lineCount = lineCount + 1
+  end
+  local captionWidth = math.min(200, width - 4, longest * 7 + 6)
+  local captionHeight = math.min(height - 4, lineCount * 14 + 4)
+  local caption = guide.widget.caption
+  if guide.captionText ~= text then caption:setText(text); guide.captionText = text end
+  local maxLeft, maxTop = width - captionWidth - 2, height - captionHeight - 2
+  local candidates = {{x + 12, y + 12}, {x - captionWidth - 12, y + 12},
+    {x + 12, y - captionHeight - 12}, {x - captionWidth - 12, y - captionHeight - 12},
+    {2, 2}, {maxLeft, 2}, {2, maxTop}, {maxLeft, maxTop}}
+  local left, top, bestScore
+  for _, candidate in ipairs(candidates) do
+    local cx = math.max(2, math.min(maxLeft, candidate[1]))
+    local cy = math.max(2, math.min(maxTop, candidate[2]))
+    local function covers(px, py)
+      return px >= cx - 10 and px <= cx + captionWidth + 10 and
+        py >= cy - 10 and py <= cy + captionHeight + 10
+    end
+    local score = ((cx + captionWidth / 2 - x)^2 + (cy + captionHeight / 2 - y)^2) / 100
+    -- Prefer an empty corner rather than covering the self pin or the dotted line.
+    if covers(startX, startY) then score = score + 100000 end
+    if covers(x, y) then score = score + 50000 end
+    for i = 1, 15 do
+      if covers(startX + (x - startX) * i / 16, startY + (y - startY) * i / 16) then
+        score = score + 1000
+      end
+    end
+    if not bestScore or score < bestScore then left, top, bestScore = cx, cy, score end
+  end
+  setVisualRect(caption, guide.originX + math.floor(left), guide.originY + math.floor(top), captionWidth, captionHeight)
+  setVisualVisible(caption, true)
+end
+
+local function updateExivaGuide(minimap, storageKey, connectedMembers, projection, own)
+  local key = storageKey .. "_guide"
+  local targetKey, estimate
+  local current = clockMillis()
+  -- Follow the newest valid estimate; keep the other search areas unchanged.
+  for candidateKey, candidate in pairs(estimates) do
+    if candidate.expiresAt > current and not connectedMembers[candidateKey] and
+       (not estimate or candidate.updatedAt > estimate.updatedAt or
+        (candidate.updatedAt == estimate.updatedAt and candidateKey < targetKey)) then
+      targetKey, estimate = candidateKey, candidate
+    end
+  end
+  if not estimate then destroyExivaGuide(minimap, storageKey); return end
+  if not projection or not own or projection.center.z ~= own.z or
+     projection.width <= 2 * GUIDE_EDGE_MARGIN or projection.height <= 2 * GUIDE_EDGE_MARGIN then
+    hideExivaGuide(minimap, storageKey)
+    return
+  end
+  local function screen(pos)
+    return projection.cx + (pos.x - projection.center.x) * projection.scaleX,
+      projection.cy + (pos.y - projection.center.y) * projection.scaleY
+  end
+  local x, y = screen(own)
+  local targetX, targetY = screen(estimate.position)
+  local dx, dy = targetX - x, targetY - y
+  local length = math.sqrt(dx * dx + dy * dy)
+  local floorHint = guideFloorHint(estimate, own.z)
+  local inside = targetX >= GUIDE_EDGE_MARGIN and targetX <= projection.width - GUIDE_EDGE_MARGIN and
+    targetY >= GUIDE_EDGE_MARGIN and targetY <= projection.height - GUIDE_EDGE_MARGIN
+  local first, last = clipGuideSegment(x, y, dx, dy, projection.width, projection.height)
+  if not first or (length < 28 and floorHint == "") then
+    hideExivaGuide(minimap, storageKey)
+    return
+  end
+  local guide = mapData(minimap, storageKey)[key]
+  if not guide or not visualPresent(minimap, guide.widget) then
+    if guide then destroyVisual(guide.widget) end
+    guide = createExivaGuide(minimap, storageKey); mapData(minimap, storageKey)[key] = guide
+  end
+  local renderKey = table.concat({targetKey, estimate.target, estimate.coordinator or "", floorHint,
+    projection.originX, projection.originY, projection.width, projection.height,
+    x, y, targetX, targetY}, "|")
+  if guide.renderKey == renderKey then return end
+  guide.renderKey = renderKey
+  if guide.target ~= targetKey then guide.needsRaise = true end
+  guide.target = targetKey
+  guide.originX, guide.originY = projection.originX, projection.originY
+  guide.used, guide.dotUsed, guide.arrowUsed = 0, 0, 0
+  local endX, endY = x + last * dx, y + last * dy
+  if length >= 28 then
+    local ux, uy = dx / length, dy / length
+    -- Leave room for the self pin and the target reticle.
+    local startDistance = math.max(first * length, 14)
+    local endDistance = math.min(last * length, length - (inside and 20 or 0))
+    local span = endDistance - startDistance
+    if span >= 0 then
+      local spacing = math.max(9, span / (GUIDE_MAX_DOTS - 1))
+      local direction = guideDirection(dx, dy)
+      for distance = startDistance, endDistance, spacing do
+        guideItem(guide, x + ux * distance, y + uy * distance)
+      end
+      -- Periodic chevrons plus a final arrow (at the edge for an offscreen target).
+      local arrowSpacing = math.max(70, span / (GUIDE_MAX_ARROWS - 1))
+      for distance = startDistance + 28, endDistance - 28, arrowSpacing do
+        guideItem(guide, x + ux * distance, y + uy * distance, direction)
+      end
+      if span >= 12 or not inside then
+        endX, endY = x + ux * endDistance, y + uy * endDistance
+        guideItem(guide, endX, endY, direction)
+      end
+    end
+  end
+  if not inside or floorHint ~= "" then
+    local label = estimate.target .. " ~"
+    label = label .. "\n" .. (floorHint ~= "" and floorHint or "Rumbo aproximado")
+    local initiator = estimateInitiator(estimate)
+    if initiator then label = label .. "\n" .. initiator end
+    guideCaption(guide, label, endX, endY, projection.width, projection.height, x, y)
+  else
+    setVisualVisible(guide.widget.caption, false)
+  end
+  finishExivaGuide(guide)
+end
+
+
+local function pauseMapVisuals(minimap, storageKey)
+  hideExivaGuide(minimap, storageKey)
+  for targetKey, area in pairs(mapData(minimap, storageKey)[storageKey .. "_areas"] or {}) do
+    if visualPresent(minimap, area) then setVisualVisible(area, false)
+    else
+      destroyVisual(area)
+      mapData(minimap, storageKey)[storageKey .. "_areas"][targetKey] = nil
+    end
+  end
+  for markerKey, marker in pairs(mapData(minimap, storageKey)[storageKey] or {}) do
+    if not visualPresent(minimap, marker.widget) then
+      destroyVisual(marker.widget)
+      mapData(minimap, storageKey)[storageKey][markerKey] = nil
+    elseif marker.visible ~= false then
+      marker.widget:setVisible(false)
+      marker.visible = false
+    end
+  end
+end
+
+-- The expanded map is expensive to repaint during a drag. Resume after settling.
+-- Read gesture state only; preserve the client's mouse and drag callbacks.
+local function updateMapActivity(minimap, storageKey, own, current)
+  if not trackMap(minimap, storageKey) or type(minimap.getSize) ~= "function" then return false end
+  if type(minimap.isVisible) == "function" and not minimap:isVisible() then return false end
+  local activityKey = storageKey .. "_activity"
+  local previous = mapData(minimap, storageKey)[activityKey]
+  local ok, size = pcall(function() return minimap:getSize() end)
+  if not ok or not size then return false end
+  local width, height = tonumber(size.width), tonumber(size.height)
+  if not width or not height then return false end
+  if width < LARGE_MAP_MIN_WIDTH and height < LARGE_MAP_MIN_HEIGHT then
+    if previous and previous.paused then nextMarkerUpdateAt = 0 end
+    mapData(minimap, storageKey)[activityKey] = nil
+    return false
+  end
+  local activity = previous or {}
+  mapData(minimap, storageKey)[activityKey] = activity
+  if activity.checkedAt == current then return activity.paused end
+  activity.checkedAt = current
+
+  local function flag(method)
+    if type(minimap[method]) ~= "function" then return false end
+    local success, value = pcall(function() return minimap[method](minimap) end)
+    return success and value == true
+  end
+  local camera, zoom
+  if type(minimap.getCameraPosition) == "function" then
+    local success, value = pcall(function() return minimap:getCameraPosition() end)
+    if success then camera = copyPosition(value) end
+  end
+  if type(minimap.getZoom) == "function" then
+    local success, value = pcall(function() return minimap:getZoom() end)
+    if success then zoom = value end
+  end
+
+  local moved = camera and activity.camera and positionKey(camera) ~= positionKey(activity.camera)
+  local following = false
+  if moved and own then
+    following = positionKey(camera) == positionKey(own) or
+      (activity.own and camera.x - activity.camera.x == own.x - activity.own.x and
+       camera.y - activity.camera.y == own.y - activity.own.y and
+       camera.z - activity.camera.z == own.z - activity.own.z)
+  end
+  local resized = activity.width and (activity.width ~= width or activity.height ~= height)
+  local zoomed = activity.zoom ~= nil and zoom ~= nil and activity.zoom ~= zoom
+  -- Camera motion is a fallback for client variants without native drag state.
+  local interacting = flag("isDragging") or flag("isPressed") or
+    (moved and not following) or resized or zoomed
+  if interacting then activity.resumeAt = current + LARGE_MAP_SETTLE_TIME end
+  local paused = interacting or (activity.resumeAt ~= nil and current < activity.resumeAt)
+  local wasPaused = activity.paused
+  activity.paused = paused == true
+  activity.camera, activity.own = camera, copyPosition(own)
+  activity.width, activity.height, activity.zoom = width, height, zoom
+  if activity.paused then
+    pauseMapVisuals(minimap, storageKey)
+  elseif wasPaused then
+    activity.resumeAt = nil
+    nextMarkerUpdateAt = 0
+  end
+  return activity.paused
+end
+
+
+local function markerPoints(estimate, visibleFloor)
   local points = {}
   local floors = estimate.floors
   if type(floors) ~= "table" or #floors == 0 then
@@ -879,7 +1688,7 @@ local function markerPoints(estimate)
 
   for _, floor in ipairs(floors) do
     local z = tonumber(floor)
-    if z then
+    if z and z == (tonumber(visibleFloor) or estimate.position.z) then
       table.insert(points, {
         id = "floor" .. tostring(z),
         pos = {x = estimate.position.x, y = estimate.position.y, z = z},
@@ -892,11 +1701,19 @@ local function markerPoints(estimate)
 end
 
 local function updateMapMarkers(minimap, storageKey, connectedMembers)
-  if not minimap or type(minimap.centerInPosition) ~= "function" or
+  if not trackMap(minimap, storageKey) or type(minimap.centerInPosition) ~= "function" or
     not g_ui or type(g_ui.createWidget) ~= "function" then return end
-  minimap[storageKey] = type(minimap[storageKey]) == "table" and
-    minimap[storageKey] or {}
-  local markers = minimap[storageKey]
+  if type(minimap.isVisible) == "function" and not minimap:isVisible() then return end
+  local own = currentPosition()
+  if updateMapActivity(minimap, storageKey, own, clockMillis()) then return end
+  mapData(minimap, storageKey)[storageKey] = type(mapData(minimap, storageKey)[storageKey]) == "table" and
+    mapData(minimap, storageKey)[storageKey] or {}
+  local projection = minimapProjection(minimap)
+  updateSearchAreas(minimap, storageKey, connectedMembers, projection)
+  updateExivaGuide(minimap, storageKey, connectedMembers, projection, own)
+  local guide = mapData(minimap, storageKey)[storageKey .. "_guide"]
+  local guideLayer = guide and guide.layerVersion or 0
+  local markers = mapData(minimap, storageKey)[storageKey]
   local desired = {}
   local cameraPosition
   if type(minimap.getCameraPosition) == "function" then
@@ -908,15 +1725,36 @@ local function updateMapMarkers(minimap, storageKey, connectedMembers)
     if estimate.expiresAt > clockMillis() and
       not connectedMembers[targetKey] then
       local tooltip = estimateTooltip(estimate.target, estimate)
-      for _, point in ipairs(markerPoints(estimate)) do
+      for _, point in ipairs(markerPoints(estimate, cameraPosition and cameraPosition.z)) do
         local markerKey = targetKey .. ":" .. point.id
         desired[markerKey] = true
         local marker = markers[markerKey]
+        if marker and not visualPresent(minimap, marker.widget) then
+          destroyVisual(marker.widget)
+          marker = nil
+        end
         if not marker or not marker.widget then
           local ok, widget = pcall(function()
-            local cross = g_ui.createWidget("MinimapCross", minimap)
+            local cross = setupUI([[
+UIWidget
+  size: 19 19
+  focusable: false
+
+  Label
+    id: caption
+    anchors.left: parent.right
+    anchors.top: parent.top
+    margin-left: 3
+    margin-top: 1
+    text-auto-resize: true
+    font: verdana-11px-rounded
+    color: #ffe38a
+    background-color: #141414bb
+    phantom: true
+    focusable: false
+]], minimap)
             if not cross then return nil end
-            cross:setId("exivaTracker_" .. safeId(markerKey))
+            watchVisual(cross, "exivaTracker_" .. safeId(markerKey))
             if cross.setPhantom then cross:setPhantom(false) end
             if cross.setFocusable then cross:setFocusable(false) end
             return cross
@@ -928,9 +1766,20 @@ local function updateMapMarkers(minimap, storageKey, connectedMembers)
         end
         if marker and marker.widget then
           pcall(function()
-            if marker.image ~= point.image and marker.widget.setIcon then
-              marker.widget:setIcon(point.image)
+            if marker.image ~= point.image then
+              marker.widget:setImageSource(point.image)
               marker.image = point.image
+            end
+            local caption = estimate.target .. " ~ +/- " .. tostring(estimate.precision) .. " sqm"
+            local initiator = estimateInitiator(estimate)
+            if initiator then caption = caption .. "\n" .. initiator end
+            if marker.caption ~= caption then
+              marker.widget.caption:setText(caption)
+              marker.caption = caption
+            end
+            if marker.guideLayer ~= guideLayer then
+              marker.widget:raise()
+              marker.guideLayer = guideLayer
             end
             if marker.tooltip ~= tooltip then
               marker.widget:setTooltip(tooltip)
@@ -955,75 +1804,108 @@ local function updateMapMarkers(minimap, storageKey, connectedMembers)
 
   for markerKey, marker in pairs(markers) do
     if not desired[markerKey] then
-      if marker.widget then pcall(function() marker.widget:destroy() end) end
+      if marker.widget then pcall(destroyVisual, marker.widget) end
       markers[markerKey] = nil
     end
   end
 end
 
+local function clearUnusedMaps(main, secondary)
+  for minimap, owned in pairs(visualState.maps) do
+    if minimap ~= main and minimap ~= secondary then
+      for storageKey in pairs(owned) do destroyMapMarkers(minimap, storageKey) end
+    end
+  end
+end
+
 local function clearAllMarkers()
-  destroyMapMarkers(getMainMinimap(), MAIN_MARKER_KEY)
-  destroyMapMarkers(getCyclopediaMinimap(), CYCLOPEDIA_MARKER_KEY)
+  clearUnusedMaps(nil, nil)
 end
 
 clearAllMarkers()
 local markersActive = false
 
-onTalk(function(speaker, level, mode, text)
-  if not activeGeneration() or not trackerEnabled() or
+onTalk(function(speaker, level, mode, text, channelId)
+  if not activeGeneration() or
     normalizedName(speaker) ~= normalizedName(selfName()) then return end
   local target = parseExivaCommand(text)
   if not target then return end
-  if suppressTarget == normalizedName(target) and clockMillis() <= suppressUntil then
-    for sessionId, entry in pairs(queuedCasts) do
-      if normalizedName(entry.target) == suppressTarget and entry.lastAttemptAt then
-        queuedCasts[sessionId] = nil
-      end
-    end
-    suppressTarget = nil
+  local signature = table.concat({tostring(mode or 0), tostring(channelId or 0), trim(text)}, "|")
+  local automatic, sessionId = consumeAutomaticTalk(target, signature)
+  if automatic then
+    if sessionId then completeRemoteCast(sessionId) end
     return
   end
-  beginManualSession(target)
+  if trackerEnabled() then beginManualSession(target) end
 end)
 
 macro(100, function()
   if not activeGeneration() then return end
+  local current = clockMillis()
+  if not trackerEnabled() then cancelSessionCasts(false)
+  elseif not botServerReady() then cancelSessionCasts(true) end
+  pruneAutomaticTalks(current)
   pollServerLog()
   if registerBotServerListeners() then sendCapability(false, false) end
-  local current = clockMillis()
 
   for sessionId, entry in pairs(queuedCasts) do
-    if current > entry.expiresAt then
-      queuedCasts[sessionId] = nil
-    elseif trackerEnabled() and current - lastLargeDamageAt >= DAMAGE_SAFE_TIME and
+    local session = sessions[sessionId]
+    if current > entry.expiresAt or not session or session.castCancelled or session.remoteCastDone or
+      entry.requestSocket ~= BotServer._websocket then
+      completeRemoteCast(sessionId)
+    elseif botServerReady() and current - lastLargeDamageAt >= DAMAGE_SAFE_TIME and
         current >= (tonumber(entry.nextAttemptAt) or 0) then
-      if castQueuedExiva(entry) and entry.attempts >= MAX_CAST_ATTEMPTS then
-        queuedCasts[sessionId] = nil
-      end
+      castQueuedExiva(entry)
+      if entry.attempts >= MAX_CAST_ATTEMPTS then completeRemoteCast(sessionId) end
     end
   end
   for sessionId, pending in pairs(pendingCasts) do
-    if current > pending.expiresAt then pendingCasts[sessionId] = nil end
+    if current > pending.expiresAt then
+      pendingCasts[sessionId] = nil
+      if pending.automatic then completeRemoteCast(sessionId) end
+    end
   end
   for sessionId, session in pairs(sessions) do
     if session.recalculateAt and current >= session.recalculateAt then
       recalculateSession(session)
     end
-    if current > session.purgeAt then sessions[sessionId] = nil end
+    if current > session.purgeAt then
+      completeRemoteCast(sessionId)
+      sessions[sessionId] = nil
+      local targetKey = normalizedName(session.target)
+      if latestSessions[targetKey] == sessionId then latestSessions[targetKey] = nil end
+    end
   end
   for targetKey, estimate in pairs(estimates) do
     if current > estimate.expiresAt then estimates[targetKey] = nil end
   end
 
+  local visualsEnabled = trackerEnabled() and hasEntries(estimates)
+  local mainMinimap, secondaryMinimap
+  if visualsEnabled then
+    mainMinimap, secondaryMinimap = getMainMinimap(), getCyclopediaMinimap()
+    local own = currentPosition()
+    -- Hide busy expanded-map overlays on the 100 ms tick, before the render tick.
+    updateMapActivity(mainMinimap, MAIN_MARKER_KEY, own, current)
+    if secondaryMinimap and secondaryMinimap ~= mainMinimap then
+      updateMapActivity(secondaryMinimap, CYCLOPEDIA_MARKER_KEY, own, current)
+    end
+  end
+
   if current >= nextMarkerUpdateAt then
     nextMarkerUpdateAt = current + MARKER_UPDATE_INTERVAL
-    if trackerEnabled() and hasEntries(estimates) then
+    if visualsEnabled then
+      clearUnusedMaps(mainMinimap, secondaryMinimap)
       local connectedMembers = connectedMemberNames()
-      updateMapMarkers(getMainMinimap(), MAIN_MARKER_KEY, connectedMembers)
-      updateMapMarkers(
-        getCyclopediaMinimap(), CYCLOPEDIA_MARKER_KEY, connectedMembers)
+      updateMapMarkers(mainMinimap, MAIN_MARKER_KEY, connectedMembers)
+      if secondaryMinimap and secondaryMinimap ~= mainMinimap then
+        updateMapMarkers(secondaryMinimap, CYCLOPEDIA_MARKER_KEY, connectedMembers)
+      elseif secondaryMinimap then
+        -- Some expanded-map getters refer to the same widget: draw it only once.
+        destroyMapMarkers(secondaryMinimap, CYCLOPEDIA_MARKER_KEY)
+      end
       markersActive = true
-    elseif markersActive then
+    elseif markersActive or hasEntries(visualState.maps) then
       clearAllMarkers()
       markersActive = false
     end

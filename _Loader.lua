@@ -51,6 +51,7 @@ local loaderSections = {
       "vBot/Updater",
       "vBot/BotSettings",
       "vBot/extras",
+      "vBot/minimap_drag",
       "vBot/extrasPvp",
       "vBot/GameBotServerTransport",
       "vBot/BotServer",

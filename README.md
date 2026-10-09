@@ -1,6 +1,6 @@
 # Sabuezo Bot - MythicOT
 
-Version actual: **3.0.20**. Actualizaciones publicas mediante GitHub, sin contrasenas.
+Version actual: **3.0.21**. Actualizaciones publicas mediante GitHub, sin contrasenas.
 
 ## Instalacion
 
@@ -10,19 +10,34 @@ Ejecuta este script en el editor de scripts del bot:
 modules.corelib.HTTP.get('https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/bootstrap.lua', function(script, err) if err or not script then warn('No se pudo descargar Sabuezo') return end assert(loadstring(script))() end)
 ```
 
-El instalador descarga el paquete completo antes de reemplazar archivos, valida el tamano de cada descarga y coloca el Loader al final. Al terminar, recarga el bot. Los archivos anteriores se respaldan en `bot/<config>/_updates/bootstrap_3.0.20/`. Los perfiles y las configuraciones guardadas de cada usuario se conservan.
+El instalador descarga el paquete completo antes de reemplazar archivos, valida el tamano de cada descarga y coloca el Loader al final. Al terminar, recarga el bot. Los archivos anteriores se respaldan en `bot/<config>/_updates/bootstrap_3.0.21/`. Los perfiles y las configuraciones guardadas de cada usuario se conservan.
 
 ## Actualizaciones
 
 El panel **Updater** aparece en **Main**. **Check** consulta GitHub y **Update** instala los archivos pendientes. Se conserva la actualizacion automatica al entrar si esta activada en los ajustes existentes.
 
-Los archivos del manifest apuntan a la etiqueta `v3.0.20`, para que una descarga use una sola version del bot. La antigua version de cierre 3.0.17 esta bloqueada y su payload fue retirado de la version actual del repositorio.
+Los archivos del manifest apuntan a la etiqueta `v3.0.21`, para que una descarga use una sola version del bot. La antigua version de cierre 3.0.17 esta bloqueada y su payload fue retirado de la version actual del repositorio.
 
 ## Contenido publicado
 
-Se publican los scripts Lua, interfaces OTUI, imagenes y textos de licencia necesarios para el bot. Los scripts proceden de Sabuezo2, con la coordinacion de ataques validada en pruebas e integrada sobre el movimiento actual.
+Se publican los scripts Lua, interfaces OTUI, imagenes y textos de licencia necesarios para el bot. Se conservan los scripts de la version anterior y se incorporan las mejoras de BotServer, Player List y exiva probadas en pruebas.
 
 Quedan fuera los perfiles de `storage/`, configuraciones de HealBot/AttackBot/Supplies, listas de jugadores, teclas del editor, rutas de CaveBot, configuraciones de TargetBot, distribucion de paneles, tokens, contrasenas y respaldos. No se publica ni se importa una plantilla personal de Sabuezo.
+
+## Cambios de 3.0.21
+
+- BotServer elimina el intercambio de vocaciones y magic walls; conserva presencia, mana, mensajes y exiva compartido.
+- Player List incorpora el outfit por vocacion, desactivado por defecto e independiente de los colores.
+- Los companeros se distinguen con un diamante celeste y el objetivo de exiva con una referencia amarilla y su zona aproximada.
+- La guia de exiva muestra puntos y flechas hacia la referencia, con indicaciones cuando queda fuera del mapa o en otro piso.
+- Se reduce el trabajo de dibujo al mover el mapa; Mapa grande fluido limita las actualizaciones de arrastre y permite desactivarlo en Bot Settings.
+- Se corrigen los accesos a widgets destruidos y la limpieza de lineas y marcadores al terminar una busqueda, cerrar mapas o recargar el bot.
+- Las respuestas automaticas ya no inician nuevas cadenas de exiva; las solicitudes cerradas y las respuestas tardias se descartan.
+- El punto de referencia se conserva mientras las lecturas actuales lo permiten; una sesion anterior no reemplaza la estimacion mas reciente del mismo jugador.
+- La referencia y la guia muestran Inicio: nombre para identificar quien inicio el exiva compartido.
+- La actualizacion conserva perfiles, rutas, hotkeys, listas y configuracion personal.
+
+La guia indica una referencia aproximada, sin calcular una ruta transitable. Las correcciones anteriores de mapas fueron confirmadas en juego por el usuario; la estabilidad del punto y la etiqueta del iniciador se verificaron con pruebas simuladas.
 
 ## Cambios de 3.0.20
 

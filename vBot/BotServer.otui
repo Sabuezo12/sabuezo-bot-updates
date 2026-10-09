@@ -176,7 +176,7 @@ TransportPanel < Panel
     step: 1
 
 FeaturePanel < Panel
-  size: 340 165
+  size: 340 112
   image-source: /images/ui/panel_flat
   image-border: 5
   padding: 3
@@ -206,59 +206,31 @@ FeaturePanel < Panel
     text: Mana
 
   BotSwitch
-    id: Feature2
-    anchors.top: sep.bottom
-    anchors.left: prev.right
-    margin-top: 5
-    margin-left: 5
-    width: 58
-    height: 21
-    text: MWall
-
-  BotSwitch
-    id: Feature3
-    anchors.top: sep.bottom
-    anchors.left: prev.right
-    margin-top: 5
-    margin-left: 5
-    width: 48
-    height: 21
-    text: Voc
-
-  BotSwitch
     id: Feature6
     anchors.top: sep.bottom
-    anchors.left: prev.right
+    anchors.left: Feature1.right
     margin-top: 5
-    margin-left: 5
+    margin-left: 8
     width: 48
     height: 21
     text: Map
 
   BotSwitch
-    id: Feature4
-    anchors.top: prev.bottom
-    anchors.left: parent.left
-    margin-top: 5
-    margin-left: 3
-    width: 70
-    height: 21
-    text: Outfit
-
-  BotSwitch
     id: Feature5
-    anchors.top: prev.top
-    anchors.left: prev.right
-    margin-left: 5
+    anchors.top: sep.bottom
+    anchors.left: Feature6.right
+    margin-top: 5
+    margin-left: 8
     width: 86
     height: 21
     text: Broadcast
 
   BotSwitch
     id: Feature7
-    anchors.top: Feature4.top
+    anchors.top: sep.bottom
     anchors.left: Feature5.right
-    margin-left: 5
+    margin-top: 5
+    margin-left: 8
     width: 64
     height: 21
     text: Exiva
@@ -284,7 +256,7 @@ FeaturePanel < Panel
 
 BotServerWindow < MainWindow
   !text: tr('BotServer')
-  size: 370 425
+  size: 370 372
   @onEscape: self:hide()
 
   BotServerData

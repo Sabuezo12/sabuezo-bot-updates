@@ -1,3 +1,15 @@
+3.0.21 - BotServer y guia de exiva
+- BotServer elimina el intercambio de vocaciones y magic walls; conserva presencia, mana, mensajes y exiva compartido.
+- Player List incorpora el outfit por vocacion, desactivado por defecto e independiente de los colores.
+- Los companeros se distinguen con un diamante celeste y el objetivo de exiva con una referencia amarilla y su zona aproximada.
+- La guia de exiva muestra puntos y flechas hacia la referencia, con indicaciones cuando queda fuera del mapa o en otro piso.
+- Se reduce el trabajo de dibujo al mover el mapa; Mapa grande fluido limita las actualizaciones de arrastre y permite desactivarlo en Bot Settings.
+- Se corrigen los accesos a widgets destruidos y la limpieza de lineas y marcadores al terminar una busqueda, cerrar mapas o recargar el bot.
+- Las respuestas automaticas ya no inician nuevas cadenas de exiva; las solicitudes cerradas y las respuestas tardias se descartan.
+- El punto de referencia se conserva mientras las lecturas actuales lo permiten; una sesion anterior no reemplaza la estimacion mas reciente del mismo jugador.
+- La referencia y la guia muestran Inicio: nombre para identificar quien inicio el exiva compartido.
+- La actualizacion conserva perfiles, rutas, hotkeys, listas y configuracion personal.
+
 3.0.20 - Inmortal: equipo, Loot Pouch y Utamo
 - Inmortal guarda el equipo saliente en la BP principal y espera la confirmacion antes de equipar la proteccion; evita el intercambio fallido con una BP llena de Might Rings.
 - Might Rings y SSA se conservan hasta consumirse; el equipo normal vuelve cuando terminan las condiciones de peligro y se cumple la recuperacion configurada.
