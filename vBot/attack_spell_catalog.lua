@@ -526,7 +526,7 @@ function C.ready(entry, settings, state)
   if not data then return true end
   if settings.ignoreMana and (state.level < data.level or state.mana < data.mana) then return false end
   if (entry.minimumHarmony or 0) > 0 and (state.harmony == nil or state.harmony < entry.minimumHarmony) then return false end
-  if settings.Cooldown and data.secondary and state.secondary[data.secondary] and
+  if settings.Cooldown and not state.nativeSecondary and data.secondary and state.secondary[data.secondary] and
     state.now-state.secondary[data.secondary] < (entry.secondaryCooldown or math.min(entry.cooldown, data.secondaryCooldown)) then return false end
   return not state.attempts[data.words] or state.now-state.attempts[data.words] >= 1000
 end

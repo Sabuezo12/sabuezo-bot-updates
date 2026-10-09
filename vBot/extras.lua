@@ -398,9 +398,9 @@ if true then
 end
 
 local blessControl = addCheckBox("bless", "Bless: comprobando...", true, rightPanel,
-  "Comprueba las 8 bendiciones del cliente. Compra con !bless si faltan y vuelve a verificar al morir.")
+  "Envia !bless al entrar o revivir y confirma la compra. Reintenta con pausa si no hay respuesta.")
 if true then
-  local START_DELAY, RESPONSE_DELAY, MAX_ATTEMPTS = 4, 8, 3
+  local START_DELAY, RESPONSE_DELAY, MAX_ATTEMPTS, RETRY_DELAY = 1, 4, 3, 30
   local session, waitingForRevival, destroyed = nil, false, false
   local hooks, blessButton = {}, nil
   local required = {
@@ -418,6 +418,7 @@ if true then
   local function callPlayer(character, method)
     local ok, value = pcall(function() return character[method](character) end)
     if ok then return value end
+    return nil
   end
   local function normalized(text)
     return text:lower():gsub("%s+", " "):match("^%s*(.-)%s*$")
@@ -466,7 +467,7 @@ if true then
   local function showStatus(text, color, detail)
     blessControl:setText(text)
     blessControl:setColor(color)
-    blessControl:setTooltip("Comprueba las 8 bless y compra con !bless si faltan.\n" .. (detail or ""))
+    blessControl:setTooltip("Compra con !bless al entrar o revivir. Reintenta con pausa si no se confirma.\n" .. (detail or ""))
   end
   local function recordBless(stage)
     storage.sabuezoBlessDiagnostic = {
@@ -475,25 +476,40 @@ if true then
       nativeStatus=session and tonumber(callPlayer(session.character, "getBlessStatus")) or nil,
       count=session and session.count or nil, source=session and session.source or nil,
       missing=session and session.missing or nil, reason=session and session.reason or nil,
+      totalAttempts=session and session.totalAttempts or 0,
+      retryAt=session and session.retryAt or nil,
       time=os.time()
     }
   end
   local function confirm(source)
     if session.confirmed and session.source == source then return end
     session.confirmed, session.finished, session.count, session.source = true, true, 8, source
+    session.confirmedByServer = source == "respuesta del servidor" or source == "lista del servidor"
+    session.retryAt = nil
     session.missing = ""
     recordBless("confirmed")
     showStatus("Bless: 8/8 activas", "#55dd77", "Las 8 confirmadas mediante " .. source .. ".")
   end
+  local function warnOnce(stage, message)
+    session.warnings = session.warnings or {}
+    if session.warnings[stage] then return end
+    session.warnings[stage] = true
+    warn(message)
+  end
+  local function postpone(stage, text, detail, warning)
+    session.finished, session.retryAt = true, os.time()+RETRY_DELAY
+    recordBless(stage)
+    showStatus(text, "#ff7777", (detail or "") .. "\nNuevo intento en " .. RETRY_DELAY .. " s.")
+    warnOnce(stage, warning)
+  end
   local function sendBless()
     session.attempts, session.sentAt = session.attempts+1, os.time()
+    session.totalAttempts = (session.totalAttempts or 0)+1
     recordBless("sent")
-    local ok, err = pcall(function() say("!bless") end)
-    if not ok then
-      session.finished = true
-      recordBless("send_failed")
-      showStatus("Bless: error al comprar", "#ff7777", tostring(err))
-      warn("Auto bless: !bless no se pudo enviar: " .. tostring(err))
+    local ok, result = pcall(function() return say("!bless") end)
+    if not ok or result == false then
+      postpone("send_failed", "Bless: error al comprar", tostring(result),
+        "Auto bless: !bless no se pudo enviar; se reintentara con pausa.")
     end
   end
   local function cleanup()
@@ -539,33 +555,37 @@ if true then
     if type(originalDestroy) == "function" then originalDestroy(...) end
   end
   local function deathState(character)
+    local hp = tonumber(callPlayer(character, "getHealth"))
+    if hp and hp <= 0 then return true end
     if g_game.isDead then
       local ok, value = pcall(function() return g_game.isDead() end)
       if ok and type(value) == "boolean" then return value end
     end
-    local hp = tonumber(callPlayer(character, "getHealth"))
-    if hp then return hp <= 0 end
+    if hp then return false end
     return waitingForRevival
   end
   onTextMessage(function(mode, text)
     if destroyed or not settings.bless or not session or waitingForRevival or type(text) ~= "string" then return end
+    if session.attempts == 0 or session.confirmed then return end
     local count, source = fromList(text)
     if count == 8 then confirm("lista del servidor"); return end
-    if session.attempts == 0 or session.confirmed then return end
     local message = normalized(text)
-    -- Only an explicit ALL-blessings reply can substitute for missing client data.
-    if message:find("already have all blessings",1,true) or
-        message:find("received all blessings",1,true) or
-        message:find("bought all blessings",1,true) or
-        message:find("purchased all blessings",1,true) then
+    local reply, accepted = message:gsub("[%.!]+$", ""), false
+    -- Exact Mythic command replies; negative 'not blessed' text never matches.
+    for _, success in ipairs({"you are already blessed", "you are now blessed", "you have been blessed",
+      "you already have all blessings", "you have received all blessings", "you received all blessings",
+      "you have bought all blessings", "you bought all blessings", "you have purchased all blessings",
+      "you purchased all blessings"}) do
+      if reply == success then accepted = true; break end
+    end
+    if accepted then
       local current = clientBlessings(session.character)
-      if current == nil then confirm("respuesta del servidor") end
+      -- A known partial count still needs its missing blessings replenished.
+      if current == nil or current == 8 then confirm("respuesta del servidor") end
     elseif message:find("bless",1,true) and
         (message:find("not enough",1,true) or message:find("insufficient",1,true)) then
-      session.finished = true
-      recordBless("insufficient_funds")
-      showStatus("Bless: faltan monedas", "#ff7777", session.missing)
-      warn("Auto bless: el servidor indicó que faltan monedas.")
+      postpone("insufficient_funds", "Bless: faltan monedas", session.missing,
+        "Auto bless: el servidor indico que faltan monedas; se reintentara con pausa.")
     end
   end)
   macro(1000, function()
@@ -595,35 +615,44 @@ if true then
     session.character = character
     local elapsed = os.time()
     if elapsed-session.loginAt < START_DELAY then return end
-    -- Keep reading even after success or exhausted attempts: a late packet can confirm,
-    -- and losing a blessing must start a new purchase cycle.
     local count, source, missing = clientBlessings(character)
-    if count == 8 then confirm(source); return end
+    if session.confirmed then
+      if count == 8 or count == nil and session.confirmedByServer then return end
+      session.attempts, session.finished, session.confirmed, session.confirmedByServer = 0, false, false, false
+      session.retryAt = nil
+      session.reason, session.loginAt = "blessings_lost", elapsed
+      session.count, session.source = nil, source
+    end
+    -- The old full list/mask can survive death or login. Always send the command
+    -- once, then require its reply or an observed missing/unknown -> full change.
+    if session.attempts > 0 and count ~= nil and count < 8 then session.observedMissing = true end
+    if session.attempts > 0 and count == 8 and (session.baselineCount ~= 8 or session.observedMissing) then
+      confirm(source); return
+    end
     if count ~= nil then
-      if session.confirmed then
-        session.attempts, session.finished, session.confirmed = 0, false, false
-        session.reason, session.loginAt = "blessings_lost", elapsed
-      end
       if session.count ~= count or session.missing ~= missing then
         session.count, session.source, session.missing = count, source, missing
-        recordBless("missing_blessings")
-        showStatus("Bless: " .. count .. "/8", "#ffcc55", "Faltan:\n" .. missing)
+        recordBless(count == 8 and "awaiting_purchase_reply" or "missing_blessings")
+        if count == 8 then
+          showStatus("Bless: esperando respuesta", "#ffcc55", "La lista del cliente no sustituye la respuesta de !bless.")
+        else showStatus("Bless: " .. count .. "/8", "#ffcc55", "Faltan:\n" .. missing) end
       end
-    elseif session.confirmed and session.source ~= "cliente: flags" and session.source ~= "cliente: lista" then
-      return -- Explicit server confirmation remains valid until death or new client data.
-    elseif session.confirmed then
-      session.confirmed, session.finished, session.attempts = false, false, 0
-      session.count, session.source = nil, source
-      showStatus("Bless: comprobando...", "#ffcc55", "Esperando datos actuales del cliente.")
     end
-    if session.finished then return end
-    if session.attempts == 0 then sendBless(); return end
+    if session.finished then
+      if not session.retryAt or elapsed < session.retryAt then return end
+      session.attempts, session.finished, session.retryAt = 0, false, nil
+      recordBless("retrying")
+      showStatus("Bless: reintentando...", "#ffcc55")
+    end
+    if session.attempts == 0 then
+      session.baselineCount = count
+      session.observedMissing = count ~= nil and count < 8
+      sendBless(); return
+    end
     if elapsed-session.sentAt < RESPONSE_DELAY then return end
     if session.attempts < MAX_ATTEMPTS then sendBless(); return end
-    session.finished = true
-    recordBless("unconfirmed")
-    showStatus("Bless: sin confirmar", "#ff7777", missing or "El cliente aún no confirmó las 8 bendiciones.")
-    warn("Auto bless: no se confirmaron las 8 bless; revisa las que faltan antes de cazar.")
+    postpone("unconfirmed", "Bless: sin confirmar", missing or "Sin respuesta de compra confirmada.",
+      "Auto bless: no se confirmo la compra; se reintentara con pausa.")
   end)
 end
 

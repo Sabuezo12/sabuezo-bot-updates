@@ -51,7 +51,7 @@ local function makeContext(specs,pos,config,time,anchor)
   local ctx={pos=point(pos),config=config,time=time,occupied={},threats={},cache={},metrics={},firstSteps={}}
   if config.anchor then
     ctx.combatAnchor=anchor and anchor.z==pos.z and point(anchor) or nil
-    ctx.anchor=ctx.combatAnchor or point(pos)
+    ctx.anchor=ctx.combatAnchor -- Gathering has no combat centre yet.
   end
   ctx.radius=math.max(1,tonumber(config.anchorRange) or 3)
   ctx.range=math.max(1,tonumber(config.keepDistanceRange) or 1)
@@ -82,9 +82,10 @@ local function makeContext(specs,pos,config,time,anchor)
     end
   end
   tracks=currentTracks -- Do not retain dead or off-screen creatures.
-  -- A single bounded native path scan validates diagonal exits and rejects stairs.
+  -- Keep one-step diagonal reachability for emergencies. Selection below prefers
+  -- straight steps when they are equally safe. ignoreStairs=false BLOCKS stairs.
   if type(findAllPaths)=='function' and type(translateAllPathsToPath)=='function' then
-    ctx.paths=findAllPaths(pos,3,{ignoreCreatures=false,ignoreNonPathable=true,ignoreCost=true,ignoreStairs=true})
+    ctx.paths=findAllPaths(pos,3,{ignoreCreatures=false,ignoreNonPathable=true,ignoreCost=true,ignoreStairs=false,allowOnlyVisibleTiles=true})
   end
   for id,seen in pairs(visits) do if time-seen>2000 then visits[id]=nil end end
   visits[key(pos)]=time
@@ -97,17 +98,24 @@ local function free(ctx,p)
     local tile=g_map.getTile(p)
     local reachable=not ctx.paths or ctx.paths[p.x..','..p.y..','..p.z]~=nil
     ctx.cache[id]=not ctx.occupied[id] and reachable and tile~=nil and tile:isWalkable(false)==true
+      and (not TargetBot.Movement or TargetBot.Movement.floorSafe(p,tile))
   end
   return ctx.cache[id]
 end
+local function withinAnchor(ctx,from,to)
+  if not ctx.anchor then return true end
+  local before,after=distance(from,ctx.anchor),distance(to,ctx.anchor)
+  return to.z==ctx.anchor.z and (after<=ctx.radius or before>ctx.radius and after<=before)
+end
 local function canStep(ctx,from,to)
+  if not withinAnchor(ctx,from,to) then return false end
   if not free(ctx,to) then return false end
   if from.x==ctx.pos.x and from.y==ctx.pos.y then
     local id=key(to)
     if ctx.firstSteps[id]==nil then
       local path
       if ctx.paths then path=translateAllPathsToPath(ctx.paths,to)
-      else path=findPath(ctx.pos,to,2,{ignoreCreatures=false,ignoreNonPathable=true,ignoreCost=true,ignoreStairs=true,precision=0}) end
+      else path=findPath(ctx.pos,to,2,{ignoreCreatures=false,ignoreNonPathable=true,ignoreCost=true,ignoreStairs=false,allowOnlyVisibleTiles=true,precision=0}) end
       ctx.firstSteps[id]=path~=nil and #path==1
     end
     return ctx.firstSteps[id]
@@ -146,30 +154,32 @@ local function pressure(m)
     or m.near>=3 and m.safeExits<=2 or m.near>=2 and m.exits<=3
     or m.adjacent>0 and m.safeExits==0
 end
-local function choose(ctx,target,allowOutside,returning)
-  local queue,head,seen={{pos=ctx.pos,depth=0}},1,{[key(ctx.pos)]=true}
-  local best
+local function choose(ctx,target,returning)
+  local queue,head,seen={{pos=ctx.pos,depth=0}},1,{}
+  local straight,diagonal
   while head<=#queue do
     local node=queue[head];head=head+1
-    if node.depth<2 then -- Bounded look-ahead: at most 25 reachable squares.
+    if node.depth<2 then -- At most 25 tiles / 65 two-step route records.
       for _,dir in ipairs(dirs) do
         local p={x=node.pos.x+dir[1],y=node.pos.y+dir[2],z=ctx.pos.z}
-        local inside=not ctx.anchor or distance(p,ctx.anchor)<=ctx.radius
-          or distance(ctx.pos,ctx.anchor)>ctx.radius and distance(p,ctx.anchor)<distance(ctx.pos,ctx.anchor)
-        if returning then inside=distance(p,ctx.anchor)<=distance(ctx.pos,ctx.anchor) end
         local validRoute=true
-        if ctx.paths and node.depth>0 then
+        if ctx.paths and node.depth>0 and dir[3]>=4 then
           local path=translateAllPathsToPath(ctx.paths,p)
-          validRoute=#path==2 and path[1]==node.dir and path[2]==dir[3]
+          validRoute=path and #path==2 and path[1]==node.dir and path[2]==dir[3]
         end
-        if validRoute and not seen[key(p)] and (inside or allowOutside) and canStep(ctx,node.pos,p) then
-          seen[key(p)]=true
+        -- A native diagonal shortcut to the same endpoint must not discard a
+        -- safe two-cardinal route. Keep distinct first steps; both affect safety.
+        local routeKey=key(p)..':'..(node.dir or dir[3])
+        if validRoute and not same(p,ctx.pos) and not seen[routeKey] and canStep(ctx,node.pos,p) then
+          seen[routeKey]=true
           local first=node.first or p
           local item={pos=p,depth=node.depth+1,first=first,dir=node.dir or dir[3]}
           queue[#queue+1]=item
           local immediate,finish=measure(ctx,first),measure(ctx,p)
-          local safety={-immediate.adjacent,-immediate.future,immediate.safeExits,immediate.exits,
-            -finish.adjacent,-finish.future,finish.safeExits,finish.exits}
+          -- Fewer adjacent/predicted attackers and a viable onward exit beat
+          -- direction preference. Extra open tiles alone do not justify a diagonal.
+          local safety={-immediate.adjacent,-immediate.future,pressure(immediate) and 0 or 1,immediate.safeExits>0 and 1 or 0,
+            -finish.adjacent,-finish.future,pressure(finish) and 0 or 1,finish.safeExits>0 and 1 or 0}
           local score={}
           local eligible=true
           if returning then
@@ -179,28 +189,36 @@ local function choose(ctx,target,allowOutside,returning)
               and immediate.adjacent<=current.adjacent and immediate.future<=current.future
               and finish.adjacent<=current.adjacent and finish.future<=current.future
               and immediate.safeExits>0 and finish.safeExits>0
-            score[#score+1]=-distance(p,ctx.anchor)
           end
           for _,value in ipairs(safety) do score[#score+1]=value end
+          score[#score+1]=item.dir<4 and 1 or 0
+          if returning then score[#score+1]=-distance(p,ctx.anchor) end
+          score[#score+1]=immediate.safeExits;score[#score+1]=immediate.exits
+          score[#score+1]=finish.safeExits;score[#score+1]=finish.exits
           local d=target and distance(p,target) or ctx.range
           local penalty=d<ctx.range and ctx.range-d or d>ctx.range+1 and d-ctx.range-1 or 0
           score[#score+1]=-penalty
           score[#score+1]=visits[key(first)] and -(2000-(ctx.time-visits[key(first)]))/1000 or 0
           score[#score+1]=-item.depth
-          if eligible and better(score,best and best.score) then best={dir=item.dir,pos=first,score=score,safety=safety,metrics=immediate} end
+          if eligible then
+            local previous=item.dir<4 and straight or diagonal
+            if better(score,previous and previous.score) then
+              local candidate={dir=item.dir,pos=first,score=score,metrics=immediate,
+                immediateSafety={-immediate.adjacent,-immediate.future,pressure(immediate) and 0 or 1,immediate.exits>0 and 1 or 0}}
+              if item.dir<4 then straight=candidate else diagonal=candidate end
+            end
+          end
         end
       end
     end
   end
-  return best
+  -- Hypothetical second-step improvements or more open tiles do not justify a
+  -- diagonal. It must reduce immediate danger or be the only usable first step.
+  if diagonal and (not straight or better(diagonal.immediateSafety,straight.immediateSafety)) then return diagonal end
+  return straight
 end
 local function findExit(ctx,target)
-  local best=choose(ctx,target,false)
-  if ctx.anchor then
-    local outside=choose(ctx,target,true)
-    if outside and better(outside.safety,best and best.safety) then best=outside end
-  end
-  return best
+  return choose(ctx,target)
 end
 local function engage(time)
   local started=not managed
@@ -217,8 +235,9 @@ local function bugMapExit(ctx)
     if rawCache[id]==nil then
       local tile=g_map.getTile(p)
       local color=g_map.getMinimapColor and g_map.getMinimapColor(p) or 0
-      rawCache[id]=not ctx.occupied[id] and tile~=nil and tile:isWalkable(false)==true
+      rawCache[id]=withinAnchor(ctx,ctx.pos,p) and not ctx.occupied[id] and tile~=nil and tile:isWalkable(false)==true
         and tile:getGround()~=nil and not (color>=210 and color<=213)
+        and (not TargetBot.Movement or TargetBot.Movement.floorSafe(p,tile))
     end
     return rawCache[id]
   end
@@ -267,7 +286,7 @@ function A.update(specs,pos,config,time,targetPos,anchor)
   stuckPos,stuckSince=nil,nil
   if context.combatAnchor and distance(pos,context.combatAnchor)>context.radius then
     engage(time)
-    local best=time>=returnAfter and choose(context,targetPos,false,true) or nil
+    local best=time>=returnAfter and choose(context,targetPos,true) or nil
     return {step=best and best.dir,position=best and best.pos,metrics=current,
       status=best and 'Anchoring: volviendo al area' or 'Anchoring: esperando entrada segura'}
   end
@@ -289,6 +308,8 @@ function A.send(plan,time)
   local pos=player:getPosition()
   if not same(pos,context.pos) then return false end
   if plan.bugMap then
+    if not withinAnchor(context,pos,plan.bugMap) then return false end
+    if TargetBot.Movement and not TargetBot.Movement.floorSafe(plan.bugMap) then return false end
     if time-lastBugMap<800 or not BugMapMouse or type(BugMapMouse.tryUsePosition)~='function' then return false end
     lastBugMap=time
     if player:isWalking() and g_game.stop then pcall(function() g_game.stop() end) end
@@ -298,6 +319,9 @@ function A.send(plan,time)
     return ok and result==true
   end
   if plan.step==nil then return false end
+  local offset=dirs[plan.step+1]
+  if not offset or not withinAnchor(context,pos,{x=pos.x+offset[1],y=pos.y+offset[2],z=pos.z}) then return false end
+  if TargetBot.Movement and not TargetBot.Movement.canStep(pos,plan.step) then return false end
   local duration=150
   if player.getStepDuration then
     local ok,value=pcall(function() return player:getStepDuration(false,plan.step) end)
@@ -319,13 +343,16 @@ function A.send(plan,time)
 end
 function A.guardStep(pos,direction)
   if not context then return direction end
+  -- Applies even without encirclement: keeping distance must never use a stair.
+  if TargetBot.Movement and not TargetBot.Movement.canStep(pos,direction) then return nil end
   A.refresh(pos,now or context.time)
   if not context then return direction end
-  if not A.protecting() then return direction end
   local dir
   for _,item in ipairs(dirs) do if item[3]==direction then dir=item;break end end
   if not dir then return nil end
   local destination={x=pos.x+dir[1],y=pos.y+dir[2],z=pos.z}
+  if not withinAnchor(context,pos,destination) then return nil end
+  if not A.protecting() then return direction end
   local current=measure(context,pos)
   if canStep(context,pos,destination) then
     local nextMetrics=measure(context,destination)

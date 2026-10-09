@@ -451,6 +451,15 @@ SettingsPanel < Panel
     text: Old School Mode (No Hotkeys)
     !tooltip: tr('Items Must be Visible')
 
+  CheckBox
+    id: ClientCooldowns
+    anchors.top: OldSchool.bottom
+    anchors.left: OldSchool.left
+    margin-top: 8
+    width: 245
+    text: Usar cooldowns del cliente
+    tooltip: Usa los iconos del spell y sus grupos de exhaust. Si no conoce el icono, usa el CD configurado. Activa Check spell cooldowns.
+
   Button
     id: resetSettings
     anchors.right: parent.right
@@ -572,7 +581,7 @@ AttackBotWindow < MainWindow
     anchors.top: vocation.bottom
     margin-top: 8
     margin-left: 2
-    !text: tr('More important methods come first (Example: Exori gran above Exori)')
+    text: PvE: seleccion automatica por area, cooldown y vocacion
     text-align: left
     font: verdana-11px-rounded
     color: #aeaeae  
@@ -598,7 +607,7 @@ AttackBotWindow < MainWindow
     anchors.verticalCenter: vocation.verticalCenter
     margin-left: 10
     font: verdana-11px-rounded
-    text: Spells separados por vocacion
+    text: Rotaciones por vocacion
 
   SettingsPanel
     id: settingsPanel

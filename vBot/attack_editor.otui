@@ -1,0 +1,1248 @@
+StudioLabel < Label
+  font: verdana-11px-antialised
+  text-align: left
+  color: #e1e4e3
+  phantom: true
+
+StudioButton < Button
+  font: verdana-11px-antialised
+  height: 28
+  $on:
+    image-color: #dfdfdf
+    color: #dcfffa
+
+StudioAccentButton < StudioButton
+
+StudioToggle < StudioButton
+  $on:
+    image-color: #5ba765
+    color: #e0ffdc
+
+StudioTab < StudioButton
+  padding: 0
+  UIWidget
+    id: indicator
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    margin-left: 8
+    margin-right: 8
+    margin-bottom: 2
+    height: 2
+    background-color: #59c8bf
+    phantom: true
+    visible: false
+
+StudioCheck < CheckBox
+  font: verdana-11px-antialised
+  height: 22
+  color: #e1e4e3
+
+StudioBox < FlatPanel
+  padding: 0
+
+StudioSpellBox < StudioBox
+  image-color: #a6a6a6
+
+StudioEdit < TextEdit
+  color: #dce5e2
+  selection-color: #ffffff
+  selection-background-color: #477b72
+  image-source: /images/ui/panel_flat
+  image-border: 1
+
+StudioNumber < Panel
+  height: 26
+  StudioButton
+    id: minus
+    anchors.left: parent.left
+    anchors.top: parent.top
+    width: 16
+    height: 26
+    padding: 0
+    text: -
+  StudioEdit
+    id: input
+    anchors.left: minus.right
+    anchors.right: plus.left
+    anchors.top: parent.top
+    height: 26
+    margin-left: 2
+    margin-right: 2
+    text-align: center
+  StudioButton
+    id: plus
+    anchors.right: parent.right
+    anchors.top: parent.top
+    width: 16
+    height: 26
+    padding: 0
+    text: +
+
+StudioEntry < UIWidget
+  height: 38
+  focusable: true
+  background-color: #17171788
+  $hover:
+    background-color: #393939bb
+  $on:
+    background-color: #3c3c3ccc
+    border-width: 1
+    border-color: #59bdb2
+  StudioCheck
+    id: enabled
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 10
+    margin-top: 8
+    width: 18
+    height: 22
+  UIWidget
+    id: icon
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 36
+    margin-top: 5
+    width: 28
+    height: 28
+    phantom: true
+  UIItem
+    id: item
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 34
+    margin-top: 3
+    width: 32
+    height: 32
+    virtual: true
+    phantom: true
+    visible: false
+  StudioLabel
+    id: title
+    anchors.left: parent.left
+    anchors.right: minimum.left
+    anchors.top: parent.top
+    margin-left: 76
+    margin-right: 8
+    margin-top: 1
+    height: 20
+    font: sans-bold-16px
+  StudioLabel
+    id: words
+    anchors.left: title.left
+    anchors.right: title.right
+    anchors.top: title.bottom
+    height: 14
+    color: #a4b3af
+    font: verdana-9px
+  StudioLabel
+    id: minimum
+    anchors.right: cooldown.left
+    anchors.verticalCenter: parent.verticalCenter
+    width: 42
+    height: 20
+    text-align: center
+  StudioLabel
+    id: cooldown
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 8
+    width: 54
+    height: 20
+    text-align: center
+
+AttackStudioWindow < MainWindow
+  text: AttackBot | Rotacion de caza
+  font: sans-bold-16px
+  size: 800 580
+  padding-top: 30
+  padding-bottom: 12
+  StudioLabel
+    id: vocationLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 0
+    width: 55
+    height: 25
+    text: Vocacion
+  ComboBox
+    id: vocation
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 58
+    margin-top: 0
+    width: 140
+    height: 25
+  StudioLabel
+    id: modeLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 216
+    margin-top: 0
+    width: 35
+    height: 25
+    text: Modo
+  ComboBox
+    id: mode
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 253
+    margin-top: 0
+    width: 92
+    height: 25
+  StudioLabel
+    id: profileLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 363
+    margin-top: 0
+    width: 35
+    height: 25
+    text: Perfil
+  ComboBox
+    id: profile
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 400
+    margin-top: 0
+    width: 214
+    height: 25
+  StudioToggle
+    id: enabled
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 632
+    margin-top: 0
+    width: 136
+    height: 25
+    text: Activado
+  StudioTab
+    id: rotationTab
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 35
+    width: 143
+    height: 27
+    text: Rotacion
+  StudioTab
+    id: safetyTab
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 150
+    margin-top: 35
+    width: 143
+    height: 27
+    text: Seguridad
+  StudioTab
+    id: advancedTab
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 301
+    margin-top: 35
+    width: 143
+    height: 27
+    text: Avanzado
+  StudioLabel
+    id: pending
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 469
+    margin-top: 38
+    width: 299
+    height: 21
+    text-align: right
+    color: #d7bb75
+  Panel
+    id: rotation
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 71
+    width: 768
+    height: 396
+    StudioSpellBox
+      id: listBox
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 0
+      margin-top: 0
+      width: 434
+      height: 396
+      StudioLabel
+        id: heading
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 12
+        margin-top: 11
+        width: 198
+        height: 22
+        text: Spells de la rotacion
+        color: #8dd7d1
+        font: sans-bold-16px
+      ComboBox
+        id: selectionMode
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 218
+        margin-top: 9
+        width: 204
+        height: 25
+      StudioLabel
+        id: searchLabel
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 12
+        margin-top: 42
+        width: 42
+        height: 23
+        text: Buscar
+        color: #a4b3af
+      StudioEdit
+        id: search
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 58
+        margin-top: 42
+        width: 265
+        height: 23
+      StudioAccentButton
+        id: add
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 333
+        margin-top: 42
+        width: 88
+        height: 23
+        text: + Agregar
+      StudioSpellBox
+        id: tableHeader
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 7
+        margin-top: 71
+        width: 419
+        height: 23
+      StudioLabel
+        id: spellHeader
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 74
+        margin-top: 76
+        width: 230
+        height: 16
+        text: Spell
+        color: #a4b3af
+      StudioLabel
+        id: minimumHeader
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 322
+        margin-top: 76
+        width: 37
+        height: 16
+        text: Min.
+        text-align: center
+        color: #a4b3af
+      StudioLabel
+        id: cooldownHeader
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 359
+        margin-top: 76
+        width: 48
+        height: 16
+        text: CD
+        text-align: center
+        color: #a4b3af
+      ScrollablePanel
+        id: entries
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 7
+        margin-top: 97
+        width: 407
+        height: 250
+        vertical-scrollbar: entryScroll
+        layout:
+          type: verticalBox
+          spacing: 2
+      VerticalScrollBar
+        id: entryScroll
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 416
+        margin-top: 97
+        width: 11
+        height: 250
+        step: 40
+        pixels-scroll: true
+      StudioButton
+        id: up
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 12
+        margin-top: 361
+        width: 74
+        height: 23
+        text: Subir
+      StudioButton
+        id: down
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 94
+        margin-top: 361
+        width: 74
+        height: 23
+        text: Bajar
+      StudioButton
+        id: remove
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 340
+        margin-top: 361
+        width: 81
+        height: 23
+        text: Quitar
+      StudioLabel
+        id: count
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 177
+        margin-top: 361
+        width: 154
+        height: 23
+        text:
+        color: #a4b3af
+        text-align: center
+    StudioSpellBox
+      id: editor
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 444
+      margin-top: 0
+      width: 324
+      height: 396
+      UIWidget
+        id: icon
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 12
+        margin-top: 16
+        width: 35
+        height: 35
+        phantom: true
+      UIItem
+        id: item
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 12
+        margin-top: 12
+        width: 39
+        height: 39
+        virtual: true
+        phantom: true
+        visible: false
+      StudioLabel
+        id: title
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 60
+        margin-top: 11
+        width: 251
+        height: 30
+        text: Selecciona un spell
+        color: #f3cf80
+        text-wrap: true
+        font: sans-bold-16px
+      StudioLabel
+        id: words
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 60
+        margin-top: 42
+        width: 251
+        height: 16
+        text:
+        color: #a4b3af
+      StudioCheck
+        id: enabled
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 14
+        margin-top: 67
+        width: 288
+        height: 19
+        text: Usar este spell
+      StudioSpellBox
+        id: conditionsFrame
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 7
+        margin-top: 92
+        width: 310
+        height: 163
+      StudioLabel
+        id: conditionsTitle
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 14
+        margin-top: 98
+        width: 294
+        height: 22
+        text: Cuando usarlo
+        color: #8dd7d1
+        font: sans-bold-16px
+      StudioLabel
+        id: minimumLabel
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 14
+        margin-top: 129
+        width: 198
+        height: 23
+        text: Monstruos alcanzados
+      StudioNumber
+        id: minimum
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 227
+        margin-top: 129
+        width: 76
+        height: 26
+      StudioCheck
+        id: orMore
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 14
+        margin-top: 156
+        width: 288
+        height: 19
+        text: Esa cantidad o mas
+      StudioLabel
+        id: manaLabel
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 14
+        margin-top: 186
+        width: 198
+        height: 23
+        text: Mana minimo (%)
+      StudioNumber
+        id: mana
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 227
+        margin-top: 186
+        width: 76
+        height: 26
+      StudioLabel
+        id: healthLabel
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 14
+        margin-top: 219
+        width: 145
+        height: 23
+        text: Vida del objetivo (%)
+      StudioNumber
+        id: minHp
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 165
+        margin-top: 219
+        width: 67
+        height: 26
+      StudioLabel
+        id: healthTo
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 235
+        margin-top: 219
+        width: 12
+        height: 23
+        text: a
+        text-align: center
+      StudioNumber
+        id: maxHp
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 251
+        margin-top: 219
+        width: 66
+        height: 26
+      StudioSpellBox
+        id: cooldownFrame
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 7
+        margin-top: 258
+        width: 310
+        height: 98
+      StudioLabel
+        id: cooldownTitle
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 14
+        margin-top: 264
+        width: 288
+        height: 22
+        text: Cooldown
+        color: #8dd7d1
+        font: sans-bold-16px
+      StudioLabel
+        id: cooldownLabel
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 14
+        margin-top: 294
+        width: 198
+        height: 23
+        text: Respaldo (segundos)
+      StudioNumber
+        id: cooldown
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 218
+        margin-top: 294
+        width: 92
+        height: 26
+      StudioLabel
+        id: cooldownHelp
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 14
+        margin-top: 327
+        width: 296
+        height: 28
+        text: Prioridad al cooldown del cliente.
+        color: #a4b3af
+        text-wrap: true
+      StudioButton
+        id: optionsButton
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 14
+        margin-top: 363
+        width: 296
+        height: 23
+        text: Area y opciones del spell
+  StudioBox
+    id: safety
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 71
+    width: 768
+    height: 396
+    visible: false
+    StudioLabel
+      id: heading
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 18
+      margin-top: 12
+      width: 717
+      height: 22
+      text: Proteccion durante la caza
+      color: #8dd7d1
+      font: sans-bold-16px
+    StudioCheck
+      id: pvpSafe
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 18
+      margin-top: 48
+      width: 708
+      height: 21
+      text: Evitar dano a jugadores
+    StudioLabel
+      id: pvpHelp
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 39
+      margin-top: 71
+      width: 681
+      height: 23
+      text: Comprueba jugadores ajenos antes de usar ataques de area.
+      color: #a4b3af
+    StudioCheck
+      id: blacklist
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 18
+      margin-top: 111
+      width: 708
+      height: 21
+      text: Pausar si hay un jugador de la lista Anti-RS cerca
+    StudioLabel
+      id: rangeLabel
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 39
+      margin-top: 142
+      width: 292
+      height: 23
+      text: Distancia de deteccion (SQM)
+    StudioNumber
+      id: range
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 338
+      margin-top: 142
+      width: 76
+      height: 26
+    StudioCheck
+      id: kills
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 18
+      margin-top: 193
+      width: 708
+      height: 21
+      text: Bloquear ataques de area cerca del limite de red skull
+    StudioLabel
+      id: killsLabel
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 39
+      margin-top: 225
+      width: 292
+      height: 23
+      text: Kills restantes para bloquear
+    StudioNumber
+      id: killsAmount
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 338
+      margin-top: 225
+      width: 76
+      height: 26
+    StudioCheck
+      id: training
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 18
+      margin-top: 280
+      width: 708
+      height: 21
+      text: Detener ataques contra trainers
+    StudioLabel
+      id: help
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 18
+      margin-top: 352
+      width: 729
+      height: 27
+      text: Los ajustes pertenecen a la vocacion seleccionada dentro de este perfil.
+      text-wrap: true
+      color: #a4b3af
+  StudioBox
+    id: advanced
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 71
+    width: 768
+    height: 396
+    visible: false
+    StudioLabel
+      id: heading
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 18
+      margin-top: 12
+      width: 717
+      height: 22
+      text: Ajustes de la rotacion
+      color: #8dd7d1
+      font: sans-bold-16px
+    StudioLabel
+      id: nameLabel
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 18
+      margin-top: 46
+      width: 133
+      height: 23
+      text: Nombre del perfil
+    StudioEdit
+      id: name
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 156
+      margin-top: 46
+      width: 380
+      height: 23
+    StudioCheck
+      id: cooldown
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 18
+      margin-top: 91
+      width: 717
+      height: 21
+      text: Comprobar cooldowns y exhaust
+    StudioCheck
+      id: client
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 18
+      margin-top: 123
+      width: 717
+      height: 21
+      text: Usar cooldowns del cliente
+    StudioCheck
+      id: requirements
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 18
+      margin-top: 155
+      width: 717
+      height: 21
+      text: Comprobar nivel y mana requeridos por el spell
+    StudioCheck
+      id: rotate
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 18
+      margin-top: 187
+      width: 717
+      height: 21
+      text: Girar y reposicionar waves y beams
+    StudioCheck
+      id: visible
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 18
+      margin-top: 219
+      width: 717
+      height: 21
+      text: Buscar runas solo en contenedores abiertos
+    StudioCheck
+      id: oldSchool
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 18
+      margin-top: 250
+      width: 717
+      height: 21
+      text: Old School: usar runas sin hotkeys
+    StudioLabel
+      id: help
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 18
+      margin-top: 291
+      width: 729
+      height: 34
+      text: Elige Automatica o Prioridad por orden en la pestana Rotacion.
+      text-wrap: true
+      color: #a4b3af
+    StudioButton
+      id: restore
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 18
+      margin-top: 352
+      width: 237
+      height: 25
+      text: Restaurar spells de esta vocacion
+    StudioLabel
+      id: restoreHelp
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 267
+      margin-top: 352
+      width: 469
+      height: 25
+      text: Requiere confirmacion. Se revisa antes de aplicar.
+      color: #a4b3af
+  StudioCheck
+    id: pvpSafe
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 11
+    margin-top: 478
+    width: 342
+    height: 19
+    text: Evitar dano a jugadores
+  StudioLabel
+    id: status
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 11
+    margin-top: 505
+    width: 540
+    height: 28
+    text: Seleccion automatica por area y cooldown.
+    color: #a4b3af
+    text-wrap: true
+  StudioButton
+    id: closeButton
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 563
+    margin-top: 511
+    width: 81
+    height: 25
+    text: Cerrar
+  StudioAccentButton
+    id: apply
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 653
+    margin-top: 511
+    width: 115
+    height: 25
+    text: Aplicar cambios
+
+AttackStudioPicker < MainWindow
+  text: Agregar spell
+  size: 568 500
+  padding-top: 30
+  StudioLabel
+    id: searchLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 0
+    width: 48
+    height: 26
+    text: Buscar
+  StudioEdit
+    id: search
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 56
+    margin-top: 0
+    width: 480
+    height: 26
+  ScrollablePanel
+    id: entries
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 40
+    width: 516
+    height: 310
+    vertical-scrollbar: scroll
+    layout:
+      type: verticalBox
+      spacing: 2
+  VerticalScrollBar
+    id: scroll
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 520
+    margin-top: 40
+    width: 12
+    height: 310
+    step: 44
+    pixels-scroll: true
+  StudioLabel
+    id: help
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 360
+    width: 536
+    height: 32
+    text: Se agrega desactivado. Activa solo spells que puedas usar.
+    text-wrap: true
+    color: #a4b3af
+  StudioButton
+    id: custom
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 402
+    width: 188
+    height: 28
+    text: Spell o runa personalizados
+  StudioButton
+    id: closeButton
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 338
+    margin-top: 402
+    width: 92
+    height: 28
+    text: Cerrar
+  StudioAccentButton
+    id: add
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 440
+    margin-top: 402
+    width: 96
+    height: 28
+    text: Agregar
+
+AttackStudioOptions < MainWindow
+  text: Area y opciones del spell
+  size: 638 568
+  padding-top: 30
+  StudioLabel
+    id: nameLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 0
+    width: 160
+    height: 26
+    text: Formula del spell
+  StudioEdit
+    id: words
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 170
+    margin-top: 0
+    width: 436
+    height: 26
+  StudioLabel
+    id: itemLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 36
+    width: 160
+    height: 26
+    text: O ID de runa
+  StudioNumber
+    id: itemId
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 170
+    margin-top: 36
+    width: 128
+    height: 26
+  StudioLabel
+    id: itemHelp
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 316
+    margin-top: 36
+    width: 290
+    height: 26
+    text: 0 para usar una formula.
+    color: #a4b3af
+  StudioLabel
+    id: categoryLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 78
+    width: 160
+    height: 26
+    text: Tipo de ataque
+  ComboBox
+    id: category
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 170
+    margin-top: 78
+    width: 436
+    height: 26
+  StudioLabel
+    id: patternLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 114
+    width: 160
+    height: 26
+    text: Area / alcance
+  ComboBox
+    id: pattern
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 170
+    margin-top: 114
+    width: 436
+    height: 26
+  StudioLabel
+    id: namesLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 156
+    width: 160
+    height: 26
+    text: Monstruos
+  StudioEdit
+    id: names
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 170
+    margin-top: 156
+    width: 436
+    height: 26
+  StudioLabel
+    id: namesHelp
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 170
+    margin-top: 186
+    width: 436
+    height: 22
+    text: * para todos; separa nombres con comas.
+    color: #a4b3af
+  StudioLabel
+    id: rangeLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 224
+    width: 300
+    height: 26
+    text: Alcance moderno (SQM)
+  StudioNumber
+    id: range
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 478
+    margin-top: 224
+    width: 128
+    height: 26
+  StudioLabel
+    id: targetsLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 260
+    width: 390
+    height: 26
+    text: Objetivos en cadena (0: original)
+  StudioNumber
+    id: targets
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 478
+    margin-top: 260
+    width: 128
+    height: 26
+  StudioLabel
+    id: jumpLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 296
+    width: 390
+    height: 26
+    text: Salto de cadena (0: original)
+  StudioNumber
+    id: jump
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 478
+    margin-top: 296
+    width: 128
+    height: 26
+  StudioLabel
+    id: harmonyLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 332
+    width: 390
+    height: 26
+    text: Harmony minimo (Monk)
+  StudioNumber
+    id: harmony
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 478
+    margin-top: 332
+    width: 128
+    height: 26
+  StudioLabel
+    id: secondaryLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 368
+    width: 390
+    height: 26
+    text: Cooldown compartido (s; 0: original)
+  StudioNumber
+    id: secondary
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 478
+    margin-top: 368
+    width: 128
+    height: 26
+  StudioLabel
+    id: help
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 408
+    width: 606
+    height: 42
+    text: Conserva la geometria original salvo que la cambies. El cooldown principal se edita en la rotacion.
+    text-wrap: true
+    color: #a4b3af
+  StudioButton
+    id: closeButton
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 382
+    margin-top: 478
+    width: 100
+    height: 28
+    text: Cancelar
+  StudioAccentButton
+    id: apply
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 492
+    margin-top: 478
+    width: 114
+    height: 28
+    text: Usar ajustes
+
+AttackStudioConfirm < MainWindow
+  text: AttackBot
+  size: 518 192
+  padding-top: 30
+  StudioLabel
+    id: message
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 0
+    width: 486
+    height: 78
+    text:
+    text-wrap: true
+  StudioButton
+    id: cancel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 108
+    width: 150
+    height: 28
+    text: Volver
+  StudioButton
+    id: discard
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 166
+    margin-top: 108
+    width: 152
+    height: 28
+    text: Descartar
+  StudioAccentButton
+    id: accept
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 334
+    margin-top: 108
+    width: 152
+    height: 28
+    text: Aplicar

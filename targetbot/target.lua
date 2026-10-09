@@ -1,5 +1,6 @@
 local targetbotMacro = nil
 local config = nil
+local hasConfig = false
 local lastAction = 0
 local cavebotAllowance = 0
 local lureEnabled = true
@@ -44,9 +45,10 @@ end
 -- for this tick only; new walls and creature positions are read on the next one.
 local function targetPath(cycle, origin, destination)
   local options = {ignoreLastCreature=true, ignoreNonPathable=true, ignoreCost=true, ignoreCreatures=true}
+  local range = cycle.pathRange or 7
   if cycle.sharePaths then
     if not cycle.pathsReady then
-      cycle.paths = findAllPaths(origin, 7, options)
+      cycle.paths = findAllPaths(origin, range, options)
       cycle.pathsReady = true
     end
     if type(cycle.paths) == "table" then
@@ -55,7 +57,36 @@ local function targetPath(cycle, origin, destination)
       return translateAllPathsToPath(cycle.paths, destination)
     end
   end
-  return findPath(origin, destination, 7, options)
+  return findPath(origin, destination, range, options)
+end
+
+-- The crowded-scene shortlist must not drop the monster already being followed.
+-- Extend only that Keep Distance target, while visible and within its rule range.
+local function keepFollowingTarget(creatures, specs, pos)
+  local current = g_game.getAttackingCreature()
+  if not current or not current:isMonster() or not TargetBot.Creature.getConfigs then return creatures end
+  for _,actor in ipairs(creatures) do if actor == current then return creatures end end
+  local destination = current:getPosition()
+  local hp = current:getHealthPercent()
+  if not destination or destination.z ~= pos.z or not hp or hp <= 0 then return creatures end
+  local distance = math.max(math.abs(pos.x-destination.x), math.abs(pos.y-destination.y))
+  local range = 0
+  for _,rule in ipairs(TargetBot.Creature.getConfigs(current)) do
+    if rule.keepDistance then range = math.max(range, math.min(10, tonumber(rule.maxDistance) or 10)) end
+  end
+  if range == 0 or distance > range then return creatures end
+  local visible = false
+  for _,actor in ipairs(specs) do if actor == current then visible = true;break end end
+  if not visible then
+    for _,actor in ipairs(g_map.getSpectatorsInRange(pos, false, range, range)) do
+      if actor == current then visible = true;break end
+    end
+  end
+  if not visible then return creatures end
+  local candidates = {}
+  for _,actor in ipairs(creatures) do candidates[#candidates+1] = actor end
+  candidates[#candidates+1] = current
+  return candidates, 10
 end
 
 -- main loop, controlled by config
@@ -88,7 +119,9 @@ targetbotMacro = macro(100, function()
   else
     creatures = specs
   end
-  local cycle = {creatures=creatures, positions={}, origin=pos,
+  local followPathRange
+  creatures, followPathRange = keepFollowingTarget(creatures, specs, pos)
+  local cycle = {creatures=creatures, positions={}, origin=pos, pathRange=followPathRange,
     sharePaths=#creatures > 1 and type(findAllPaths)=="function" and type(translateAllPathsToPath)=="function"}
   local highestPriority = 0
   local dangerLevel = 0
@@ -227,6 +260,7 @@ end)
 
 -- config, its callback is called immediately, data can be nil
 config = Config.setup("targetbot_configs", configWidget, "json", function(name, enabled, data)
+  hasConfig = type(data) == 'table'
   TargetBot.Antitrap.reset()
   TargetBot.Creature.resetAnchor()
   cavebotAllowance=0
@@ -250,6 +284,7 @@ config = Config.setup("targetbot_configs", configWidget, "json", function(name, 
   targetbotMacro.setOn(enabled)
   targetbotMacro.delay = nil
   lureEnabled = true
+  if AttackBot and AttackBot.syncTargetFacing then AttackBot.syncTargetFacing() end
 end)
 
 -- setup ui
@@ -347,6 +382,26 @@ TargetBot.save = function()
   TargetBot.Looting.save(data.looting)
   config.save(data)
 end
+
+-- Operate only on the loaded Target profile and save once for all its rules.
+-- No timer or attack-cycle writes; identical settings are a no-op.
+TargetBot.enableFaceMonsters = function()
+  if not config or not hasConfig then return 0 end
+  local changed = 0
+  for _, entry in ipairs(ui.list:getChildren()) do
+    if type(entry.value) == 'table' and entry.value.faceMonster ~= true then
+      entry.value.faceMonster = true
+      changed = changed + 1
+    end
+  end
+  if changed > 0 then
+    TargetBot.Creature.resetConfigsCache()
+    TargetBot.save()
+  end
+  return changed
+end
+-- Config.setup calls its first callback before the save API is ready.
+if AttackBot and AttackBot.syncTargetFacing then AttackBot.syncTargetFacing() end
 
 TargetBot.allowCaveBot = function(time)
   if TargetBot.Antitrap.ownsMovement() then return end

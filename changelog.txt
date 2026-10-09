@@ -1,3 +1,15 @@
+3.0.19 - Rotaciones, TargetBot y AutoBless
+- AttackBot: nueva interfaz compacta, iconos reales y paneles de seguridad y ajustes avanzados.
+- Rotaciones para Paladin, Druid, Sorcerer, Knight y Monk con prioridad por orden o seleccion automatica, cooldowns del cliente y exhaust de MythicOT.
+- Waves y beams anticipan el siguiente spell, buscan su mejor area y coordinan giro, reposicionamiento y Face Monster con TargetBot.
+- Correccion de cantidades exactas de monstruos y del cooldown independiente de los UEs de Druid, con exhaust grupal de cuatro segundos.
+- TargetBot: editor compacto en una pantalla; Keep Distance sigue al objetivo, prioriza pasos rectos y evita escaleras.
+- Anchoring conserva un centro fijo y limita estrictamente a Keep Distance, antitrap y BugMap dentro de su radio; Dynamic Lure mantiene sus limites minimo y maximo.
+- AttackBot controla los spells y runas cuando esta activado; TargetBot conserva seleccion de objetivo, ataque normal, movimiento y loot.
+- AutoBless vuelve a solicitar !bless tras entrar o revivir, reconoce la respuesta del servidor y reintenta sin confiar en una lista vieja del cliente.
+- Incluye las mejoras acumuladas de Imbuements, ContainerManager, compra de supplies, Conditions, aceptacion de muerte y compatibilidad del cliente.
+- Actualizacion solo de scripts, interfaces e imagenes: conserva perfiles, rutas, hotkeys, listas y configuracion personal.
+
 3.0.18 - Sabuezo activo - MythicOT
 - Se restaura el bot activo y el updater de GitHub sin contrasenas.
 - Se bloquea la antigua actualizacion de cierre 3.0.17.

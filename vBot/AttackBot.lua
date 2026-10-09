@@ -4,6 +4,15 @@ setDefaultTab("Target")
 --locales
 local panelName = "AttackBot"
 local currentSettings
+-- One-way activation: committed spell positioning enables Target's normal
+-- alignment. Turning positioning off never undoes a user's Target preference.
+local function syncTargetFacing()
+  if currentSettings and currentSettings.Rotate == true and TargetBot and
+    type(TargetBot.enableFaceMonsters) == 'function' then
+    return TargetBot.enableFaceMonsters()
+  end
+  return 0
+end
 local showSettings = false
 local showItem = false
 local category = 1
@@ -633,6 +642,9 @@ if catalog.applyMythicDivineEmpowerment and
   catalog.applyMythicDivineEmpowerment(AttackBotConfig, g_settings.getNumber("profile")) then
   catalogChanged = true
 end
+-- Add the MS rotation to profile 1's existing vocation selector once. Keep its
+-- RP list and settings; later edits to either vocation belong to the user.
+if AttackRotation and AttackRotation.installPreset(AttackBotConfig) then catalogChanged = true end
 -- JSON restores each vocation shelf separately from attackTable. Migrate the
 -- saved shelves too, after any one-time rotation import has populated them.
 for _, profile in ipairs(AttackBotConfig[panelName]) do
@@ -659,6 +671,7 @@ local setActiveProfile = function()
   local n = AttackBotConfig.currentBotProfile
   currentSettings = AttackBotConfig[panelName][n]
   catalog.bindVocation(currentSettings)
+  syncTargetFacing()
 end
 setActiveProfile()
 
@@ -709,6 +722,7 @@ end
       table.insert(currentSettings.attackTable, child.params)
     end
     currentSettings.attacksByVocation[currentSettings.selectedVocation] = currentSettings.attackTable
+    if AttackRotation then AttackRotation.saveVocationSettings(currentSettings) end
     vBotConfigSave("atk")
   end
 
@@ -995,6 +1009,7 @@ end
   settingsUI.Rotate.onClick = function(widget)
     currentSettings.Rotate = not currentSettings.Rotate
     settingsUI.Rotate:setChecked(currentSettings.Rotate)
+    syncTargetFacing()
   end
   settingsUI.Kills.onClick = function(widget)
     currentSettings.Kills = not currentSettings.Kills
@@ -1003,6 +1018,19 @@ end
   settingsUI.Cooldown.onClick = function(widget)
     currentSettings.Cooldown = not currentSettings.Cooldown
     settingsUI.Cooldown:setChecked(currentSettings.Cooldown)
+    if not currentSettings.Cooldown then
+      currentSettings.ClientCooldowns = false
+      settingsUI.ClientCooldowns:setChecked(false)
+    end
+  end
+  settingsUI.ClientCooldowns.onClick = function(widget)
+    currentSettings.ClientCooldowns = not currentSettings.ClientCooldowns
+    settingsUI.ClientCooldowns:setChecked(currentSettings.ClientCooldowns)
+    if currentSettings.ClientCooldowns then
+      currentSettings.Cooldown = true
+      settingsUI.Cooldown:setChecked(true)
+    end
+    vBotConfigSave("atk")
   end
   settingsUI.Visible.onClick = function(widget)
     currentSettings.Visible = not currentSettings.Visible
@@ -1181,6 +1209,7 @@ end
     settingsUI.Visible:setChecked(currentSettings.Visible)
     settingsUI.OldSchool:setChecked(currentSettings.OldSchool)
     settingsUI.Cooldown:setChecked(currentSettings.Cooldown)
+    settingsUI.ClientCooldowns:setChecked(currentSettings.ClientCooldowns == true)
     settingsUI.PvpMode:setChecked(currentSettings.pvpMode)
     settingsUI.PvpSafe:setChecked(currentSettings.PvpSafe)
     settingsUI.BlackListSafe:setChecked(currentSettings.BlackListSafe)
@@ -1198,10 +1227,15 @@ end
     local selected = widget:getCurrentOption()
     if not selected or selected.text == currentSettings.selectedVocation then return end
     saveAttackEntries()
-    catalog.bindVocation(currentSettings, selected.text)
+    if AttackRotation then
+      AttackRotation.selectVocation(currentSettings, selected.text)
+    else
+      catalog.bindVocation(currentSettings, selected.text)
+    end
     catalogWindow:hide()
     resetFields()
     loadSettings()
+    syncTargetFacing()
     vBotConfigSave("atk")
   end
 
@@ -1236,6 +1270,7 @@ end
 
     -- public functions
     AttackBot = {} -- global table
+    AttackBot.syncTargetFacing = syncTargetFacing
     AttackBot.pauseReasons = {}
 
     AttackBot.isPaused = function()
@@ -1294,6 +1329,39 @@ end
       mainWindow:raise()
       mainWindow:focus()
     end
+
+-- Redesigned editor, installed only in the pruebas bot. The original widgets
+-- stay hidden and continue to supply the same attack entries to the engine.
+dofile('/vBot/attack_editor.lua')
+local attackEditor = AttackBotEditor.create({
+  catalog=catalog, patterns=patterns,
+  getSettings=function() return currentSettings end,
+  getProfile=function() return AttackBotConfig.currentBotProfile end,
+  getProfileName=function(n) return AttackBotConfig[panelName][n].name end,
+  switchProfile=function(n) AttackBot.setActiveProfile(n) end,
+  apply=function(draft, expectedProfile)
+    if expectedProfile ~= AttackBotConfig.currentBotProfile then
+      return false, 'El perfil activo cambio. Vuelve a abrir el editor.'
+    end
+    restorePendingEdit()
+    local enableFacing = draft.Rotate == true and
+      (currentSettings.Rotate ~= true or draft.selectedVocation ~= currentSettings.selectedVocation)
+    draft.enabled=currentSettings.enabled
+    for key in pairs(currentSettings) do currentSettings[key]=nil end
+    for key, value in pairs(draft) do currentSettings[key]=value end
+    currentSettings.attacksByVocation[currentSettings.selectedVocation]=currentSettings.attackTable
+    loadSettings()
+    saveAttackEntries()
+    if enableFacing then syncTargetFacing() end
+    return true
+  end,
+})
+ui.settings.onClick=function() attackEditor.show() end
+AttackBot.show=function() attackEditor.show() end
+for i=1,5 do
+  local n=i
+  ui[i].onClick=function() attackEditor.requestProfile(n) end
+end
 
 -- otui covered, now support functions
 function getPattern(category, pattern, safe)
@@ -1449,21 +1517,111 @@ function getBestTileByPattern(pattern, minHp, maxHp, safePattern, monsterNamesTa
   return targetTile.amount > 0 and targetTile or false
 end
 
+-- Client cooldown mode reads the same native spell/group icons as the HUD.
+-- Keep the legacy timers as fallback, and never change shared vlib behavior.
+local clientSpellCache, clientCastPending, clientSpellReadyAt, clientGroupReadyAt = {}, {}, {}, {}
+local clientLearnedSpells, clientLastSpell, clientLastSpellAt, clientLastSpellIcon = {}, nil, 0, false
+local clientPendingAcks = {}
+local rotationRuntime
+
+local function confirmAttackBotSpell(words, speech)
+  local pending = clientPendingAcks[words]
+  local recent = pending and now-pending.at <= 2000
+  local duplicate = recent and pending.confirmed and (not speech or not pending.speech)
+  if recent then
+    pending.confirmed = true
+    if speech then pending.speech = true end
+  end
+  if not duplicate and AttackRotation then
+    rotationRuntime = rotationRuntime or AttackRotation.newRuntime()
+    AttackRotation.confirm(rotationRuntime, words, now, currentSettings.selectedVocation)
+  end
+end
+
+local function attackClientSpellInfo(words)
+  local cooldowns = modules.game_cooldown
+  if not currentSettings.ClientCooldowns or not currentSettings.Cooldown or
+    type(cooldowns.isCooldownIconActive) ~= "function" or
+    type(cooldowns.isGroupCooldownIconActive) ~= "function" or g_game.getClientVersion() < 960 then return nil end
+  words = catalog.normalize(words)
+  local data = clientSpellCache[words]
+  if not data and getSpellData then
+    data = getSpellData(words)
+    if type(data) == "table" then clientSpellCache[words] = data else data = nil end
+  end
+  -- Prefer packets observed after confirmed own spell speech. vlib's learned
+  -- IDs remain useful before this AttackBot session has seen the first cast.
+  local observed = clientLearnedSpells[words]
+  local learned = vBot and vBot.customCooldowns and vBot.customCooldowns[words]
+  local id = tonumber(observed and observed.id or learned and learned.id or data and data.id)
+  if not id or id <= 0 then return nil end
+  local groups, durations, secondary = {}, {}, false
+  if observed and observed.group then
+    for groupId,duration in pairs(observed.group) do groups[groupId] = true;durations[groupId]=tonumber(duration) end
+  else
+    for groupId,duration in pairs(data and data.group or {}) do groups[groupId] = true;durations[groupId]=tonumber(duration) end
+    for groupId,duration in pairs(learned and learned.group or {}) do groups[groupId] = true;durations[groupId]=tonumber(duration) or durations[groupId] end
+  end
+  for groupId in pairs(groups) do
+    if tonumber(groupId) and tonumber(groupId) > 3 then secondary = true end
+  end
+  return {words=words, id=id, group=groups, durations=durations, secondary=secondary,
+    duration=observed and observed.duration,
+    level=tonumber(data and data.level) or 0, mana=tonumber(data and data.mana) or 0,
+    requirements=data~=nil and not (learned and data.level==1 and data.mana==1)}
+end
+
+local function attackClientSpellWait(info)
+  local cooldowns = modules.game_cooldown
+  local wait = math.max(0, (clientCastPending[info.words] or 0)-now)
+  if cooldowns.isCooldownIconActive(info.id) then
+    wait = math.max(wait, clientSpellReadyAt[info.id] and math.max(100, clientSpellReadyAt[info.id]-now) or 2001)
+  end
+  for groupId in pairs(info.group) do
+    groupId = tonumber(groupId)
+    if groupId and cooldowns.isGroupCooldownIconActive(groupId) then
+      wait = math.max(wait, clientGroupReadyAt[groupId] and math.max(100, clientGroupReadyAt[groupId]-now) or 2001)
+    end
+  end
+  return wait
+end
+
+local function attackSpellReady(words, forceCooldown)
+  local info = attackClientSpellInfo(words)
+  if info then
+    if currentSettings.ignoreMana and (level() < info.level or mana() < info.mana) then return false end
+    return attackClientSpellWait(info) == 0
+  end
+  return canCast(words, not currentSettings.ignoreMana, not forceCooldown and not currentSettings.Cooldown)
+end
+
 function executeAttackBotAction(categoryOrPos, idOrFormula, cooldown, aimPosition)
   cooldown = cooldown or 0
   if categoryOrPos == 4 or categoryOrPos == 5 or categoryOrPos == 6 or categoryOrPos == 1 then
     local data = catalog.find(idOrFormula)
+    local nativeInfo = attackClientSpellInfo(idOrFormula)
+    if nativeInfo and not attackSpellReady(idOrFormula) then return false end
+    local function sendSpell()
+      if nativeInfo then
+        -- Wait briefly for the server response instead of spamming failed casts.
+        clientCastPending[nativeInfo.words] = now+500
+        clientPendingAcks[nativeInfo.words] = {id=nativeInfo.id, at=now}
+        cast(idOrFormula)
+      else
+        cast(idOrFormula, cooldown)
+      end
+    end
     if aimPosition then
       -- Mythic's native API appends this position to the NEXT speech packet.
       -- Never leave an aim pending when cast() skips a cooldown or throws.
       if type(g_game.setNextTalkAim) ~= "function" or g_game.getClientVersion() < 1525 then return false end
       local words = catalog.normalize(idOrFormula)
       local recorded = SpellCastTable and SpellCastTable[words]
-      if cooldown >= 100 and recorded and recorded.d == cooldown and now-recorded.t < cooldown then return false end
+      if not nativeInfo and cooldown >= 100 and recorded and recorded.d == cooldown and now-recorded.t < cooldown then return false end
       if data then catalogAttempts[data.words] = now end
       local ok, err = pcall(function()
         g_game.setNextTalkAim({x=aimPosition.x, y=aimPosition.y, z=aimPosition.z})
-        cast(idOrFormula, cooldown)
+        sendSpell()
       end)
       -- This is the same invalid-position sentinel the native sender resets to.
       pcall(g_game.setNextTalkAim, {x=65535, y=65535, z=255})
@@ -1471,7 +1629,7 @@ function executeAttackBotAction(categoryOrPos, idOrFormula, cooldown, aimPositio
       return ok
     end
     if data then catalogAttempts[data.words] = now end
-    cast(idOrFormula, cooldown)
+    sendSpell()
   elseif categoryOrPos == 3 then
     if currentSettings.OldSchool then
       local item = findItem(idOrFormula)
@@ -1487,7 +1645,18 @@ end
 -- Native spell speech confirms cooldowns for shared groups missing from older
 -- client SpellInfo tables. Failed attempts only receive a short retry throttle.
 onTalk(function(name, level, mode, text)
-  if name ~= player:getName() or mode ~= 44 then return end
+  if name ~= player:getName() then return end
+  local words = catalog.normalize(text)
+  -- Custom clients can report spell speech in a different talk mode. Only
+  -- accept known formulas or a spell we actually sent, never ordinary chat.
+  if mode ~= 44 and not (AttackRotation and AttackRotation.spells[words] or
+    catalog.find(words) or clientPendingAcks[words]) then return end
+  clientLastSpell, clientLastSpellAt, clientLastSpellIcon = words, now, false
+  clientCastPending[clientLastSpell] = now+100
+  local observed = clientLearnedSpells[clientLastSpell]
+  clientLearnedSpells[clientLastSpell] = observed or {}
+  clientLearnedSpells[clientLastSpell].refreshGroups = true
+  confirmAttackBotSpell(clientLastSpell, true)
   local data = catalog.find(text)
   if data and data.secondary then catalogSecondary[data.secondary] = now end
   if data and data.support then empowermentReadyAt = math.max(empowermentReadyAt, now+32000) end
@@ -1495,19 +1664,66 @@ end)
 
 if onSpellCooldown then
   onSpellCooldown(function(iconId, duration)
+    clientSpellReadyAt[iconId] = now+math.max(0, duration)
+    -- An individual icon with the exact ID of our pending cast confirms it
+    -- even if spell speech is missing. Group icons alone cannot identify it.
+    for words, pending in pairs(clientPendingAcks) do
+      if now-pending.at > 2000 then
+        clientPendingAcks[words] = nil
+      elseif pending.id == iconId and duration > 0 and not pending.confirmed then
+        confirmAttackBotSpell(words, false)
+      end
+      if pending.id == iconId and duration > 0 and now-pending.at<=250 then
+        local observed=clientLearnedSpells[words] or {}
+        observed.id=iconId;observed.duration=duration
+        clientLearnedSpells[words]=observed
+      end
+    end
+    if clientLastSpell and not clientLastSpellIcon and now-clientLastSpellAt <= 250 and duration > 0 then
+      local observed=clientLearnedSpells[clientLastSpell]
+      local native=getSpellData and getSpellData(clientLastSpell)
+      local expected=tonumber(observed.id or type(native)=='table' and native.id)
+      -- Monk spenders may send several shortened builder icons. They must
+      -- never be mistaken for the spender's ID or its original cooldown.
+      if not expected or expected==iconId then
+        observed.id=iconId;observed.duration=duration
+        clientLastSpellIcon = true
+      end
+    end
     if iconId == 268 then empowermentReadyAt = math.max(empowermentReadyAt, now+math.max(32000, duration)) end
   end)
 end
 if onGroupSpellCooldown then
   onGroupSpellCooldown(function(groupId, duration)
+    clientGroupReadyAt[groupId] = now+math.max(0, duration)
+    if clientLastSpell and now-clientLastSpellAt <= 250 and duration > 0 then
+      local observed = clientLearnedSpells[clientLastSpell]
+      if observed.refreshGroups then observed.group={};observed.refreshGroups=nil end
+      observed.group = observed.group or {}
+      observed.group[groupId] = duration
+    end
     if groupId == 1 then attackGroupReadyAt = now+duration end
   end)
 end
 
 local function readCatalogHarmony()
-  if not player.getHarmony then return nil end
+  if not player.getHarmony then
+    rotationRuntime=rotationRuntime or AttackRotation and AttackRotation.newRuntime()
+    return rotationRuntime and AttackRotation.readHarmony(rotationRuntime,now) or nil
+  end
   local ok, value = pcall(function() return player:getHarmony() end)
-  return ok and tonumber(value) or nil
+  local native=ok and tonumber(value) or nil
+  if AttackRotation then
+    rotationRuntime=rotationRuntime or AttackRotation.newRuntime()
+    return AttackRotation.readHarmony(rotationRuntime,now,native)
+  end
+  return native
+end
+
+local function attackCatalogState(words)
+  local info = attackClientSpellInfo(words)
+  return {now=now, level=level(), mana=mana(), harmony=readCatalogHarmony(),
+    secondary=catalogSecondary, attempts=catalogAttempts, nativeSecondary=info and info.secondary}
 end
 
 catalogActor = function(creature, cycle)
@@ -1640,8 +1856,9 @@ local function hasEmpowermentAttack(cycle)
       local nativeData = entry.itemId <= 100 and getSpellData and getSpellData(entry.spell)
       local attackMana = tonumber(nativeData and nativeData.mana or data and data.mana) or 0
       local recorded = SpellCastTable and SpellCastTable[catalog.normalize(entry.spell)]
-      local spellWait = currentSettings.Cooldown and recorded and
-        math.max(0, recorded.t+recorded.d-now) or 0
+      local nativeInfo = entry.itemId <= 100 and attackClientSpellInfo(entry.spell)
+      local spellWait = nativeInfo and attackClientSpellWait(nativeInfo) or
+        currentSettings.Cooldown and recorded and math.max(0, recorded.t+recorded.d-now) or 0
       local wait = math.max(groupWait, spellWait)
       -- Leave a small margin before the 5s field expires; a grenade needs its
       -- additional 3s fuse to land inside the same window.
@@ -1680,19 +1897,18 @@ end
 
 local function tryDivineEmpowerment(cycle)
   local creature = target()
+  local nativeInfo = attackClientSpellInfo("utevo grav san")
   if not creature or not creature:isMonster() or not creature:canShoot() or
-    now < empowermentReadyAt or modules.game_cooldown.isGroupCooldownIconActive(3) or
-    (modules.game_cooldown.isCooldownIconActive and modules.game_cooldown.isCooldownIconActive(268)) or
+    (not nativeInfo and now < empowermentReadyAt) or modules.game_cooldown.isGroupCooldownIconActive(3) or
+    (not nativeInfo and modules.game_cooldown.isCooldownIconActive and modules.game_cooldown.isCooldownIconActive(268)) or
     (currentSettings.BlackListSafe and isBlackListedPlayerInRange(currentSettings.AntiRsRange)) or
     (currentSettings.Kills and killsToRs() <= currentSettings.KillsAmount) then return false end
   for _, child in ipairs(attackEntries(cycle)) do
     local entry = child.params
     if entry.enabled and catalog.isDivineEmpowerment(entry) and
       catalog.allowed(entry, currentSettings.selectedVocation) and manapercent() >= entry.mana and
-      mana() >= catalog.find(entry.spell).mana and catalog.ready(entry, currentSettings, {
-        now=now, level=level(), mana=mana(), harmony=readCatalogHarmony(),
-        secondary=catalogSecondary, attempts=catalogAttempts}) and
-      canCast(entry.spell, not currentSettings.ignoreMana, false) then
+      mana() >= catalog.find(entry.spell).mana and catalog.ready(entry, currentSettings, attackCatalogState(entry.spell)) and
+      attackSpellReady(entry.spell, true) then
       local amount = catalog.evaluateEmpowerment(entry, pos(), grenadeScene or {}, grenadeHistory, now)
       if (entry.orMore and amount >= entry.count or not entry.orMore and amount == entry.count) and
         hasEmpowermentAttack(cycle) then
@@ -1704,11 +1920,250 @@ local function tryDivineEmpowerment(cycle)
   return false
 end
 
+local function tryMonkSupport(cycle)
+  if not AttackRotation or currentSettings.selectedVocation~="Monk" or currentSettings.pvpMode then return false end
+  local creature=target()
+  local harmony=readCatalogHarmony()
+  if not creature or not creature:isMonster() or not creature:canShoot() or harmony==nil or harmony>=5 or
+    modules.game_cooldown.isGroupCooldownIconActive(3) or
+    (currentSettings.BlackListSafe and isBlackListedPlayerInRange(currentSettings.AntiRsRange)) or
+    (currentSettings.Kills and killsToRs()<=currentSettings.KillsAmount) then return false end
+  local support,spenders=nil,false
+  for _,child in ipairs(attackEntries(cycle)) do
+    local entry=child.params
+    if entry.enabled then
+      if catalog.normalize(entry.spell)=="utamo tio" then support=entry end
+      if AttackRotation.find(entry).harmony=="spender" then spenders=true end
+    end
+  end
+  if not support or not spenders or manapercent()<support.mana then return false end
+  local count=0
+  for _,spec in pairs(attackSpectators(cycle)) do
+    local actor=catalogActor(spec,cycle)
+    if actor.monster and not actor.summon and actor.pos and catalog.distance(pos(),actor.pos)<=3 then count=count+1 end
+  end
+  if not (support.orMore and count>=support.count or not support.orMore and count==support.count) then return false end
+  rotationRuntime=rotationRuntime or AttackRotation.newRuntime()
+  local spec=AttackRotation.find(support)
+  local nativeInfo=attackClientSpellInfo(support.spell)
+  if mana()<(nativeInfo and nativeInfo.requirements and nativeInfo.mana or spec.mana) or level()<(nativeInfo and nativeInfo.requirements and nativeInfo.level or spec.level) or
+    not AttackRotation.ready(rotationRuntime,support,now,false,nativeInfo~=nil) or not attackSpellReady(support.spell,true) then return false end
+  AttackRotation.attempt(rotationRuntime,support.spell,now)
+  executeAttackBotAction(4,support.spell,support.cooldown)
+  return true
+end
+
+-- Preserve explicitly enabled category-4 buffs in custom vocation lists.
+local function tryConfiguredSupport(cycle)
+  if not AttackRotation or not AttackRotation.supported[currentSettings.selectedVocation] or currentSettings.pvpMode then return false end
+  local creature=target()
+  if not creature or not creature:isMonster() or not creature:canShoot() or
+    (currentSettings.BlackListSafe and isBlackListedPlayerInRange(currentSettings.AntiRsRange)) or
+    (currentSettings.Kills and killsToRs()<=currentSettings.KillsAmount) then return false end
+  for _,child in ipairs(attackEntries(cycle)) do
+    local entry=child.params
+    if entry.enabled and entry.category==4 and catalog.normalize(entry.spell)~="utamo tio" and
+      catalog.allowed(entry,currentSettings.selectedVocation) and manapercent()>=entry.mana then
+      local amount=0
+      for _,spec in pairs(attackSpectators(cycle)) do
+        local actor=catalogActor(spec,cycle)
+        if actor.monster and not actor.summon and actor.pos and catalog.distance(pos(),actor.pos)<=entry.pattern and
+          attackEntryMatchesTarget(entry,spec) then amount=amount+1 end
+      end
+      local nativeInfo=attackClientSpellInfo(entry.spell)
+      local data=AttackRotation.find(entry)
+      rotationRuntime=rotationRuntime or AttackRotation.newRuntime()
+      if (entry.orMore and amount>=entry.count or not entry.orMore and amount==entry.count) and
+        (not currentSettings.ignoreMana or level()>=(nativeInfo and nativeInfo.requirements and nativeInfo.level or data.level) and
+          mana()>=(nativeInfo and nativeInfo.requirements and nativeInfo.mana or data.mana)) and
+        AttackRotation.ready(rotationRuntime,entry,now,nativeInfo and nativeInfo.secondary,nativeInfo~=nil) and
+        attackSpellReady(entry.spell,true) then
+        AttackRotation.attempt(rotationRuntime,entry.spell,now)
+        executeAttackBotAction(4,entry.spell,entry.cooldown)
+        return true
+      end
+    end
+  end
+  return false
+end
+
+-- All five PvE vocations share geometry, conditions and native timing. The
+-- automatic mode compares damage and following slots; priority mode follows
+-- the user's list without waiting for an unavailable entry.
+dofile('/vBot/attack_alignment.lua')
+local function tryAdaptiveRotation(cycle, attackCoolingDown)
+  local M, creature = AttackRotation, target()
+  if not creature or not creature:isMonster() or not creature:canShoot() or
+    (currentSettings.BlackListSafe and isBlackListedPlayerInRange(currentSettings.AntiRsRange)) or
+    (currentSettings.Kills and killsToRs() <= currentSettings.KillsAmount) then AttackAlignment.reset(true);return end
+  rotationRuntime = rotationRuntime or M.newRuntime()
+  local entries, actors = {}, {}
+  for _,child in ipairs(attackEntries(cycle)) do entries[#entries+1]=child.params end
+  for _,spec in pairs(attackSpectators(cycle)) do
+    if spec ~= player then
+      local actor = catalogActor(spec, cycle)
+      actor.shootable = not spec.canShoot or spec:canShoot()
+      actor.walking = spec.isWalking and spec:isWalking() or false
+      actors[#actors+1]=actor
+    end
+  end
+  local rotationContext = {
+    priorityOrder=currentSettings.RotationMode=='priority',
+    direction=player:getDirection(), rotate=currentSettings.Rotate, safe=currentSettings.PvpSafe,
+    harmony=readCatalogHarmony(), level=level(),
+    grenade=function(entry)
+      return catalog.bestGrenade(entry,pos(),catalogActor(creature,cycle),actors,currentSettings.PvpSafe,grenadeHistory,now,function(position)
+        local key=position.x..":"..position.y..":"..position.z
+        if cycle.aimable[key]==nil then
+          local tile=g_map.getTile(position)
+          cycle.aimable[key]=tile and tile:getGround() and tile:canShoot() or false
+        end
+        return cycle.aimable[key]
+      end)
+    end,
+    canAim=function(position)
+      local key=position.x..":"..position.y..":"..position.z
+      if cycle.aimable[key]==nil then
+        local tile=g_map.getTile(position)
+        cycle.aimable[key]=tile and tile:getGround() and tile:canShoot() or false
+      end
+      return cycle.aimable[key]
+    end,
+    timing=function(entry,spec)
+      if not catalog.allowed(entry,currentSettings.selectedVocation) or manapercent()<entry.mana then return nil end
+      if spec.itemId then
+        if currentSettings.OldSchool or currentSettings.Visible then
+          if not findItem(spec.itemId) then return nil end
+        elseif type(player.getInventoryCount)=="function" then
+          -- Native totals include closed backpacks; visible container counts
+          -- alone cannot prove that a rune is missing.
+          local ok,amount=pcall(player.getInventoryCount,player,spec.itemId,0)
+          if ok and tonumber(amount)==0 then return nil end
+        end
+        -- Runes share the native attack exhaust too. Without this wait a
+        -- ready rune steals every future wave/beam while its group is active.
+        local groupWait=modules.game_cooldown.isGroupCooldownIconActive(1) and
+          (attackGroupReadyAt>now and attackGroupReadyAt-now or 2001) or 0
+        local wait=math.max(M.wait(rotationRuntime,entry,now,nil,
+          currentSettings.ClientCooldowns and currentSettings.Cooldown),groupWait)
+        return {wait=wait,ready=wait==0,cooldown=math.max(2000,entry.cooldown or 2000),lock=2000}
+      end
+      if spec.aimed and (type(g_game.setNextTalkAim)~="function" or g_game.getClientVersion()<1525) then return nil end
+      local nativeInfo=attackClientSpellInfo(entry.spell)
+      if currentSettings.ignoreMana and (level()<(nativeInfo and nativeInfo.requirements and nativeInfo.level or spec.level) or
+        mana()<(nativeInfo and nativeInfo.requirements and nativeInfo.mana or spec.mana)) then return nil end
+      if spec.shield and not getLeft() then return nil end
+      local state=attackCatalogState(entry.spell)
+      -- Native level/mana and group packets are authoritative on this server.
+      local conditions=nativeInfo and nativeInfo.requirements and {ignoreMana=false,Cooldown=currentSettings.Cooldown} or currentSettings
+      local ready=M.ready(rotationRuntime,entry,now,nativeInfo and nativeInfo.secondary,nativeInfo~=nil) and
+        catalog.ready(entry,conditions,state) and attackSpellReady(entry.spell)
+      local wait=M.wait(rotationRuntime,entry,now,nativeInfo and nativeInfo.secondary,nativeInfo~=nil)
+      local groups={}
+      local lock=spec.lock
+      if nativeInfo then
+        wait=math.max(wait,attackClientSpellWait(nativeInfo))
+        lock=nativeInfo.durations[1] or lock
+        for id,duration in pairs(nativeInfo.durations) do
+          if tonumber(id) and tonumber(id)>3 and duration and duration>0 then groups['native:'..id]=duration end
+        end
+      elseif rotationRuntime.confirmed[spec.words] then
+        wait=math.max(wait,rotationRuntime.confirmed[spec.words]+(entry.cooldown or spec.cooldown)-now)
+      end
+      local data=catalog.find(entry.spell)
+      if not (nativeInfo and nativeInfo.secondary) then
+        if spec.shared then groups[spec.shared]=spec.sharedCd end
+        if data and data.secondary and catalogSecondary[data.secondary] then
+          wait=math.max(wait,catalogSecondary[data.secondary]+(entry.secondaryCooldown or math.min(entry.cooldown,data.secondaryCooldown))-now)
+        end
+      end
+      if spec.shared then
+        -- The game_bot sandbox exposes pairs, but not Lua's global next.
+        local hasSharedGroup=false
+        for _ in pairs(groups) do hasSharedGroup=true;break end
+        if not hasSharedGroup then groups[spec.shared]=spec.sharedCd end
+      end
+      if catalogAttempts[spec.words] then wait=math.max(wait,catalogAttempts[spec.words]+1000-now) end
+      -- Unknown external restrictions cannot be scheduled as a future cast.
+      if not ready and wait<=0 and (spec.harmony~='spender' or (state.harmony or 0)>=(entry.minimumHarmony or 5)) then return nil end
+      return {wait=math.max(0,wait),ready=ready,cooldown=math.max(100,nativeInfo and nativeInfo.duration or entry.cooldown or spec.cooldown),
+        lock=math.max(1000,lock),groups=groups}
+    end,
+  }
+  local prepared=AttackAlignment.update(entries,pos(),catalogActor(creature,cycle),actors,spellPatterns,rotationContext)
+  if attackCoolingDown then return end
+  local candidates=M.rank(entries,pos(),catalogActor(creature,cycle),actors,spellPatterns,rotationContext)
+  if prepared then
+    local origin=pos()
+    -- update() has revalidated the goal's area, timing and safe route. A rune
+    -- at the CURRENT square must not interrupt this bounded movement lease.
+    if origin.x~=prepared.position.x or origin.y~=prepared.position.y or
+      (player.isWalking and player:isWalking()) then return end
+    local reserved={}
+    for _,candidate in ipairs(candidates) do
+      if candidate.entry==prepared.entry then reserved[#reserved+1]=candidate end
+    end
+    if #reserved>0 then
+      -- Revalidate the actual mask and best facing immediately before firing.
+      prepared.direction=reserved[1].direction
+      candidates=reserved
+    elseif #candidates==0 then return
+    else AttackAlignment.reset(false) end
+  end
+  local directionalSeen={}
+  for _,candidate in ipairs(candidates) do
+    local entry,spec=candidate.entry,candidate.spec
+    local duplicateDirection=candidate.direction~=nil and directionalSeen[entry]
+    directionalSeen[entry]=candidate.direction~=nil or directionalSeen[entry]
+    local aligned=not duplicateDirection and (candidate.direction==nil or candidate.direction==player:getDirection())
+    if not duplicateDirection and not aligned then
+      local antitrap=TargetBot and TargetBot.Antitrap
+      local movementOwned=antitrap and antitrap.ownsMovement and antitrap.ownsMovement()
+      if not movementOwned and (type(turn)=="function" or type(g_game.turn)=="function") then
+        -- Reserve the chosen attack until its BEST facing is confirmed. A
+        -- lower-scoring direction / filler must not steal the same attack slot.
+        AttackAlignment.face(candidate.direction)
+        return
+      end
+    end
+    if aligned then
+      if spec.itemId then
+        local thing=creature
+        if candidate.aim then
+          local tile=g_map.getTile(candidate.aim)
+          thing=tile and tile:getTopUseThing()
+        end
+        local item=(currentSettings.OldSchool or currentSettings.Visible) and findItem(spec.itemId) or spec.itemId
+        if item and thing then
+          useWith(item,thing)
+          rotationRuntime.itemReadyAt=now+math.max(2000,entry.cooldown)
+          rotationRuntime.groupReadyAt=math.max(rotationRuntime.groupReadyAt,now+2000)
+          rotationRuntime.sendReadyAt=now+200
+          return
+        end
+      else
+        M.attempt(rotationRuntime,entry.spell,now)
+        local sent=executeAttackBotAction(entry.category,entry.spell,entry.cooldown,candidate.aim)
+        if sent~=false then AttackAlignment.consume(entry);return end
+        rotationRuntime.attempts[catalog.normalize(entry.spell)]=nil
+      end
+    end
+  end
+end
+
 -- support function covered, now the main loop
 macro(100, function()
-  if AttackBot and AttackBot.isPaused and AttackBot.isPaused() then return end
-  if not currentSettings.enabled then return end
+  AttackAlignment.sync()
+  if AttackBot and AttackBot.isPaused and AttackBot.isPaused() then AttackAlignment.reset(true);return end
+  if not currentSettings.enabled then AttackAlignment.reset(true);return end
+  if player:getHealthPercent()<=0 then
+    AttackAlignment.reset(true)
+    if rotationRuntime then rotationRuntime.harmony=0;rotationRuntime.harmonyAt=now end
+    return
+  end
   if #currentSettings.attackTable == 0 or isInPz() then
+    AttackAlignment.reset(true)
+    if rotationRuntime then rotationRuntime.harmony=0;rotationRuntime.harmonyAt=now end
     grenadeHistory, grenadeScene = {}, nil
     return
   end
@@ -1729,14 +2184,23 @@ macro(100, function()
     end
   end
   if not grenadeScene then grenadeHistory = {} end
-  if not target() then return end
+  if not target() then AttackAlignment.reset(true);return end
 
-  if currentSettings.Training and target() and target():getName():lower():find("training") then return end
+  if currentSettings.Training and target() and target():getName():lower():find("training") then AttackAlignment.reset(true);return end
 
   -- Send support on its own tick, without consuming or waiting for an attack
   -- cooldown. The normal damage rotation resumes on the next 100ms tick.
-  if tryDivineEmpowerment(cycle) then return end
-  if modules.game_cooldown.isGroupCooldownIconActive(1) then return end
+  if tryDivineEmpowerment(cycle) or tryMonkSupport(cycle) or tryConfiguredSupport(cycle) then return end
+  local attackCoolingDown=modules.game_cooldown.isGroupCooldownIconActive(1)
+
+  -- Prepare the next wave / beam during the shared cooldown, while TargetBot
+  -- owns actual walking and its antitrap keeps precedence over offensive moves.
+  if AttackRotation and AttackRotation.supported[currentSettings.selectedVocation] and not currentSettings.pvpMode then
+    tryAdaptiveRotation(cycle,attackCoolingDown)
+    return
+  end
+  AttackAlignment.reset(true)
+  if attackCoolingDown then return end
 
   if g_game.getClientVersion() < 960 or not currentSettings.Cooldown then
     delay(400)
@@ -1798,11 +2262,9 @@ macro(100, function()
   for i, child in ipairs(attackEntries(cycle)) do
     local entry = child.params
     local attackData = entry.itemId > 100 and entry.itemId or entry.spell
-    local catalogReady = entry.enabled and (not catalog.find(entry.spell) or catalog.ready(entry, currentSettings, {
-      now=now, level=level(), mana=mana(), harmony=readCatalogHarmony(),
-      secondary=catalogSecondary, attempts=catalogAttempts}))
+    local catalogReady = entry.enabled and (not catalog.find(entry.spell) or catalog.ready(entry, currentSettings, attackCatalogState(entry.spell)))
     if entry.enabled and not catalog.isDivineEmpowerment(entry) and catalog.allowed(entry, currentSettings.selectedVocation) and manapercent() >= entry.mana and catalogReady then
-      if (type(attackData) == "string" and canCast(entry.spell, not currentSettings.ignoreMana, not currentSettings.Cooldown)) or (entry.itemId > 100 and (not currentSettings.Visible or findItem(entry.itemId))) then 
+      if (type(attackData) == "string" and attackSpellReady(entry.spell)) or (entry.itemId > 100 and (not currentSettings.Visible or findItem(entry.itemId))) then
         -- first PVP scenario
         if entry.category ~= 6 and currentSettings.pvpMode and target():getHealthPercent() >= entry.minHp and target():getHealthPercent() <= entry.maxHp and target():canShoot() then
           if entry.category == 2 then

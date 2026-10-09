@@ -105,6 +105,7 @@ local loaderSections = {
       "vBot/attack_spell_catalog",
       "vBot/attack_spell_vocations",
       "vBot/paladin_rotation_20261001",
+      "vBot/attack_rotation",
       "vBot/AttackBot",
     }
   },

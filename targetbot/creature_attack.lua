@@ -27,16 +27,26 @@ local function getCardinalDirection(fromPos, toPos)
   return nil
 end
 
-local function getFacePath(fromPos, toPos, maxPath)
+local function getFacePath(fromPos, toPos, maxPath, options)
   if fromPos.x == toPos.x and fromPos.y == toPos.y then return {} end
-  return findPath(fromPos, toPos, maxPath, {
+  local params={
     ignoreCreatures = false,
     ignoreNonPathable = true,
-    precision = 0
-  })
+    ignoreStairs = false,
+    ignoreCost = false,
+    allowOnlyVisibleTiles = true,
+    precision = 0,
+    maxDistanceFrom = options.maxDistanceFrom
+  }
+  local path
+  if options.strictRange and TargetBot.Movement then
+    path=TargetBot.Movement.findPath(fromPos,toPos,maxPath,params)
+  else path=findPath(fromPos,toPos,maxPath,params) end
+  if TargetBot.Movement and not TargetBot.Movement.pathSafe(fromPos,path,options.maxDistanceFrom) then return nil end
+  return path
 end
 
-local function getBestFacePosition(creaturePos, playerPos, desiredRange, maxRange, maxPath)
+local function getBestFacePosition(creaturePos, playerPos, desiredRange, maxRange, maxPath, options)
   local offsets = {
     {x = 0, y = -1},
     {x = 1, y = 0},
@@ -48,7 +58,8 @@ local function getBestFacePosition(creaturePos, playerPos, desiredRange, maxRang
   for delta = 0, maxRange - 1 do
     local ranges = {desiredRange - delta, desiredRange + delta}
     for _, range in ipairs(ranges) do
-      if range >= 1 and range <= maxRange and not checkedRanges[range] then
+      if range >= 1 and range <= maxRange and not checkedRanges[range]
+        and (not options.strictRange or range == desiredRange) then
         checkedRanges[range] = true
         local bestPath
 
@@ -59,9 +70,15 @@ local function getBestFacePosition(creaturePos, playerPos, desiredRange, maxRang
             z = creaturePos.z
           }
           local tile = g_map.getTile(candidate)
-          if tile and tile:isWalkable() and not tileHasCreature(tile) then
-            local path = getFacePath(playerPos, candidate, maxPath)
-            if path and (not bestPath or #path < #bestPath) then
+          local boundary = options.maxDistanceFrom
+          local inside = not boundary or getDistanceBetween(candidate, boundary[1]) <= boundary[2]
+          if inside and tile and tile:isWalkable() and not tileHasCreature(tile)
+            and (not TargetBot.Movement or TargetBot.Movement.floorSafe(candidate,tile)) then
+            local path = getFacePath(playerPos, candidate, maxPath, options)
+            local preferred=path and (not bestPath or
+              options.strictRange and TargetBot.Movement and TargetBot.Movement.preferPath(path,bestPath) or
+              not options.strictRange and #path<#bestPath)
+            if preferred then
               bestPath = path
             end
           end
@@ -148,17 +165,18 @@ TargetBot.Creature.alignAndFace = function(creature, options)
 
   local direction = getCardinalDirection(playerPos, creaturePos)
   if TargetBot.Antitrap and TargetBot.Antitrap.ownsMovement() and not direction then return false, "antitrap" end
-  if direction and currentRange <= maxRange then
+  if direction and currentRange <= maxRange and (not options.strictRange or currentRange == desiredRange) then
     return confirmFaceDirection(creature, direction)
   end
 
   resetFaceConfirmation()
   holdDirectionalMovement()
-  local path = getBestFacePosition(creaturePos, playerPos, desiredRange, maxRange, maxPath)
+  local path = getBestFacePosition(creaturePos, playerPos, desiredRange, maxRange, maxPath, options)
   if path and #path > 0 then
     if not player:isWalking() and now - lastFaceMove >= FACE_MOVE_DELAY then
       local direction=path[1]
       if TargetBot.Antitrap then direction=TargetBot.Antitrap.guardStep(playerPos,direction) end
+      if direction~=nil and TargetBot.Movement and not TargetBot.Movement.canStep(playerPos,direction) then direction=nil end
       if direction~=nil then
         if TargetBot.Antitrap and TargetBot.Antitrap.ownsMovement() then
           TargetBot.Antitrap.send({step=direction},now)
@@ -249,6 +267,7 @@ TargetBot.Creature.attack = function(params, targets, isLooting, movementControl
 
   local config = params.config
   local creature = params.creature
+  if (isLooting or movementControlled) and AttackBot and AttackBot.clearSpellMovement then AttackBot.clearSpellMovement() end
   
   if g_game.getAttackingCreature() ~= creature then
     g_game.attack(creature)
@@ -258,6 +277,10 @@ TargetBot.Creature.attack = function(params, targets, isLooting, movementControl
     local walkState = TargetBot.Creature.walk(creature, config, targets)
     if walkState == "facePending" then return end
   end
+
+  -- AttackBot owns spells and runes while enabled, including temporary pauses.
+  -- Target selection, normal attacks and movement above remain active.
+  if AttackBot and type(AttackBot.isOn) == 'function' and AttackBot.isOn() then return end
 
   -- attacks
   local mana = player:getMana()
@@ -374,14 +397,17 @@ TargetBot.Creature.walk = function(creature, config, targets)
 
   -- luring
   if config.closeLure and config.closeLureAmount <= getMonsters(1) then
+    if AttackBot and AttackBot.clearSpellMovement then AttackBot.clearSpellMovement() end
     return TargetBot.allowCaveBot(150)
   end
   if TargetBot.canLure() and (config.lure or config.lureCavebot or config.dynamicLure) and not (creature:getHealthPercent() < (storage.extras.killUnder or 30)) and not isTrapped then
     if targetBotLure then
+      if AttackBot and AttackBot.clearSpellMovement then AttackBot.clearSpellMovement() end
       anchorPosition = nil
       return TargetBot.allowCaveBot(150)
     else
       if targets < config.lureCount then
+        if AttackBot and AttackBot.clearSpellMovement then AttackBot.clearSpellMovement() end
         if config.lureCavebot then
           anchorPosition = nil
           return TargetBot.allowCaveBot(150)
@@ -395,37 +421,58 @@ TargetBot.Creature.walk = function(creature, config, targets)
     end
   end
 
+  -- Keep Distance is both retreat and pursuit. Measure actual SQM, not the
+  -- number of steps in a path around obstacles, and do not accept range + 1.
+  -- Correct the range before directional alignment can pause movement.
+  if AttackBot and AttackBot.setSpellMovementContext then AttackBot.setSpellMovementContext(creature,config) end
+  if config.keepDistance then
+    if config.anchor and anchorPosition and getDistanceBetween(pos, anchorPosition) > config.anchorRange then
+      return TargetBot.walkTo(anchorPosition, 10, {ignoreNonPathable=true, ignoreCreatures=false,
+        ignoreStairs=false, ignoreCost=false, allowOnlyVisibleTiles=true, avoidFloorChange=true,
+        marginMin=0, marginMax=config.anchorRange, preferCardinal=true,
+        maxDistanceFrom={anchorPosition,config.anchorRange}})
+    end
+    local range = math.max(1, tonumber(config.keepDistanceRange) or 1)
+    if getDistanceBetween(pos, cpos) ~= range then
+      local options = {ignoreNonPathable=true, ignoreCreatures=false, ignoreStairs=false,
+        ignoreCost=false, allowOnlyVisibleTiles=true, avoidFloorChange=true,
+        marginMin=range, marginMax=range, preferCardinal=true}
+      if config.anchor and anchorPosition then
+        options.maxDistanceFrom = {anchorPosition, config.anchorRange}
+      end
+      -- The destination is the reachable ring, not the monster's occupied tile.
+      TargetBot.walkTo(cpos, 10, options)
+      if config.faceMonster and not config.avoidAttacks then return "facePending" end
+      return
+    end
+  end
+
+  if AttackBot and AttackBot.prepareSpellMovement and AttackBot.prepareSpellMovement(creature,config) then
+    return "facePending"
+  end
+
   if config.faceMonster and not config.avoidAttacks then
     local desiredRange = config.keepDistance and config.keepDistanceRange or getDistanceBetween(pos, cpos)
     local ready = TargetBot.Creature.alignAndFace(creature, {
       desiredRange = desiredRange,
       maxRange = config.maxDistance or 10,
-      maxPath = 10
+      maxPath = 10,
+      strictRange = config.keepDistance,
+      maxDistanceFrom = config.keepDistance and config.anchor and anchorPosition
+        and {anchorPosition, config.anchorRange} or nil
     })
     if not ready then return "facePending" end
   end
 
-  local currentDistance = findPath(pos, cpos, 10, {ignoreCreatures=true, ignoreNonPathable=true, ignoreCost=true})
-  if not currentDistance then return end
-  if (not config.chase or #currentDistance == 1) and not config.avoidAttacks and not config.keepDistance and config.rePosition and (creature:getHealthPercent() >= storage.extras.killUnder) then
-    return rePosition(config.rePositionAmount or 6)
-  end
-  if ((storage.extras.killUnder > 1 and (creature:getHealthPercent() < storage.extras.killUnder)) or config.chase) and not config.keepDistance then
-    if #currentDistance > 1 then
-      return TargetBot.walkTo(cpos, 10, {ignoreNonPathable=true, precision=1})
+  if not config.keepDistance then
+    local currentDistance = findPath(pos, cpos, 10, {ignoreCreatures=true, ignoreNonPathable=true, ignoreCost=true})
+    if not currentDistance then return end
+    if (not config.chase or #currentDistance == 1) and not config.avoidAttacks and config.rePosition and (creature:getHealthPercent() >= storage.extras.killUnder) then
+      return rePosition(config.rePositionAmount or 6)
     end
-  elseif config.keepDistance then
-    if config.anchor and anchorPosition and getDistanceBetween(pos, anchorPosition) > config.anchorRange then
-      -- The antitrap normally handles this return. Keep the same reference if
-      -- walking is called directly; every actual step still passes its guard.
-      return TargetBot.walkTo(anchorPosition, 10, {ignoreNonPathable=true, ignoreCreatures=false,
-        ignoreStairs=true, marginMin=0, marginMax=config.anchorRange})
-    end
-    if #currentDistance ~= config.keepDistanceRange and #currentDistance ~= config.keepDistanceRange + 1 then
-      if config.anchor and anchorPosition then
-        return TargetBot.walkTo(cpos, 10, {ignoreNonPathable=true, marginMin=config.keepDistanceRange, marginMax=config.keepDistanceRange + 1, maxDistanceFrom={anchorPosition, config.anchorRange}})
-      else
-        return TargetBot.walkTo(cpos, 10, {ignoreNonPathable=true, marginMin=config.keepDistanceRange, marginMax=config.keepDistanceRange + 1})
+    if (storage.extras.killUnder > 1 and creature:getHealthPercent() < storage.extras.killUnder) or config.chase then
+      if #currentDistance > 1 then
+        return TargetBot.walkTo(cpos, 10, {ignoreNonPathable=true, precision=1})
       end
     end
   end

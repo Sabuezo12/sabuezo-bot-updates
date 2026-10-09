@@ -283,6 +283,7 @@ HoldConditions < Panel
     anchors.right: title.right
     width: 90
     text: Mantener
+    tooltip: Renueva Haste al caminar. Respeta mana, cooldown, la opcion de PZ y la pausa mientras tienes un ataque activo.
 
   Label
     id: hasteSpellLabel
@@ -401,7 +402,7 @@ HoldConditions < Panel
     width: 295
     height: 18
     text: Pausar en combate (PvE/PvP)
-    tooltip: Pausa curas y buffs con estado de combate, un objetivo activo o monstruos a 7 casillas. Exana Pox, Utura y Utura Gran siempre esperan a salir de combate. Anti-Paralyze queda independiente.
+    tooltip: Haste pausa con un ataque activo. Las otras curas y buffs pausan con estado de combate, un objetivo activo o monstruos a 7 casillas. Exana Pox, Utura y Utura Gran siempre esperan a salir de combate. Anti-Paralyze queda independiente.
     font: verdana-11px-rounded
 
 ConditionsWindow < MainWindow

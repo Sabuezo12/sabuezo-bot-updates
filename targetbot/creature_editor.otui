@@ -1,178 +1,325 @@
-TargetBotCreatureEditorAmount < Panel
-  height: 29
-  margin-top: 4
+TargetBotCreatureEditorText < Label
+  font: verdana-11px-antialised
+  color: #e1e8eb
+  text-align: left
+  phantom: true
 
-  Label
+TargetBotCreatureEditorButton < Button
+  font: verdana-11px-antialised
+  height: 22
+  padding: 0
+  image-color: #8c9da4
+  color: #edf3f5
+  $hover !disabled:
+    image-color: #b3c9d2
+  $disabled:
+    opacity: 0.45
+
+TargetBotCreatureEditorInput < TextEdit
+  font: verdana-11px-antialised
+  color: #edf3f5
+  image-source: /images/ui/panel_flat
+  image-border: 1
+  image-color: #71838b
+  padding: 2
+  text-offset: 0 0
+  text-align: left
+  selection-color: #ffffff
+  selection-background-color: #357a7b
+  $disabled:
+    color: #ced8de
+    opacity: 1
+
+TargetBotCreatureEditorAmount < Panel
+  height: 22
+  margin-top: 2
+  TargetBotCreatureEditorText
     id: caption
     anchors.left: parent.left
+    anchors.right: controls.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 4
+    height: 18
+  Panel
+    id: controls
     anchors.right: parent.right
     anchors.top: parent.top
-    height: 14
-    text-align: center
+    width: 84
+    height: 22
+    TargetBotCreatureEditorButton
+      id: minus
+      anchors.left: parent.left
+      anchors.top: parent.top
+      width: 18
+      text: -
+    TargetBotCreatureEditorButton
+      id: plus
+      anchors.right: parent.right
+      anchors.top: parent.top
+      width: 18
+      text: +
+    TargetBotCreatureEditorInput
+      id: input
+      anchors.left: minus.right
+      anchors.right: plus.left
+      anchors.top: parent.top
+      margin-left: 1
+      margin-right: 1
+      height: 22
+      text-align: center
 
-  HorizontalScrollBar
-    id: scroll
+TargetBotCreatureEditorOption < UIWidget
+  height: 20
+  margin-top: 2
+  focusable: true
+  $hover:
+    background-color: #ffffff08
+  UIWidget
+    id: track
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    width: 26
+    height: 14
+    phantom: true
+  TargetBotCreatureEditorText
+    id: caption
+    anchors.left: track.right
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 5
+    height: 18
+
+TargetBotCreatureEditorGap < Panel
+  height: 8
+  margin-top: 1
+  UIWidget
     anchors.left: parent.left
     anchors.right: parent.right
-    anchors.top: caption.bottom
-    margin-top: 2
+    anchors.verticalCenter: parent.verticalCenter
+    height: 1
+    background-color: #46565d
+    phantom: true
 
-TargetBotCreatureEditorOption < BotSwitch
+TargetBotCreatureEditorNote < TargetBotCreatureEditorText
+  height: 28
+  margin-top: 2
+  text-wrap: true
+  text-align: topLeft
+  color: #aebcc3
+
+TargetBotCreatureEditorSection < TargetBotCreatureEditorText
   height: 20
-  margin-top: 6
+  margin-top: 4
+  font: sans-bold-16px
+  color: #50d7d4
+
+TargetBotCreatureEditorAmmo < ComboBox
+  height: 22
+  margin-top: 2
+  image-color: #94a3aa
+  color: #edf3f5
 
 TargetBotCreatureEditorCard < Panel
-  padding: 8
+  padding: 5
   border-width: 1
-  border-color: #777777
-  background-color: #00000020
-
-  Label
-    id: title
+  border-color: #45545b
+  background-color: #172125eb
+  UIWidget
+    id: icon
     anchors.left: parent.left
+    anchors.top: parent.top
+    margin-top: 2
+    width: 16
+    height: 16
+    phantom: true
+  TargetBotCreatureEditorText
+    id: title
+    anchors.left: icon.right
     anchors.right: parent.right
     anchors.top: parent.top
-    height: 18
-    color: #73e0de
-
+    margin-left: 5
+    height: 20
+    font: sans-bold-16px
+    color: #50d7d4
+  UIWidget
+    id: line
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: title.bottom
+    margin-top: 1
+    height: 1
+    background-color: #46565d
+    phantom: true
   Panel
     id: fields
     anchors.left: parent.left
     anchors.right: parent.right
-    anchors.top: title.bottom
-    margin-top: 6
+    anchors.top: line.bottom
+    margin-top: 4
     layout:
       type: verticalBox
       fit-children: true
 
+TargetBotCreatureEditorSummary < Panel
+  height: 90
+  margin-top: 8
+  padding: 6
+  border-width: 1
+  border-color: #4b5d65
+  background-color: #0d151988
+  UIWidget
+    id: icon
+    anchors.left: parent.left
+    anchors.top: parent.top
+    width: 16
+    height: 16
+    phantom: true
+  TargetBotCreatureEditorSection
+    id: title
+    anchors.left: icon.right
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-left: 6
+    margin-top: 0
+    height: 20
+    text: Resumen
+  TargetBotCreatureEditorText
+    id: line1
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: title.bottom
+    margin-top: 4
+    height: 16
+  TargetBotCreatureEditorText
+    id: line2
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: line1.bottom
+    margin-top: 2
+    height: 16
+  TargetBotCreatureEditorText
+    id: line3
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: line2.bottom
+    margin-top: 2
+    height: 16
+
+TargetBotCreatureEditorSave < UIButton
+  font: verdana-11px-antialised
+  color: #072f32
+  background-color: #16c9bd
+  border-width: 1
+  border-color: #64e8dd
+  $hover !disabled:
+    background-color: #35ddd1
+  $pressed:
+    background-color: #11a59b
+  $disabled:
+    color: #a7b5bb
+    background-color: #40555a
+    border-color: #587077
+
 TargetBotCreatureEditorWindow < MainWindow
   text: TargetBot - Configurar criatura
-  width: 760
-  height: 590
-  padding-left: 14
-  padding-right: 14
-  padding-top: 34
-  padding-bottom: 14
-
-  Label
+  width: 660
+  height: 490
+  font: sans-bold-16px
+  text-align: topLeft
+  text-offset: 12 6
+  image-color: #8a969b
+  padding-left: 8
+  padding-right: 8
+  padding-top: 30
+  padding-bottom: 6
+  TargetBotCreatureEditorText
     id: nameLabel
     anchors.left: parent.left
     anchors.verticalCenter: name.verticalCenter
-    width: 66
-    height: 16
-    text: Objetivo:
-
-  TextEdit
+    width: 64
+    height: 18
+    text: Objetivos:
+  TargetBotCreatureEditorInput
     id: name
     anchors.left: parent.left
     anchors.right: parent.right
     anchors.top: parent.top
-    margin-left: 72
-    height: 24
-
-  Label
+    margin-left: 70
+    height: 22
+  TargetBotCreatureEditorText
     id: hint
-    anchors.left: parent.left
+    anchors.left: name.left
     anchors.right: parent.right
     anchors.top: name.bottom
-    margin-top: 6
+    margin-top: 2
     height: 16
-    text: Usa * para cualquier nombre, ? para un caracter, y comas para varios objetivos.
-    color: #bcbcbc
-
+    text: Usa * para cualquier nombre, ? para un caracter y comas para separar objetivos.
+    color: #b5c4cb
   Panel
     id: content
     anchors.left: parent.left
     anchors.right: parent.right
     anchors.top: hint.bottom
-    anchors.bottom: message.top
-    margin-top: 8
-    margin-bottom: 8
-
+    anchors.bottom: footer.top
+    margin-top: 6
+    margin-bottom: 6
     TargetBotCreatureEditorCard
       id: movement
       anchors.left: parent.left
       anchors.top: parent.top
       anchors.bottom: parent.bottom
-      width: 238
-
+      width: 212
     TargetBotCreatureEditorCard
       id: pull
       anchors.left: movement.right
       anchors.top: parent.top
       anchors.bottom: parent.bottom
-      margin-left: 8
-      width: 238
-
+      margin-left: 4
+      width: 212
     TargetBotCreatureEditorCard
       id: combat
       anchors.left: pull.right
       anchors.right: parent.right
       anchors.top: parent.top
       anchors.bottom: parent.bottom
-      margin-left: 8
-
-      Label
-        id: legend
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: fields.bottom
-        margin-top: 18
-        height: 18
-        color: #73e0de
-        text: Verde: activo | Rojo: apagado
-
-      Label
-        id: explanation
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: legend.bottom
-        margin-top: 8
-        height: 90
-        text-wrap: true
-        text-align: topLeft
-        color: #bcbcbc
-        text: Ajusta las cantidades con las barras bajo cada opcion. Keep Distance activa tambien el antitrap y utiliza la distancia indicada.
-
-  Label
-    id: message
-    anchors.left: parent.left
-    anchors.right: parent.right
-    anchors.bottom: footer.top
-    margin-bottom: 8
-    height: 30
-    text-wrap: true
-    text-align: topLeft
-    color: #f0ce6e
-
+      margin-left: 4
   Panel
     id: footer
     anchors.left: parent.left
     anchors.right: parent.right
     anchors.bottom: parent.bottom
-    height: 26
-
-    Button
-      id: help
+    height: 32
+    UIWidget
       anchors.left: parent.left
-      anchors.top: parent.top
-      anchors.bottom: parent.bottom
-      width: 90
-      text: Ayuda
-
-    Button
-      id: ok
-      anchors.right: cancel.left
-      anchors.top: parent.top
-      anchors.bottom: parent.bottom
-      margin-right: 8
-      width: 100
-      text: Guardar
-
-    Button
-      id: cancel
       anchors.right: parent.right
       anchors.top: parent.top
-      anchors.bottom: parent.bottom
-      width: 90
+      height: 1
+      background-color: #52616a
+      phantom: true
+    TargetBotCreatureEditorSave
+      id: ok
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      width: 112
+      height: 24
+      text: Guardar cambios
+    TargetBotCreatureEditorButton
+      id: cancel
+      anchors.right: ok.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-right: 5
+      width: 74
+      height: 24
       text: Cancelar
+  TargetBotCreatureEditorText
+    id: message
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: footer.bottom
+    margin-left: 0
+    margin-right: 200
+    margin-bottom: 2
+    height: 32
+    text-wrap: true
+    text-align: left
+    color: #ffd05d

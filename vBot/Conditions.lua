@@ -237,7 +237,7 @@ local function normalizedSpell(spell)
 end
 
 -- Cooldown widgets can retain an active flag. Actual protocol durations are
--- authoritative for Anti-Paralyze; an old flag alone cannot block it forever.
+-- authoritative for Anti-Paralyze and Haste; an old flag cannot block them forever.
 if type(onSpellCooldown) == "function" then
   onSpellCooldown(function(iconId, duration)
     iconId, duration = tonumber(iconId), tonumber(duration)
@@ -375,12 +375,27 @@ if type(onSpellCooldown) == "function" then
   end)
 end
 
+local lastMovementPosition = nil
+local lastMovementAt = nil
 local function playerWalkingNow()
-  local ok, walking = pcall(function()
+  local ok, walking, position = pcall(function()
     local localPlayer = g_game and g_game.getLocalPlayer and g_game.getLocalPlayer() or player
-    return localPlayer and localPlayer:isWalking()
+    return localPlayer and localPlayer:isWalking(), localPlayer and localPlayer:getPosition()
   end)
-  return ok and walking == true
+  if not ok then return false end
+  if position then
+    if lastMovementPosition and position.z == lastMovementPosition.z then
+      if position.x ~= lastMovementPosition.x or position.y ~= lastMovementPosition.y then
+        lastMovementAt = now
+      end
+    else
+      lastMovementAt = nil
+    end
+    lastMovementPosition = {x=position.x, y=position.y, z=position.z}
+  end
+  -- isWalking can be false between CaveBot steps. Actual movement also counts
+  -- for a short interval; standing still never keeps renewing this interval.
+  return walking == true or (lastMovementAt ~= nil and now >= lastMovementAt and now-lastMovementAt <= 250)
 end
 
 local function isHasteSpell(spell)
@@ -389,6 +404,7 @@ local function isHasteSpell(spell)
 end
 
 local combatActive
+local hasteConditionsBlocked
 
 local function castManaged(spell, minimumDelay, urgent)
   spell = normalizedSpell(spell)
@@ -399,7 +415,11 @@ local function castManaged(spell, minimumDelay, urgent)
   -- including custom Anti-Paralyze spells and a disabled general pause option.
   if (spell == "exana pox" or isRecoverySpell(spell)) and combatActive() then return false end
   -- Gate both maintained Haste and Anti-Paralyse Haste at the point of casting.
-  if isHasteSpell(spell) and not playerWalkingNow() then return false end
+  local haste = isHasteSpell(spell)
+  if haste then
+    if not playerWalkingNow() then return false end
+    if not urgent and hasteConditionsBlocked() then return false end
+  end
   if urgent then
     if antiSpellOnCooldown(spell) or type(say) ~= "function" then return false end
     -- No shared spell queue can acknowledge an urgent cast without sending it.
@@ -407,7 +427,9 @@ local function castManaged(spell, minimumDelay, urgent)
     if ok and sent ~= false then lastCastAt = now; return true end
     return false
   end
-  if spellOnCooldown(spell) then return false end
+  if haste then
+    if antiSpellOnCooldown(spell) then return false end
+  elseif spellOnCooldown(spell) then return false end
 
   local delay = castDelay(minimumDelay)
   if not urgent and now - lastCastAt < delay then return false end
@@ -459,17 +481,7 @@ local function paralyzedNow()
   return conditionActive(isParalyzed)
 end
 
-combatActive = function()
-  -- The swords state also covers receiving attacks without a selected target.
-  if conditionActive(isInFight) or conditionActive(hasSwords) then return true end
-  local states = readPlayerStates()
-  if type(states) == "number" then
-    local constants = PlayerStates or (modules and modules.gamelib and modules.gamelib.PlayerStates)
-    local mask = type(constants) == "table" and tonumber(constants.Swords) or 128
-    mask = mask and mask > 0 and mask or 128
-    if math.floor(states / mask) % 2 == 1 then return true end
-  end
-
+local function attackActive()
   local creature
   if g_game and type(g_game.getAttackingCreature) == "function" then
     local ok, value = pcall(g_game.getAttackingCreature)
@@ -486,6 +498,20 @@ combatActive = function()
   elseif g_game and conditionActive(g_game.isAttacking) then
     return true
   end
+  return false
+end
+
+combatActive = function()
+  -- Poison cure and Recovery retain their stricter incoming-combat protection.
+  if conditionActive(isInFight) or conditionActive(hasSwords) then return true end
+  local states = readPlayerStates()
+  if type(states) == "number" then
+    local constants = PlayerStates or (modules and modules.gamelib and modules.gamelib.PlayerStates)
+    local mask = type(constants) == "table" and tonumber(constants.Swords) or 128
+    mask = mask and mask > 0 and mask or 128
+    if math.floor(states / mask) % 2 == 1 then return true end
+  end
+  if attackActive() then return true end
 
   -- Cover target switches and being surrounded before the swords state arrives.
   -- The vBot helper uses the current floor and excludes player summons.
@@ -493,6 +519,14 @@ combatActive = function()
     local ok, amount = pcall(getMonsters, 7, false)
     if ok and (tonumber(amount) or 0) > 0 then return true end
   end
+  return false
+end
+
+hasteConditionsBlocked = function()
+  if config.ignoreInPz and isInPz() then return "Pausado en PZ" end
+  -- Swords can outlast a fight, and a nearby monster may never attack us.
+  -- Haste follows the attack checkbox rather than the cure/recovery threat scan.
+  if config.pauseWhileAttacking and attackActive() then return "Haste pausado: ataque activo" end
   return false
 end
 
@@ -639,9 +673,11 @@ local function runController()
 
     if tryAntiParalyse() then return end
     local blocked = normalConditionsBlocked()
-    if blocked then hasteStatus = blocked; return end
-    if tryHoldUtamo() then return end
-    if tryHoldHaste() then return end
+    if not blocked and tryHoldUtamo() then return end
+    local hasteBlocked = hasteConditionsBlocked()
+    if hasteBlocked then hasteStatus = hasteBlocked
+    elseif tryHoldHaste() then return end
+    if blocked then return end
 
     if now >= nextCureCheck then
       nextCureCheck = now + 100
@@ -660,6 +696,7 @@ end
 
 local function setEnabled(enabled)
   config.enabled = enabled == true
+  lastMovementPosition, lastMovementAt = nil, nil
   ui.title:setOn(config.enabled)
   if config.enabled then
     nextCureCheck = now + 100
