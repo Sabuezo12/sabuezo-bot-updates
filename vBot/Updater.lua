@@ -18,7 +18,8 @@ end
 config.version = config.version or "none"
 if type(config.fileHashes) ~= "table" then config.fileHashes = {} end
 if config.autoInstall == nil then config.autoInstall = true end
-if config.autoReload == nil then config.autoReload = true end
+-- Every completed update reloads the bot, including manual installs.
+config.autoReload = true
 
 -- The repository's 3.0.17 release intentionally empties the bot's Lua files.
 -- Keep that retired release out of both automatic and manual installs.
@@ -150,8 +151,8 @@ local function setStatus(text, color)
   setDetailsStatus(text, color)
 end
 
-local function reloadAfterAutoInstall()
-  if autoReloadScheduled or not config.autoReload then return end
+local function reloadAfterInstall()
+  if autoReloadScheduled then return end
   autoReloadScheduled = true
 
   setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nRecargando bot...", "#8cff9a")
@@ -1004,8 +1005,8 @@ local function finishInstall(manifest, installed, skipped, autoMode)
   setPanelStatus("Version: " .. config.version .. "\nUltima version", "#8cff9a")
   setStatus("Actualizado a " .. config.version .. "\nArchivos: " .. installed .. skippedText, "#8cff9a")
 
-  if autoMode and installed > 0 then
-    reloadAfterAutoInstall()
+  if installed > 0 then
+    reloadAfterInstall()
   end
 end
 

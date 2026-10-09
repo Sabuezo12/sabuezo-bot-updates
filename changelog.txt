@@ -1,3 +1,8 @@
+3.0.22 - Recarga automatica del bot
+- El bot se recarga automaticamente al terminar de instalar una actualizacion, tanto manual como automatica.
+- La recarga espera a que terminen las descargas y se guarden los archivos, la version y los hashes; se programa una sola vez.
+- Revisar updates, tener la ultima version o recibir un error de descarga o escritura no provoca una recarga.
+
 3.0.21 - BotServer y guia de exiva
 - BotServer elimina el intercambio de vocaciones y magic walls; conserva presencia, mana, mensajes y exiva compartido.
 - Player List incorpora el outfit por vocacion, desactivado por defecto e independiente de los colores.
