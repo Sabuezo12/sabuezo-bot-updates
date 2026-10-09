@@ -308,7 +308,7 @@ AutoProtectWindow < MainWindow
 
     BotItem
       id: normalItem
-      tooltip: Vuelve tras 0.5 s con HP/MP 10 puntos por encima de sus limites (maximo 100%).
+      tooltip: Conserva el Might Ring hasta consumirse. El normal vuelve sin condiciones de peligro y tras 0.5 s con HP/MP recuperados (+10 puntos, maximo 100%).
       anchors.verticalCenter: normalLabel.verticalCenter
       anchors.left: normalLabel.right
       margin-left: 4
@@ -418,7 +418,7 @@ AutoProtectWindow < MainWindow
 
     BotItem
       id: normalItem
-      tooltip: Vuelve tras 0.5 s con HP/MP 10 puntos por encima de sus limites (maximo 100%).
+      tooltip: Conserva el SSA hasta consumirse. El normal vuelve sin condiciones de peligro y tras 0.5 s con HP/MP recuperados (+10 puntos, maximo 100%).
       anchors.verticalCenter: normalLabel.verticalCenter
       anchors.left: normalLabel.right
       margin-left: 4

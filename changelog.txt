@@ -1,3 +1,11 @@
+3.0.20 - Inmortal: equipo, Loot Pouch y Utamo
+- Inmortal guarda el equipo saliente en la BP principal y espera la confirmacion antes de equipar la proteccion; evita el intercambio fallido con una BP llena de Might Rings.
+- Might Rings y SSA se conservan hasta consumirse; el equipo normal vuelve cuando terminan las condiciones de peligro y se cumple la recuperacion configurada.
+- Energy Ring conserva sus porcentajes de encendido y apagado; si interrumpe un Might Ring, se vuelve a equipar un Might Ring antes de regresar al normal.
+- Inmortal tambien puede abastecerse de Might Rings y SSA desde la Loot Pouch del purse, abriendo esa rama cuando el acceso por ID no encuentra el equipo.
+- Utamo Vita y Exana Vita usan cooldowns individuales y grupales del cliente. Exana no espera el cooldown individual de Utamo y los intentos rechazados no generan una espera falsa de catorce segundos.
+- Se conserva el contador de consumo y el HUD; los movimientos de equipo propios no se cuentan como items gastados.
+
 3.0.19 - Rotaciones, TargetBot y AutoBless
 - AttackBot: nueva interfaz compacta, iconos reales y paneles de seguridad y ajustes avanzados.
 - Rotaciones para Paladin, Druid, Sorcerer, Knight y Monk con prioridad por orden o seleccion automatica, cooldowns del cliente y exhaust de MythicOT.

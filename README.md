@@ -1,6 +1,6 @@
 # Sabuezo Bot - MythicOT
 
-Version actual: **3.0.19**. Actualizaciones publicas mediante GitHub, sin contrasenas.
+Version actual: **3.0.20**. Actualizaciones publicas mediante GitHub, sin contrasenas.
 
 ## Instalacion
 
@@ -10,19 +10,30 @@ Ejecuta este script en el editor de scripts del bot:
 modules.corelib.HTTP.get('https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/bootstrap.lua', function(script, err) if err or not script then warn('No se pudo descargar Sabuezo') return end assert(loadstring(script))() end)
 ```
 
-El instalador descarga el paquete completo antes de reemplazar archivos, valida el tamano de cada descarga y coloca el Loader al final. Al terminar, recarga el bot. Los archivos anteriores se respaldan en `bot/<config>/_updates/bootstrap_3.0.19/`. Los perfiles y las configuraciones guardadas de cada usuario se conservan.
+El instalador descarga el paquete completo antes de reemplazar archivos, valida el tamano de cada descarga y coloca el Loader al final. Al terminar, recarga el bot. Los archivos anteriores se respaldan en `bot/<config>/_updates/bootstrap_3.0.20/`. Los perfiles y las configuraciones guardadas de cada usuario se conservan.
 
 ## Actualizaciones
 
 El panel **Updater** aparece en **Main**. **Check** consulta GitHub y **Update** instala los archivos pendientes. Se conserva la actualizacion automatica al entrar si esta activada en los ajustes existentes.
 
-Los archivos del manifest apuntan a la etiqueta `v3.0.19`, para que una descarga use una sola version del bot. La antigua version de cierre 3.0.17 esta bloqueada y su payload fue retirado de la version actual del repositorio.
+Los archivos del manifest apuntan a la etiqueta `v3.0.20`, para que una descarga use una sola version del bot. La antigua version de cierre 3.0.17 esta bloqueada y su payload fue retirado de la version actual del repositorio.
 
 ## Contenido publicado
 
 Se publican los scripts Lua, interfaces OTUI, imagenes y textos de licencia necesarios para el bot. Los scripts proceden de Sabuezo2, con la coordinacion de ataques validada en pruebas e integrada sobre el movimiento actual.
 
 Quedan fuera los perfiles de `storage/`, configuraciones de HealBot/AttackBot/Supplies, listas de jugadores, teclas del editor, rutas de CaveBot, configuraciones de TargetBot, distribucion de paneles, tokens, contrasenas y respaldos. No se publica ni se importa una plantilla personal de Sabuezo.
+
+## Cambios de 3.0.20
+
+- Inmortal guarda el equipo saliente en la BP principal y espera la confirmacion antes de equipar la proteccion; evita el intercambio fallido con una BP llena de Might Rings.
+- Might Rings y SSA se conservan hasta consumirse; el equipo normal vuelve cuando terminan las condiciones de peligro y se cumple la recuperacion configurada.
+- Energy Ring conserva sus porcentajes de encendido y apagado; si interrumpe un Might Ring, se vuelve a equipar un Might Ring antes de regresar al normal.
+- Inmortal tambien puede abastecerse de Might Rings y SSA desde la Loot Pouch del purse, abriendo esa rama cuando el acceso por ID no encuentra el equipo.
+- Utamo Vita y Exana Vita usan cooldowns individuales y grupales del cliente. Exana no espera el cooldown individual de Utamo y los intentos rechazados no generan una espera falsa de catorce segundos.
+- Se conserva el contador de consumo y el HUD; los movimientos de equipo propios no se cuentan como items gastados.
+
+La BP principal necesita espacio para guardar el equipo saliente. Inmortal se verifico con 210 comprobaciones simuladas; falta confirmar el comportamiento dentro del juego.
 
 ## Cambios incluidos
 

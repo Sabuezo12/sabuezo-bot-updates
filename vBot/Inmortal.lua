@@ -2,7 +2,7 @@
 -- Energy Ring + Might Ring + Amulet editable
 -- Corregido para OTC/vBot v15:
 -- 1) El Energy Ring se quita inmediatamente al llegar al HP de OFF.
--- 2) El equipo normal vuelve tras 500 ms por encima del margen de recuperacion.
+-- 2) MR/SSA se conservan hasta consumirse; el normal espera recuperacion.
 -- 3) El Might Ring NO pelea contra el Energy Ring mientras el Energy Ring está puesto.
 -- 4) Después de quitarse el Energy Ring, el Might Ring ya puede funcionar inmediatamente.
 -- 5) La recuperacion exige HP/MP al menos 10 puntos sobre sus limites.
@@ -307,20 +307,18 @@ local lastMove = {
 }
 local lastGlobalMove = 0
 local itemSearchAfter = {}
+local visibleEquipIds = {}
 local actionButtonCache = {}
 local pendingEquip = {}
 local nativeFallback = {}
 local counterNeedsSync = false
 
-local lastSpellCast = 0
-local lastUtamoCast = 0
-local spellDelay = 1000
-local utamoCooldown = 14000
 local shieldItemDelay = 1000
 
 -- Pendiente de poner ring normal después de quitar Energy Ring.
 -- OJO: Esto NO bloquea Might Ring.
 local eringPendingNormal = false
+local resumeMightAfterEring = false
 
 -- =========================
 -- FUNCIONES UI
@@ -753,6 +751,17 @@ local function findItemSmart(itemId)
     if id and id > 0 then
       local item = findItem(id)
 
+      -- Some clients omit loot containers from findItem. The Loot Pouch in
+      -- the purse is also a valid supply source, regardless of that flag.
+      if not item then
+        for _, container in pairs(g_game.getContainers()) do
+          for _, candidate in ipairs(container:getItems()) do
+            if candidate:getId() == id then item = candidate; break end
+          end
+          if item then break end
+        end
+      end
+
       if item then
         itemSearchAfter[itemId] = 0
         return item
@@ -774,12 +783,10 @@ local function findSupplyContainerId(itemId)
   if activeItemId then validIds[activeItemId] = true end
 
   for _, container in pairs(g_game.getContainers()) do
-    if not container.lootContainer then
-      for _, item in ipairs(container:getItems()) do
-        if validIds[item:getId()] then
-          local containerItem = container:getContainerItem()
-          return containerItem and containerItem:getId() or nil
-        end
+    for _, item in ipairs(container:getItems()) do
+      if validIds[item:getId()] then
+        local containerItem = container:getContainerItem()
+        return containerItem and containerItem:getId() or nil
       end
     end
   end
@@ -808,11 +815,61 @@ local function maintainSupplyContainer(section, supplyKey)
   end
 end
 
+local purseOpenAfter = 0
+local purseChildren = {}
+local function requestPurseSupply()
+  if now < purseOpenAfter then return end
+  local purse
+  if type(getPurse) == "function" then
+    local ok, value = pcall(getPurse)
+    if ok then purse = value end
+  end
+  if not purse and player and type(player.getInventoryItem) == "function" then
+    local ok, value = pcall(player.getInventoryItem, player, SlotPurse or InventorySlotPurse or 11)
+    if ok then purse = value end
+  end
+  if not purse then return end
+
+  local containers, opened = g_game.getContainers(), {}
+  local root
+  for _, container in pairs(containers) do
+    local containerItem = container:getContainerItem()
+    if containerItem then
+      local id = containerItem:getId()
+      opened[id] = true
+      if id == purse:getId() then root = container end
+    end
+  end
+  -- Only open branches discovered inside the equipped purse, never arbitrary
+  -- ground containers. This also handles a server-specific Loot Pouch ID.
+  if not root then
+    if safeCall(g_game.open, purse) then purseOpenAfter = now + 1000 end
+    return
+  end
+  for _, container in pairs(containers) do
+    local containerItem = container:getContainerItem()
+    if container == root or containerItem and purseChildren[containerItem:getId()] then
+      for _, item in ipairs(container:getItems()) do
+        if item.isContainer and item:isContainer() then
+          local id = item:getId()
+          purseChildren[id] = true
+          if not opened[id] and safeCall(g_game.open, item) then
+            purseOpenAfter = now + 1000
+            return
+          end
+        end
+      end
+    end
+  end
+  purseOpenAfter = now + 1000
+end
+
 local urgentSupplyAfter = {}
 local function requestDangerSupply(itemId)
   itemId = tonumber(itemId)
   if not itemId or now < (urgentSupplyAfter[itemId] or 0) then return end
   urgentSupplyAfter[itemId] = now + 250
+  requestPurseSupply()
 
   if itemId == tonumber(config.amulet.dangerItem) then
     maintainSupplyContainer(config.amulet, "ssa")
@@ -823,26 +880,54 @@ local function requestDangerSupply(itemId)
   end
 end
 
+local function unequipToBack(slotItem, slotKey)
+  if not slotItem or not canMove(slotKey) then return false end
+  -- Address the equipped main BP directly, even when its window is closed.
+  -- Do not toggle equip-by-ID: that lets the server choose the source BP.
+  local back = type(getBack) == "function" and getBack() or nil
+  if not back then return false end
+  local outgoingId = slotItem:getId()
+  if safeCall(g_game.move, slotItem, {x = 65535, y = backSlot, z = 0}, 1) then
+    markNativeMove(slotKey, outgoingId, true)
+    return true
+  end
+  return false
+end
+
+local function equipmentFor(slotKey)
+  if slotKey == "finger" then return getFinger() end
+  return getNeck()
+end
+
 local function moveItemToSlot(itemId, slot, slotKey)
   if not itemId or itemId <= 0 then return false end
   if not canMove(slotKey) then return false end
 
+  local equipped = equipmentFor(slotKey)
+  if isEquipped(equipped, itemId) then return true end
+  -- First store the outgoing equipment in main BP. Wait for its inventory
+  -- acknowledgement before equipping anything from a possibly full BP.
+  if equipped then return unequipToBack(equipped, slotKey) end
+
   -- The server resolves the item by ID, including closed or hidden BPs.
   -- Prefer this for both danger and normal equipment.
+  -- Once a visible source (including purse Loot Pouch) has worked, use it
+  -- immediately for replacements instead of retrying a rejected native path.
+  local item = visibleEquipIds[itemId] and findItemSmart(itemId) or nil
   local fallback = nativeFallback[slotKey]
   local tryVisible = fallback and now < fallback.untilAt and not fallback.removing and
     inactiveId(fallback.id) == inactiveId(itemId)
-  if not tryVisible and equipItemById(inactiveId(itemId)) then
+  if not item and not tryVisible and equipItemById(inactiveId(itemId)) then
     markNativeMove(slotKey, itemId, false)
     return true
   end
 
-  local item = findItemSmart(itemId)
+  item = item or findItemSmart(itemId)
 
   if item then
     if safeCall(g_game.move, item, {x = 65535, y = slot, z = 0}, 1) then
-      suppressCounterSlot(slotKey, itemId)
-      markMove(slotKey)
+      visibleEquipIds[itemId] = true
+      markNativeMove(slotKey, itemId, false)
       return true
     end
   end
@@ -857,31 +942,12 @@ local function equipDangerItem(itemId, slot, slotKey, actionButtonId)
 
   requestDangerSupply(itemId)
   if not canMove(slotKey) then return false end
+  -- A failed main-BP move must never fall through to an atomic swap.
+  if equipmentFor(slotKey) then return false end
 
   if executeActionButton(actionButtonId) then
     markNativeMove(slotKey, itemId, false)
     return true
-  end
-
-  return false
-end
-
-local function unequipToBack(slotItem, slotKey)
-  if not slotItem then return false end
-
-  if canMove(slotKey) then
-    local fallback = nativeFallback[slotKey]
-    local tryVisible = fallback and now < fallback.untilAt and fallback.removing and
-      inactiveId(fallback.id) == inactiveId(slotItem:getId())
-    if not tryVisible and safeCall(g_game.equipItemId, slotItem:getId()) then
-      markNativeMove(slotKey, slotItem:getId(), true)
-      return true
-    end
-    if safeCall(g_game.move, slotItem, {x = 65535, y = backSlot, z = 0}, 1) then
-      suppressCounterSlot(slotKey, 0)
-      markMove(slotKey)
-      return true
-    end
   end
 
   return false
@@ -929,42 +995,182 @@ local function updateRecoveryTimers()
   updateSlotRecovery("neck", sectionRecovered(config.amulet, hp, mp))
 end
 
+local function normalGearBlocked()
+  if sectionDanger(config.ring) or sectionDanger(config.amulet) then return true end
+  if not config.ering.enabled then return false end
+  local hp = hppercent() or 100
+  if hp <= config.ering.hpAt then return true end
+  local shield = config.ering.mode == "spell" and hasManaShield() or
+    config.ering.mode == "ring" and isEquipped(getFinger(), config.ering.dangerItem)
+  return shield and hp < config.ering.removeAt
+end
+
 -- =========================
 -- MODO SPELL / UTAMO
 -- =========================
+local shieldSpellCooldowns, shieldGroupCooldowns = {}, {}
+local shieldFallbackCooldowns, shieldFallbackGroups = {}, {}
+local shieldSpellCache, shieldAttemptAt = {}, {}
+local shieldUnobservedSince = {}
+local shieldPending = nil
+local shieldRejected = {}
+local shieldPotionPendingUntil = 0
+local lastShield = hasManaShield()
+
+local function shieldPhrase(words)
+  return tostring(words or ""):lower():gsub("^%s+", ""):gsub("%s+$", "")
+end
+
+local function shieldSpellData(words)
+  local cached = shieldSpellCache[words]
+  if cached and now < cached.untilAt then return cached.data end
+  local data
+  if type(getSpellData) == "function" then
+    local ok, value = pcall(getSpellData, words)
+    if ok and type(value) == "table" then data = value end
+  end
+  shieldSpellCache[words] = {data=data, untilAt=now+(data and 1000 or 100)}
+  return data
+end
+
+local function confirmShieldSpell(words, castAt)
+  words = shieldPhrase(words)
+  local spellOn, spellOff = shieldPhrase(config.ering.spellOn), shieldPhrase(config.ering.spellOff)
+  if words ~= spellOn and words ~= spellOff then return end
+  local data = shieldSpellData(words)
+  castAt = castAt or now
+  -- These are compatibility fallbacks only. A sent/failed phrase never starts
+  -- the full timer, and Utamo's individual cooldown never blocks Exana.
+  shieldFallbackCooldowns[words] = castAt + (data and tonumber(data.exhaustion) or
+    (words == spellOn and 14000 or 2000))
+  local groups = data and data.group or {[3]=2000}
+  if type(groups) == "table" then
+    for group, duration in pairs(groups) do
+      group, duration = tonumber(group), tonumber(duration)
+      if group and duration then shieldFallbackGroups[group] = castAt + duration end
+    end
+  end
+  if shieldPending and shieldPending.words == words then shieldPending = nil end
+  shieldRejected[words] = nil
+end
+
+if type(onSpellCooldown) == "function" then
+  onSpellCooldown(function(id, duration)
+    id, duration = tonumber(id), tonumber(duration)
+    if not id or not duration then return end
+    shieldSpellCooldowns[id] = now + math.max(0, duration)
+    if shieldPending then
+      local data = shieldSpellData(shieldPending.words)
+      if data and tonumber(data.id) == id then
+        confirmShieldSpell(shieldPending.words, shieldPending.at)
+      end
+    end
+  end)
+end
+if type(onGroupSpellCooldown) == "function" then
+  onGroupSpellCooldown(function(id, duration)
+    id, duration = tonumber(id), tonumber(duration)
+    if id and duration then shieldGroupCooldowns[id] = now + math.max(0, duration) end
+  end)
+end
+if type(onTalk) == "function" then
+  onTalk(function(name, _, _, words)
+    words = shieldPhrase(words)
+    if words ~= shieldPhrase(config.ering.spellOn) and words ~= shieldPhrase(config.ering.spellOff) then return end
+    local ok, ownName = pcall(function() return player:getName() end)
+    if ok and ownName and name == ownName then
+      confirmShieldSpell(words, shieldPending and shieldPending.words == words and shieldPending.at or now)
+    end
+  end)
+end
+
+local function shieldSpellBlocked(words)
+  local data = shieldSpellData(words)
+  local cooldown = modules and modules.game_cooldown
+  local function blocked(expiresAt, api, id, fallbackAt, key, duration)
+    if expiresAt then return now < expiresAt end -- server deadline also clears stale widgets
+    if type(api) == "function" and id then
+      local ok, active = pcall(api, id)
+      if ok then
+        if active ~= true then shieldUnobservedSince[key] = nil; return false end
+        shieldUnobservedSince[key] = shieldUnobservedSince[key] or now
+        return now - shieldUnobservedSince[key] < math.max(300, tonumber(duration) or 2000)
+      end
+    end
+    return fallbackAt and now < fallbackAt or false
+  end
+  local id = data and tonumber(data.id)
+  local onCooldown = blocked(id and shieldSpellCooldowns[id], cooldown and cooldown.isCooldownIconActive,
+    id, shieldFallbackCooldowns[words], "spell:" .. words, data and data.exhaustion)
+  local groups = data and data.group or {[3]=2000}
+  if type(groups) == "table" then
+    for group, duration in pairs(groups) do
+      group = tonumber(group)
+      if group then
+        local groupBlocked = blocked(shieldGroupCooldowns[group], cooldown and cooldown.isGroupCooldownIconActive,
+          group, shieldFallbackGroups[group], "group:" .. group, duration)
+        onCooldown = groupBlocked or onCooldown
+      end
+    end
+  end
+  return onCooldown
+end
+
+local function tryShieldSpell(words)
+  words = shieldPhrase(words)
+  if words == "" or shieldSpellBlocked(words) then return false end
+  local ping = g_game.getPing and tonumber(g_game.getPing()) or 0
+  local retryDelay = math.max(250, math.min(600, ping * 2 + 80))
+  if now - (shieldAttemptAt[words] or 0) < retryDelay then return false end
+  shieldAttemptAt[words] = now
+  -- Register before say: some clients synchronously report talk/cooldowns.
+  shieldPending = {words=words, at=now}
+  if safeCall(say, words) then shieldRejected[words] = nil; return true end
+  shieldPending = nil
+  shieldRejected[words] = true
+  return false
+end
+
 local function handleSpellShield()
   if not config.ering.enabled or config.ering.mode ~= "spell" then return end
 
   local hp = hppercent() or 100
   local hasShield = hasManaShield()
-
-  if hp <= config.ering.hpAt then
-    if not hasShield and now - lastUtamoCast > utamoCooldown then
-      say(config.ering.spellOn)
-      lastUtamoCast = now
+  if hasShield ~= lastShield and shieldPending then
+    local expected = hasShield and shieldPhrase(config.ering.spellOn) or shieldPhrase(config.ering.spellOff)
+    if shieldPending.words == expected and now - shieldPending.at <= 1500 then
+      confirmShieldSpell(expected, shieldPending.at)
     end
   end
-
-  if hp >= config.ering.removeAt then
-    if hasShield and now - lastSpellCast > spellDelay then
-      say(config.ering.spellOff)
-      lastSpellCast = now
-    end
-  end
+  lastShield = hasShield
+  if hasShield then shieldPotionPendingUntil = 0 end
+  local spellOn = shieldPhrase(config.ering.spellOn)
+  local attemptedAt = shieldAttemptAt[spellOn]
+  local waitAfterSpell = not attemptedAt or now - attemptedAt >= 250
+  local utamoUnavailable = shieldSpellBlocked(spellOn) or shieldRejected[spellOn] or
+    shieldPending and shieldPending.words == spellOn and now - shieldPending.at >= 250
 
   if config.ering.manaItemId and config.ering.manaItemId > 0 then
     local itemHp = config.ering.shieldItemHp or config.ering.manaItemMp or 50
-    local utamoWasTried = lastUtamoCast > 0
-    local utamoOnCooldown = utamoWasTried and now - lastUtamoCast < utamoCooldown
-    local waitAfterSpell = now - lastUtamoCast > 250
-
-    if hp <= itemHp and not hasShield and utamoOnCooldown and waitAfterSpell then
-      if now - (lastMove["manaItem"] or 0) > shieldItemDelay then
-        useItemOnSelf(config.ering.manaItemId)
+    if hp <= itemHp and not hasShield and utamoUnavailable and waitAfterSpell then
+      if now - (lastMove["manaItem"] or 0) > shieldItemDelay and useItemOnSelf(config.ering.manaItemId) then
         lastMove["manaItem"] = now
+        shieldPending = nil -- the potion's shield must not confirm a rejected Utamo
+        local ping = g_game.getPing and tonumber(g_game.getPing()) or 0
+        shieldPotionPendingUntil = now + math.max(250, math.min(600, ping * 2 + 80))
+        return
       end
     end
   end
+
+  if hp <= config.ering.hpAt then
+    if not hasShield and now >= shieldPotionPendingUntil then tryShieldSpell(config.ering.spellOn) end
+  end
+
+  if hp >= config.ering.removeAt then
+    if hasShield then tryShieldSpell(config.ering.spellOff) end
+  end
+
 end
 
 -- =========================
@@ -989,6 +1195,9 @@ local function handleFinger()
       markSlotDanger("finger")
 
       if not eringEquipped then
+        -- Preserve a charged MR interrupted by ERing: resume protection when
+        -- the shield ring is removed, rather than returning normal too early.
+        if isEquipped(finger, 3048) then resumeMightAfterEring = true end
         equipDangerItem(config.ering.dangerItem, fingerSlot, "finger", dangerActionButtons.ering)
       end
 
@@ -1037,6 +1246,16 @@ local function handleFinger()
 
     return
   end
+
+  if resumeMightAfterEring then
+    if isEquipped(finger, 3048) then resumeMightAfterEring = false
+    else equipDangerItem(3048, fingerSlot, "finger", dangerActionButtons.ring) end
+    return
+  end
+
+  -- A Might Ring already in use is retained until the server consumes it.
+  -- Energy Ring still has priority above and keeps its configured ON/OFF.
+  if isEquipped(finger, 3048) or normalGearBlocked() then return end
 
   -- =====================================================
   -- RING NORMAL DESPUÉS DEL ENERGY RING
@@ -1107,6 +1326,9 @@ local function handleNeck()
 
     return
   end
+
+  -- Do not discard the remaining charges to restore the normal amulet.
+  if isEquipped(neck, 3081) or normalGearBlocked() then return end
 
   -- Esperar 500 ms con HP y mana al menos 10 puntos sobre sus limites.
   if not slotSafe("neck") then return end
