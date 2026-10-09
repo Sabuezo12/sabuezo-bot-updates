@@ -30,9 +30,10 @@ BotServerSkinOpener < BotServerSkinButton
   height: 24
 
 BotServerSkinIconButton < BotServerSkinButton
-  text-offset: 10 0
+  text:
+  text-offset: 0 0
   $pressed:
-    text-offset: 10 0
+    text-offset: 0 0
 
 BotServerSkinDanger < BotServerSkinButton
   image-source: botserver_assets/danger.png
@@ -47,47 +48,63 @@ BotServerSkinDanger < BotServerSkinButton
 
 BotServerSkinPower < BotServerSkinButton
   $pressed:
-    text-offset: 8 0
+    text-offset: 0 0
   $!on:
-    text: BotServer: OFF
     image-source: botserver_assets/button.png
   $on:
-    text: BotServer: ON
     image-source: botserver_assets/power-on.png
     color: #f0fff2
 
-BotServerSkinSwitch < Button
-  font: verdana-11px-antialised
-  color: #dce6ef
-  size: 72 24
-  padding: 0
+BotServerSkinSwitch < BotServerSkinButton
+  size: 64 24
+  text:
   image-source: botserver_assets/switch-off.png
   image-clip: 0 0 64 24
-  image-border: 12
-  image-color: #ffffff
-  text-offset: 12 0
-  text: OFF
+  image-border: 0
   $hover !disabled:
     image-source: botserver_assets/switch-off.png
     image-clip: 0 0 64 24
   $pressed:
     image-source: botserver_assets/switch-off.png
     image-clip: 0 0 64 24
-    text-offset: 12 0
+    text-offset: 0 0
   $on:
     image-source: botserver_assets/switch-on.png
     image-clip: 0 0 64 24
-    text-offset: -12 0
-    text: ON
   $disabled:
     image-source: botserver_assets/switch-off.png
     image-clip: 0 0 64 24
     opacity: 0.45
 
+  Label
+    id: Caption
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 28
+    size: 32 20
+    text: OFF
+    text-align: center
+    font: verdana-11px-antialised
+    color: #dce6ef
+    phantom: true
+    focusable: false
+
 BotServerIcon < UIWidget
   size: 20 20
   phantom: true
   focusable: false
+
+BotServerPreviewMarker < UIWidget
+  size: 13 13
+  phantom: false
+  focusable: false
+  visible: false
+
+BotServerPreviewGuideDot < UIWidget
+  size: 3 3
+  phantom: true
+  focusable: false
+  visible: false
 
 BotServerSkinCard < Panel
   image-source: botserver_assets/card.png
@@ -478,21 +495,30 @@ BotServerMemberRow < UIWidget
 
   BotServerSkinIconButton
     id: Locate
-    text: Ubicar
-    text-offset: 10 0
     anchors.right: parent.right
     anchors.verticalCenter: parent.verticalCenter
     margin-right: 4
     size: 78 24
-    tooltip: Centrar el minimapa en este companero
+    tooltip: Ubicar a este companero solo en el mapa de Navi
+    text:
 
     BotServerIcon
       id: Icon
       anchors.left: parent.left
       anchors.verticalCenter: parent.verticalCenter
-      size: 18 20
+      size: 12 16
+      margin-left: 6
       image-source: botserver_assets/pin.png
-      margin-left: 10
+
+    BotServerDashboardLabel
+      id: Caption
+      anchors.left: Icon.right
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 4
+      margin-right: 4
+      text: Ubicar
+      text-align: left
 
 BotServerCompanions < Panel
 
@@ -526,16 +552,25 @@ BotServerCompanions < Panel
     anchors.top: Search.top
     margin-left: 4
     size: 96 24
-    text: Favoritos
-    text-offset: 10 0
+    text:
 
     BotServerIcon
       id: Icon
       anchors.left: parent.left
       anchors.verticalCenter: parent.verticalCenter
-      size: 20 20
+      size: 16 16
+      margin-left: 6
       image-source: botserver_assets/star-filled.png
-      margin-left: 8
+
+    BotServerDashboardLabel
+      id: Caption
+      anchors.left: Icon.right
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 4
+      margin-right: 4
+      text: Favoritos
+      text-align: left
 
   BotServerSkinIconButton
     id: SameFloor
@@ -543,16 +578,25 @@ BotServerCompanions < Panel
     anchors.top: Search.top
     margin-left: 4
     size: 100 24
-    text: Mismo piso
-    text-offset: 10 0
+    text:
 
     BotServerIcon
       id: Icon
       anchors.left: parent.left
       anchors.verticalCenter: parent.verticalCenter
-      size: 20 20
+      size: 16 16
+      margin-left: 6
       image-source: botserver_assets/layers.png
-      margin-left: 7
+
+    BotServerDashboardLabel
+      id: Caption
+      anchors.left: Icon.right
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 4
+      margin-right: 4
+      text: Mismo piso
+      text-align: left
 
   ComboBox
     id: Sort
@@ -680,44 +724,96 @@ BotServerCompanions < Panel
 
     BotServerSkinIconButton
       id: Locate
-      text: Centrar mapa
-      text-offset: 10 0
       anchors.left: parent.left
-      anchors.bottom: parent.bottom
+      anchors.top: Position.bottom
       size: 122 22
+      height: 22
+      text:
 
       BotServerIcon
         id: Icon
         anchors.left: parent.left
         anchors.verticalCenter: parent.verticalCenter
-        size: 18 20
+        size: 16 16
+        margin-left: 6
         image-source: botserver_assets/crosshair.png
-        margin-left: 10
+
+      BotServerDashboardLabel
+        id: Caption
+        anchors.left: Icon.right
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        margin-left: 4
+        margin-right: 4
+        text: Centrar mapa
+        text-align: left
 
     BotServerSkinButton
       id: PreviewToggle
       anchors.left: Locate.right
-      anchors.bottom: parent.bottom
+      anchors.top: Locate.top
       margin-left: 4
       size: 90 22
+      height: 22
       text: Mini mapa
+      tooltip: Desplegar o contraer el mapa grande dentro de Navi
 
-    UIMinimap
-      id: Preview
-      anchors.top: parent.top
+    BotServerSkinButton
+      id: ZoomOut
+      anchors.left: PreviewToggle.right
+      anchors.top: Locate.top
+      margin-left: 8
+      size: 26 22
+      height: 22
+      text: -
+      tooltip: Alejar mapa
+      visible: false
+
+    BotServerSkinButton
+      id: ZoomIn
+      anchors.left: ZoomOut.right
+      anchors.top: Locate.top
+      margin-left: 4
+      size: 26 22
+      height: 22
+      text: +
+      tooltip: Acercar mapa
+      visible: false
+
+    BotServerDashboardLabel
+      id: MapInfo
+      anchors.left: ZoomIn.right
       anchors.right: parent.right
-      size: 110 72
-      phantom: true
+      anchors.verticalCenter: ZoomIn.verticalCenter
+      margin-left: 8
+      text:
+      phantom: false
       focusable: false
       visible: false
 
-      UIWidget
-        id: Target
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.verticalCenter: parent.verticalCenter
-        size: 13 13
-        phantom: true
-        focusable: false
+    UIMinimap
+      id: Preview
+      anchors.top: Locate.bottom
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.bottom: parent.bottom
+      margin-top: 8
+      phantom: false
+      focusable: false
+      draggable: false
+      autowalk: false
+      visible: false
+
+    BotServerDashboardLabel
+      id: PreviewHint
+      anchors.top: Preview.top
+      anchors.left: Preview.left
+      anchors.right: Preview.right
+      margin-top: 12
+      height: 24
+      text: Sin posicion reciente para mostrar en el mapa
+      text-align: center
+      visible: false
 
   BotServerSkinCard
     id: Alerts
@@ -894,20 +990,29 @@ BotServerExivaActivity < BotServerSkinCard
 
   BotServerSkinIconButton
     id: Locate
-    text: Ver en mapa
-    text-offset: 10 0
     anchors.top: CurrentPosition.bottom
     anchors.left: parent.left
     margin-top: 2
     size: 122 24
+    text:
 
     BotServerIcon
       id: Icon
       anchors.left: parent.left
       anchors.verticalCenter: parent.verticalCenter
-      size: 18 20
+      size: 16 16
+      margin-left: 6
       image-source: botserver_assets/pin.png
-      margin-left: 10
+
+    BotServerDashboardLabel
+      id: Caption
+      anchors.left: Icon.right
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 4
+      margin-right: 4
+      text: Ver en mapa
+      text-align: left
 
   BotServerSkinDanger
     id: Stop
@@ -1019,7 +1124,7 @@ BotServerExivaActivity < BotServerSkinCard
     margin-top: 0
 
 BotServerWindow < MainWindow
-  text: BotServer
+  text:
   size: 540 460
   font: sans-bold-16px
   image-source: botserver_assets/window.png
@@ -1027,24 +1132,34 @@ BotServerWindow < MainWindow
   image-clip: 0 0 64 64
   text-align: topLeft
   text-offset: 18 8
-  padding-top: 30
+  padding-top: 8
   padding-left: 10
   padding-right: 10
   padding-bottom: 8
   @onEscape: self:hide()
 
+  BotServerDashboardLabel
+    id: Title
+    anchors.left: parent.left
+    anchors.right: closeButton.left
+    anchors.top: parent.top
+    height: 22
+    font: sans-bold-16px
+    text: Navi By: Sabuezo
+
   BotServerSkinButton
-    id: titleClose
+    id: closeButton
     text: X
     anchors.right: parent.right
     anchors.top: parent.top
-    margin-top: -22
     size: 18 18
-    tooltip: Cerrar BotServer
+    tooltip: Cerrar Navi
+    height: 18
+    @onClick: self:getParent():hide()
 
   Panel
     id: Header
-    anchors.top: parent.top
+    anchors.top: Title.bottom
     anchors.left: parent.left
     anchors.right: parent.right
     height: 20
@@ -1184,22 +1299,15 @@ BotServerWindow < MainWindow
     id: separator
     anchors.right: parent.right
     anchors.left: parent.left
-    anchors.bottom: closeButton.top
+    anchors.bottom: enabled.top
     margin-bottom: 4
-
-  BotServerSkinButton
-    id: closeButton
-    text: Cerrar
-    anchors.right: parent.right
-    anchors.bottom: parent.bottom
-    size: 84 24
 
   BotServerSkinPower
     id: enabled
-    anchors.verticalCenter: closeButton.verticalCenter
+    anchors.bottom: parent.bottom
     anchors.left: parent.left
     size: 142 24
-    text-offset: 8 0
+    text:
 
     BotServerIcon
       id: Dot
@@ -1208,3 +1316,12 @@ BotServerWindow < MainWindow
       size: 14 14
       image-source: botserver_assets/status-green.png
       margin-left: 6
+
+    BotServerDashboardLabel
+      id: Caption
+      anchors.left: Dot.right
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 6
+      margin-right: 4
+      text: Navi: ON

@@ -1,3 +1,15 @@
+3.0.25 - Navi independiente y correcciones de exiva
+- BotServer se presenta como Navi By: Sabuezo; se corrige la X de cierre, se retira el boton Cerrar y se ajustan iconos y el interruptor ON/OFF.
+- El minimapa opcional de Navi se despliega hacia abajo con una vista ampliada y controles de zoom; su camara, piso y zoom son independientes del minimapa del cliente.
+- Navi muestra companeros y objetivo de exiva con marcadores diferenciados y nombres al pasar el mouse; la vista de exiva usa la perspectiva del iniciador.
+- El mapa muestra distancia en casillas a companeros y objetivo, distingue posiciones aproximadas, exactas y ultimas vistas, y conserva una guia punteada limitada.
+- Se evita que respuestas automaticas y callbacks duplicados inicien nuevas cadenas de exiva o cambien el objetivo personal de Exiva Last.
+- Apagar la automatizacion del iniciador cancela su ronda y los exivas pendientes; una respuesta en vuelo no reactiva una busqueda apagada.
+- Se rechazan solicitudes caducadas o fuera de orden, se respetan los tiempos de hechizos y se da mas margen para descubrir companeros con una conexion lenta.
+- Se mantienen hasta tres observadores separados por ronda y la prioridad de la posicion exacta cuando cualquier companero ve al objetivo.
+- En Exivas, el tooltip de Iniciador muestra el origen de la busqueda, seleccionados, respuestas recibidas y el motivo de espera del personaje local.
+- Se conservan HP y mana compartidos, favoritos, alertas, parada de lider, perfiles personales y recarga automatica al terminar el update.
+
 3.0.24 - BotServer compacto, companeros y HP compartido
 - BotServer estrena una interfaz compacta de 540 x 460 con pestanas Companeros, Exivas y Conexion, marcos e iconos propios.
 - La lista muestra HP, mana y piso; permite buscar, marcar favoritos, filtrar el mismo piso, ordenar y ubicar a cada companero en el mapa.

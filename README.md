@@ -1,6 +1,6 @@
 # Sabuezo Bot - MythicOT
 
-Version actual: **3.0.24**. Actualizaciones publicas mediante GitHub, sin contrasenas.
+Version actual: **3.0.25**. Actualizaciones publicas mediante GitHub, sin contrasenas.
 
 ## Instalacion
 
@@ -10,19 +10,34 @@ Ejecuta este script en el editor de scripts del bot:
 modules.corelib.HTTP.get('https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/bootstrap.lua', function(script, err) if err or not script then warn('No se pudo descargar Sabuezo') return end assert(loadstring(script))() end)
 ```
 
-El instalador descarga el paquete completo antes de reemplazar archivos, valida el tamano de cada descarga y coloca el Loader al final. Al terminar, recarga el bot. Los archivos anteriores se respaldan en `bot/<config>/_updates/bootstrap_3.0.24/`. Los perfiles y las configuraciones guardadas de cada usuario se conservan.
+El instalador descarga el paquete completo antes de reemplazar archivos, valida el tamano de cada descarga y coloca el Loader al final. Al terminar, recarga el bot. Los archivos anteriores se respaldan en `bot/<config>/_updates/bootstrap_3.0.25/`. Los perfiles y las configuraciones guardadas de cada usuario se conservan.
 
 ## Actualizaciones
 
 El panel **Updater** aparece en **Main**. **Check** consulta GitHub y **Update** instala los archivos pendientes. Se conserva la actualizacion automatica al entrar si esta activada en los ajustes existentes. El bot se recarga automaticamente al terminar una instalacion, tambien al pulsar Update.
 
-Los archivos del manifest apuntan a la etiqueta `v3.0.24`, para que una descarga use una sola version del bot. La antigua version de cierre 3.0.17 esta bloqueada y su payload fue retirado de la version actual del repositorio.
+Los archivos del manifest apuntan a la etiqueta `v3.0.25`, para que una descarga use una sola version del bot. La antigua version de cierre 3.0.17 esta bloqueada y su payload fue retirado de la version actual del repositorio.
 
 ## Contenido publicado
 
 Se publican los scripts Lua, interfaces OTUI, imagenes y textos de licencia necesarios para el bot. Se conservan los scripts de la version anterior y se incorporan las mejoras de BotServer, Player List y exiva probadas en pruebas.
 
 Quedan fuera los perfiles de `storage/`, configuraciones de HealBot/AttackBot/Supplies, listas de jugadores, teclas del editor, rutas de CaveBot, configuraciones de TargetBot, distribucion de paneles, tokens, contrasenas y respaldos. No se publica ni se importa una plantilla personal de Sabuezo.
+
+## Cambios de 3.0.25
+
+- BotServer se presenta como Navi By: Sabuezo; se corrige la X de cierre, se retira el boton Cerrar y se ajustan iconos y el interruptor ON/OFF.
+- El minimapa opcional de Navi se despliega hacia abajo con una vista ampliada y controles de zoom; su camara, piso y zoom son independientes del minimapa del cliente.
+- Navi muestra companeros y objetivo de exiva con marcadores diferenciados y nombres al pasar el mouse; la vista de exiva usa la perspectiva del iniciador.
+- El mapa muestra distancia en casillas a companeros y objetivo, distingue posiciones aproximadas, exactas y ultimas vistas, y conserva una guia punteada limitada.
+- Se evita que respuestas automaticas y callbacks duplicados inicien nuevas cadenas de exiva o cambien el objetivo personal de Exiva Last.
+- Apagar la automatizacion del iniciador cancela su ronda y los exivas pendientes; una respuesta en vuelo no reactiva una busqueda apagada.
+- Se rechazan solicitudes caducadas o fuera de orden, se respetan los tiempos de hechizos y se da mas margen para descubrir companeros con una conexion lenta.
+- Se mantienen hasta tres observadores separados por ronda y la prioridad de la posicion exacta cuando cualquier companero ve al objetivo.
+- En Exivas, el tooltip de Iniciador muestra el origen de la busqueda, seleccionados, respuestas recibidas y el motivo de espera del personaje local.
+- Se conservan HP y mana compartidos, favoritos, alertas, parada de lider, perfiles personales y recarga automatica al terminar el update.
+
+Todos los miembros deben instalar 3.0.25 para recibir la nueva cancelacion de rondas y las correcciones de exiva. En Updater, pulsa Check y Update; el bot se recarga al finalizar. El mapa de Navi sigue siendo opcional.
 
 ## Cambios de 3.0.24
 

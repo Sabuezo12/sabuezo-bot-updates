@@ -7,6 +7,7 @@ end
 
 local REQUEST_TOPIC = "exiva_req"
 local RESULT_TOPIC = "exiva_res"
+local CANCEL_TOPIC = "exiva_cancel"
 local SIGHTING_TOPIC = "exiva_seen"
 local SIGHTING_SCAN_INTERVAL = 300
 local SIGHTING_HEARTBEAT = 1000
@@ -24,7 +25,7 @@ local DAMAGE_SAFE_TIME = 2000
 local CAST_TIMEOUT = 9000
 local CAST_RETRY_INTERVAL = 2600
 local AUTOMATIC_TALK_LIFETIME = 30000
-local AUTOMATIC_ECHO_DUPLICATE_TIME = 100
+local AUTOMATIC_ECHO_DUPLICATE_TIME = 1000
 local CLOSED_REQUEST_LIFETIME = 60000
 local MAX_CAST_ATTEMPTS = 3
 local CAPABILITY_DISCOVERY_DELAY = 450
@@ -81,6 +82,8 @@ local automaticEchoes = BotServer._exivaAutomaticEchoes
 local closedRequests = BotServer._exivaClosedRequests
 local nextMarkerUpdateAt = 0
 local lastCapabilitySentAt = 0
+local nextRemoteCastAt = 0
+local requestOrders = {}
 
 local function clockMillis()
   if g_clock and g_clock.millis then return g_clock.millis() end
@@ -234,9 +237,10 @@ local function pruneAutomaticTalks(current)
   end
 end
 
-local function rememberAutomaticTalk(sessionId, target)
+local function rememberAutomaticTalk(sessionId, target, source)
   local key = normalizedName(target)
-  local ticket = {sessionId = sessionId, expiresAt = clockMillis() + AUTOMATIC_TALK_LIFETIME}
+  local ticket = {sessionId = sessionId, source = source,
+    expiresAt = clockMillis() + AUTOMATIC_TALK_LIFETIME}
   automaticTalks[key] = automaticTalks[key] or {}
   table.insert(automaticTalks[key], ticket)
   return ticket
@@ -260,12 +264,12 @@ local function consumeAutomaticTalk(target, signature)
     local ticket = table.remove(tickets, 1)
     if #tickets == 0 then automaticTalks[key] = nil end
     automaticEchoes[key] = {receivedAt = current, signature = signature}
-    return true, ticket.sessionId
+    return ticket.source == nil, ticket.sessionId, ticket.source
   end
   local echo = automaticEchoes[key]
-  -- Some clients deliver the same speech callback twice in the same frame.
-  -- Only deduplicate an acknowledged automatic command, for a short interval.
-  return echo and echo.signature == signature and
+  -- Spell and speech callbacks can repeat with different modes, including
+  -- after a stalled frame. One echo must not become another initiating spell.
+  return echo and current - echo.receivedAt >= 0 and
     current - echo.receivedAt <= AUTOMATIC_ECHO_DUPLICATE_TIME or false
 end
 
@@ -327,13 +331,14 @@ local function sendCapability(force, requestReply)
   if not force and current - lastCapabilitySentAt < CAPABILITY_INTERVAL then
     return false
   end
-  lastCapabilitySentAt = current
   trackerMembers[normalizedName(selfName())] = current
-  return sendBotServer(CAPABILITY_TOPIC, {
+  local sent = sendBotServer(CAPABILITY_TOPIC, {
     name = selfName(),
     version = CAPABILITY_VERSION,
     requestReply = requestReply == true
   })
+  if sent then lastCapabilitySentAt = current end
+  return sent
 end
 
 local function parseExivaCommand(text)
@@ -622,7 +627,7 @@ local function chebyshev(left, right)
   return math.max(math.abs(left.x - right.x), math.abs(left.y - right.y))
 end
 
-local function selectObservers(target)
+local function selectObservers(target, invited)
   local selfPos = currentPosition()
   if not selfPos then return {}, nil end
   local ownName = selfName()
@@ -641,10 +646,11 @@ local function selectObservers(target)
   for memberName, info in pairs(snapshot) do
     local key = normalizedName(memberName)
     local pos = info and copyPosition(info.pos)
-    local age = info and info.lastSeen and current - info.lastSeen or 0
+    local positionTime = info and (info.positionSeenAt or info.lastSeen)
+    local age = positionTime and current - positionTime or math.huge
     local trackerAge = trackerMembers[key] and
       capabilityTime - trackerMembers[key] or math.huge
-    if not known[key] and pos and age <= MEMBER_POSITION_MAX_AGE and
+    if not known[key] and pos and age >= 0 and age <= MEMBER_POSITION_MAX_AGE and
       trackerAge <= CAPABILITY_TIMEOUT then
       known[key] = true
       table.insert(candidates, {name = memberName, pos = pos})
@@ -658,6 +664,19 @@ local function selectObservers(target)
 
   local selected = {candidates[1]}
   local used = {[normalizedName(candidates[1].name)] = true}
+  -- Fill undiscovered slots without assigning a fourth caster to this round.
+  for _,who in ipairs(invited or {}) do
+    local key = normalizedName(who)
+    if not used[key] and #selected < MAX_OBSERVERS then
+      local pos
+      for _,candidate in ipairs(candidates) do
+        if normalizedName(candidate.name) == key then pos = candidate.pos; break end
+      end
+      pos = pos or (snapshot[who] and copyPosition(snapshot[who].pos)) or selfPos
+      selected[#selected+1] = {name=who, pos=pos}
+      used[key] = true
+    end
+  end
   while #selected < math.min(MAX_OBSERVERS, #candidates) do
     local best, bestDistance
     for _, candidate in ipairs(candidates) do
@@ -697,14 +716,18 @@ end
 
 local function newSession(message)
   local current = clockMillis()
+  local age = math.max(0, os.time() - (tonumber(message.requestTime) or os.time())) * 1000
   local session = {
     id = tostring(message.id),
     target = trim(message.target),
     coordinator = trim(message.coordinator),
     selected = message.selected or {},
     createdAt = current,
-    expiresAt = current + SESSION_TIMEOUT,
-    visualUntil = current + ESTIMATE_LIFETIME,
+    requestTime = tonumber(message.requestTime),
+    requestTick = tonumber(message.requestTick),
+    autoSource = message.autoSource,
+    expiresAt = current + SESSION_TIMEOUT - age,
+    visualUntil = current + ESTIMATE_LIFETIME - age,
     requestSocket = BotServer._websocket,
     purgeAt = current + SESSION_PURGE_TIME,
     observations = {},
@@ -772,7 +795,7 @@ local function publishObservation(session, parsed, observerPos, castTime)
   sendBotServer(RESULT_TOPIC, message)
 end
 
-local function beginManualSession(target)
+local function beginManualSession(target, source)
   if not trackerEnabled() then return end
   sendCapability(true, true)
   local selected, observerPos = selectObservers(target)
@@ -783,7 +806,9 @@ local function beginManualSession(target)
     target = target,
     coordinator = selfName(),
     selected = selected,
-    requestTime = os.time()
+    requestTime = os.time(),
+    requestTick = clockMillis(),
+    autoSource = source or 'manual'
   }
   local session = newSession(message)
   session.requestSocket = BotServer._websocket
@@ -797,23 +822,30 @@ local function beginManualSession(target)
 
   sendBotServer(REQUEST_TOPIC, message)
   scanVisibleTargets(true)
-  schedule(CAPABILITY_DISCOVERY_DELAY, function()
+  local function refreshObservers()
     if not activeGeneration() or not trackerEnabled() then return end
     local currentSession = sessions[session.id]
     if not currentSession or currentSession.castCancelled or
       clockMillis() > currentSession.expiresAt or
+      latestSessions[normalizedName(currentSession.target)] ~= currentSession.id or
       currentSession.requestSocket ~= BotServer._websocket then return end
 
-    local refreshed = selectObservers(currentSession.target)
+    if #currentSession.selected >= MAX_OBSERVERS or hasLiveSighting(currentSession.target) then return end
+    local refreshed = selectObservers(currentSession.target, currentSession.selected)
     currentSession.selected = refreshed
     sendBotServer(REQUEST_TOPIC, {
       id = currentSession.id,
       target = currentSession.target,
       coordinator = currentSession.coordinator,
       selected = refreshed,
-      requestTime = os.time()
+      requestTime = currentSession.requestTime,
+      requestTick = currentSession.requestTick,
+      autoSource = currentSession.autoSource
     })
-  end)
+  end
+  schedule(CAPABILITY_DISCOVERY_DELAY, refreshObservers)
+  -- A slow capability reply should still take part in a single manual search.
+  schedule(1500, refreshObservers)
 end
 
 local function queueRemoteCast(session)
@@ -827,7 +859,8 @@ local function queueRemoteCast(session)
     expiresAt = session.expiresAt,
     requestSocket = BotServer._websocket,
     attempts = 0,
-    nextAttemptAt = 0
+    nextAttemptAt = 0,
+    queuedAt = clockMillis()
   }
 end
 
@@ -842,6 +875,7 @@ local function castQueuedExiva(entry)
   entry.attempts = (tonumber(entry.attempts) or 0) + 1
   entry.lastAttemptAt = current
   entry.nextAttemptAt = current + CAST_RETRY_INTERVAL
+  nextRemoteCastAt = current + CAST_RETRY_INTERVAL
   pendingCasts[entry.sessionId] = {
     automatic = true,
     target = entry.target,
@@ -1134,9 +1168,66 @@ hasLiveSighting = function(target)
   return false
 end
 
+-- Cancellation belongs to the initiator of a round. It never turns off a
+-- teammate's own icons and cannot cancel another member's independent search.
+local function cancelRound(sessionId)
+  local session = sessions[sessionId]
+  if session then
+    session.castCancelled = true
+    local key = normalizedName(session.target)
+    if latestSessions[key] == sessionId then
+      estimates[key], approximateEstimates[key], sightings[key] = nil, nil, nil
+    end
+    localSightings[sessionId] = nil
+  end
+  completeRemoteCast(sessionId)
+  pendingCasts[sessionId] = nil
+end
+
+local function ownAutomationActive(session)
+  local config = storage.pvpSupport or {}
+  if session.autoSource == 'target' then
+    return config.exivaTarget == true and normalizedName(config.lastPlayer) == normalizedName(session.target)
+  elseif session.autoSource == 'last' then
+    return config.exivaLast == true and normalizedName(config.lastExivaName) == normalizedName(session.target)
+  end
+  return true
+end
+
+local function cancelOwnAutomation()
+  for id, session in pairs(sessions) do
+    if not session.castCancelled and session.autoSource and
+      normalizedName(session.coordinator) == normalizedName(selfName()) and
+      not ownAutomationActive(session) then
+      sendBotServer(CANCEL_TOPIC, {id=id, target=session.target, coordinator=session.coordinator,
+        sentAt=os.time()})
+      cancelRound(id)
+    end
+  end
+end
+
+local function requestOrderKey(message)
+  return normalizedName(message.coordinator) .. '|' .. normalizedName(message.target)
+end
+
+local function validRequestOrder(message)
+  local stamp, tick = tonumber(message.requestTime), tonumber(message.requestTick)
+  local wall = os.time()
+  if not stamp or stamp % 1 ~= 0 or stamp > wall + 5 or wall - stamp >= SESSION_TIMEOUT / 1000 then return false end
+  if tick and (tick < 0 or tick % 1 ~= 0) then return false end
+  local previous = requestOrders[requestOrderKey(message)]
+  if previous and previous.id ~= message.id then
+    if stamp < previous.stamp or (stamp == previous.stamp and tick and previous.tick and tick <= previous.tick) then
+      return false
+    end
+  end
+  return true
+end
+
 local function shouldAutoExiva(target)
   if exivaPaused() then return false end
   if not botServerReady() then return true end
+  if clockMillis() < nextRemoteCastAt then return false end
   local session = sessions[latestSessions[normalizedName(target)]]
   if not sightingSession(session) then return true end
   local current,own = clockMillis(),normalizedName(selfName())
@@ -1177,6 +1268,19 @@ local function registerBotServerListeners()
     if message.requestReply == true then sendCapability(true, false) end
   end)
 
+  local cancelOk = BotServer.listen(CANCEL_TOPIC, function(sender, message)
+    if not activeGeneration() or BotServer._websocket ~= listenerSocket or
+      not controlConnected() or type(message) ~= 'table' or type(message.id) ~= 'string' or
+      normalizedName(sender) ~= normalizedName(message.coordinator) or trim(sender) == '' then return end
+    local session = sessions[message.id]
+    if session and (normalizedName(session.coordinator) ~= normalizedName(sender) or
+      normalizedName(session.target) ~= normalizedName(message.target)) then return end
+    local sentAt = tonumber(message.sentAt)
+    if not sentAt or sentAt > os.time()+5 or os.time()-sentAt > CLOSED_REQUEST_LIFETIME/1000 then return end
+    -- Close unknown IDs too: cancellation may arrive before a delayed request.
+    cancelRound(message.id)
+  end)
+
   local requestOk = BotServer.listen(REQUEST_TOPIC, function(sender, message)
     if not activeGeneration() or BotServer._websocket ~= listenerSocket or
       not trackerEnabled() or type(message) ~= "table" then return end
@@ -1189,12 +1293,18 @@ local function registerBotServerListeners()
     local stoppedAt=tonumber(controlState().stoppedAt)
     if stoppedAt and (not tonumber(message.requestTime) or tonumber(message.requestTime)<=stoppedAt) then return end
 
+    if not validRequestOrder(message) then return end
+    if message.selected ~= nil and type(message.selected) ~= 'table' then return end
     local session = sessions[message.id]
     local isNew = not session
     session = session or newSession(message)
     if session.castCancelled or session.remoteCastDone or clockMillis() > session.expiresAt or
       normalizedName(session.target) ~= normalizedName(message.target) or
       normalizedName(session.coordinator) ~= normalizedName(message.coordinator) then return end
+    if isNew then
+      requestOrders[requestOrderKey(message)] = {id=message.id, stamp=session.requestTime,
+        tick=session.requestTick, receivedAt=clockMillis()}
+    end
     session.selected = message.selected or {}
     if selectedContains(session.selected, selfName()) then
       queueRemoteCast(session)
@@ -1223,7 +1333,7 @@ local function registerBotServerListeners()
     acceptSighting(sender,message)
   end)
 
-  if controlOk == false or capabilityOk == false or requestOk == false or resultOk == false or sightingOk == false then
+  if controlOk == false or cancelOk == false or capabilityOk == false or requestOk == false or resultOk == false or sightingOk == false then
     registeredSocket = nil
     return false
   end
@@ -2060,17 +2170,26 @@ onTalk(function(speaker, level, mode, text, channelId)
   local target = parseExivaCommand(text)
   if not target then return end
   local signature = table.concat({tostring(mode or 0), tostring(channelId or 0), trim(text)}, "|")
-  local automatic, sessionId = consumeAutomaticTalk(target, signature)
+  local automatic, sessionId, source = consumeAutomaticTalk(target, signature)
   if automatic then
     if sessionId then completeRemoteCast(sessionId) end
     return
   end
-  if trackerEnabled() then beginManualSession(target) end
+  automaticEchoes[normalizedName(target)] = {receivedAt=clockMillis(), signature=signature}
+  nextRemoteCastAt = math.max(nextRemoteCastAt, clockMillis() + CAST_RETRY_INTERVAL)
+  if source and source ~= 'manual' and not ownAutomationActive({target=target, autoSource=source}) then return end
+  -- This listener owns Exiva Last updates; coordinated replies never change it.
+  if type(storage.pvpSupport) == 'table' then storage.pvpSupport.lastExivaName = target end
+  if trackerEnabled() then beginManualSession(target, source) end
 end)
 
 macro(100, function()
   if not activeGeneration() then return end
   local current = clockMillis()
+  cancelOwnAutomation()
+  for key, order in pairs(requestOrders) do
+    if current-order.receivedAt > CLOSED_REQUEST_LIFETIME then requestOrders[key] = nil end
+  end
   if not trackerEnabled() then cancelSessionCasts(false); clearSightings()
   elseif not botServerReady() then cancelSessionCasts(true); clearSightings() end
   pruneAutomaticTalks(current)
@@ -2080,6 +2199,7 @@ macro(100, function()
   scanVisibleTargets()
   refreshSightEstimates()
 
+  local nextCast
   for sessionId, entry in pairs(queuedCasts) do
     local session = sessions[sessionId]
     if current > entry.expiresAt or not session or session.castCancelled or session.remoteCastDone or
@@ -2088,10 +2208,17 @@ macro(100, function()
       hasLiveSighting(session.target) then
       completeRemoteCast(sessionId)
     elseif botServerReady() and current - lastLargeDamageAt >= DAMAGE_SAFE_TIME and
-        current >= (tonumber(entry.nextAttemptAt) or 0) then
-      castQueuedExiva(entry)
-      if entry.attempts >= MAX_CAST_ATTEMPTS then completeRemoteCast(sessionId) end
+        current >= nextRemoteCastAt and current >= (tonumber(entry.nextAttemptAt) or 0) and
+        (not nextCast or entry.nextAttemptAt < nextCast.nextAttemptAt or
+          (entry.nextAttemptAt == nextCast.nextAttemptAt and entry.queuedAt < nextCast.queuedAt) or
+          (entry.nextAttemptAt == nextCast.nextAttemptAt and entry.queuedAt == nextCast.queuedAt and
+            entry.sessionId < nextCast.sessionId)) then
+      nextCast = entry
     end
+  end
+  if nextCast then
+    castQueuedExiva(nextCast)
+    if nextCast.attempts >= MAX_CAST_ATTEMPTS then completeRemoteCast(nextCast.sessionId) end
   end
   for sessionId, pending in pairs(pendingCasts) do
     if current > pending.expiresAt then
@@ -2150,7 +2277,43 @@ macro(100, function()
   end
 end)
 
+local function getDiagnostics(sessionId)
+  local session, config = sessions[sessionId], storage.pvpSupport or {}
+  local result = {exivaTarget=config.exivaTarget == true, exivaLast=config.exivaLast == true,
+    lastExivaName=config.lastExivaName, selected={}, answered={}}
+  if not session then result.reason='Sin ronda activa'; return result end
+  result.source = session.autoSource == 'last' and 'Exiva Last' or
+    session.autoSource == 'target' and 'Exiva Target' or
+    session.autoSource == 'manual' and 'Exiva manual' or 'Sin tipo informado'
+  for _,who in ipairs(session.selected) do result.selected[#result.selected+1] = who end
+  for _,reading in pairs(session.observations) do result.answered[#result.answered+1] = reading.observer end
+  table.sort(result.answered)
+  local own = normalizedName(selfName())
+  if exivaPaused() then result.reason='Pausa del lider'
+  elseif not trackerEnabled() then result.reason='Exivas de Navi desactivados'
+  elseif not botServerReady() then result.reason='Sin conexion a Navi'
+  elseif session.castCancelled then result.reason='Ronda cancelada'
+  elseif hasLiveSighting(session.target) then result.reason='Objetivo visible: no hace falta otro exiva'
+  elseif session.observations[own] then result.reason='Respuesta enviada'
+  elseif normalizedName(session.coordinator) == own then result.reason='Iniciador de la ronda'
+  elseif not selectedContains(session.selected, selfName()) then result.reason='No seleccionado: se usan hasta 3 observadores separados'
+  elseif pendingCasts[session.id] then result.reason='Esperando respuesta del juego'
+  elseif queuedCasts[session.id] then
+    result.reason=clockMillis()-lastLargeDamageAt < DAMAGE_SAFE_TIME and
+      'En espera por dano recibido' or 'Exiva en cola: espera de hechizos'
+  else result.reason='Ronda finalizada' end
+  return result
+end
+
 vBot.ExivaTracker = {
+  handlesOwnExiva = activeGeneration,
+  prepareInitiatingExiva = function(target, source)
+    nextRemoteCastAt = math.max(nextRemoteCastAt, clockMillis()+CAST_RETRY_INTERVAL)
+    return rememberAutomaticTalk(nil, target, source or 'manual')
+  end,
+  forgetInitiatingExiva = forgetAutomaticTalk,
+  cancelOwnAutomation = cancelOwnAutomation,
+  getDiagnostics = getDiagnostics,
   getActivity = getExivaActivity,
   getControlStatus = getExivaControlStatus,
   isPaused = exivaPaused,

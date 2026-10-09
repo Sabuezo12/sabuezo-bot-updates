@@ -103,36 +103,37 @@ local function clearHoldTarget()
   config.holdTargetName = ""
 end
 
-local function sayExiva(name)
+local function sayExiva(name, source)
   name = cleanName(name)
   if name == "" then return false end
-
+  local tracker = vBot and vBot.ExivaTracker
+  local ticket = tracker and type(tracker.prepareInitiatingExiva) == 'function' and
+    tracker.prepareInitiatingExiva(name, source) or nil
   local message = (config.exivaSpell or "exiva") .. ' "' .. name .. '"'
+  local ok, result = pcall(function()
+    if type(say) == 'function' then return say(message) end
+    if g_game and type(g_game.talk) == 'function' then return g_game.talk(message) end
+    return false
+  end)
+  if not ok or result == false then
+    if ticket and type(tracker.forgetInitiatingExiva) == 'function' then
+      tracker.forgetInitiatingExiva(name, ticket)
+    end
+    return false
+  end
   config.lastExivaName = name
-
-  if type(say) == "function" then
-    local ok = pcall(function()
-      say(message)
-    end)
-    if ok then return true end
-  end
-
-  if g_game and g_game.talk then
-    return g_game.talk(message)
-  end
-
   return true
 end
 
 local function runAutoExiva()
   local tracker=vBot and vBot.ExivaTracker
   if tracker and type(tracker.isPaused)=='function' and tracker.isPaused() then return false end
-  local target
-  if config.exivaTarget and config.lastPlayer ~= "" then target=config.lastPlayer
-  elseif config.exivaLast and config.lastExivaName ~= "" then target=config.lastExivaName end
+  local target, source
+  if config.exivaTarget and config.lastPlayer ~= "" then target,source=config.lastPlayer,'target'
+  elseif config.exivaLast and config.lastExivaName ~= "" then target,source=config.lastExivaName,'last' end
   if not target then return false end
   if tracker and type(tracker.shouldAutoExiva)=='function' and not tracker.shouldAutoExiva(target) then return false end
-  return sayExiva(target)
+  return sayExiva(target, source)
 end
 
 onAttackingCreatureChange(function(newCreature, oldCreature)
@@ -145,6 +146,9 @@ end)
 
 onTalk(function(name, level, mode, text, channelId, pos)
   if name ~= player:getName() then return end
+  local tracker = vBot and vBot.ExivaTracker
+  if tracker and type(tracker.handlesOwnExiva) == 'function' and tracker.handlesOwnExiva() then return end
+  if not tostring(text or ''):lower():match('^%s*exiva%s+') then return end
 
   local exivaName = text:match('[Ee][Xx][Ii][Vv][Aa]%s+"([^"]+)"') or text:match('[Ee][Xx][Ii][Vv][Aa]%s+(.+)')
   if exivaName then
@@ -235,6 +239,8 @@ ExivaTarget = {
   end,
   setOff = function()
     config.exivaTarget = false
+    local tracker = vBot and vBot.ExivaTracker
+    if tracker and type(tracker.cancelOwnAutomation) == 'function' then tracker.cancelOwnAutomation() end
   end
 }
 
@@ -252,5 +258,7 @@ ExivaLast = {
   end,
   setOff = function()
     config.exivaLast = false
+    local tracker = vBot and vBot.ExivaTracker
+    if tracker and type(tracker.cancelOwnAutomation) == 'function' then tracker.cancelOwnAutomation() end
   end
 }
