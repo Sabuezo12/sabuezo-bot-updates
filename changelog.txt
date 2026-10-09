@@ -1,3 +1,13 @@
+3.0.24 - BotServer compacto, companeros y HP compartido
+- BotServer estrena una interfaz compacta de 540 x 460 con pestanas Companeros, Exivas y Conexion, marcos e iconos propios.
+- La lista muestra HP, mana y piso; permite buscar, marcar favoritos, filtrar el mismo piso, ordenar y ubicar a cada companero en el mapa.
+- Se comparte HP junto con mana y posicion. Si un companero usa un bot anterior y esta en tu pantalla, se lee su HP visible sin conservar criaturas ni valores al perderlo de vista.
+- El tooltip del boton BotServer muestra los nombres de los conectados. Se retiran los tiempos hace X s de las filas.
+- El companero seleccionado permite centrar el mapa y activar una vista pequena opcional, desactivada inicialmente.
+- Alertas plegables de HP y mana, con umbrales configurables y sonido opcional. Alertas y sonido empiezan desactivados.
+- La pestana Exivas conserva el objetivo, el iniciador, la posicion y la actividad reciente; Parar exivas sigue reservado a los lideres.
+- Se conserva la recarga automatica al terminar la actualizacion y las configuraciones personales de cada usuario.
+
 3.0.23 - Exiva preciso, coordinacion y control de lider
 - BotServer muestra el iniciador, el objetivo y la repeticion de las busquedas en Exivas recientes.
 - Parar exivas detiene las automatizaciones del grupo durante 60 segundos. Disponible para Rod Master, Sabuezo y Aeron Knight.

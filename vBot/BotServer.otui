@@ -1,3 +1,140 @@
+BotServerSkinButton < Button
+  font: verdana-11px-antialised
+  color: #e4edf3
+  height: 24
+  padding: 0
+  text-offset: 0 0
+  image-source: botserver_assets/button.png
+  image-clip: 0 0 96 36
+  image-border: 6
+  image-color: #ffffff
+  opacity: 1
+  $hover !disabled:
+    image-source: botserver_assets/button-hover.png
+    image-clip: 0 0 96 36
+    image-color: #ffffff
+  $pressed:
+    image-source: botserver_assets/button-pressed.png
+    image-clip: 0 0 96 36
+    text-offset: 0 0
+  $on:
+    image-source: botserver_assets/tab-active.png
+    image-clip: 0 0 96 36
+    color: #effcff
+  $disabled:
+    image-source: botserver_assets/button.png
+    image-clip: 0 0 96 36
+    opacity: 0.45
+
+BotServerSkinOpener < BotServerSkinButton
+  height: 24
+
+BotServerSkinIconButton < BotServerSkinButton
+  text-offset: 10 0
+  $pressed:
+    text-offset: 10 0
+
+BotServerSkinDanger < BotServerSkinButton
+  image-source: botserver_assets/danger.png
+  color: #ffb4a7
+  $hover !disabled:
+    image-source: botserver_assets/danger.png
+    image-color: #ffd1cc
+  $pressed:
+    image-source: botserver_assets/danger.png
+  $disabled:
+    image-source: botserver_assets/danger.png
+
+BotServerSkinPower < BotServerSkinButton
+  $pressed:
+    text-offset: 8 0
+  $!on:
+    text: BotServer: OFF
+    image-source: botserver_assets/button.png
+  $on:
+    text: BotServer: ON
+    image-source: botserver_assets/power-on.png
+    color: #f0fff2
+
+BotServerSkinSwitch < Button
+  font: verdana-11px-antialised
+  color: #dce6ef
+  size: 72 24
+  padding: 0
+  image-source: botserver_assets/switch-off.png
+  image-clip: 0 0 64 24
+  image-border: 12
+  image-color: #ffffff
+  text-offset: 12 0
+  text: OFF
+  $hover !disabled:
+    image-source: botserver_assets/switch-off.png
+    image-clip: 0 0 64 24
+  $pressed:
+    image-source: botserver_assets/switch-off.png
+    image-clip: 0 0 64 24
+    text-offset: 12 0
+  $on:
+    image-source: botserver_assets/switch-on.png
+    image-clip: 0 0 64 24
+    text-offset: -12 0
+    text: ON
+  $disabled:
+    image-source: botserver_assets/switch-off.png
+    image-clip: 0 0 64 24
+    opacity: 0.45
+
+BotServerIcon < UIWidget
+  size: 20 20
+  phantom: true
+  focusable: false
+
+BotServerSkinCard < Panel
+  image-source: botserver_assets/card.png
+  image-border: 5
+  padding: 4
+
+BotServerDashboardLabel < Label
+  font: verdana-11px-antialised
+  color: #d9e4ed
+  height: 18
+  phantom: true
+
+BotServerDashboardTab < BotServerSkinButton
+  height: 24
+
+BotServerMemberBar < Panel
+  width: 102
+  height: 20
+  phantom: true
+
+  UIWidget
+    id: Frame
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    size: 60 16
+    image-source: botserver_assets/bar.png
+    image-border: 3
+    phantom: true
+
+    UIWidget
+      id: Fill
+      anchors.left: parent.left
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      margin: 3
+      width: 1
+      image-source: botserver_assets/hp-fill.png
+      phantom: true
+
+  BotServerDashboardLabel
+    id: Value
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    width: 38
+    text-align: center
+    text: --
+
 BotServerTransportComboBoxPopupMenu < ComboBoxPopupMenu
 BotServerTransportComboBoxPopupMenuButton < ComboBoxPopupMenuButton
 BotServerTransportComboBox < ComboBox
@@ -8,12 +145,12 @@ BotServerTransportComboBox < ComboBox
     self:addOption("WebSocket")
 
 BotServerData < Panel
-  size: 340 76
-  image-source: /images/ui/window
+  size: 520 70
+  image-source: botserver_assets/card.png
   image-border: 6
   padding: 3
 
-  Label
+  BotServerDashboardLabel
     id: titleLabel
     anchors.top: parent.top
     anchors.left: parent.left
@@ -21,14 +158,14 @@ BotServerData < Panel
     text-align: center
     !text: tr("BotServer Data")
 
-  Label
+  BotServerDashboardLabel
     id: channelLabel
     anchors.top: parent.top
     anchors.left: parent.left
     margin-top: 23
     width: 88
     text-align: left
-    text: Channel:
+    text: Canal:
     margin-left: 6
 
   TextEdit
@@ -36,21 +173,21 @@ BotServerData < Panel
     anchors.top: parent.top
     anchors.left: prev.right
     margin-top: 20
-    width: 150
+    width: 300
     margin-left: 5
     text-align: center
 
-  Button
+  BotServerSkinButton
     id: Random
     anchors.left: prev.right
     anchors.top: prev.top
     anchors.right: parent.right
     text-align: center
-    text: Randomize
+    text: Aleatorio
     margin-left: 6
     margin-right: 6
 
-  Label
+  BotServerDashboardLabel
     id: statusLabel
     anchors.left: parent.left
     anchors.bottom: parent.bottom
@@ -59,7 +196,7 @@ BotServerData < Panel
     text-align: center
     text: Status:
 
-  Label
+  BotServerDashboardLabel
     id: ServerStatus
     anchors.left: prev.right
     anchors.bottom: parent.bottom
@@ -68,7 +205,7 @@ BotServerData < Panel
     margin-bottom: 4
     text-align: left
 
-  Label
+  BotServerDashboardLabel
     id: Participants
     anchors.right: parent.right
     anchors.bottom: parent.bottom
@@ -83,20 +220,20 @@ BotServerData < Panel
     anchors.bottom: parent.bottom
     size: 80 21
     text-align: center
-    text: Members:
+    text: Miembros:
 
 TransportPanel < Panel
-  size: 340 82
-  image-source: /images/ui/panel_flat
+  size: 520 106
+  image-source: botserver_assets/card.png
   image-border: 5
   padding: 3
 
-  Label
+  BotServerDashboardLabel
     id: title
     anchors.top: parent.top
     anchors.horizontalCenter: parent.horizontalCenter
     text-align: center
-    text: Game transport
+    text: Transporte
 
   HorizontalSeparator
     id: sep
@@ -105,7 +242,7 @@ TransportPanel < Panel
     anchors.right: parent.right
     margin-top: 2
 
-  Label
+  BotServerDashboardLabel
     id: transportLabel
     anchors.top: sep.bottom
     anchors.left: parent.left
@@ -121,7 +258,7 @@ TransportPanel < Panel
     margin-left: 5
     width: 145
 
-  Label
+  BotServerDashboardLabel
     id: guildChannelLabel
     anchors.top: TransportMode.bottom
     anchors.left: parent.left
@@ -140,7 +277,7 @@ TransportPanel < Panel
     maximum: 65535
     step: 1
 
-  Label
+  BotServerDashboardLabel
     id: gameChannelLabel
     anchors.verticalCenter: prev.verticalCenter
     anchors.left: prev.right
@@ -158,7 +295,7 @@ TransportPanel < Panel
     maximum: 65535
     step: 1
 
-  Label
+  BotServerDashboardLabel
     id: opcodeLabel
     anchors.verticalCenter: prev.verticalCenter
     anchors.left: prev.right
@@ -175,18 +312,30 @@ TransportPanel < Panel
     maximum: 255
     step: 1
 
+  BotServerDashboardLabel
+    id: Hint
+    anchors.bottom: parent.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-left: 6
+    margin-right: 6
+    margin-bottom: 4
+    height: 18
+    color: #a8b6b8
+    font: verdana-11px-antialised
+
 FeaturePanel < Panel
-  size: 340 112
-  image-source: /images/ui/panel_flat
+  size: 520 98
+  image-source: botserver_assets/card.png
   image-border: 5
   padding: 3
 
-  Label
+  BotServerDashboardLabel
     id: title
     anchors.top: parent.top
     anchors.horizontalCenter: parent.horizontalCenter
     text-align: center
-    text: Features
+    text: Funciones
 
   HorizontalSeparator
     id: sep
@@ -195,7 +344,7 @@ FeaturePanel < Panel
     anchors.right: parent.right
     margin-top: 2
 
-  BotSwitch
+  BotServerSkinButton
     id: Feature1
     anchors.top: prev.bottom
     anchors.left: parent.left
@@ -205,7 +354,7 @@ FeaturePanel < Panel
     height: 21
     text: Mana
 
-  BotSwitch
+  BotServerSkinButton
     id: Feature6
     anchors.top: sep.bottom
     anchors.left: Feature1.right
@@ -215,7 +364,7 @@ FeaturePanel < Panel
     height: 21
     text: Map
 
-  BotSwitch
+  BotServerSkinButton
     id: Feature5
     anchors.top: sep.bottom
     anchors.left: Feature6.right
@@ -225,7 +374,7 @@ FeaturePanel < Panel
     height: 21
     text: Broadcast
 
-  BotSwitch
+  BotServerSkinButton
     id: Feature7
     anchors.top: sep.bottom
     anchors.left: Feature5.right
@@ -244,7 +393,7 @@ FeaturePanel < Panel
     margin-bottom: 3
     margin-right: 80
 
-  Button
+  BotServerSkinButton
     id: Broadcast
     anchors.top: prev.top
     anchors.left: prev.right
@@ -254,98 +403,577 @@ FeaturePanel < Panel
     height: 22
     text: Broadcast
 
-BotServerExivaActivityRow < Panel
-  height: 16
+BotServerMemberRow < UIWidget
+  height: 30
+  focusable: true
+  image-source: botserver_assets/row.png
+  image-border: 4
 
-  Label
-    id: Time
+  $hover:
+    image-source: botserver_assets/row-hover.png
+
+  $on:
+    image-source: botserver_assets/row-selected.png
+
+  BotServerIcon
+    id: Dot
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    size: 14 14
+    image-source: botserver_assets/status-gray.png
+    margin-left: 6
+
+  BotServerDashboardLabel
+    id: Name
+    text:
     anchors.left: parent.left
     anchors.top: parent.top
-    width: 55
+    margin-left: 28
+    margin-top: 2
+    width: 136
     height: 16
-    font: verdana-11px-rounded
 
-  Label
-    id: Initiator
-    anchors.left: Time.right
+  BotServerIcon
+    id: Leader
+    anchors.left: parent.left
+    anchors.verticalCenter: Name.verticalCenter
+    size: 14 14
+    image-source: botserver_assets/crown.png
+    margin-left: 165
+    visible: false
+
+  BotServerDashboardLabel
+    id: Freshness
+    text:
+    anchors.left: Name.left
+    anchors.top: Name.bottom
+    width: 152
+    height: 12
+    color: #a6b3bf
+
+  UIWidget
+    id: Favorite
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 181
+    size: 18 18
+    image-source: botserver_assets/star-outline.png
+    focusable: true
+    tooltip: Marcar o quitar favorito
+
+    $hover:
+      image-color: #fff2b6
+
+  BotServerMemberBar
+    id: Hp
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 206
+
+  BotServerMemberBar
+    id: Mana
+    anchors.left: Hp.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 6
+
+  BotServerSkinIconButton
+    id: Locate
+    text: Ubicar
+    text-offset: 10 0
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 4
+    size: 78 24
+    tooltip: Centrar el minimapa en este companero
+
+    BotServerIcon
+      id: Icon
+      anchors.left: parent.left
+      anchors.verticalCenter: parent.verticalCenter
+      size: 18 20
+      image-source: botserver_assets/pin.png
+      margin-left: 10
+
+BotServerCompanions < Panel
+
+  TextEdit
+    id: Search
+    anchors.left: parent.left
     anchors.top: parent.top
-    margin-left: 4
-    width: 129
-    height: 16
-    font: verdana-11px-rounded
-    color: #9dd1ce
+    width: 186
+    height: 24
+    placeholder: Buscar jugador
+    tooltip: Buscar por nombre
+    font: verdana-11px-antialised
+    image-source: botserver_assets/input.png
+    image-border: 5
+    padding-left: 32
+    padding-right: 6
+    text-offset: 0 0
+    color: #e4edf3
 
-  Label
+    BotServerIcon
+      id: Icon
+      anchors.left: parent.left
+      anchors.verticalCenter: parent.verticalCenter
+      size: 20 20
+      image-source: botserver_assets/search.png
+      margin-left: -25
+
+  BotServerSkinIconButton
+    id: Favorites
+    anchors.left: Search.right
+    anchors.top: Search.top
+    margin-left: 4
+    size: 96 24
+    text: Favoritos
+    text-offset: 10 0
+
+    BotServerIcon
+      id: Icon
+      anchors.left: parent.left
+      anchors.verticalCenter: parent.verticalCenter
+      size: 20 20
+      image-source: botserver_assets/star-filled.png
+      margin-left: 8
+
+  BotServerSkinIconButton
+    id: SameFloor
+    anchors.left: Favorites.right
+    anchors.top: Search.top
+    margin-left: 4
+    size: 100 24
+    text: Mismo piso
+    text-offset: 10 0
+
+    BotServerIcon
+      id: Icon
+      anchors.left: parent.left
+      anchors.verticalCenter: parent.verticalCenter
+      size: 20 20
+      image-source: botserver_assets/layers.png
+      margin-left: 7
+
+  ComboBox
+    id: Sort
+    anchors.right: parent.right
+    anchors.top: Search.top
+    width: 126
+    height: 24
+    font: verdana-11px-antialised
+    tooltip: Orden de la lista; datos recientes primero
+    @onSetup: |
+      self:addOption("Nombre")
+      self:addOption("Menor HP")
+      self:addOption("Menor mana")
+
+  Panel
+    id: Headings
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: Search.bottom
+    margin-top: 4
+    height: 20
+    image-source: botserver_assets/heading.png
+    image-border: 4
+
+    BotServerDashboardLabel
+      id: Player
+      text: Jugador
+      anchors.left: parent.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 16
+      width: 180
+
+    BotServerDashboardLabel
+      id: Hp
+      text: HP
+      anchors.left: parent.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 206
+      width: 102
+
+    BotServerDashboardLabel
+      id: Mana
+      text: Mana
+      anchors.left: Hp.right
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 6
+      width: 102
+
+    BotServerDashboardLabel
+      id: Map
+      text: Mapa
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      margin-right: 16
+      width: 78
+      text-align: center
+
+  ScrollablePanel
+    id: List
+    anchors.left: parent.left
+    anchors.right: Scroll.left
+    anchors.top: Headings.bottom
+    anchors.bottom: Selected.top
+    margin-top: 3
+    margin-right: 4
+    margin-bottom: 4
+    vertical-scrollbar: Scroll
+    layout:
+      type: verticalBox
+      spacing: 1
+
+  VerticalScrollBar
+    id: Scroll
+    anchors.top: Headings.bottom
+    anchors.bottom: Selected.top
+    anchors.right: parent.right
+    margin-top: 3
+    margin-bottom: 4
+    width: 12
+    step: 31
+    pixels-scroll: true
+
+  BotServerDashboardLabel
+    id: Empty
+    text: Sin companeros para estos filtros
+    anchors.top: List.top
+    anchors.left: List.left
+    anchors.right: List.right
+    margin-top: 12
+    height: 32
+    text-align: center
+
+  BotServerSkinCard
+    id: Selected
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: Alerts.top
+    margin-bottom: 4
+    height: 60
+
+    BotServerDashboardLabel
+      id: Name
+      text: Selecciona un companero
+      anchors.left: parent.left
+      anchors.top: parent.top
+      width: 360
+      height: 16
+
+    BotServerDashboardLabel
+      id: Position
+      text: Posicion: -
+      anchors.left: parent.left
+      anchors.top: Name.bottom
+      width: 352
+      height: 14
+
+    BotServerDashboardLabel
+      id: Status
+      text:
+      anchors.left: Position.right
+      anchors.top: Position.top
+      width: 180
+      height: 18
+      visible: false
+
+    BotServerSkinIconButton
+      id: Locate
+      text: Centrar mapa
+      text-offset: 10 0
+      anchors.left: parent.left
+      anchors.bottom: parent.bottom
+      size: 122 22
+
+      BotServerIcon
+        id: Icon
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+        size: 18 20
+        image-source: botserver_assets/crosshair.png
+        margin-left: 10
+
+    BotServerSkinButton
+      id: PreviewToggle
+      anchors.left: Locate.right
+      anchors.bottom: parent.bottom
+      margin-left: 4
+      size: 90 22
+      text: Mini mapa
+
+    UIMinimap
+      id: Preview
+      anchors.top: parent.top
+      anchors.right: parent.right
+      size: 110 72
+      phantom: true
+      focusable: false
+      visible: false
+
+      UIWidget
+        id: Target
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
+        size: 13 13
+        phantom: true
+        focusable: false
+
+  BotServerSkinCard
+    id: Alerts
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    height: 34
+
+    UIWidget
+      id: Fold
+      anchors.left: parent.left
+      anchors.top: parent.top
+      size: 340 22
+      text: Alertas de HP / mana
+      text-align: left
+      text-offset: 24 0
+      font: verdana-11px-antialised
+      color: #e4edf3
+      focusable: true
+      tooltip: Mostrar u ocultar los umbrales de alerta
+
+      BotServerIcon
+        id: Arrow
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+        size: 18 18
+        image-source: botserver_assets/chevron-right.png
+
+    BotServerSkinSwitch
+      id: Enabled
+      anchors.right: parent.right
+      anchors.top: parent.top
+      margin-top: 1
+      tooltip: Activar o desactivar avisos locales de HP y mana
+
+    BotServerDashboardLabel
+      id: HpLabel
+      text: HP:
+      anchors.left: parent.left
+      anchors.top: Fold.bottom
+      margin-top: 4
+      width: 28
+      height: 20
+      visible: false
+
+    SpinBox
+      id: Hp
+      anchors.left: HpLabel.right
+      anchors.top: HpLabel.top
+      width: 52
+      height: 20
+      minimum: 0
+      maximum: 100
+      step: 5
+      visible: false
+
+    BotServerDashboardLabel
+      id: ManaLabel
+      text: Mana:
+      anchors.left: Hp.right
+      anchors.top: HpLabel.top
+      margin-left: 12
+      width: 40
+      height: 20
+      visible: false
+
+    SpinBox
+      id: Mana
+      anchors.left: ManaLabel.right
+      anchors.top: HpLabel.top
+      width: 52
+      height: 20
+      minimum: 0
+      maximum: 100
+      step: 5
+      visible: false
+
+    CheckBox
+      id: Sound
+      anchors.left: Mana.right
+      anchors.top: HpLabel.top
+      margin-left: 16
+      width: 96
+      height: 20
+      font: verdana-11px-antialised
+      text: Sonido
+      visible: false
+
+    BotServerDashboardLabel
+      id: Hint
+      text: Umbrales en %. 0 desactiva ese aviso. Solo datos recientes.
+      anchors.left: parent.left
+      anchors.top: Hp.bottom
+      anchors.right: parent.right
+      margin-top: 2
+      height: 14
+      color: #a6b3bf
+      visible: false
+
+    BotServerDashboardLabel
+      id: Message
+      text: Alertas desactivadas
+      anchors.left: parent.left
+      anchors.top: Hint.bottom
+      anchors.right: parent.right
+      height: 18
+      visible: false
+
+BotServerExivaActivityRow < Panel
+  height: 18
+  image-source: botserver_assets/row.png
+  image-border: 3
+
+  BotServerDashboardLabel
+    id: Time
+    text:
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 8
+    width: 72
+
+  BotServerDashboardLabel
+    id: Initiator
+    text:
+    anchors.left: Time.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 8
+    width: 206
+    color: #b2e0e3
+
+  BotServerDashboardLabel
     id: Target
+    text:
     anchors.left: Initiator.right
     anchors.right: parent.right
-    anchors.top: parent.top
-    margin-left: 4
-    height: 16
-    font: verdana-11px-rounded
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 12
+    margin-right: 8
 
-BotServerExivaActivity < Panel
-  size: 340 134
-  image-source: /images/ui/panel_flat
-  image-border: 5
-  padding: 3
+BotServerExivaActivity < BotServerSkinCard
 
-  Label
+  BotServerDashboardLabel
     id: title
+    text: Busqueda actual
     anchors.top: parent.top
     anchors.left: parent.left
-    margin-left: 6
-    height: 17
-    width: 160
-    text: Exivas recientes
+    height: 18
+    width: 300
 
-  Button
-    id: Stop
-    anchors.top: parent.top
-    anchors.right: parent.right
-    margin-right: 6
-    size: 108 20
-    text: Parar (60 s)
-    visible: false
-    tooltip: Apaga Exiva Target/Last y pausa los exivas compartidos del grupo durante 60 segundos. Todos deben tener esta funcion instalada.
-
-  Label
-    id: Status
+  BotServerDashboardLabel
+    id: CurrentTarget
+    text: Objetivo: -
     anchors.top: title.bottom
     anchors.left: parent.left
     anchors.right: parent.right
-    margin-top: 5
-    margin-left: 6
-    margin-right: 6
-    height: 16
-    font: verdana-11px-rounded
+    margin-top: 2
+    height: 20
+
+  BotServerDashboardLabel
+    id: CurrentInitiator
+    text: Iniciador: -
+    anchors.top: CurrentTarget.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 20
+
+  BotServerDashboardLabel
+    id: CurrentPosition
+    text: Posicion: sin busqueda activa
+    anchors.top: CurrentInitiator.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 20
+
+  BotServerSkinIconButton
+    id: Locate
+    text: Ver en mapa
+    text-offset: 10 0
+    anchors.top: CurrentPosition.bottom
+    anchors.left: parent.left
+    margin-top: 2
+    size: 122 24
+
+    BotServerIcon
+      id: Icon
+      anchors.left: parent.left
+      anchors.verticalCenter: parent.verticalCenter
+      size: 18 20
+      image-source: botserver_assets/pin.png
+      margin-left: 10
+
+  BotServerSkinDanger
+    id: Stop
+    anchors.top: Locate.top
+    anchors.right: parent.right
+    margin-right: 24
+    size: 158 24
+    text: Parar exivas (60 s)
+    visible: false
+    tooltip: Solo lideres. Pausa de 60 segundos para los miembros que tienen esta funcion.
+
+  BotServerIcon
+    id: Leader
+    anchors.left: Stop.right
+    anchors.verticalCenter: Stop.verticalCenter
+    size: 20 20
+    image-source: botserver_assets/crown.png
+    margin-left: 8
+    visible: false
+
+  BotServerDashboardLabel
+    id: LeaderHint
+    text: Control de parada exclusivo del lider
+    anchors.top: Locate.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 2
+    height: 14
+    color: #a6b3bf
+
+  HorizontalSeparator
+    id: CurrentSeparator
+    anchors.top: LeaderHint.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 2
+
+  BotServerDashboardLabel
+    id: Status
     text: Sin exivas registrados
+    anchors.top: CurrentSeparator.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 4
+    height: 18
 
   BotServerExivaActivityRow
     id: Headings
     anchors.top: Status.bottom
     anchors.left: parent.left
     anchors.right: parent.right
-    margin-left: 6
-    margin-right: 6
     margin-top: 4
+    image-source: botserver_assets/heading.png
 
   BotServerExivaActivityRow
     id: Row1
     anchors.top: Headings.bottom
     anchors.left: parent.left
     anchors.right: parent.right
-    margin-left: 6
-    margin-right: 6
-    margin-top: 2
+    margin-top: 0
 
   BotServerExivaActivityRow
     id: Row2
     anchors.top: Row1.bottom
     anchors.left: parent.left
     anchors.right: parent.right
-    margin-left: 6
-    margin-right: 6
     margin-top: 0
 
   BotServerExivaActivityRow
@@ -353,8 +981,6 @@ BotServerExivaActivity < Panel
     anchors.top: Row2.bottom
     anchors.left: parent.left
     anchors.right: parent.right
-    margin-left: 6
-    margin-right: 6
     margin-top: 0
 
   BotServerExivaActivityRow
@@ -362,65 +988,223 @@ BotServerExivaActivity < Panel
     anchors.top: Row3.bottom
     anchors.left: parent.left
     anchors.right: parent.right
-    margin-left: 6
-    margin-right: 6
+    margin-top: 0
+
+  BotServerExivaActivityRow
+    id: Row5
+    anchors.top: Row4.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 0
+
+  BotServerExivaActivityRow
+    id: Row6
+    anchors.top: Row5.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 0
+
+  BotServerExivaActivityRow
+    id: Row7
+    anchors.top: Row6.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 0
+
+  BotServerExivaActivityRow
+    id: Row8
+    anchors.top: Row7.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
     margin-top: 0
 
 BotServerWindow < MainWindow
-  !text: tr('BotServer')
-  size: 370 516
+  text: BotServer
+  size: 540 460
+  font: sans-bold-16px
+  image-source: botserver_assets/window.png
+  image-border: 8
+  image-clip: 0 0 64 64
+  text-align: topLeft
+  text-offset: 18 8
+  padding-top: 30
+  padding-left: 10
+  padding-right: 10
+  padding-bottom: 8
   @onEscape: self:hide()
+
+  BotServerSkinButton
+    id: titleClose
+    text: X
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-top: -22
+    size: 18 18
+    tooltip: Cerrar BotServer
+
+  Panel
+    id: Header
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 20
+
+    BotServerIcon
+      id: Dot
+      anchors.left: parent.left
+      anchors.verticalCenter: parent.verticalCenter
+      size: 18 18
+      image-source: botserver_assets/status-gray.png
+
+    BotServerDashboardLabel
+      id: Status
+      text: Desconectado
+      anchors.left: Dot.right
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 4
+      width: 100
+
+    BotServerDashboardLabel
+      id: Divider1
+      text: |
+      anchors.left: Status.right
+      anchors.verticalCenter: parent.verticalCenter
+      width: 18
+      text-align: center
+      color: #86939e
+
+    BotServerDashboardLabel
+      id: Members
+      text: 0 jugadores
+      anchors.left: Divider1.right
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 8
+      width: 94
+
+    BotServerDashboardLabel
+      id: Divider2
+      text: |
+      anchors.left: Members.right
+      anchors.verticalCenter: parent.verticalCenter
+      width: 18
+      text-align: center
+      color: #86939e
+
+    BotServerDashboardLabel
+      id: Channel
+      text:
+      anchors.left: Divider2.right
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 8
+
+  Panel
+    id: Tabs
+    anchors.top: Header.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 4
+    height: 24
+
+    BotServerDashboardTab
+      id: Companions
+      anchors.left: parent.left
+      anchors.top: parent.top
+      width: 172
+      text: Companeros (0)
+
+    BotServerDashboardTab
+      id: Exivas
+      anchors.left: Companions.right
+      anchors.top: parent.top
+      margin-left: 4
+      width: 164
+      text: Exivas
+
+    BotServerDashboardTab
+      id: Connection
+      anchors.left: Exivas.right
+      anchors.right: parent.right
+      anchors.top: parent.top
+      margin-left: 4
+      text: Conexion
+
+  BotServerCompanions
+    id: MembersPage
+    anchors.top: Tabs.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: separator.top
+    margin-top: 6
+    margin-bottom: 4
 
   BotServerData
     id: Data
-    anchors.top: parent.top
+    anchors.top: Tabs.bottom
     anchors.horizontalCenter: parent.horizontalCenter
+    margin-top: 6
+    visible: false
 
   TransportPanel
     id: Transport
-    anchors.top: prev.bottom
+    anchors.top: Data.bottom
     anchors.horizontalCenter: parent.horizontalCenter
-    margin-top: 10
+    margin-top: 6
+    visible: false
 
   FeaturePanel
     id: Features
-    anchors.top: prev.bottom
+    anchors.top: Transport.bottom
     anchors.horizontalCenter: parent.horizontalCenter
-    margin-top: 10
+    margin-top: 6
+    visible: false
+
+  BotServerDashboardLabel
+    id: ConnectionNote
+    text: Comparte HP, mana y posicion con el grupo. Mana controla su visualizacion sobre personajes. Mapa controla los marcadores. Todos deben usar el mismo canal.
+    anchors.top: Features.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 6
+    height: 42
+    text-wrap: true
+    visible: false
 
   BotServerExivaActivity
     id: ExivaActivity
-    anchors.top: Features.bottom
-    anchors.horizontalCenter: parent.horizontalCenter
-    margin-top: 10
+    anchors.top: Tabs.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: separator.top
+    margin-top: 6
+    margin-bottom: 4
+    visible: false
 
   HorizontalSeparator
     id: separator
     anchors.right: parent.right
     anchors.left: parent.left
     anchors.bottom: closeButton.top
-    margin-bottom: 8
+    margin-bottom: 4
 
-  Button
+  BotServerSkinButton
     id: closeButton
-    !text: tr('Close')
-    font: cipsoftFont
+    text: Cerrar
     anchors.right: parent.right
     anchors.bottom: parent.bottom
-    size: 45 21
-    margin-top: 15
-    margin-right: 5
+    size: 84 24
 
-  BotSwitch
+  BotServerSkinPower
     id: enabled
-    anchors.verticalCenter: prev.verticalCenter
+    anchors.verticalCenter: closeButton.verticalCenter
     anchors.left: parent.left
-    margin-left: 5
-    width: 125
-    height: 21
+    size: 142 24
+    text-offset: 8 0
 
-    $!on:
-      text: BotServer: OFF
-
-    $on:
-      text: BotServer: ON
+    BotServerIcon
+      id: Dot
+      anchors.left: parent.left
+      anchors.verticalCenter: parent.verticalCenter
+      size: 14 14
+      image-source: botserver_assets/status-green.png
+      margin-left: 6

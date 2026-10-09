@@ -1,6 +1,6 @@
 # Sabuezo Bot - MythicOT
 
-Version actual: **3.0.23**. Actualizaciones publicas mediante GitHub, sin contrasenas.
+Version actual: **3.0.24**. Actualizaciones publicas mediante GitHub, sin contrasenas.
 
 ## Instalacion
 
@@ -10,19 +10,32 @@ Ejecuta este script en el editor de scripts del bot:
 modules.corelib.HTTP.get('https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/bootstrap.lua', function(script, err) if err or not script then warn('No se pudo descargar Sabuezo') return end assert(loadstring(script))() end)
 ```
 
-El instalador descarga el paquete completo antes de reemplazar archivos, valida el tamano de cada descarga y coloca el Loader al final. Al terminar, recarga el bot. Los archivos anteriores se respaldan en `bot/<config>/_updates/bootstrap_3.0.23/`. Los perfiles y las configuraciones guardadas de cada usuario se conservan.
+El instalador descarga el paquete completo antes de reemplazar archivos, valida el tamano de cada descarga y coloca el Loader al final. Al terminar, recarga el bot. Los archivos anteriores se respaldan en `bot/<config>/_updates/bootstrap_3.0.24/`. Los perfiles y las configuraciones guardadas de cada usuario se conservan.
 
 ## Actualizaciones
 
 El panel **Updater** aparece en **Main**. **Check** consulta GitHub y **Update** instala los archivos pendientes. Se conserva la actualizacion automatica al entrar si esta activada en los ajustes existentes. El bot se recarga automaticamente al terminar una instalacion, tambien al pulsar Update.
 
-Los archivos del manifest apuntan a la etiqueta `v3.0.23`, para que una descarga use una sola version del bot. La antigua version de cierre 3.0.17 esta bloqueada y su payload fue retirado de la version actual del repositorio.
+Los archivos del manifest apuntan a la etiqueta `v3.0.24`, para que una descarga use una sola version del bot. La antigua version de cierre 3.0.17 esta bloqueada y su payload fue retirado de la version actual del repositorio.
 
 ## Contenido publicado
 
 Se publican los scripts Lua, interfaces OTUI, imagenes y textos de licencia necesarios para el bot. Se conservan los scripts de la version anterior y se incorporan las mejoras de BotServer, Player List y exiva probadas en pruebas.
 
 Quedan fuera los perfiles de `storage/`, configuraciones de HealBot/AttackBot/Supplies, listas de jugadores, teclas del editor, rutas de CaveBot, configuraciones de TargetBot, distribucion de paneles, tokens, contrasenas y respaldos. No se publica ni se importa una plantilla personal de Sabuezo.
+
+## Cambios de 3.0.24
+
+- BotServer estrena una interfaz compacta de 540 x 460 con pestanas Companeros, Exivas y Conexion, marcos e iconos propios.
+- La lista muestra HP, mana y piso; permite buscar, marcar favoritos, filtrar el mismo piso, ordenar y ubicar a cada companero en el mapa.
+- Se comparte HP junto con mana y posicion. Si un companero usa un bot anterior y esta en tu pantalla, se lee su HP visible sin conservar criaturas ni valores al perderlo de vista.
+- El tooltip del boton BotServer muestra los nombres de los conectados. Se retiran los tiempos hace X s de las filas.
+- El companero seleccionado permite centrar el mapa y activar una vista pequena opcional, desactivada inicialmente.
+- Alertas plegables de HP y mana, con umbrales configurables y sonido opcional. Alertas y sonido empiezan desactivados.
+- La pestana Exivas conserva el objetivo, el iniciador, la posicion y la actividad reciente; Parar exivas sigue reservado a los lideres.
+- Se conserva la recarga automatica al terminar la actualizacion y las configuraciones personales de cada usuario.
+
+Para ver HP a distancia, los companeros deben instalar esta version y conectarse al mismo BotServer. La lectura local funciona solo mientras el companero esta visible; no sustituye el envio de HP desde su bot.
 
 ## Cambios de 3.0.23
 

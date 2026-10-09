@@ -55,6 +55,7 @@ local loaderSections = {
       "vBot/extrasPvp",
       "vBot/GameBotServerTransport",
       "vBot/BotServer",
+      "vBot/BotServerDashboard",
       "vBot/exiva_tracker",
       "vBot/playerlist",
       "vBot/combo_plus",

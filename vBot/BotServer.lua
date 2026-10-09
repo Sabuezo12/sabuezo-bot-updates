@@ -7,17 +7,49 @@ local DEFAULT_WEBSOCKET_TOKEN = "Slegna"
 local BOTSERVER_DEFAULTS_VERSION = 6
 local ui = setupUI([[
 Panel
-  height: 18
+  height: 24
 
-  Button
+  BotServerSkinOpener
     id: botServer
     anchors.left: parent.left
     anchors.right: parent.right
     text-align: center
-    height: 18
+    height: 24
     !text: tr('BotServer')
+
+    UIWidget
+      id: connectionDot
+      anchors.left: parent.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 8
+      size: 14 14
+      phantom: true
+
+    BotServerIcon
+      id: membersIcon
+      anchors.left: connectionDot.right
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 5
+      size: 18 18
+
+    Label
+      id: memberBadge
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      margin-right: 6
+      size: 24 20
+      font: verdana-11px-antialised
+      text-align: center
+      text: 0
+      phantom: true
+      image-border: 4
 ]])
 ui:setId(panelName)
+vBot.BotServerOpener = ui.botServer
+local openerAssetRoot = (configDir or '/bot/pruebas') .. '/vBot/botserver_assets/'
+ui.botServer.connectionDot:setImageSource(openerAssetRoot .. 'status-red.png')
+ui.botServer.membersIcon:setImageSource(openerAssetRoot .. 'members.png')
+ui.botServer.memberBadge:setImageSource(openerAssetRoot .. 'input.png')
 
 if not storage[panelName] then
   storage[panelName] = {
@@ -73,11 +105,15 @@ local memberInfo = {}
 local lastPresenceSync = 0
 local lastPresencePositionKey = nil
 local lastPresenceMana = nil
+local lastPresenceHp = nil
+local visibleMemberHp = {}
+local nextVisibleHpScanAt = 0
 local lastPositionPresenceSync = 0
 local GAME_STATUS_UPDATE_INTERVAL = 3000
 local WEBSOCKET_MIN_STATUS_INTERVAL = 100
 local MEMBER_TIMEOUT = 30000
 local MEMBER_POSITION_TIMEOUT = 15000
+local MEMBER_STATS_TIMEOUT = 15000
 local MAX_MINIMAP_MARKERS = 16
 local MINIMAP_MARKER_COLOR = "#ffffffff"
 local MINIMAP_MARKER_SIZE = 13
@@ -146,13 +182,20 @@ end
 
 local function normalizeManaPercent(value)
   value = tonumber(value)
-  if not value then return nil end
+  if not value or value ~= value or value == math.huge or value == -math.huge then return nil end
   return math.max(0, math.min(100, math.floor(value + 0.5)))
 end
 
 local function getSelfManaPercent()
   if type(manapercent) ~= "function" then return nil end
   local ok, value = pcall(manapercent)
+  if not ok then return nil end
+  return normalizeManaPercent(value)
+end
+
+local function getSelfHpPercent()
+  if type(hppercent) ~= "function" then return nil end
+  local ok, value = pcall(hppercent)
   if not ok then return nil end
   return normalizeManaPercent(value)
 end
@@ -170,8 +213,10 @@ local function touchMember(memberName, info)
     local current = memberInfo[memberName] or {}
     current.name = memberName
     current.clientId = info.clientId or current.clientId
-    current.mana = normalizeManaPercent(info.mana) or current.mana
-    current.pos = copyPosition(info.pos) or current.pos
+    local mana, hp, pos = normalizeManaPercent(info.mana), normalizeManaPercent(info.hp), copyPosition(info.pos)
+    if mana ~= nil then current.mana, current.manaSeenAt = mana, now or 0 end
+    if hp ~= nil then current.hp, current.hpSeenAt = hp, now or 0 end
+    if pos then current.pos, current.positionSeenAt = pos, now or 0 end
     current.lastSeen = now or 0
     current.wallTime = tonumber(info.time) or os.time()
     memberInfo[memberName] = current
@@ -247,24 +292,82 @@ local function getMembersTooltip()
   return table.concat(names, "\n")
 end
 
-BotServer.getMemberSnapshot = function()
+local function readVisibleMemberHp()
+  local currentTime = now or 0
+  if not config.enabled or not BotServer._websocket then
+    visibleMemberHp, nextVisibleHpScanAt = {}, 0
+    return visibleMemberHp
+  end
+  -- Store only names, percentages and times. Never keep native creature userdata.
+  if currentTime < nextVisibleHpScanAt and nextVisibleHpScanAt - currentTime <= 500 then
+    return visibleMemberHp
+  end
+  nextVisibleHpScanAt = currentTime + 500
+  visibleMemberHp = {}
+  local wanted, hasWanted = {}, false
+  local ownName = getSelfName():lower()
+  for memberName, info in pairs(memberInfo) do
+    if memberName:lower() ~= ownName and (info.hp == nil or not info.hpSeenAt or
+      currentTime - info.hpSeenAt > MEMBER_STATS_TIMEOUT) then
+      wanted[memberName:lower()] = memberName
+      hasWanted = true
+    end
+  end
+  if not hasWanted then return visibleMemberHp end
+  local ok, spectators = pcall(function()
+    if type(getSpectators) == 'function' then return getSpectators() end
+  end)
+  if not ok or type(spectators) ~= 'table' then return visibleMemberHp end
+  for _, creature in ipairs(spectators) do
+    local readOk, memberName, health = pcall(function()
+      if not creature:isPlayer() then return end
+      local who = wanted[tostring(creature:getName()):lower()]
+      if not who then return end
+      return who, normalizeManaPercent(creature:getHealthPercent())
+    end)
+    if readOk and memberName and health ~= nil then
+      visibleMemberHp[memberName] = {hp = health, seenAt = currentTime}
+    end
+  end
+  return visibleMemberHp
+end
+
+BotServer.getMemberSnapshot = function(includeVisibleHealth)
   pruneMembers()
+  local visibleHealth = includeVisibleHealth and readVisibleMemberHp() or {}
   local snapshot = {}
   for memberName, info in pairs(memberInfo) do
     snapshot[memberName] = {
       name = memberName,
       clientId = info and info.clientId or nil,
       mana = info and info.mana or nil,
+      hp = info and info.hp or nil,
+      manaSeenAt = info and info.manaSeenAt or nil,
+      hpSeenAt = info and info.hpSeenAt or nil,
+      positionSeenAt = info and info.positionSeenAt or nil,
       pos = info and copyPosition(info.pos) or nil,
       lastSeen = info and info.lastSeen or nil,
       wallTime = info and info.wallTime or nil
     }
+    local observation = visibleHealth[memberName]
+    local remoteHpFresh = info and info.hp ~= nil and info.hpSeenAt and
+      (now or 0) - info.hpSeenAt <= MEMBER_STATS_TIMEOUT
+    if observation and not remoteHpFresh then
+      snapshot[memberName].hp, snapshot[memberName].hpSeenAt = observation.hp, observation.seenAt
+      snapshot[memberName].hpSource = 'visible'
+    elseif info and info.hp ~= nil then snapshot[memberName].hpSource = 'shared' end
   end
 
   local selfName = getSelfName()
   snapshot[selfName] = snapshot[selfName] or {name = selfName}
   snapshot[selfName].pos = getSelfPosition() or snapshot[selfName].pos
-  snapshot[selfName].lastSeen = now or snapshot[selfName].lastSeen
+  if config.enabled and BotServer._websocket then
+    snapshot[selfName].lastSeen = now or snapshot[selfName].lastSeen
+    snapshot[selfName].positionSeenAt = now or 0
+    snapshot[selfName].hp, snapshot[selfName].hpSeenAt = getSelfHpPercent(), now or 0
+    snapshot[selfName].hpSource = 'shared'
+    snapshot[selfName].mana, snapshot[selfName].manaSeenAt = getSelfManaPercent(), now or 0
+  end
   return snapshot
 end
 
@@ -296,10 +399,12 @@ local function publishPresence(force)
   if not config.enabled then return end
   local selfPos = getSelfPosition()
   local selfPosKey = positionKey(selfPos)
-  local selfMana = config.manaInfo and getSelfManaPercent() or nil
+  local selfMana = getSelfManaPercent()
+  local selfHp = getSelfHpPercent()
   local moved = selfPosKey and selfPosKey ~= lastPresencePositionKey
   local manaChanged = selfMana ~= lastPresenceMana
-  local canSendStatus = (moved or manaChanged) and now and
+  local hpChanged = selfHp ~= lastPresenceHp
+  local canSendStatus = (moved or manaChanged or hpChanged) and now and
     now - lastPositionPresenceSync >= statusUpdateInterval()
   if not force and not canSendStatus and now and now - lastPresenceSync < 5000 then return end
 
@@ -308,13 +413,15 @@ local function publishPresence(force)
   if force or canSendStatus then
     lastPresencePositionKey = selfPosKey
     lastPresenceMana = selfMana
+    lastPresenceHp = selfHp
     lastPositionPresenceSync = now or 0
   end
-  touchMember(selfName, {clientId = clientId, mana = selfMana, pos = selfPos})
+  touchMember(selfName, {clientId = clientId, mana = selfMana, hp = selfHp, pos = selfPos})
   sendBotServer("presence", {
     clientId = clientId,
     name = selfName,
     mana = selfMana,
+    hp = selfHp,
     pos = selfPos
   })
 end
@@ -1106,6 +1213,7 @@ function initBotServerListenFunctions()
     touchMember(memberName, {
       clientId = type(message) == "table" and message.clientId or nil,
       mana = type(message) == "table" and message.mana or nil,
+      hp = type(message) == "table" and message.hp or nil,
       pos = type(message) == "table" and message.pos or nil
     })
     if type(message) == "table" then
@@ -1149,7 +1257,7 @@ function updateStatusText()
     (statusLevel == "waiting" and '#FFF380' or '#E3242B')
   botServerWindow.Data.ServerStatus:setText(statusText)
   botServerWindow.Data.ServerStatus:setColor(statusColor)
-  ui.botServer:setColor(statusColor)
+  ui.botServer:setColor('#e4edf3')
   if BotServer._websocket then
     botServerWindow.Data.Participants:setText(getMemberCount())
     botServerWindow.Data.Members:setTooltip(getMembersTooltip())
@@ -1171,7 +1279,7 @@ end
 
 local function shortExivaName(text)
   text=tostring(text or '')
-  return #text>18 and text:sub(1,15)..'...' or text
+  return #text>38 and text:sub(1,35)..'...' or text
 end
 
 local function updateExivaActivityPanel()
@@ -1253,6 +1361,7 @@ end)
 
 ui.botServer.onClick = function(widget)
     botServerWindow:show()
+    if vBot.BotServerDashboard then vBot.BotServerDashboard.refresh(true) end
     updateExivaActivityPanel()
     botServerWindow:raise()
     botServerWindow:focus()

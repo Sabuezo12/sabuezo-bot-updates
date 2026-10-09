@@ -212,6 +212,14 @@ local function encodeChatPacket(topic, message)
   local packet = encodePacket(topic, message)
   if not packet then return nil end
   if #packet <= MAX_CHAT_PACKET then return packet end
+  -- Presence can omit duplicate identity fields: the envelope already has the sender.
+  -- Preserve HP, mana and position when the chat transport has a 240-byte limit.
+  if topic == "presence" and type(message) == "table" then
+    local compact = {hp = message.hp, mana = message.mana, pos = message.pos}
+    packet = encodePacket(topic, compact)
+    if packet and #packet <= MAX_CHAT_PACKET then return packet end
+    return nil
+  end
   if topic ~= "broadcast" or type(message) ~= "string" then return nil end
 
   local shortened = message
