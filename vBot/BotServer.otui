@@ -254,9 +254,121 @@ FeaturePanel < Panel
     height: 22
     text: Broadcast
 
+BotServerExivaActivityRow < Panel
+  height: 16
+
+  Label
+    id: Time
+    anchors.left: parent.left
+    anchors.top: parent.top
+    width: 55
+    height: 16
+    font: verdana-11px-rounded
+
+  Label
+    id: Initiator
+    anchors.left: Time.right
+    anchors.top: parent.top
+    margin-left: 4
+    width: 129
+    height: 16
+    font: verdana-11px-rounded
+    color: #9dd1ce
+
+  Label
+    id: Target
+    anchors.left: Initiator.right
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-left: 4
+    height: 16
+    font: verdana-11px-rounded
+
+BotServerExivaActivity < Panel
+  size: 340 134
+  image-source: /images/ui/panel_flat
+  image-border: 5
+  padding: 3
+
+  Label
+    id: title
+    anchors.top: parent.top
+    anchors.left: parent.left
+    margin-left: 6
+    height: 17
+    width: 160
+    text: Exivas recientes
+
+  Button
+    id: Stop
+    anchors.top: parent.top
+    anchors.right: parent.right
+    margin-right: 6
+    size: 108 20
+    text: Parar (60 s)
+    visible: false
+    tooltip: Apaga Exiva Target/Last y pausa los exivas compartidos del grupo durante 60 segundos. Todos deben tener esta funcion instalada.
+
+  Label
+    id: Status
+    anchors.top: title.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 5
+    margin-left: 6
+    margin-right: 6
+    height: 16
+    font: verdana-11px-rounded
+    text: Sin exivas registrados
+
+  BotServerExivaActivityRow
+    id: Headings
+    anchors.top: Status.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-left: 6
+    margin-right: 6
+    margin-top: 4
+
+  BotServerExivaActivityRow
+    id: Row1
+    anchors.top: Headings.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-left: 6
+    margin-right: 6
+    margin-top: 2
+
+  BotServerExivaActivityRow
+    id: Row2
+    anchors.top: Row1.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-left: 6
+    margin-right: 6
+    margin-top: 0
+
+  BotServerExivaActivityRow
+    id: Row3
+    anchors.top: Row2.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-left: 6
+    margin-right: 6
+    margin-top: 0
+
+  BotServerExivaActivityRow
+    id: Row4
+    anchors.top: Row3.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-left: 6
+    margin-right: 6
+    margin-top: 0
+
 BotServerWindow < MainWindow
   !text: tr('BotServer')
-  size: 370 372
+  size: 370 516
   @onEscape: self:hide()
 
   BotServerData
@@ -273,6 +385,12 @@ BotServerWindow < MainWindow
   FeaturePanel
     id: Features
     anchors.top: prev.bottom
+    anchors.horizontalCenter: parent.horizontalCenter
+    margin-top: 10
+
+  BotServerExivaActivity
+    id: ExivaActivity
+    anchors.top: Features.bottom
     anchors.horizontalCenter: parent.horizontalCenter
     margin-top: 10
 

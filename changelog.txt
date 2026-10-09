@@ -1,3 +1,12 @@
+3.0.23 - Exiva preciso, coordinacion y control de lider
+- BotServer muestra el iniciador, el objetivo y la repeticion de las busquedas en Exivas recientes.
+- Parar exivas detiene las automatizaciones del grupo durante 60 segundos. Disponible para Rod Master, Sabuezo y Aeron Knight.
+- Si cualquier companero ve al objetivo, comparte su posicion exacta; al perderlo de vista se identifica la ultima posicion vista.
+- El minimapa conserva el punto y la guia punteada. Se retiran los recuadros amarillos y las etiquetas permanentes; el cursor muestra solo nombre y posicion.
+- La estimacion usa hasta tres observadores separados, favorece distintos angulos y utiliza lecturas recientes segun la hora del lanzamiento.
+- Se reducen exivas duplicados y lanzamientos mientras hay vision confirmada; se conserva la limpieza segura y la pausa del dibujo al mover el mapa ampliado.
+- Se mantiene la recarga automatica del bot al terminar de instalar el update.
+
 3.0.22 - Recarga automatica del bot
 - El bot se recarga automaticamente al terminar de instalar una actualizacion, tanto manual como automatica.
 - La recarga espera a que terminen las descargas y se guarden los archivos, la version y los hashes; se programa una sola vez.

@@ -1159,6 +1159,72 @@ function updateStatusText()
   end
 end
 
+local exivaActivityUiCache={}
+local function setExivaActivityLabel(key,widget,text,tooltip,color)
+  if not widget then return end
+  local cached=exivaActivityUiCache[key] or {}
+  exivaActivityUiCache[key]=cached
+  if cached.text~=text then widget:setText(text);cached.text=text end
+  if tooltip and cached.tooltip~=tooltip then widget:setTooltip(tooltip);cached.tooltip=tooltip end
+  if color and cached.color~=color then widget:setColor(color);cached.color=color end
+end
+
+local function shortExivaName(text)
+  text=tostring(text or '')
+  return #text>18 and text:sub(1,15)..'...' or text
+end
+
+local function updateExivaActivityPanel()
+  local window=botServerWindow
+  if not window or (type(window.isVisible)=='function' and not window:isVisible()) then return end
+  local panel=window.ExivaActivity
+  if not panel then return end
+  setExivaActivityLabel('headerTime',panel.Headings.Time,'Hora')
+  setExivaActivityLabel('headerInitiator',panel.Headings.Initiator,'Iniciador')
+  setExivaActivityLabel('headerTarget',panel.Headings.Target,'Objetivo')
+  local tracker=vBot and vBot.ExivaTracker
+  local status=tracker and type(tracker.getControlStatus)=='function' and tracker.getControlStatus() or {}
+  local history=tracker and type(tracker.getActivity)=='function' and tracker.getActivity() or {}
+  local canStop=status.canStop==true
+  panel.Stop:setVisible(canStop)
+  panel.Stop:setEnabled(canStop and status.connected==true and (status.remaining or 0)==0)
+  if not exivaActivityUiCache.stopBound then panel.Stop.onClick=function()
+    local active=vBot and vBot.ExivaTracker
+    if active and type(active.stopGroupExivas)=='function' then
+      local ok=active.stopGroupExivas()
+      if not ok and type(warn)=='function' then warn('No se pudo enviar la pausa de exiva al grupo.') end
+      updateExivaActivityPanel()
+    end
+  end;exivaActivityUiCache.stopBound=true end
+  local statusText,color
+  if (status.remaining or 0)>0 then
+    statusText='Pausa: '..status.remaining..' s | '..tostring(status.stoppedBy or '')
+    color='#ffd166'
+  elseif history[1] then
+    local recent=history[1]
+    statusText='Ultimo hace '..recent.ageSeconds..' s | '..recent.count..' inicio(s)'
+    if recent.count>1 and recent.interval then statusText=statusText..' | intervalo '..recent.interval..' s' end
+    color='#cfd3d7'
+  else
+    statusText='Sin exivas registrados';color='#a0a0a0'
+  end
+  setExivaActivityLabel('status',panel.Status,statusText,
+    'Muestra quien inicia la busqueda, sin contar las respuestas automaticas de sus companeros. '..
+    'La pausa apaga Exiva Target/Last durante 60 s; despues hace falta iniciar una busqueda nueva.',color)
+  for index=1,4 do
+    local row=panel['Row'..index]
+    local entry=history[index]
+    local tooltip=entry and (entry.initiator..' -> '..entry.target..'\nHora: '..entry.time..
+      ' | hace '..entry.ageSeconds..' s\nInicios consecutivos: '..entry.count..
+      (entry.interval and (' | ultimo intervalo: '..entry.interval..' s') or '')) or 'Sin registros'
+    setExivaActivityLabel(index..'time',row.Time,entry and entry.time or '-',tooltip)
+    setExivaActivityLabel(index..'initiator',row.Initiator,entry and shortExivaName(entry.initiator) or '-',tooltip)
+    setExivaActivityLabel(index..'target',row.Target,entry and shortExivaName(entry.target) or '-',tooltip)
+  end
+end
+
+macro(1000, updateExivaActivityPanel)
+
 macro(100, function()
   if config.enabled then
     initBotServerListenFunctions()
@@ -1187,6 +1253,7 @@ end)
 
 ui.botServer.onClick = function(widget)
     botServerWindow:show()
+    updateExivaActivityPanel()
     botServerWindow:raise()
     botServerWindow:focus()
 end

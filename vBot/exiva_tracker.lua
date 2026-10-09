@@ -7,16 +7,22 @@ end
 
 local REQUEST_TOPIC = "exiva_req"
 local RESULT_TOPIC = "exiva_res"
+local SIGHTING_TOPIC = "exiva_seen"
+local SIGHTING_SCAN_INTERVAL = 300
+local SIGHTING_HEARTBEAT = 1000
+local SIGHTING_LEASE = 2250
 local CAPABILITY_TOPIC = "exiva_cap"
 local CAPABILITY_VERSION = 1
 local CAPABILITY_INTERVAL = 5000
 local CAPABILITY_TIMEOUT = 30000
-local MAX_OBSERVERS = 6
-local MEMBER_POSITION_MAX_AGE = 30000
+local MAX_OBSERVERS = 3
+local MIN_OBSERVER_SEPARATION = 12
+local OBSERVATION_WINDOW = 4000
+local MEMBER_POSITION_MAX_AGE = 5000
 local DAMAGE_LIMIT = 500
 local DAMAGE_SAFE_TIME = 2000
 local CAST_TIMEOUT = 9000
-local CAST_RETRY_INTERVAL = 1400
+local CAST_RETRY_INTERVAL = 2600
 local AUTOMATIC_TALK_LIFETIME = 30000
 local AUTOMATIC_ECHO_DUPLICATE_TIME = 100
 local CLOSED_REQUEST_LIFETIME = 60000
@@ -55,6 +61,12 @@ local latestSessions = {}
 local queuedCasts = {}
 local pendingCasts = {}
 local estimates = {}
+local approximateEstimates = {}
+local sightings = {}
+local localSightings = {}
+local nextSightScanAt = 0
+local scanVisibleTargets
+local hasLiveSighting
 local trackerMembers = {}
 local processedMessages = setmetatable({}, {__mode = "k"})
 local consoleInitialized = false
@@ -98,6 +110,93 @@ local function selfName()
     if type(name) == "function" then return name() end
   end)
   return ok and value and value ~= "" and value or "Unknown"
+end
+
+local EXIVA_LEADERS = {['rod master']=true, ['sabuezo']=true, ['aeron knight']=true}
+local EXIVA_PAUSE_SECONDS = 60
+local activityState = BotServer._exivaActivityState or {entries={},seen={},order={}}
+BotServer._exivaActivityState = activityState
+local applyExivaStop
+local clearAllMarkers
+
+local function activityContext()
+  return table.concat({normalizedName(selfName()), tostring(configDir or ''),
+    tostring(storage and storage.BotServerChannel or '')}, '|')
+end
+
+local function controlState()
+  local state = storage.sabuezoExivaControl
+  local context = activityContext()
+  if type(state) ~= 'table' or state.context ~= context then
+    state = {context=context}
+    storage.sabuezoExivaControl = state
+  end
+  return state
+end
+
+local function pauseSeconds()
+  return math.max(0, math.ceil((tonumber(controlState().pauseUntil) or 0) - os.time()))
+end
+
+local function exivaPaused()
+  return pauseSeconds() > 0
+end
+
+local function isExivaLeader(who)
+  return EXIVA_LEADERS[normalizedName(who or selfName())] == true
+end
+
+local function controlConnected()
+  local config = storage and storage.BOTserver
+  return BotServer._websocket and type(BotServer.send)=='function' and
+    type(BotServer.listen)=='function' and (type(config)~='table' or config.enabled~=false)
+end
+
+local function currentActivity()
+  local context = activityContext()
+  if activityState.context ~= context then
+    activityState.context=context
+    activityState.entries,activityState.seen,activityState.order={},{},{}
+  end
+  return activityState
+end
+
+local function recordExivaActivity(session)
+  local state = currentActivity()
+  if state.seen[session.id] then return end
+  state.seen[session.id]=true
+  table.insert(state.order,session.id)
+  if #state.order>128 then state.seen[table.remove(state.order,1)]=nil end
+  local current = clockMillis()
+  local entry = state.entries[1]
+  if entry and normalizedName(entry.initiator)==normalizedName(session.coordinator) and
+    normalizedName(entry.target)==normalizedName(session.target) and
+    current>=entry.receivedAt and current-entry.receivedAt<=20000 then
+    entry.interval=math.floor((current-entry.receivedAt)/1000+0.5)
+    entry.count=entry.count+1
+  else
+    entry={initiator=session.coordinator,target=session.target,count=1,firstAt=os.time()}
+    table.insert(state.entries,1,entry)
+    if #state.entries>20 then table.remove(state.entries) end
+  end
+  entry.receivedAt=current
+  entry.time=os.date('%H:%M:%S')
+end
+
+local function getExivaActivity()
+  local result={}
+  for _,entry in ipairs(currentActivity().entries) do
+    table.insert(result,{initiator=entry.initiator,target=entry.target,count=entry.count,
+      time=entry.time,interval=entry.interval,
+      ageSeconds=math.max(0,math.floor((clockMillis()-entry.receivedAt)/1000))})
+  end
+  return result
+end
+
+local function getExivaControlStatus()
+  local state=controlState()
+  return {canStop=isExivaLeader(),remaining=pauseSeconds(),stoppedBy=state.stoppedBy,
+    connected=controlConnected() and true or false}
 end
 
 local function copyPosition(value)
@@ -201,6 +300,7 @@ if previousTracker and type(previousTracker.getSessions) == "function" then
 end
 
 local function trackerEnabled()
+  if exivaPaused() then return false end
   if type(BotServer.isExivaTrackerEnabled) == "function" then
     local ok, enabled = pcall(BotServer.isExivaTrackerEnabled)
     return ok and enabled == true
@@ -348,8 +448,13 @@ end
 
 local function observationsFromSession(session)
   local observations = {}
+  local newest = 0
+  for _,observation in pairs(session.observations or {}) do
+    newest = math.max(newest,observation.sampledAt or observation.receivedAt or session.createdAt)
+  end
   for _, observation in pairs(session.observations or {}) do
-    if observation.observerPos and observation.minDistance then
+    if observation.observerPos and observation.minDistance and
+      newest-(observation.sampledAt or observation.receivedAt or session.createdAt) <= OBSERVATION_WINDOW then
       table.insert(observations, observation)
     end
   end
@@ -403,7 +508,8 @@ local function solveObservations(observations)
 
   local width = maxX - minX + 1
   local height = maxY - minY + 1
-  local tests = width * height * #floors
+  -- Every allowed floor has the same XY candidates; budget only one scan.
+  local tests = width * height
   local step = math.max(1, math.ceil(math.sqrt(tests / MAX_GEOMETRY_TESTS)))
   local statsByFloor = {}
 
@@ -487,7 +593,8 @@ local function solveObservations(observations)
     maxY = math.min(maxY, stats.maxY + step - 1),
     floors = validFloors,
     responseCount = #observations,
-    precision = math.ceil(math.max(rangeWidth, rangeHeight) / 2) + step - 1,
+    precision = math.ceil(math.max(centerX-stats.minX,stats.maxX-centerX,
+      centerY-stats.minY,stats.maxY-centerY)) + step - 1,
     sampleStep = step,
     unbounded = unbounded
   }
@@ -515,10 +622,11 @@ local function chebyshev(left, right)
   return math.max(math.abs(left.x - right.x), math.abs(left.y - right.y))
 end
 
-local function selectObservers()
+local function selectObservers(target)
   local selfPos = currentPosition()
   if not selfPos then return {}, nil end
   local ownName = selfName()
+  if hasLiveSighting and hasLiveSighting(target) then return {ownName},selfPos end
   local capabilityTime = clockMillis()
   trackerMembers[normalizedName(ownName)] = capabilityTime
   local candidates = {{name = ownName, pos = selfPos}}
@@ -558,8 +666,22 @@ local function selectObservers()
         for _, chosen in ipairs(selected) do
           minimum = math.min(minimum, chebyshev(candidate.pos, chosen.pos))
         end
-        if not best or minimum > bestDistance then
-          best, bestDistance = candidate, minimum
+        -- Same nearby origin usually repeats the same range and direction.
+        -- Prefer a wide baseline and, when available, a different viewing angle.
+        local score = minimum
+        local reference = estimates[normalizedName(target)]
+        if reference and not reference.unbounded and reference.expiresAt > capabilityTime then
+          score = math.min(minimum,250)
+          local tx,ty = reference.position.x,reference.position.y
+          local ax,ay = selfPos.x-tx,selfPos.y-ty
+          local bx,by = candidate.pos.x-tx,candidate.pos.y-ty
+          local length = math.sqrt((ax*ax+ay*ay)*(bx*bx+by*by))
+          if length > 0 then score = score*(1+2*math.abs(ax*by-ay*bx)/length) end
+          local predictedDistance = chebyshev(candidate.pos,reference.position)
+          score = score*(predictedDistance <= 100 and 2 or predictedDistance <= 250 and 1.25 or 0.5)
+        end
+        if minimum >= MIN_OBSERVER_SEPARATION and (not best or score > bestDistance) then
+          best, bestDistance = candidate, score
         end
       end
     end
@@ -582,12 +704,15 @@ local function newSession(message)
     selected = message.selected or {},
     createdAt = current,
     expiresAt = current + SESSION_TIMEOUT,
+    visualUntil = current + ESTIMATE_LIFETIME,
+    requestSocket = BotServer._websocket,
     purgeAt = current + SESSION_PURGE_TIME,
     observations = {},
     recalculateAt = nil
   }
   sessions[session.id] = session
   latestSessions[normalizedName(session.target)] = session.id
+  recordExivaActivity(session)
   return session
 end
 
@@ -598,7 +723,15 @@ local function addObservation(session, observer, message)
   local observerPos = copyPosition(message.observerPos)
   local minDistance = tonumber(message.minDistance)
   if not observerPos or not minDistance then return false end
+  local sampledAt = clockMillis()
+  if message.castTime ~= nil then
+    local castTime = message.castTime
+    if type(castTime) ~= "number" or castTime%1 ~= 0 or
+      castTime > os.time()+5 or os.time()-castTime > SESSION_TIMEOUT/1000 then return false end
+    sampledAt = sampledAt-math.max(0,os.time()-castTime)*1000
+  end
   local observation = {
+    sampledAt = sampledAt,
     observer = trim(observer),
     observerPos = observerPos,
     minDistance = minDistance,
@@ -614,11 +747,12 @@ local function addObservation(session, observer, message)
     previous.direction == observation.direction and previous.floor == observation.floor and
     previous.text == observation.text then return false end
   session.observations[normalizedName(observer)] = observation
+  session.visualUntil = math.max(session.visualUntil,observation.sampledAt + ESTIMATE_LIFETIME)
   session.recalculateAt = clockMillis() + RECALCULATE_DELAY
   return true
 end
 
-local function publishObservation(session, parsed, observerPos)
+local function publishObservation(session, parsed, observerPos, castTime)
   if not session or not parsed or not observerPos then return end
   local message = {
     id = session.id,
@@ -631,7 +765,8 @@ local function publishObservation(session, parsed, observerPos)
     direction = parsed.direction,
     floor = parsed.floor,
     text = parsed.text,
-    responseTime = os.time()
+    responseTime = os.time(),
+    castTime = castTime
   }
   addObservation(session, selfName(), message)
   sendBotServer(RESULT_TOPIC, message)
@@ -640,7 +775,7 @@ end
 local function beginManualSession(target)
   if not trackerEnabled() then return end
   sendCapability(true, true)
-  local selected, observerPos = selectObservers()
+  local selected, observerPos = selectObservers(target)
   if not observerPos then return end
 
   local message = {
@@ -656,10 +791,12 @@ local function beginManualSession(target)
     target = target,
     observerPos = observerPos,
     castAt = clockMillis(),
+    castTime = os.time(),
     expiresAt = clockMillis() + CAST_TIMEOUT
   }
 
   sendBotServer(REQUEST_TOPIC, message)
+  scanVisibleTargets(true)
   schedule(CAPABILITY_DISCOVERY_DELAY, function()
     if not activeGeneration() or not trackerEnabled() then return end
     local currentSession = sessions[session.id]
@@ -667,7 +804,7 @@ local function beginManualSession(target)
       clockMillis() > currentSession.expiresAt or
       currentSession.requestSocket ~= BotServer._websocket then return end
 
-    local refreshed = selectObservers()
+    local refreshed = selectObservers(currentSession.target)
     currentSession.selected = refreshed
     sendBotServer(REQUEST_TOPIC, {
       id = currentSession.id,
@@ -710,6 +847,7 @@ local function castQueuedExiva(entry)
     target = entry.target,
     observerPos = observerPos,
     castAt = current,
+    castTime = os.time(),
     expiresAt = current + CAST_TIMEOUT
   }
   local ticket = rememberAutomaticTalk(entry.sessionId, entry.target)
@@ -771,7 +909,7 @@ local function processResponseText(text)
   local pending = pendingCasts[bestId]
   pendingCasts[bestId] = nil
   if pending.automatic then completeRemoteCast(bestId) else queuedCasts[bestId] = nil end
-  publishObservation(sessions[bestId], bestParsed, pending.observerPos)
+  publishObservation(sessions[bestId], bestParsed, pending.observerPos, pending.castTime)
 end
 
 local function processConsoleText(text)
@@ -838,15 +976,195 @@ local function pollServerLog()
   consoleInitialized = true
 end
 
+-- Share only plain coordinates from creatures returned by the current view.
+-- No native creature or widget survives this scan.
+local function sightingSession(session)
+  return session and not session.castCancelled and
+    session.requestSocket == BotServer._websocket and
+    latestSessions[normalizedName(session.target)] == session.id and
+    clockMillis() < session.visualUntil
+end
+
+local function sightingLease()
+  local config = storage and storage.BOTserver
+  local mode = type(config) == 'table' and config.transportMode or nil
+  return (mode == 'guild' or mode == 'party') and 7000 or SIGHTING_LEASE
+end
+
+local function sightingPosition(value)
+  if type(value) ~= 'table' then return nil end
+  local x,y,z = value.x,value.y,value.z
+  if type(x) ~= 'number' or type(y) ~= 'number' or type(z) ~= 'number' or
+    x%1 ~= 0 or y%1 ~= 0 or z%1 ~= 0 or
+    x < 1 or x > 65535 or y < 1 or y > 65535 or z < 0 or z > 15 then return nil end
+  return {x=x,y=y,z=z}
+end
+
+local function acceptSighting(sender, message)
+  if not trackerEnabled() or type(message) ~= 'table' or type(message.id) ~= 'string' then return false end
+  local session = sessions[message.id]
+  if not sightingSession(session) or trim(sender) == '' then return false end
+  local serial,sentAt = message.s,message.t
+  if type(serial) ~= 'number' or serial%1 ~= 0 or serial < 1 or serial > 1000000 or
+    type(sentAt) ~= 'number' or sentAt%1 ~= 0 or math.abs(os.time()-sentAt) > 5 or
+    type(message.v) ~= 'boolean' then return false end
+  local pos = message.v and sightingPosition(message.p) or nil
+  if message.v and not pos then return false end
+  local targetKey,observerKey = normalizedName(session.target),normalizedName(sender)
+  -- The relay supplies sender identity. A known session is required, but being
+  -- one of the selected exiva casters is not: every teammate can spot a target.
+  local state = sightings[targetKey] or {observers={}}
+  local previous = state.observers[observerKey]
+  if previous and previous.sessionId == session.id and serial <= previous.serial then return false end
+  if not message.v and not previous then return false end
+  sightings[targetKey] = state
+  -- Network delay counts toward freshness; a queued old sighting is not live
+  -- merely because it has just arrived on this client.
+  local sampledAt = clockMillis()-math.max(0,os.time()-sentAt)*1000
+  local entry = {observer=trim(sender),sessionId=session.id,serial=serial,visible=message.v,
+    receivedAt=sampledAt,pos=pos or previous.pos,
+    seenAt=message.v and sampledAt or previous.seenAt}
+  state.observers[observerKey] = entry
+  return true
+end
+
+scanVisibleTargets = function(force)
+  local current = clockMillis()
+  if (not force and current < nextSightScanAt) or not botServerReady() then return end
+  local wanted = {}
+  for key,id in pairs(latestSessions) do
+    local session = sessions[id]
+    if sightingSession(session) then wanted[key] = session end
+  end
+  for id in pairs(localSightings) do
+    if not sightingSession(sessions[id]) then localSightings[id] = nil end
+  end
+  if not hasEntries(wanted) then return end
+  nextSightScanAt = current + SIGHTING_SCAN_INTERVAL
+  local ok,spectators = pcall(function()
+    if type(getSpectators) == 'function' then return getSpectators(true) end
+    local own = currentPosition()
+    if own and g_map and type(g_map.getSpectators) == 'function' then
+      return g_map.getSpectators(own,true)
+    end
+  end)
+  if not ok or type(spectators) ~= 'table' then return end
+  local visible = {}
+  for _,creature in ipairs(spectators) do
+    local readOk,key,pos = pcall(function()
+      if not creature:isPlayer() then return end
+      local key = normalizedName(creature:getName())
+      if wanted[key] then return key,sightingPosition(creature:getPosition()) end
+    end)
+    if readOk and key and pos then visible[key] = pos end
+  end
+  local heartbeat = sightingLease() > SIGHTING_LEASE and 3200 or SIGHTING_HEARTBEAT
+  for key,session in pairs(wanted) do
+    local pos,previous = visible[key],localSightings[session.id]
+    local visibleNow = pos ~= nil
+    local changed = not previous or previous.visible ~= visibleNow or
+      positionKey(previous.pos) ~= positionKey(pos)
+    if (visibleNow or (previous and previous.visible)) and
+      (changed or current-previous.sentAt >= heartbeat) then
+      localSightings[session.id] = {visible=visibleNow,pos=pos,sentAt=current,
+        serial=(previous and previous.serial or 0)+1}
+      local entry = localSightings[session.id]
+      local message = {id=session.id,s=entry.serial,t=os.time(),v=visibleNow,p=pos}
+      acceptSighting(selfName(),message)
+      sendBotServer(SIGHTING_TOPIC,message)
+    end
+  end
+end
+
+local function refreshSightEstimates()
+  local current,ownKey = clockMillis(),normalizedName(selfName())
+  for key,state in pairs(sightings) do
+    local session = sessions[latestSessions[key]]
+    if not sightingSession(session) then
+      sightings[key] = nil
+      if estimates[key] and estimates[key].locationType then estimates[key] = nil end
+    else
+      local live,lastSeen
+      for observerKey,entry in pairs(state.observers) do
+        if entry.pos and current < entry.seenAt+ESTIMATE_LIFETIME then
+          if not lastSeen or entry.seenAt > lastSeen.seenAt or
+            (entry.seenAt == lastSeen.seenAt and observerKey < normalizedName(lastSeen.observer)) then lastSeen = entry end
+          if entry.visible and current-entry.receivedAt <= sightingLease() and
+            (not live or observerKey == ownKey or
+              (normalizedName(live.observer) ~= ownKey and
+                (entry.seenAt > live.seenAt or
+                  (entry.seenAt == live.seenAt and observerKey < normalizedName(live.observer))))) then live = entry end
+        end
+      end
+      local approximate = approximateEstimates[key]
+      if approximate and current >= approximate.expiresAt then approximate = nil end
+      local sight = live or lastSeen
+      if sight and (live or not approximate or sight.seenAt >= approximate.updatedAt) then
+        local pos = sight.pos
+        estimates[key] = {target=session.target,coordinator=session.coordinator,sessionId=session.id,
+          position=copyPosition(pos),minX=pos.x,maxX=pos.x,minY=pos.y,maxY=pos.y,floors={pos.z},
+          precision=0,responseCount=0,updatedAt=sight.seenAt,
+          expiresAt=math.min(session.visualUntil,sight.seenAt+ESTIMATE_LIFETIME),
+          locationType=live and 'exact' or 'lastSeen',seenBy=sight.observer,seenAt=sight.seenAt}
+      else
+        estimates[key] = approximate
+      end
+    end
+  end
+end
+
+local function clearSightings()
+  sightings,localSightings,approximateEstimates = {},{},{}
+  nextSightScanAt = 0
+  for key,estimate in pairs(estimates) do
+    if estimate.locationType then estimates[key] = nil end
+  end
+end
+
+
+
+hasLiveSighting = function(target)
+  local key = normalizedName(target)
+  local session = sessions[latestSessions[key]]
+  if not sightingSession(session) then return false end
+  local state,current = sightings[key],clockMillis()
+  for _,entry in pairs(state and state.observers or {}) do
+    if entry.visible and entry.pos and current-entry.receivedAt <= sightingLease() then return true end
+  end
+  return false
+end
+
+local function shouldAutoExiva(target)
+  if exivaPaused() then return false end
+  if not botServerReady() then return true end
+  local session = sessions[latestSessions[normalizedName(target)]]
+  if not sightingSession(session) then return true end
+  local current,own = clockMillis(),normalizedName(selfName())
+  if hasLiveSighting(target) then
+    -- Keep vision shared. Only the initiating automation renews the search near
+    -- its expiry, instead of asking the entire group for another spell every 4s.
+    if normalizedName(session.coordinator) ~= own then return false end
+    return session.visualUntil-current <= 2000
+  end
+  -- Another active initiator owns this round. If it stops sending searches,
+  -- allow a follower's existing automation to take over after this short lease.
+  return normalizedName(session.coordinator) == own or current-session.createdAt >= 5000
+end
+
 local function registerBotServerListeners()
-  if not botServerReady() then return false end
+  if not controlConnected() then return false end
   local socket = BotServer._websocket
   if registeredSocket == socket then return true end
-  if registeredSocket then cancelSessionCasts(true) end
+  if registeredSocket then cancelSessionCasts(true); clearSightings() end
   registeredSocket = socket
   local listenerSocket = socket
   trackerMembers = {[normalizedName(selfName())] = clockMillis()}
   lastCapabilitySentAt = 0
+
+  local controlOk = BotServer.listen('exiva_stop', function(sender,message)
+    if not activeGeneration() or BotServer._websocket~=listenerSocket or not controlConnected() then return end
+    applyExivaStop(sender,message)
+  end)
 
   local capabilityOk = BotServer.listen(CAPABILITY_TOPIC, function(sender, message)
     if not activeGeneration() or BotServer._websocket ~= listenerSocket or
@@ -868,7 +1186,12 @@ local function registerBotServerListeners()
       normalizedName(message.coordinator) or closedRequests[message.id] then return end
     if normalizedName(message.coordinator) == normalizedName(selfName()) then return end
 
-    local session = sessions[message.id] or newSession(message)
+    local stoppedAt=tonumber(controlState().stoppedAt)
+    if stoppedAt and (not tonumber(message.requestTime) or tonumber(message.requestTime)<=stoppedAt) then return end
+
+    local session = sessions[message.id]
+    local isNew = not session
+    session = session or newSession(message)
     if session.castCancelled or session.remoteCastDone or clockMillis() > session.expiresAt or
       normalizedName(session.target) ~= normalizedName(message.target) or
       normalizedName(session.coordinator) ~= normalizedName(message.coordinator) then return end
@@ -878,6 +1201,7 @@ local function registerBotServerListeners()
     else
       queuedCasts[session.id] = nil
     end
+    if isNew then scanVisibleTargets(true) end
   end)
 
   local resultOk = BotServer.listen(RESULT_TOPIC, function(sender, message)
@@ -894,7 +1218,12 @@ local function registerBotServerListeners()
     addObservation(session, observer, message)
   end)
 
-  if capabilityOk == false or requestOk == false or resultOk == false then
+  local sightingOk = BotServer.listen(SIGHTING_TOPIC, function(sender, message)
+    if not activeGeneration() or BotServer._websocket ~= listenerSocket or not botServerReady() then return end
+    acceptSighting(sender,message)
+  end)
+
+  if controlOk == false or capabilityOk == false or requestOk == false or resultOk == false or sightingOk == false then
     registeredSocket = nil
     return false
   end
@@ -902,32 +1231,19 @@ local function registerBotServerListeners()
   return true
 end
 
-local function floorsText(floors)
-  local values = {}
-  for _, floor in ipairs(floors or {}) do table.insert(values, tostring(floor)) end
-  return table.concat(values, ",")
-end
 
-local function estimateInitiator(estimate)
-  local coordinator = trim(estimate.coordinator)
-  return coordinator ~= "" and "Inicio: " .. coordinator or nil
-end
 
 local function estimateTooltip(target, estimate)
-  local suffix = estimate.unbounded and " (busqueda limitada)" or ""
-  return table.concat({
-    target,
-    estimateInitiator(estimate) or "Inicio: sin datos",
-    "Referencia aproximada: " .. positionKey(estimate.position),
-    "Recuadro amarillo: limites aproximados de busqueda",
-    "Guia punteada: rumbo directo hacia la estimacion",
-    "Lectura hace " .. math.max(0, math.floor((clockMillis() - estimate.updatedAt) / 1000)) .. " s",
-    "Zona X: " .. estimate.minX .. " - " .. estimate.maxX,
-    "Zona Y: " .. estimate.minY .. " - " .. estimate.maxY,
-    "Pisos: " .. floorsText(estimate.floors),
-    "Respuestas: " .. estimate.responseCount,
-    "Precision: +/- " .. estimate.precision .. " sqm" .. suffix
-  }, "\n")
+  local position = copyPosition(estimate.position)
+  local floor = type(estimate.floors)=="table" and #estimate.floors == 1 and tostring(position.z) or "?"
+  local label = estimate.locationType == "exact" and "Posicion exacta: " or
+    estimate.locationType == "lastSeen" and "Ultima posicion: " or "Posicion aprox: "
+  local detail = table.concat({position.x,position.y,floor},",")
+  if not estimate.locationType then
+    detail = detail .. (estimate.unbounded and " (sin limite de distancia)" or
+      " +/- " .. tostring(estimate.precision) .. " sqm")
+  end
+  return target .. "\n" .. label .. detail
 end
 
 local function recalculateSession(session)
@@ -936,17 +1252,22 @@ local function recalculateSession(session)
   -- An older round must never overwrite or remove a newer round's estimate.
   if latestSessions[targetKey] ~= session.id or session.castCancelled or
     clockMillis() > session.expiresAt then return end
+  if hasLiveSighting(session.target) then
+    session.recalculateAt = clockMillis()+1000
+    return
+  end
   local observations = observationsFromSession(session)
   if #observations == 0 then return end
   local estimate = solveObservations(observations)
   if not estimate then
-    estimates[normalizedName(session.target)] = nil
+    approximateEstimates[targetKey] = nil
+    if not sightings[targetKey] then estimates[targetKey] = nil end
     return
   end
 
   -- A point remains a useful reference while fresh readings still allow it.
   -- Recompute the uncertainty area normally; move the point when it is excluded.
-  local previous = estimates[targetKey]
+  local previous = approximateEstimates[targetKey] or estimates[targetKey]
   local reference = previous and previous.position
   if reference and previous.expiresAt > clockMillis() and
     reference.x >= estimate.minX and reference.x <= estimate.maxX and
@@ -954,16 +1275,22 @@ local function recalculateSession(session)
     allObservationsMatch(reference.x, reference.y, reference.z, observations) then
     estimate.position = copyPosition(reference)
   end
+  -- The displayed +/- range must cover the area around the actual reference,
+  -- including a previous valid point retained near one edge of the zone.
+  local referencePoint = estimate.position
+  estimate.precision = math.ceil(math.max(referencePoint.x-estimate.minX,estimate.maxX-referencePoint.x,
+    referencePoint.y-estimate.minY,estimate.maxY-referencePoint.y))
   estimate.target = session.target
   estimate.coordinator = session.coordinator
   estimate.sessionId = session.id
   local newestReading = 0
   for _, observation in ipairs(observations) do
-    newestReading = math.max(newestReading, observation.receivedAt or session.createdAt)
+    newestReading = math.max(newestReading, observation.sampledAt or observation.receivedAt or session.createdAt)
   end
   estimate.updatedAt = newestReading
   estimate.expiresAt = estimate.updatedAt + ESTIMATE_LIFETIME
-  estimates[normalizedName(session.target)] = estimate
+  approximateEstimates[targetKey] = estimate
+  estimates[targetKey] = estimate
 end
 
 local function connectedMemberNames()
@@ -1232,110 +1559,19 @@ local function setVisualRect(widget, x, y, width, height)
   widget._exivaVisualRect = {x = x, y = y, width = width, height = height}
 end
 
-local function estimateOnFloor(estimate, floor)
-  for _, z in ipairs(estimate.floors or {estimate.position.z}) do
-    if tonumber(z) == tonumber(floor) then return true end
-  end
-  return false
-end
 
-local function createSearchArea(minimap, targetKey)
-  local overlay = setupUI([[
-Panel
-  anchors.fill: parent
-  enabled: false
-  phantom: true
-  focusable: false
-  background-color: alpha
 
-  UIWidget
-    id: shade
-    phantom: true
-    focusable: false
-    background-color: #ffd34d18
-
-  UIWidget
-    id: topEdge
-    phantom: true
-    focusable: false
-    background-color: #ffd34de6
-
-  UIWidget
-    id: bottomEdge
-    phantom: true
-    focusable: false
-    background-color: #ffd34de6
-
-  UIWidget
-    id: leftEdge
-    phantom: true
-    focusable: false
-    background-color: #ffd34de6
-
-  UIWidget
-    id: rightEdge
-    phantom: true
-    focusable: false
-    background-color: #ffd34de6
-]], minimap)
-  watchVisual(overlay, "exivaSearchArea_" .. safeId(targetKey))
-  return overlay
-end
-
-local function setSearchAreaPart(widget, x, y, width, height, viewWidth, viewHeight, originX, originY)
-  -- Clip each edge separately: do not invent a border at the viewport edge.
-  local left, top = math.max(0, x), math.max(0, y)
-  local right, bottom = math.min(viewWidth, x + width), math.min(viewHeight, y + height)
-  if right <= left or bottom <= top then setVisualVisible(widget, false) return end
-  setVisualRect(widget, originX + math.floor(left), originY + math.floor(top),
-    math.max(1, math.ceil(right - left)), math.max(1, math.ceil(bottom - top)))
-  setVisualVisible(widget, true)
-end
-
-local function updateSearchAreas(minimap, storageKey, connectedMembers, projection)
+-- Keep only the reticle and dotted direction. Retire legacy search rectangles
+-- through the existing safe visual owner so no old fill remains after reload.
+local function updateSearchAreas(minimap, storageKey)
   local areaKey = storageKey .. "_areas"
-  mapData(minimap, storageKey)[areaKey] = mapData(minimap, storageKey)[areaKey] or {}
-  local areas, desired = mapData(minimap, storageKey)[areaKey], {}
-  if projection then
-    for targetKey, estimate in pairs(estimates) do
-      if estimate.expiresAt > clockMillis() and not connectedMembers[targetKey] and
-         estimateOnFloor(estimate, projection.center.z) then
-        desired[targetKey] = true
-        local area = areas[targetKey]
-        if not visualPresent(minimap, area) then
-          if area then destroyVisual(area) end
-          area = nil
-          local ok, value = pcall(createSearchArea, minimap, targetKey)
-          if ok then area = value; areas[targetKey] = area end
-        end
-        if area then
-          setVisualVisible(area, true)
-          local left = projection.cx + (estimate.minX - projection.center.x - 0.5) * projection.scaleX
-          local right = projection.cx + (estimate.maxX - projection.center.x + 0.5) * projection.scaleX
-          local top = projection.cy + (estimate.minY - projection.center.y - 0.5) * projection.scaleY
-          local bottom = projection.cy + (estimate.maxY - projection.center.y + 0.5) * projection.scaleY
-          pcall(function()
-            local function part(widget, x, y, width, height)
-              setSearchAreaPart(widget, x, y, width, height, projection.width, projection.height,
-                projection.originX, projection.originY)
-            end
-            part(area.shade, left, top, right - left, bottom - top)
-            part(area.topEdge, left, top, right - left, 2)
-            part(area.bottomEdge, left, bottom - 2, right - left, 2)
-            part(area.leftEdge, left, top, 2, bottom - top)
-            part(area.rightEdge, right - 2, top, 2, bottom - top)
-          end)
-        end
-      end
-    end
-  end
-  for targetKey, area in pairs(areas) do
-    if not desired[targetKey] then
-      pcall(destroyVisual, area)
-      areas[targetKey] = nil
-    end
+  local areas = mapData(minimap,storageKey)[areaKey] or {}
+  for targetKey,area in pairs(areas) do
+    pcall(destroyVisual,area)
+    areas[targetKey] = nil
   end
 end
+
 
 
 -- Visual direction guide: the destination is an estimate, not a walking route.
@@ -1361,7 +1597,7 @@ Panel
     text-align: left
     font: verdana-11px-rounded
     color: #ffe38a
-    background-color: #141414cc
+    background-color: alpha
     phantom: true
     focusable: false
     visible: false
@@ -1473,41 +1709,7 @@ local function guideFloorHint(estimate, ownFloor)
   return "Piso sin confirmar"
 end
 
-local function guideCaption(guide, text, x, y, width, height, startX, startY)
-  local longest, lineCount = 0, 0
-  for line in text:gmatch("[^\n]+") do
-    longest = math.max(longest, #line); lineCount = lineCount + 1
-  end
-  local captionWidth = math.min(200, width - 4, longest * 7 + 6)
-  local captionHeight = math.min(height - 4, lineCount * 14 + 4)
-  local caption = guide.widget.caption
-  if guide.captionText ~= text then caption:setText(text); guide.captionText = text end
-  local maxLeft, maxTop = width - captionWidth - 2, height - captionHeight - 2
-  local candidates = {{x + 12, y + 12}, {x - captionWidth - 12, y + 12},
-    {x + 12, y - captionHeight - 12}, {x - captionWidth - 12, y - captionHeight - 12},
-    {2, 2}, {maxLeft, 2}, {2, maxTop}, {maxLeft, maxTop}}
-  local left, top, bestScore
-  for _, candidate in ipairs(candidates) do
-    local cx = math.max(2, math.min(maxLeft, candidate[1]))
-    local cy = math.max(2, math.min(maxTop, candidate[2]))
-    local function covers(px, py)
-      return px >= cx - 10 and px <= cx + captionWidth + 10 and
-        py >= cy - 10 and py <= cy + captionHeight + 10
-    end
-    local score = ((cx + captionWidth / 2 - x)^2 + (cy + captionHeight / 2 - y)^2) / 100
-    -- Prefer an empty corner rather than covering the self pin or the dotted line.
-    if covers(startX, startY) then score = score + 100000 end
-    if covers(x, y) then score = score + 50000 end
-    for i = 1, 15 do
-      if covers(startX + (x - startX) * i / 16, startY + (y - startY) * i / 16) then
-        score = score + 1000
-      end
-    end
-    if not bestScore or score < bestScore then left, top, bestScore = cx, cy, score end
-  end
-  setVisualRect(caption, guide.originX + math.floor(left), guide.originY + math.floor(top), captionWidth, captionHeight)
-  setVisualVisible(caption, true)
-end
+
 
 local function updateExivaGuide(minimap, storageKey, connectedMembers, projection, own)
   local key = storageKey .. "_guide"
@@ -1549,6 +1751,7 @@ local function updateExivaGuide(minimap, storageKey, connectedMembers, projectio
     guide = createExivaGuide(minimap, storageKey); mapData(minimap, storageKey)[key] = guide
   end
   local renderKey = table.concat({targetKey, estimate.target, estimate.coordinator or "", floorHint,
+    estimate.locationType or "", estimate.seenBy or "",
     projection.originX, projection.originY, projection.width, projection.height,
     x, y, targetX, targetY}, "|")
   if guide.renderKey == renderKey then return end
@@ -1581,15 +1784,9 @@ local function updateExivaGuide(minimap, storageKey, connectedMembers, projectio
       end
     end
   end
-  if not inside or floorHint ~= "" then
-    local label = estimate.target .. " ~"
-    label = label .. "\n" .. (floorHint ~= "" and floorHint or "Rumbo aproximado")
-    local initiator = estimateInitiator(estimate)
-    if initiator then label = label .. "\n" .. initiator end
-    guideCaption(guide, label, endX, endY, projection.width, projection.height, x, y)
-  else
-    setVisualVisible(guide.widget.caption, false)
-  end
+  -- The point's compact hover text carries the information; keep the map clear.
+  setVisualVisible(guide.widget.caption,false)
+
   finishExivaGuide(guide)
 end
 
@@ -1749,7 +1946,7 @@ UIWidget
     text-auto-resize: true
     font: verdana-11px-rounded
     color: #ffe38a
-    background-color: #141414bb
+    background-color: alpha
     phantom: true
     focusable: false
 ]], minimap)
@@ -1770,13 +1967,11 @@ UIWidget
               marker.widget:setImageSource(point.image)
               marker.image = point.image
             end
-            local caption = estimate.target .. " ~ +/- " .. tostring(estimate.precision) .. " sqm"
-            local initiator = estimateInitiator(estimate)
-            if initiator then caption = caption .. "\n" .. initiator end
-            if marker.caption ~= caption then
-              marker.widget.caption:setText(caption)
-              marker.caption = caption
+            if marker.caption ~= false then
+              marker.widget.caption:setVisible(false)
+              marker.caption = false
             end
+
             if marker.guideLayer ~= guideLayer then
               marker.widget:raise()
               marker.guideLayer = guideLayer
@@ -1818,8 +2013,42 @@ local function clearUnusedMaps(main, secondary)
   end
 end
 
-local function clearAllMarkers()
+clearAllMarkers = function()
   clearUnusedMaps(nil, nil)
+end
+
+applyExivaStop = function(sender,message)
+  if not isExivaLeader(sender) or type(message)~='table' or
+    type(message.id)~='string' or message.id=='' or #message.id>128 then return false end
+  local sentAt=tonumber(message.sentAt)
+  local current=os.time()
+  if not sentAt or sentAt%1~=0 or sentAt>current+5 or sentAt+EXIVA_PAUSE_SECONDS<=current then return false end
+  local state=controlState()
+  if state.lastStopId==message.id or (state.stoppedAt and sentAt<=state.stoppedAt) then return false end
+  state.lastStopId,state.stoppedAt,state.stoppedBy=message.id,sentAt,trim(sender)
+  state.pauseUntil=math.min(current+EXIVA_PAUSE_SECONDS,sentAt+EXIVA_PAUSE_SECONDS)
+  if type(storage.pvpSupport)=='table' then
+    storage.pvpSupport.exivaTarget=false
+    storage.pvpSupport.exivaLast=false
+  end
+  if ExivaTarget and type(ExivaTarget.setOff)=='function' then ExivaTarget.setOff() end
+  if ExivaLast and type(ExivaLast.setOff)=='function' then ExivaLast.setOff() end
+  cancelSessionCasts(false)
+  clearSightings()
+  for id in pairs(queuedCasts) do queuedCasts[id]=nil end
+  for id in pairs(pendingCasts) do pendingCasts[id]=nil end
+  for key in pairs(estimates) do estimates[key]=nil end
+  clearAllMarkers()
+  return true
+end
+
+local function stopGroupExivas()
+  if not activeGeneration() or not isExivaLeader() or not controlConnected() or exivaPaused() then return false end
+  local message={id='stop:'..os.time()..':'..math.random(1000,9999),sentAt=os.time()}
+  -- Apply locally before sending; a transport echo must not restart the minute.
+  if not applyExivaStop(selfName(),message) then return false end
+  local ok,result=pcall(function() return BotServer.send('exiva_stop',message) end)
+  return ok and result~=false
 end
 
 clearAllMarkers()
@@ -1842,16 +2071,21 @@ end)
 macro(100, function()
   if not activeGeneration() then return end
   local current = clockMillis()
-  if not trackerEnabled() then cancelSessionCasts(false)
-  elseif not botServerReady() then cancelSessionCasts(true) end
+  if not trackerEnabled() then cancelSessionCasts(false); clearSightings()
+  elseif not botServerReady() then cancelSessionCasts(true); clearSightings() end
   pruneAutomaticTalks(current)
   pollServerLog()
   if registerBotServerListeners() then sendCapability(false, false) end
+  -- Resolve screen positions before any coordinated spell or geometry work.
+  scanVisibleTargets()
+  refreshSightEstimates()
 
   for sessionId, entry in pairs(queuedCasts) do
     local session = sessions[sessionId]
     if current > entry.expiresAt or not session or session.castCancelled or session.remoteCastDone or
-      entry.requestSocket ~= BotServer._websocket then
+      entry.requestSocket ~= BotServer._websocket or
+      latestSessions[normalizedName(session.target)] ~= sessionId or
+      hasLiveSighting(session.target) then
       completeRemoteCast(sessionId)
     elseif botServerReady() and current - lastLargeDamageAt >= DAMAGE_SAFE_TIME and
         current >= (tonumber(entry.nextAttemptAt) or 0) then
@@ -1875,6 +2109,10 @@ macro(100, function()
       local targetKey = normalizedName(session.target)
       if latestSessions[targetKey] == sessionId then latestSessions[targetKey] = nil end
     end
+  end
+  refreshSightEstimates()
+  for targetKey, estimate in pairs(approximateEstimates) do
+    if current > estimate.expiresAt then approximateEstimates[targetKey] = nil end
   end
   for targetKey, estimate in pairs(estimates) do
     if current > estimate.expiresAt then estimates[targetKey] = nil end
@@ -1913,6 +2151,11 @@ macro(100, function()
 end)
 
 vBot.ExivaTracker = {
+  getActivity = getExivaActivity,
+  getControlStatus = getExivaControlStatus,
+  isPaused = exivaPaused,
+  shouldAutoExiva = shouldAutoExiva,
+  stopGroupExivas = stopGroupExivas,
   parseResponse = parseExivaResponse,
   solveObservations = solveObservations,
   getSessions = function() return sessions end,

@@ -125,15 +125,14 @@ local function sayExiva(name)
 end
 
 local function runAutoExiva()
-  if config.exivaTarget and config.lastPlayer ~= "" then
-    return sayExiva(config.lastPlayer)
-  end
-
-  if config.exivaLast and config.lastExivaName ~= "" then
-    return sayExiva(config.lastExivaName)
-  end
-
-  return false
+  local tracker=vBot and vBot.ExivaTracker
+  if tracker and type(tracker.isPaused)=='function' and tracker.isPaused() then return false end
+  local target
+  if config.exivaTarget and config.lastPlayer ~= "" then target=config.lastPlayer
+  elseif config.exivaLast and config.lastExivaName ~= "" then target=config.lastExivaName end
+  if not target then return false end
+  if tracker and type(tracker.shouldAutoExiva)=='function' and not tracker.shouldAutoExiva(target) then return false end
+  return sayExiva(target)
 end
 
 onAttackingCreatureChange(function(newCreature, oldCreature)
@@ -223,6 +222,8 @@ ExivaTarget = {
     return config.exivaTarget
   end,
   setOn = function()
+    local tracker=vBot and vBot.ExivaTracker
+    if tracker and type(tracker.isPaused)=='function' and tracker.isPaused() then return false end
     config.exivaTarget = true
     local currentTarget = getAttackTarget()
     if currentTarget then
@@ -242,6 +243,8 @@ ExivaLast = {
     return config.exivaLast
   end,
   setOn = function()
+    local tracker=vBot and vBot.ExivaTracker
+    if tracker and type(tracker.isPaused)=='function' and tracker.isPaused() then return false end
     config.exivaLast = true
     if runAutoExiva() then
       lastAutoExiva = getTime()

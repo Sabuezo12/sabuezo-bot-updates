@@ -599,14 +599,17 @@ local function pendingKey(topic, packet)
   return topic .. ":" .. nextPacketId()
 end
 
-local function queueChatPacket(topic, packet)
+local function queueChatPacket(topic, packet, message)
   local current = clockMillis()
   local interval = TOPIC_INTERVALS[topic] or 0
   local lastSent = state.lastTopicSent[topic]
   local dueAt = lastSent and math.max(current, lastSent + interval) or current
-  local priority = topic == "broadcast" and 0 or 1
+  local priority = (topic == "broadcast" or topic == "exiva_stop") and 0 or 1
 
-  state.pending[pendingKey(topic, packet)] = {
+  -- Keep only the latest visible coordinate per search while chat is throttled.
+  local key = topic == "exiva_seen" and type(message) == "table" and
+    type(message.id) == "string" and "exiva_seen:" .. message.id or pendingKey(topic, packet)
+  state.pending[key] = {
     topic = topic,
     packet = packet,
     dueAt = dueAt,
@@ -781,7 +784,7 @@ function transport.send(topic, message)
 
   local packet = encodeChatPacket(topic, message)
   if not packet then return false end
-  queueChatPacket(topic, packet)
+  queueChatPacket(topic, packet, message)
   return true
 end
 
