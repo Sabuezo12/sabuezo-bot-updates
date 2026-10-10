@@ -1,3 +1,12 @@
+3.0.28 - Updater renovado y ajuste ON/OFF
+- Updater By: Sabuezo estrena una ventana compacta con el estilo de Navi, cierre con X y acceso con estado y version desde Main.
+- Las pestanas Novedades, Historial y Detalles muestran las notas de la version, todas las versiones publicadas y los archivos pendientes reales.
+- Se muestran las versiones instalada y disponible, el avance por archivos y las fases de descarga, instalacion y recarga.
+- Se corrige el interruptor ON/OFF de Actualizar al entrar para mostrar completos el circulo y el texto al activar, desactivar o bloquear el control.
+- Los controles se bloquean mientras se comprueba o instala una actualizacion; se evitan solicitudes duplicadas y se puede reintentar despues de un error.
+- Se conservan la preferencia de actualizacion automatica, los perfiles y las configuraciones personales; el bot se recarga automaticamente al terminar una instalacion completa.
+- El paquete incluye todas las mejoras publicadas de Navi y exiva, incluido el mapa independiente, el fondo negro, Punto exiva, los avistamientos exactos y las referencias aproximadas.
+
 3.0.27 - Mapa Navi y referencias de exiva
 - Navi cambia al nuevo objetivo buscado por el iniciador que estas viendo; retira el punto anterior mientras espera sus respuestas y mantiene separadas las coordenadas de cada jugador.
 - Las respuestas muy lejos aportan un punto amarillo de acercamiento compatible con las lecturas disponibles, identificado como orientativo y con la distancia del objetivo sin confirmar.

@@ -1,182 +1,544 @@
-UpdaterListLabel < Label
-  height: 16
-  text-align: left
+UpdaterLabel < Label
+  font: verdana-11px-antialised
+  color: #dce6ef
+  height: 18
+  phantom: true
+  focusable: false
+
+UpdaterListLabel < UpdaterLabel
+  height: 18
   text-offset: 3 0
-  font: verdana-11px-rounded
-  color: #cfd3d7
 
-UpdaterWindow < MainWindow
-  !text: tr('Sabuezo Updater')
-  size: 650 520
-  @onEscape: self:hide()
+UpdaterIcon < UIWidget
+  size: 18 18
+  phantom: true
+  focusable: false
 
-  Label
-    id: title
+UpdaterCard < Panel
+  image-source: botserver_assets/card.png
+  image-border: 5
+  padding: 8
+
+UpdaterButton < Button
+  font: verdana-11px-antialised
+  color: #e4edf3
+  height: 28
+  padding: 0
+  text-offset: 0 0
+  image-source: botserver_assets/button.png
+  image-clip: 0 0 96 36
+  image-border: 6
+  $hover !disabled:
+    image-source: botserver_assets/button-hover.png
+  $pressed:
+    image-source: botserver_assets/button-pressed.png
+    text-offset: 0 0
+  $on:
+    image-source: botserver_assets/tab-active.png
+  $disabled:
+    opacity: 0.45
+
+UpdaterIconButton < UpdaterButton
+  text:
+
+UpdaterInstallButton < UpdaterIconButton
+  image-source: botserver_assets/power-on.png
+  $hover !disabled:
+    image-source: botserver_assets/power-on.png
+    image-color: #dbffe0
+  $pressed:
+    image-source: botserver_assets/power-on.png
+
+UpdaterSwitch < Button
+  font: verdana-11px-antialised
+  color: #e4edf3
+  size: 64 24
+  height: 24
+  padding: 0
+  text:
+  text-offset: 0 0
+  image-source: botserver_assets/switch-off.png
+  image-clip: 0 0 64 24
+  image-border: 0
+  image-color: #ffffff
+  opacity: 1
+  $hover !disabled:
+    image-source: botserver_assets/switch-off.png
+    image-clip: 0 0 64 24
+    image-border: 0
+    image-color: #ffffff
+  $pressed:
+    image-source: botserver_assets/switch-off.png
+    image-clip: 0 0 64 24
+    image-border: 0
+    text-offset: 0 0
+  $on:
+    image-source: botserver_assets/switch-on.png
+    image-clip: 0 0 64 24
+    image-border: 0
+    image-color: #ffffff
+  $disabled:
+    image-clip: 0 0 64 24
+    image-border: 0
+    opacity: 0.45
+
+  UpdaterLabel
+    id: Caption
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 28
+    size: 32 20
+    text: OFF
+    text-align: center
+
+UpdaterPanel < Panel
+  height: 26
+
+  UpdaterButton
+    id: open
     anchors.left: parent.left
     anchors.right: parent.right
     anchors.top: parent.top
-    height: 20
-    text-align: center
-    font: verdana-11px-rounded
-    color: #9dd1ce
-    text: Centro de actualizaciones
+    anchors.bottom: parent.bottom
+    text:
 
-  Label
-    anchors.left: parent.left
-    anchors.top: title.bottom
-    margin-top: 8
-    width: 115
-    height: 18
-    font: verdana-11px-rounded
-    text: Instalada
+    UpdaterIcon
+      id: Dot
+      anchors.left: parent.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 4
+      size: 12 12
+      image-source: botserver_assets/status-gray.png
 
-  Label
-    id: installed
-    anchors.left: prev.right
-    anchors.right: parent.horizontalCenter
-    anchors.verticalCenter: prev.verticalCenter
-    margin-left: 6
-    margin-right: 10
-    height: 18
-    text-align: left
-    font: verdana-11px-rounded
-    color: #ffffff
-    background: #20202088
-    text: -
+    UpdaterIcon
+      id: Icon
+      anchors.left: Dot.right
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 3
+      size: 15 15
+      image-source: updater_assets/refresh.png
 
-  Label
-    anchors.left: parent.horizontalCenter
-    anchors.top: installed.top
-    margin-left: 10
-    width: 85
-    height: 18
-    font: verdana-11px-rounded
-    text: Disponible
+    UpdaterLabel
+      id: Caption
+      anchors.left: Icon.right
+      anchors.right: Badge.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 4
+      margin-right: 3
+      text: Updater
 
-  Label
-    id: remote
-    anchors.left: prev.right
-    anchors.right: parent.right
-    anchors.verticalCenter: prev.verticalCenter
-    margin-left: 6
-    height: 18
-    text-align: left
-    font: verdana-11px-rounded
-    color: #ffffff
-    background: #20202088
-    text: -
+    UpdaterLabel
+      id: Badge
+      anchors.right: Arrow.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-right: 2
+      width: 43
+      height: 18
+      text-align: center
+      image-source: botserver_assets/input.png
+      image-border: 3
+      font: verdana-11px-antialised
+      text: -
 
-  Label
+    UpdaterIcon
+      id: Arrow
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      margin-right: 3
+      size: 10 10
+      image-source: botserver_assets/chevron-right.png
+
+  UpdaterLabel
     id: status
-    anchors.left: parent.left
-    anchors.right: parent.right
-    anchors.top: remote.bottom
-    margin-top: 7
-    height: 86
-    text-align: left
-    text-offset: 5 4
-    font: verdana-11px-rounded
-    color: #cfd3d7
-    background: #292A2A
-    text-wrap: true
-    text: Usa Check para revisar actualizaciones
+    visible: false
 
-  Label
-    id: changesTitle
+UpdaterWindow < MainWindow
+  text:
+  size: 520 456
+  image-source: botserver_assets/window.png
+  image-border: 8
+  image-clip: 0 0 64 64
+  padding-top: 8
+  padding-left: 10
+  padding-right: 10
+  padding-bottom: 8
+  @onEscape: self:hide()
+
+  UpdaterLabel
+    id: Title
     anchors.left: parent.left
-    anchors.top: status.bottom
-    margin-top: 8
-    width: 180
+    anchors.right: closeButton.left
+    anchors.top: parent.top
+    height: 22
+    font: sans-bold-16px
+    text: Updater By: Sabuezo
+
+  UpdaterButton
+    id: closeButton
+    anchors.right: parent.right
+    anchors.top: parent.top
+    size: 18 18
     height: 18
-    text-align: left
-    font: verdana-11px-rounded
-    color: #9dd1ce
-    text: Notas del parche
+    text: X
+    tooltip: Cerrar Updater
+    @onClick: self:getParent():hide()
 
-  ScrollablePanel
-    id: changesList
+  UpdaterCard
+    id: Banner
     anchors.left: parent.left
     anchors.right: parent.right
-    anchors.top: changesTitle.bottom
-    height: 130
-    margin-top: 3
-    padding: 2
-    vertical-scrollbar: changesScrollBar
-    layout: verticalBox
-    background: #20202066
+    anchors.top: Title.bottom
+    margin-top: 6
+    height: 28
+    padding: 4
 
-  VerticalScrollBar
-    id: changesScrollBar
-    anchors.top: changesList.top
-    anchors.bottom: changesList.bottom
-    anchors.right: changesList.right
-    step: 18
-    pixels-scroll: true
+    UpdaterIcon
+      id: Dot
+      anchors.left: parent.left
+      anchors.verticalCenter: parent.verticalCenter
+      size: 16 16
+      image-source: botserver_assets/status-gray.png
 
-  Label
-    id: filesTitle
-    anchors.left: parent.left
-    anchors.top: changesList.bottom
-    margin-top: 8
-    width: 180
-    height: 18
-    text-align: left
-    font: verdana-11px-rounded
-    color: #9dd1ce
-    text: Archivos a descargar
+    UpdaterLabel
+      id: Status
+      anchors.left: Dot.right
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 6
+      text: Buscar actualizaciones
 
-  ScrollablePanel
-    id: filesList
+  Panel
+    id: Versions
     anchors.left: parent.left
     anchors.right: parent.right
-    anchors.top: filesTitle.bottom
-    anchors.bottom: bottomSep.top
-    margin-top: 3
+    anchors.top: Banner.bottom
+    margin-top: 6
+    height: 44
+
+    UpdaterCard
+      id: Local
+      anchors.left: parent.left
+      anchors.right: parent.horizontalCenter
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      margin-right: 4
+      padding: 6
+
+      UpdaterLabel
+        id: Caption
+        anchors.left: parent.left
+        anchors.top: parent.top
+        height: 14
+        color: #a8bac7
+        text: Instalada
+
+      UpdaterLabel
+        id: Value
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: Caption.bottom
+        height: 18
+        text: -
+
+    UpdaterCard
+      id: Remote
+      anchors.left: parent.horizontalCenter
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      margin-left: 4
+      padding: 6
+
+      UpdaterLabel
+        id: Caption
+        anchors.left: parent.left
+        anchors.top: parent.top
+        height: 14
+        color: #a8bac7
+        text: Disponible
+
+      UpdaterLabel
+        id: Value
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: Caption.bottom
+        height: 18
+        color: #f3d47d
+        text: -
+
+  Panel
+    id: Tabs
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: Versions.bottom
+    margin-top: 6
+    height: 26
+
+    UpdaterButton
+      id: News
+      anchors.left: parent.left
+      anchors.top: parent.top
+      width: 164
+      height: 26
+      text: Novedades
+
+    UpdaterButton
+      id: History
+      anchors.left: News.right
+      anchors.top: parent.top
+      margin-left: 4
+      width: 164
+      height: 26
+      text: Historial
+
+    UpdaterButton
+      id: Details
+      anchors.left: History.right
+      anchors.right: parent.right
+      anchors.top: parent.top
+      margin-left: 4
+      height: 26
+      text: Detalles
+
+  UpdaterCard
+    id: Body
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: Tabs.bottom
+    anchors.bottom: Options.top
+    margin-top: 6
     margin-bottom: 8
-    padding: 2
-    vertical-scrollbar: filesScrollBar
-    layout: verticalBox
-    background: #20202066
+    padding: 8
 
-  VerticalScrollBar
-    id: filesScrollBar
-    anchors.top: filesList.top
-    anchors.bottom: filesList.bottom
-    anchors.right: filesList.right
-    step: 18
-    pixels-scroll: true
+    Panel
+      id: News
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
 
-  HorizontalSeparator
-    id: bottomSep
+      ScrollablePanel
+        id: List
+        anchors.left: parent.left
+        anchors.right: Scroll.left
+        anchors.top: parent.top
+        anchors.bottom: Footer.top
+        margin-right: 4
+        margin-bottom: 6
+        vertical-scrollbar: Scroll
+        layout: verticalBox
+
+      VerticalScrollBar
+        id: Scroll
+        width: 12
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: Footer.top
+        margin-bottom: 6
+        step: 18
+        pixels-scroll: true
+
+      UpdaterLabel
+        id: Footer
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        color: #a8bac7
+        text: Sin archivos pendientes
+
+    Panel
+      id: History
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      visible: false
+
+      ScrollablePanel
+        id: List
+        anchors.left: parent.left
+        anchors.right: Scroll.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        margin-right: 4
+        vertical-scrollbar: Scroll
+        layout: verticalBox
+
+      VerticalScrollBar
+        id: Scroll
+        width: 12
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        step: 18
+        pixels-scroll: true
+
+    Panel
+      id: Details
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      visible: false
+
+      ScrollablePanel
+        id: List
+        anchors.left: parent.left
+        anchors.right: Scroll.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        margin-right: 4
+        vertical-scrollbar: Scroll
+        layout: verticalBox
+
+      VerticalScrollBar
+        id: Scroll
+        width: 12
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        step: 18
+        pixels-scroll: true
+
+    Panel
+      id: Progress
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.bottom: parent.bottom
+      height: 58
+      visible: false
+
+      UpdaterLabel
+        id: Count
+        anchors.left: parent.left
+        anchors.right: Percent.left
+        anchors.top: parent.top
+
+      UpdaterLabel
+        id: Percent
+        anchors.right: parent.right
+        anchors.top: parent.top
+        width: 42
+        text-align: right
+
+      UIWidget
+        id: Frame
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: Count.bottom
+        margin-top: 3
+        height: 15
+        image-source: botserver_assets/bar.png
+        image-border: 3
+        phantom: true
+
+        UIWidget
+          id: Fill
+          anchors.left: parent.left
+          anchors.top: parent.top
+          anchors.bottom: parent.bottom
+          margin: 3
+          width: 1
+          image-source: updater_assets/progress.png
+          phantom: true
+          visible: false
+
+      UpdaterLabel
+        id: Phase
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: Frame.bottom
+        margin-top: 3
+        text-align: center
+        color: #7cc9d1
+
+  UpdaterCard
+    id: Options
     anchors.left: parent.left
     anchors.right: parent.right
     anchors.bottom: check.top
     margin-bottom: 8
+    height: 44
+    padding: 6
 
-  Button
+    UpdaterLabel
+      id: Caption
+      anchors.left: parent.left
+      anchors.right: Auto.left
+      anchors.top: parent.top
+      height: 16
+      text: Actualizar al entrar
+
+    UpdaterLabel
+      id: Hint
+      anchors.left: parent.left
+      anchors.right: Auto.left
+      anchors.top: Caption.bottom
+      height: 16
+      color: #a8bac7
+      text: Recarga automatica al terminar
+
+    UpdaterSwitch
+      id: Auto
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      tooltip: Instalar las actualizaciones disponibles al cargar el bot
+
+  UpdaterIconButton
     id: check
     anchors.left: parent.left
-    anchors.bottom: parent.bottom
-    width: 70
-    height: 21
-    text: Check
-    tooltip: Revisar actualizaciones
+    anchors.bottom: Footer.top
+    margin-bottom: 8
+    width: 184
+    height: 30
 
-  Button
+    UpdaterIcon
+      id: Icon
+      anchors.left: parent.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 10
+      image-source: updater_assets/refresh.png
+
+    UpdaterLabel
+      id: Caption
+      anchors.left: Icon.right
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 7
+      margin-right: 8
+      text: Buscar actualizacion
+
+  UpdaterInstallButton
     id: install
     anchors.left: check.right
-    anchors.bottom: parent.bottom
-    margin-left: 6
-    width: 78
-    height: 21
-    text: Update
-    tooltip: Descargar solo archivos pendientes
+    anchors.right: parent.right
+    anchors.bottom: Footer.top
+    margin-left: 8
+    margin-bottom: 8
+    height: 30
 
-  Button
-    id: closeButton
+    UpdaterIcon
+      id: Icon
+      anchors.left: parent.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 10
+      image-source: updater_assets/download.png
+
+    UpdaterLabel
+      id: Caption
+      anchors.left: Icon.right
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 7
+      margin-right: 8
+      text: Actualizar
+
+  UpdaterLabel
+    id: Footer
+    anchors.left: parent.left
     anchors.right: parent.right
     anchors.bottom: parent.bottom
-    width: 55
-    height: 21
-    text: Close
-    @onClick: self:getParent():hide()
+    height: 14
+    text-align: center
+    color: #a8bac7
+    text: Tu configuracion se conserva

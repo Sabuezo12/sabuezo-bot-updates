@@ -48,53 +48,20 @@ local function isShutdownPayload(contents)
       contents:find("Lua vacios:", 1, true) ~= nil)
 end
 
-local ui = setupUI([[
-Panel
-  height: 58
-
-  Label
-    id: title
-    anchors.top: parent.top
-    anchors.left: parent.left
-    width: 90
-    height: 17
-    text-align: center
-    font: verdana-11px-rounded
-    background: #006060
-    color: #ffffff
-    text: Updater
-
-  Button
-    id: open
-    anchors.top: title.top
-    anchors.left: title.right
-    anchors.right: parent.right
-    height: 17
-    margin-left: 3
-    text: Check
-    tooltip: Abrir ventana de actualizaciones
-
-  Label
-    id: status
-    anchors.top: title.bottom
-    anchors.left: parent.left
-    anchors.right: parent.right
-    height: 32
-    margin-top: 3
-    text-align: center
-    font: verdana-11px-rounded
-    background: #292A2A
-    color: #cfd3d7
-    text-wrap: true
-]], parent)
+local ui = setupUI([[UpdaterPanel]], parent)
 ui:setId(panelName)
 
 local installing = false
+local checking = false
 local lastManifest = nil
 local lastPendingFiles = {}
 local detailsWindow = nil
 local ensureDetailsWindow
 local autoReloadScheduled = false
+local activeTab = "News"
+local state = {kind = "idle", title = "Buscar actualizaciones", detail = "",
+  color = "#dce6ef", done = 0, total = 0, phase = ""}
+local renderState
 
 local function trim(text)
   return tostring(text or ""):gsub("^%s+", ""):gsub("%s+$", "")
@@ -136,38 +103,33 @@ end
 local function setPanelStatus(text, color)
   if ui.status then
     ui.status:setText(text)
-    ui.status:setColor(color or "#cfd3d7")
+    ui.status:setColor(color or "#dce6ef")
   end
+  if ui.open.setTooltip then ui.open:setTooltip(text) end
 end
 
-local function setDetailsStatus(text, color)
-  if detailsWindow and detailsWindow.status then
-    detailsWindow.status:setText(text)
-    detailsWindow.status:setColor(color or "#cfd3d7")
-  end
-end
-
-local function setStatus(text, color)
-  setDetailsStatus(text, color)
+local function setState(kind, title, detail, color)
+  state.kind = kind
+  state.title = title
+  state.detail = detail or ""
+  state.color = color or "#dce6ef"
+  setPanelStatus("Version: " .. tostring(config.version or "none") .. "\n" .. title, state.color)
+  if renderState then renderState() end
 end
 
 local function reloadAfterInstall()
   if autoReloadScheduled then return end
   autoReloadScheduled = true
-
-  setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nRecargando bot...", "#8cff9a")
-  setStatus("Update instalado. Recargando bot...", "#8cff9a")
+  state.phase = "reload"
+  setState("reloading", "Recargando bot...", "El bot se recargara al terminar.", "#8cff9a")
 
   schedule(800, function()
-    if type(reload) == "function" then
-      local ok, err = pcall(reload)
-      if not ok then
-        setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nReloguea para aplicar", "#ffd166")
-        setStatus("Update instalado. Reloguea para aplicar.\n" .. tostring(err), "#ffd166")
-      end
-    else
-      setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nReloguea para aplicar", "#ffd166")
-      setStatus("Update instalado. Reloguea para aplicar.", "#ffd166")
+    local ok, err = false, nil
+    if type(reload) == "function" then ok, err = pcall(reload) end
+    if not ok then
+      autoReloadScheduled = false
+      setState("warning", "Reloguea para aplicar", "Actualizacion instalada. Reloguea para aplicar." ..
+        (err and ("\n" .. tostring(err)) or ""), "#ffd166")
     end
   end)
 end
@@ -739,138 +701,207 @@ end
 
 local function addListLine(parent, text, color)
   if not parent then return end
-  local ok, widget = pcall(function()
-    return UI.createWidget("UpdaterListLabel", parent)
-  end)
+  local ok, widget = pcall(function() return UI.createWidget("UpdaterListLabel", parent) end)
   if not ok or not widget then return end
   widget:setText(tostring(text or ""))
-  widget:setColor(color or "#cfd3d7")
+  widget:setColor(color or "#dce6ef")
+  return widget
 end
 
+local listRows = {}
 local function fillList(parent, lines, emptyText)
   if not parent then return end
-  parent:destroyChildren()
+  local wrapped = {}
   if #lines == 0 then
-    addListLine(parent, emptyText or "No data", "#777777")
-    return
-  end
-  for _, line in ipairs(lines) do
-    local text = line.text or line
-    local color = line.color
-    for _, wrapped in ipairs(wrapTextLine(text, 60)) do
-      addListLine(parent, wrapped, color)
+    wrapped[1] = {text = emptyText or "Sin datos", color = "#a8bac7"}
+  else for _, line in ipairs(lines) do
+    local text = type(line) == "table" and line.text or line
+    local color = type(line) == "table" and line.color or nil
+    for _, textLine in ipairs(wrapTextLine(text, 65)) do
+      table.insert(wrapped, {text = textLine, color = color or "#dce6ef"})
     end
-  end
-end
-
-local function buildChangeLines(manifest, maxLines)
-  local lines = {}
-  local history = getHistoryEntries(manifest, tostring(config.version or "none"))
-
-  for _, entry in ipairs(history) do
-    local version = tostring(entry.version or "?")
-    local title = trim(entry.title or "")
-    if title ~= "" then
-      table.insert(lines, { text = version .. " - " .. title, color = "#9dd1ce" })
+  end end
+  -- Reuse labels so file progress does not rebuild the whole UI or reset scrolling.
+  local rows = listRows[parent] or {}
+  listRows[parent] = rows
+  for index, line in ipairs(wrapped) do
+    local row = rows[index]
+    if not row then
+      local widget = addListLine(parent, line.text, line.color)
+      if widget then rows[index] = {widget = widget, text = line.text, color = line.color} end
     else
-      table.insert(lines, { text = version, color = "#9dd1ce" })
-    end
-
-    if type(entry.changes) == "table" then
-      for _, change in ipairs(entry.changes) do
-        change = trim(change)
-        if change ~= "" then table.insert(lines, "  - " .. change) end
-      end
-    elseif type(entry.summary) == "string" then
-      for change in entry.summary:gmatch("[^\n]+") do
-        change = trim(change)
-        if change ~= "" then table.insert(lines, "  - " .. change) end
-      end
+      if row.text ~= line.text then row.widget:setText(line.text); row.text = line.text end
+      if row.color ~= line.color then row.widget:setColor(line.color); row.color = line.color end
     end
   end
+  for index = #rows, #wrapped + 1, -1 do
+    rows[index].widget:destroy()
+    rows[index] = nil
+  end
+end
 
+local function allHistory(manifest)
+  local entries = {}
+  for _, entry in ipairs(manifest and manifest.history or {}) do
+    if type(entry) == "table" then table.insert(entries, entry) end
+  end
+  table.sort(entries, function(a, b) return compareVersions(a.version, b.version) > 0 end)
+  return entries
+end
+
+local function appendNotes(lines, entry, showInstalled)
+  local version = tostring(entry.version or "?")
+  local title = trim(entry.title)
+  local heading = version .. (title ~= "" and (" - " .. title) or "")
+  if showInstalled and version == tostring(config.version) then heading = heading .. " (instalada)" end
+  table.insert(lines, {text = heading, color = "#7cc9d1"})
+  if entry.date or entry.updatedAt then
+    table.insert(lines, {text = tostring(entry.date or entry.updatedAt), color = "#a8bac7"})
+  end
+  if type(entry.changes) == "table" then
+    for _, change in ipairs(entry.changes) do
+      change = trim(change)
+      if change ~= "" then table.insert(lines, "- " .. change) end
+    end
+  elseif type(entry.summary) == "string" then
+    for line in entry.summary:gmatch("[^\n]+") do table.insert(lines, "- " .. trim(line)) end
+  end
+  table.insert(lines, "")
+end
+
+local function buildChangeLines(manifest)
+  local lines = {}
+  local entries = getHistoryEntries(manifest, tostring(config.version or "none"))
+  -- Keep the latest release notes visible after a successful installation.
+  if #entries == 0 then
+    for _, entry in ipairs(allHistory(manifest)) do
+      if tostring(entry.version) == tostring(manifest.version) then entries = {entry}; break end
+    end
+  end
+  for index = #entries, 1, -1 do appendNotes(lines, entries[index], false) end
   if #lines == 0 then
-    local summary = manifest and manifest.summary
+    local summary = manifest.summary
     if type(summary) == "table" then
-      for _, line in ipairs(summary) do
-        line = trim(line)
-        if line ~= "" then table.insert(lines, "- " .. line) end
-      end
+      for _, line in ipairs(summary) do table.insert(lines, "- " .. trim(line)) end
     elseif type(summary) == "string" then
-      for line in summary:gmatch("[^\n]+") do
-        line = trim(line)
-        if line ~= "" then table.insert(lines, "- " .. line) end
-      end
+      for line in summary:gmatch("[^\n]+") do table.insert(lines, "- " .. trim(line)) end
     end
   end
-
-  local limit = tonumber(maxLines)
-  if limit and #lines > limit then
-    local limited = {}
-    for i = 1, limit do table.insert(limited, lines[i]) end
-    table.insert(limited, "+" .. (#lines - limit) .. " more in details")
-    return limited
-  end
-
   return lines
 end
 
-local function buildFileLines(pendingFiles)
+local function buildHistoryLines(manifest)
   local lines = {}
-  for _, entry in ipairs(pendingFiles or {}) do
-    table.insert(lines, "- " .. normalizePath(entry.path))
-  end
+  for _, entry in ipairs(allHistory(manifest)) do appendNotes(lines, entry, true) end
   return lines
+end
+
+local function buildDetailLines()
+  local lines = {
+    {text = "Perfil: " .. getConfigName(), color = "#7cc9d1"},
+    "Instalada: " .. tostring(config.version or "none"),
+    "Disponible: " .. tostring(lastManifest and lastManifest.version or "-"),
+    "Recarga automatica: activada", ""
+  }
+  if lastManifest and lastManifest.updatedAt then
+    table.insert(lines, "Publicacion: " .. tostring(lastManifest.updatedAt))
+  end
+  if state.detail ~= "" then
+    for line in state.detail:gmatch("[^\n]+") do
+      table.insert(lines, {text = line, color = state.color})
+    end
+    table.insert(lines, "")
+  end
+  table.insert(lines, {text = "Archivos pendientes: " .. #lastPendingFiles, color = "#7cc9d1"})
+  for _, entry in ipairs(lastPendingFiles) do table.insert(lines, "- " .. normalizePath(entry.path)) end
+  if #lastPendingFiles == 0 then table.insert(lines, "No hay archivos pendientes.") end
+  return lines
+end
+
+local function isBusy()
+  return checking or installing or autoReloadScheduled
+end
+
+local function updateProgressWidth()
+  if not detailsWindow then return end
+  local frame = detailsWindow.Body.Progress.Frame
+  local size = frame:getSize()
+  local available = math.max(1, (tonumber(size.width) or 0) - 6)
+  local fraction = state.total > 0 and state.done / state.total or 0
+  frame.Fill:setWidth(math.max(1, math.floor(available * math.min(1, fraction))))
+  frame.Fill:setVisible(fraction > 0)
+end
+
+renderState = function()
+  local dot = state.kind == "error" and "red" or
+    (state.kind == "current" or state.kind == "reloading") and "green" or
+    (state.kind == "available" or state.kind == "checking" or state.kind == "installing" or
+     state.kind == "warning" or state.kind == "blocked") and "yellow" or "gray"
+  if ui.open.Dot then ui.open.Dot:setImageSource("/bot/" .. getConfigName() ..
+    "/vBot/botserver_assets/status-" .. dot .. ".png") end
+  if ui.open.Badge then ui.open.Badge:setText(tostring(config.version or "-")) end
+  if not detailsWindow then return end
+  local w = detailsWindow
+  local busy = isBusy()
+  w.Banner.Status:setText(state.title)
+  w.Banner.Status:setColor(state.color)
+  w.Banner.Dot:setImageSource("/bot/" .. getConfigName() .. "/vBot/botserver_assets/status-" .. dot .. ".png")
+  w.Banner:setTooltip(state.detail ~= "" and state.detail or state.title)
+  w.Versions.Local.Value:setText(tostring(config.version or "none"))
+  w.Versions.Remote.Value:setText(tostring(lastManifest and lastManifest.version or "-"))
+  for _, name in ipairs({"News", "History", "Details"}) do
+    w.Tabs[name]:setOn(name == activeTab)
+    w.Body[name]:setVisible(name == activeTab)
+  end
+  w.Options.Auto:setOn(config.autoInstall == true)
+  w.Options.Auto.Caption:setText(config.autoInstall and "ON" or "OFF")
+  w.Options.Auto.Caption:setMarginLeft(config.autoInstall and 2 or 28)
+  w.Options.Auto:setEnabled(not busy)
+  w.check:setEnabled(not busy)
+  local available = lastManifest and (#lastPendingFiles > 0 or tostring(lastManifest.version) ~= tostring(config.version))
+  w.install:setEnabled(not busy and available ~= nil and available ~= false)
+  local installText = state.kind == "reloading" and "Recargando..." or
+    installing and "Actualizando..." or available and
+    ("Actualizar a " .. tostring(lastManifest.version)) or lastManifest and "Todo actualizado" or "Actualizar"
+  w.install.Caption:setText(installText)
+  w.install:setTooltip("Descargar solo los archivos pendientes y recargar el bot")
+  local pendingCount = installing and math.max(0, state.total - state.done) or #lastPendingFiles
+  w.Body.News.Footer:setText(pendingCount == 0 and "Sin archivos pendientes" or
+    (pendingCount .. (pendingCount == 1 and " archivo pendiente" or " archivos pendientes")))
+  local progressVisible = state.total > 0
+  w.Body.Progress:setVisible(progressVisible)
+  for _, name in ipairs({"News", "History", "Details"}) do
+    w.Body[name]:setMarginBottom(progressVisible and 64 or 0)
+  end
+  w.Body.Progress.Count:setText(state.done .. " de " .. state.total .. " archivos listos")
+  w.Body.Progress.Percent:setText((state.total > 0 and math.floor(100 * state.done / state.total) or 0) .. "%")
+  local phase = state.phase == "reload" and "Descargar  >  Instalar  >  [Recargar]" or
+    state.phase == "install" and "Descargar  >  [Instalar]  >  Recargar" or
+    "[Descargar]  >  Instalar  >  Recargar"
+  if state.kind == "error" or state.kind == "blocked" then phase = "Interrumpido - revisa Detalles" end
+  if state.kind == "warning" then phase = "Instalado - recarga pendiente" end
+  w.Body.Progress.Phase:setText(phase)
+  updateProgressWidth()
+  fillList(w.Body.Details.List, buildDetailLines())
 end
 
 local function refreshDetailsWindow(manifest)
-  if not detailsWindow then return end
-
-  local remoteVersion = manifest and tostring(manifest.version or "unknown") or "-"
-  local localVersion = tostring(config.version or "none")
   lastPendingFiles = manifest and getPendingFiles(manifest) or {}
-
-  detailsWindow.installed:setText(localVersion)
-  detailsWindow.remote:setText(remoteVersion)
-
-  fillList(detailsWindow.changesList, buildChangeLines(manifest or {}), "No hay notas para esta version.")
-  fillList(detailsWindow.filesList, buildFileLines(lastPendingFiles), "No hay archivos pendientes.")
-
-  if manifest then
-    if remoteVersion == localVersion and #lastPendingFiles == 0 then
-      detailsWindow.status:setText("Ultima version")
-      detailsWindow.status:setColor("#8cff9a")
-    else
-      detailsWindow.status:setText("Archivos pendientes: " .. #lastPendingFiles)
-      detailsWindow.status:setColor("#ffd166")
-    end
-  else
-    detailsWindow.status:setText("Usa Check para revisar actualizaciones")
-    detailsWindow.status:setColor("#cfd3d7")
+  if detailsWindow then
+    fillList(detailsWindow.Body.News.List, buildChangeLines(manifest or {}), "Revisa si hay una nueva version.")
+    fillList(detailsWindow.Body.History.List, buildHistoryLines(manifest or {}), "El historial se cargara al buscar actualizaciones.")
   end
-end
-
-local function formatSummary(manifest, maxLines)
-  local lines = buildChangeLines(manifest or {}, maxLines)
-  local visible = {}
-  for _, line in ipairs(lines) do
-    if type(line) == "table" then
-      table.insert(visible, line.text)
-    else
-      table.insert(visible, line)
-    end
-  end
-  return table.concat(visible, "\n")
+  renderState()
 end
 
 local function blockShutdownUpdate()
+  checking = false
   installing = false
   lastManifest = nil
   lastPendingFiles = {}
   refreshDetailsWindow(nil)
-  setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nUpdate de cierre bloqueado", "#ffd166")
-  setStatus("La actualizacion de cierre vacia los scripts y ha sido bloqueada.\n" ..
-    "Publica una nueva version con el bot activo en GitHub.", "#ffd166")
+  setState("blocked", "Actualizacion de cierre bloqueada",
+    "Esta version vacia los scripts y se ha bloqueado para conservar el bot.", "#ffd166")
 end
 
 local function buildManifestUrls()
@@ -905,357 +936,234 @@ local function previewText(text)
 end
 
 local function fetchManifest(callback)
+  if isBusy() then return end
+  checking = true
+  state.done, state.total, state.phase = 0, 0, ""
   local finished = false
   local attempts = buildManifestUrls()
-  local attemptIndex = 0
-  local activeAttempt = 0
+  local attemptIndex, activeAttempt = 0, 0
   local lastError = nil
-
-  setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nRevisando...", "#ffd166")
-  setStatus("Revisando actualizaciones...", "#ffd166")
+  setState("checking", "Buscando actualizaciones...", "Consultando las versiones publicadas.", "#ffd166")
 
   local function fail()
     if finished then return end
-    finished = true
-    local shortError = tostring(lastError or "no response")
-    if shortError:len() > 38 then shortError = shortError:sub(1, 38) .. "..." end
-    setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nError: " .. shortError, "#ff8a8a")
-    setStatus("Manifest error: " .. tostring(lastError or "no response"), "#ff8a8a")
+    finished, checking = true, false
+    setState("error", "No se pudo buscar la actualizacion", tostring(lastError or "Sin respuesta") ..
+      "\nPuedes volver a intentarlo.", "#ff8a8a")
     if callback then callback(nil) end
   end
 
   local function tryNextManifest()
     if finished then return end
-
     attemptIndex = attemptIndex + 1
     local url = attempts[attemptIndex]
-    if not url then
-      fail()
-      return
-    end
-
+    if not url then fail(); return end
     activeAttempt = activeAttempt + 1
     local token = activeAttempt
-    local requestUrl = withCacheBuster(url)
-
-    setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nRevisando " ..
-      tostring(attemptIndex) .. "/" .. tostring(#attempts), "#ffd166")
-
     if type(schedule) == "function" then
       schedule(6000, function()
         if finished or token ~= activeAttempt then return end
-        lastError = "timeout en ruta " .. tostring(attemptIndex)
+        lastError = "Tiempo de espera agotado en ruta " .. attemptIndex
         tryNextManifest()
       end)
     end
-
-    httpGet(requestUrl, function(data, err)
+    httpGet(withCacheBuster(url), function(data, err)
       if finished or token ~= activeAttempt then return end
-
       if not data then
-        lastError = "r" .. tostring(attemptIndex) .. ": " .. tostring(err or "sin respuesta")
-        tryNextManifest()
-        return
+        lastError = "Ruta " .. attemptIndex .. ": " .. tostring(err or "sin respuesta")
+        tryNextManifest(); return
       end
-
-      data = decodeGithubContentResponse(data)
-      local manifestPayload = normalizeJsonPayload(data)
-
-      local ok, manifest = pcall(function()
-        return json.decode(manifestPayload)
-      end)
+      local payload = normalizeJsonPayload(decodeGithubContentResponse(data))
+      local ok, manifest = pcall(function() return json.decode(payload) end)
       if not ok or type(manifest) ~= "table" or type(manifest.files) ~= "table" then
-        lastError = "r" .. tostring(attemptIndex) .. ": manifest invalido: " .. previewText(manifestPayload)
-        tryNextManifest()
-        return
+        lastError = "Ruta " .. attemptIndex .. ": manifest invalido: " .. previewText(payload)
+        tryNextManifest(); return
       end
-
       if isShutdownManifest(manifest) then
         finished = true
         blockShutdownUpdate()
         if callback then callback(nil) end
         return
       end
-
-      finished = true
+      finished, checking = true, false
       config.manifestUrl = url
       lastManifest = manifest
-      lastPendingFiles = getPendingFiles(manifest)
       refreshDetailsWindow(manifest)
       if callback then callback(manifest) end
     end)
   end
-
-  if #attempts == 0 then
-    fail()
-  else
-    tryNextManifest()
-  end
+  tryNextManifest()
 end
 
-local function finishInstall(manifest, installed, skipped, autoMode)
+local function finishInstall(manifest, installed, skipped)
   installing = false
   config.version = tostring(manifest.version or config.version)
   rememberExistingHashes(manifest)
-  lastPendingFiles = getPendingFiles(manifest)
+  state.done = installed
   if ensureDetailsWindow then ensureDetailsWindow() end
   refreshDetailsWindow(manifest)
-
-  local skippedText = skipped > 0 and (" | skipped " .. skipped) or ""
-  setPanelStatus("Version: " .. config.version .. "\nUltima version", "#8cff9a")
-  setStatus("Actualizado a " .. config.version .. "\nArchivos: " .. installed .. skippedText, "#8cff9a")
-
-  if installed > 0 then
-    reloadAfterInstall()
-  end
+  setState("current", "Todo actualizado", "Actualizado a " .. config.version .. "\nArchivos: " .. installed ..
+    (skipped > 0 and (" | omitidos: " .. skipped) or ""), "#8cff9a")
+  if installed > 0 then reloadAfterInstall() end
 end
 
-local function installFileList(manifest, files, index, installed, skipped, autoMode)
-  if index > #files then
-    finishInstall(manifest, installed, skipped, autoMode)
-    return
-  end
-
+local function installFileList(manifest, files, index, installed, skipped)
+  if index > #files then finishInstall(manifest, installed, skipped); return end
   local entry = files[index]
   local path = normalizePath(entry and entry.path)
   local url = entry and entry.url
-
   if not isAllowedPath(path) or type(url) ~= "string" or url:len() == 0 then
-    installFileList(manifest, files, index + 1, installed, skipped + 1, autoMode)
-    return
+    installFileList(manifest, files, index + 1, installed, skipped + 1); return
   end
-
-  setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nActualizando...", "#ffd166")
-  setStatus("Descargando " .. index .. "/" .. #files .. "\n" .. path, "#cfd3d7")
-
+  state.done, state.phase = installed, "download"
+  setState("installing", "Actualizando...", "Descargando " .. index .. "/" .. #files .. "\n" .. path, "#ffd166")
   local finished = false
-  local requestUrl = url
   if type(schedule) == "function" then
     schedule(20000, function()
       if finished then return end
-      finished = true
-      installing = false
-      setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nError al actualizar", "#ff8a8a")
-      setStatus("Download timeout:\n" .. path .. "\nIntenta de nuevo.", "#ff8a8a")
+      finished, installing = true, false
+      setState("error", "Tiempo de descarga agotado", path .. "\nPuedes volver a intentarlo.", "#ff8a8a")
     end)
   end
-
-  httpGet(requestUrl, function(contents, err)
+  httpGet(url, function(contents, err)
     if finished then return end
     finished = true
-
     if not contents then
       installing = false
-      setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nError al actualizar", "#ff8a8a")
-      setStatus("Download failed:\n" .. path .. "\n" .. tostring(err), "#ff8a8a")
-      return
+      setState("error", "Error al descargar", path .. "\n" .. tostring(err), "#ff8a8a"); return
     end
-
-    if isShutdownPayload(contents) then
-      blockShutdownUpdate()
-      return
-    end
-
+    if isShutdownPayload(contents) then blockShutdownUpdate(); return end
     if tonumber(entry.size) and #contents ~= tonumber(entry.size) then
       installing = false
-      setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nDescarga incompleta", "#ff8a8a")
-      setStatus("Tamano incorrecto:\n" .. path .. "\nIntenta de nuevo.", "#ff8a8a")
-      return
+      setState("error", "Descarga incompleta", "Tamano incorrecto: " .. path .. "\nIntenta de nuevo.", "#ff8a8a"); return
     end
-
+    state.phase = "install"
+    setState("installing", "Actualizando...", "Instalando " .. index .. "/" .. #files .. "\n" .. path, "#ffd166")
     local configName = getConfigName()
     backupExisting(configName, path, config.version)
-
     local targetPath = "/bot/" .. configName .. "/" .. path
     local ok, writeErr = pcall(function()
       ensureParent(targetPath)
-      local result = g_resources.writeFileContents(targetPath, contents)
-      if result == false then error("No se pudo guardar el archivo") end
+      if g_resources.writeFileContents(targetPath, contents) == false then error("No se pudo guardar el archivo") end
     end)
     if not ok then
       installing = false
-      setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nError al actualizar", "#ff8a8a")
-      setStatus("Write failed:\n" .. path .. "\n" .. tostring(writeErr), "#ff8a8a")
-      return
+      setState("error", "Error al instalar", path .. "\n" .. tostring(writeErr), "#ff8a8a"); return
     end
-
     local hash = tostring(entry.sha256 or "")
     if hash:len() > 0 then config.fileHashes[path] = hash end
-
-    schedule(50, function()
-      installFileList(manifest, files, index + 1, installed + 1, skipped, autoMode)
-    end)
+    state.done = installed + 1
+    renderState()
+    schedule(50, function() installFileList(manifest, files, index + 1, installed + 1, skipped) end)
   end)
 end
 
-local function installManifest(manifest, autoMode)
-  if installing then return end
-  if isShutdownManifest(manifest) then
-    blockShutdownUpdate()
-    return
-  end
-
-  lastPendingFiles = getPendingFiles(manifest)
+local function installManifest(manifest)
+  if isBusy() then return end
+  if isShutdownManifest(manifest) then blockShutdownUpdate(); return end
   refreshDetailsWindow(manifest)
-
   if #lastPendingFiles == 0 then
     config.version = tostring(manifest.version or config.version)
     rememberExistingHashes(manifest)
+    state.done, state.total = 0, 0
+    setState("current", "Todo actualizado", "No hay archivos pendientes.", "#8cff9a")
     refreshDetailsWindow(manifest)
-    setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nUltima version", "#8cff9a")
-    setStatus("Ultima version", "#8cff9a")
     return
   end
-
   installing = true
-  installFileList(manifest, lastPendingFiles, 1, 0, 0, autoMode == true)
+  state.done, state.total = 0, #lastPendingFiles
+  installFileList(manifest, lastPendingFiles, 1, 0, 0)
 end
 
 local function showManifestStatus(manifest)
   if not manifest then return end
-
-  local remoteVersion = tostring(manifest.version or "unknown")
-  local localVersion = tostring(config.version or "none")
-  lastPendingFiles = getPendingFiles(manifest)
-
-  if remoteVersion == localVersion and #lastPendingFiles == 0 then
-    rememberExistingHashes(manifest)
-    setPanelStatus("Version: " .. localVersion .. "\nUltima version", "#8cff9a")
-    setStatus("Ultima version", "#8cff9a")
-  else
-    setPanelStatus("Instalada: " .. localVersion .. "\nDisponible: " .. remoteVersion .. "\nUpdate disponible", "#ffd166")
-    setStatus("Archivos pendientes: " .. #lastPendingFiles, "#ffd166")
-  end
-
   refreshDetailsWindow(manifest)
+  if tostring(manifest.version) == tostring(config.version) and #lastPendingFiles == 0 then
+    rememberExistingHashes(manifest)
+    setState("current", "Todo actualizado", "Ya tienes la ultima version.", "#8cff9a")
+  else
+    setState("available", "Actualizacion disponible", #lastPendingFiles .. " archivos pendientes.", "#ffd166")
+  end
 end
 
 local function checkUpdates(showDetails)
+  if isBusy() then return end
   fetchManifest(function(manifest)
     if not manifest then return end
     showManifestStatus(manifest)
-    if showDetails and detailsWindow then
-      detailsWindow:show()
-      detailsWindow:raise()
-      detailsWindow:focus()
-    end
+    if showDetails and detailsWindow then detailsWindow:show(); detailsWindow:raise(); detailsWindow:focus() end
   end)
 end
 
 local function autoUpdateOnLogin()
-  if installing then return end
-  if not config.autoInstall then
-    checkUpdates(false)
-    return
-  end
-
+  if isBusy() then return end
+  if not config.autoInstall then checkUpdates(false); return end
   fetchManifest(function(manifest)
     if not manifest then return end
-
-    lastPendingFiles = getPendingFiles(manifest)
-    if #lastPendingFiles > 0 then
-      setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nActualizando...", "#ffd166")
-      setStatus("Actualizacion automatica: " .. #lastPendingFiles .. " archivos pendientes", "#ffd166")
-      installManifest(manifest, true)
-    else
-      showManifestStatus(manifest)
-    end
+    if config.autoInstall and #getPendingFiles(manifest) > 0 then installManifest(manifest)
+    else showManifestStatus(manifest) end
   end)
 end
 
 local function runInstall()
-  if installing then
-    setStatus("Update already running...", "#ffd166")
-    return
-  end
-
-  if lastManifest then
-    installManifest(lastManifest, false)
-    return
-  end
-
-  fetchManifest(function(manifest)
-    if manifest then installManifest(manifest, false) end
-  end)
+  if isBusy() then return end
+  if lastManifest then installManifest(lastManifest); return end
+  fetchManifest(function(manifest) if manifest then installManifest(manifest) end end)
 end
 
 local function bindDetailsWindow(window)
   detailsWindow = window
-  detailsWindow:hide()
-
-  detailsWindow.check.onClick = function()
-    checkUpdates(false)
+  window:hide()
+  window.check.onClick = function() checkUpdates(false) end
+  window.install.onClick = runInstall
+  window.closeButton.onClick = function() window:hide() end
+  for _, name in ipairs({"News", "History", "Details"}) do
+    local tab = name
+    window.Tabs[tab].onClick = function() activeTab = tab; renderState() end
   end
-
-  detailsWindow.install.onClick = function()
-    runInstall()
+  window.Options.Auto.onClick = function()
+    if isBusy() then return end
+    config.autoInstall = not config.autoInstall
+    renderState()
   end
-
-  detailsWindow.closeButton.onClick = function()
-    detailsWindow:hide()
-  end
-
-  refreshDetailsWindow(nil)
+  window.Body.Progress.Frame.onGeometryChange = updateProgressWidth
+  refreshDetailsWindow(lastManifest)
 end
 
 ensureDetailsWindow = function()
   if detailsWindow then return true end
-
   local rootWidget = g_ui.getRootWidget()
   if not rootWidget then return false end
-
-  local stylePath = "/bot/" .. getConfigName() .. "/vBot/Updater.otui"
-  pcall(function()
-    g_ui.importStyle(stylePath)
-  end)
-
-  local ok, window = pcall(function()
-    return UI.createWindow("UpdaterWindow", rootWidget)
-  end)
-
+  pcall(function() g_ui.importStyle("/bot/" .. getConfigName() .. "/vBot/Updater.otui") end)
+  local ok, window = pcall(function() return UI.createWindow("UpdaterWindow", rootWidget) end)
   if not ok or not window then return false end
-
   bindDetailsWindow(window)
   return true
 end
 
 ensureDetailsWindow()
-
 ui.open.onClick = function()
   if ensureDetailsWindow() then
     refreshDetailsWindow(lastManifest)
-    detailsWindow:show()
-    detailsWindow:raise()
-    detailsWindow:focus()
+    detailsWindow:show(); detailsWindow:raise(); detailsWindow:focus()
   else
-    setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nError OTUI", "#ff8a8a")
-    setStatus("No se cargo Updater.otui\nRecarga el bot o actualiza de nuevo", "#ff8a8a")
+    setState("error", "No se pudo abrir Updater", "No se cargo Updater.otui. Recarga el bot.", "#ff8a8a")
   end
 end
 
--- La Suite usa estas funciones para mostrar el updater y su historial dentro
--- de la ventana central, conservando la instalacion y el estado originales.
+-- Keep the Suite's existing API, including its status text and public history.
 SabuezoUpdaterBridge = {
   getVersion = function() return tostring(config.version or "none") end,
-  getAvailableVersion = function()
-    return lastManifest and tostring(lastManifest.version or "-") or "-"
-  end,
+  getAvailableVersion = function() return lastManifest and tostring(lastManifest.version or "-") or "-" end,
   getStatus = function() return ui.status and ui.status:getText() or "-" end,
   check = function() checkUpdates(false) end,
-  install = function() runInstall() end,
+  install = runInstall,
   open = function() ui.open.onClick() end,
   fetchHistory = function(callback)
-    local url = "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/changelog.txt"
-    return httpGet(withCacheBuster(url), callback, true)
+    return httpGet(withCacheBuster("https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/changelog.txt"), callback, true)
   end
 }
 
-setPanelStatus("Version: " .. tostring(config.version or "none") .. "\nRevisando...")
-
-schedule(100, function()
-  if not installing then
-    autoUpdateOnLogin()
-  end
-end)
-
+setState("idle", "Buscar actualizaciones", "La configuracion personal se conserva.")
+schedule(100, autoUpdateOnLogin)
 UI.Separator()
