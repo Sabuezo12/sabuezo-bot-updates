@@ -100,6 +100,12 @@ BotServerPreviewMarker < UIWidget
   focusable: false
   visible: false
 
+BotServerPreviewBearing < UIWidget
+  size: 17 17
+  phantom: false
+  focusable: false
+  visible: false
+
 BotServerPreviewGuideDot < UIWidget
   size: 3 3
   phantom: true
@@ -805,6 +811,8 @@ BotServerCompanions < Panel
 
     UIMinimap
       id: Preview
+      color: #000000
+      background-color: #000000
       anchors.top: Locate.bottom
       anchors.left: parent.left
       anchors.right: parent.right

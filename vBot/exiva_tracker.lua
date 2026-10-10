@@ -467,7 +467,7 @@ local function observationsFromSession(session)
   return observations
 end
 
-local function solveObservations(observations)
+local function solveObservations(observations, approachOrigin)
   if type(observations) ~= "table" or #observations == 0 then return nil end
 
   local minX, maxX, minY, maxY
@@ -520,9 +520,21 @@ local function solveObservations(observations)
   -- Sus candidatos X/Y son identicos: recorrer la cuadricula una sola vez.
   local scanZ = floors[1]
   local sharedStats = {count = 0, sumX = 0, sumY = 0}
+  local origin = unbounded and (copyPosition(approachOrigin) or copyPosition(observations[1].observerPos))
+  local approachX, approachY, approachDistance, approachSquare
+  local function considerApproach(x, y)
+    if not origin then return end
+    local dx, dy = x-origin.x, y-origin.y
+    local distance, square = math.max(math.abs(dx),math.abs(dy)), dx*dx+dy*dy
+    if not approachDistance or distance < approachDistance or
+      (distance == approachDistance and square < approachSquare) then
+      approachX, approachY, approachDistance, approachSquare = x, y, distance, square
+    end
+  end
   for x = minX, maxX, step do
     for y = minY, maxY, step do
       if allObservationsMatch(x, y, scanZ, observations) then
+        if origin then considerApproach(x, y) end
         sharedStats.count = sharedStats.count + 1
         sharedStats.sumX = sharedStats.sumX + x
         sharedStats.sumY = sharedStats.sumY + y
@@ -540,6 +552,7 @@ local function solveObservations(observations)
     for x = minX, maxX do
       for y = minY, maxY do
         if allObservationsMatch(x, y, scanZ, observations) then
+          if origin then considerApproach(x, y) end
           sharedStats.count = sharedStats.count + 1
           sharedStats.sumX = sharedStats.sumX + x
           sharedStats.sumY = sharedStats.sumY + y
@@ -583,6 +596,25 @@ local function solveObservations(observations)
     end
   end
 
+  -- An unbounded response supplies no useful midpoint: the artificial scan
+  -- radius is not the target's distance. Choose a nearby admissible search point
+  -- instead, using the same observations. Keep refinement bounded to ~1300 tiles.
+  if approachX and step > 1 then
+    local radius, stride = step, math.max(1, math.ceil((2*step+1)/31))
+    local x0, y0 = approachX, approachY
+    for x = math.max(minX,x0-radius), math.min(maxX,x0+radius), stride do
+      for y = math.max(minY,y0-radius), math.min(maxY,y0+radius), stride do
+        if allObservationsMatch(x,y,selectedZ,observations) then considerApproach(x,y) end
+      end
+    end
+    radius = math.min(8,stride-1)
+    x0, y0 = approachX, approachY
+    for x = math.max(minX,x0-radius), math.min(maxX,x0+radius) do
+      for y = math.max(minY,y0-radius), math.min(maxY,y0+radius) do
+        if allObservationsMatch(x,y,selectedZ,observations) then considerApproach(x,y) end
+      end
+    end
+  end
   local validFloors = {}
   for z in pairs(statsByFloor) do table.insert(validFloors, z) end
   table.sort(validFloors)
@@ -599,7 +631,8 @@ local function solveObservations(observations)
     precision = math.ceil(math.max(centerX-stats.minX,stats.maxX-centerX,
       centerY-stats.minY,stats.maxY-centerY)) + step - 1,
     sampleStep = step,
-    unbounded = unbounded
+    unbounded = unbounded,
+    approachPosition = approachX and {x=approachX,y=approachY,z=selectedZ} or nil
   }
 end
 
@@ -1330,7 +1363,13 @@ local function recalculateSession(session)
   end
   local observations = observationsFromSession(session)
   if #observations == 0 then return end
-  local estimate = solveObservations(observations)
+  local approachOrigin
+  for _, observation in ipairs(observations) do
+    if normalizedName(observation.observer) == normalizedName(session.coordinator) then
+      approachOrigin = observation.observerPos; break
+    end
+  end
+  local estimate = solveObservations(observations, approachOrigin)
   if not estimate then
     approximateEstimates[targetKey] = nil
     if not sightings[targetKey] then estimates[targetKey] = nil end

@@ -26,7 +26,7 @@ local lastAlert, lastAlertTime, lastSoundAt = nil, nil, -15000
 local orderedNames, previewPosition = {}, nil
 local previewExiva, activeExiva = nil, nil
 local previewMarkers, previewDots = {}, {}
-local previewOrder = nil
+local previewOrder, previewArrow = nil, nil
 local MAX_PREVIEW_MARKERS, MAX_GUIDE_DOTS = 64, 18
 local markerRoot = (configDir or '/bot/pruebas') .. '/vBot/map_markers/'
 local alertsExpanded = false
@@ -217,17 +217,37 @@ local function hidePreviewMarkers()
     set(marker.widget, 'setTooltip', '')
   end
   for _, dot in ipairs(previewDots) do set(dot.widget, 'setVisible', false) end
+  if previewArrow then set(previewArrow, 'setVisible', false); set(previewArrow, 'setTooltip', '') end
 end
 
-local function previewTarget(all, session, estimate)
+local function previewTarget(all, session, estimate, floor)
   if not session then return end
   local pos = memberPosition(all, session.target)
   local kind = pos and 'exact' or estimate and estimate.locationType or 'approximate'
-  if not pos and estimate and not estimate.unbounded then pos = position(estimate.position) end
+  local uncertainFloor = false
+  if not pos and estimate then
+    if estimate.unbounded then
+      pos = position(estimate.approachPosition)
+      kind = 'approach'
+    else pos = position(estimate.position) end
+    -- Project an approximate XY point onto an allowed visible floor, just as the
+    -- client minimap does. Confirmed sightings always keep their actual floor.
+    if pos and kind ~= 'exact' and kind ~= 'lastSeen' and type(estimate.floors) == 'table' then
+      uncertainFloor = #estimate.floors > 1
+      for _, z in ipairs(estimate.floors) do
+        if tonumber(z) == tonumber(floor) then pos.z = tonumber(z); break end
+      end
+    end
+  end
   if not pos then return end
-  return {name = session.target, pos = pos, kind = kind,
-    state = kind == 'exact' and 'Posicion exacta' or kind == 'lastSeen' and 'Ultima posicion vista' or 'Posicion aproximada',
-    color = kind == 'exact' and '#ff8080' or kind == 'lastSeen' and '#ffbb66' or '#ffffff'}
+  local state = kind == 'approach' and 'Punto de acercamiento\nDistancia del objetivo sin confirmar' or
+    kind == 'exact' and 'Posicion exacta' or
+    kind == 'lastSeen' and 'Ultima posicion vista' or 'Posicion aproximada'
+  if uncertainFloor then state = state .. '\nPiso sin confirmar' end
+  if estimate and estimate.sessionId ~= session.id then state = state .. '\nEsperando nueva respuesta' end
+  return {name = session.target, pos = pos, kind = kind, state = state,
+    color = kind == 'exact' and '#ff8080' or kind == 'lastSeen' and '#ffbb66' or
+      kind == 'approach' and '#ffe38a' or '#ffffff'}
 end
 
 local function tileDistance(left, right)
@@ -244,7 +264,7 @@ local function renderPreviewMarkers(panel, all, reference, referenceName, sessio
     hidePreviewMarkers(); return
   end
   local mapKey = positionText(camera) .. '|' .. scale .. '|' .. width .. '|' .. height
-  local target = previewTarget(all, session, estimate)
+  local target = previewTarget(all, session, estimate, camera.z)
   local order = key(referenceName) .. '|' .. (target and key(target.name) or '')
   local raiseMarkers = previewOrder ~= order
   local points, names, available = {}, {}, {}
@@ -326,20 +346,22 @@ local function renderPreviewMarkers(panel, all, reference, referenceName, sessio
     end
   end
 
-  -- A short dotted bearing shows the visible part of the direction, never a path.
-  local used = 0
-  if target and reference and target.pos.z == reference.z and camera.z == reference.z then
-    -- Either endpoint can be the camera center. Clip toward the other endpoint
-    -- so a target-centered map keeps only the visible part of the same bearing.
-    local origin, destination = reference, target.pos
-    if positionText(camera) == positionText(target.pos) then origin, destination = target.pos, reference end
+  -- The bearing remains visible for an offscreen target or a direction-only
+  -- response. A direction without a distance never creates a false target point.
+  local used, arrowVisible = 0, false
+  local bearing = target and target.pos or session and estimate and position(estimate.position)
+  if bearing and reference and camera.z == reference.z then
+    local origin, destination = reference, bearing
+    if target and positionText(camera) == positionText(target.pos) then origin, destination = target.pos, reference end
     local dx, dy = (destination.x - origin.x) * scale, (destination.y - origin.y) * scale
     local length = math.sqrt(dx * dx + dy * dy)
     if length > 0 then
-      local part = math.min(1, dx ~= 0 and (width / 2 - 12) / math.abs(dx) or 1,
-        dy ~= 0 and (height / 2 - 12) / math.abs(dy) or 1)
+      local margin = math.max(12, 9 + scale)
+      local part = math.max(0, math.min(1,
+        dx ~= 0 and (width / 2 - margin) / math.abs(dx) or 1,
+        dy ~= 0 and (height / 2 - margin) / math.abs(dy) or 1))
       local spacing = math.max(12, scale * 2)
-      used = math.min(MAX_GUIDE_DOTS, math.floor(length * math.max(0, part) / spacing))
+      used = math.min(MAX_GUIDE_DOTS, math.floor(length * part / spacing))
       for i = 1, used do
         local dot = previewDots[i]
         if not dot then
@@ -351,14 +373,44 @@ local function renderPreviewMarkers(panel, all, reference, referenceName, sessio
         end
         local t = i * spacing / length
         local pos = {x = math.floor(origin.x + (destination.x - origin.x) * t + 0.5),
-          y = math.floor(origin.y + (destination.y - origin.y) * t + 0.5), z = origin.z}
+          y = math.floor(origin.y + (destination.y - origin.y) * t + 0.5), z = camera.z}
         local where = mapKey .. '|' .. positionText(pos)
         if dot.where ~= where then map:centerInPosition(dot.widget, pos); dot.where = where end
         set(dot.widget, 'setVisible', true)
       end
+      if part > 0 and not wanted.exiva then
+        if not previewArrow then
+          previewArrow = UI.createWidget('BotServerPreviewBearing', map)
+          previewArrow:setId('navi_bearing')
+          previewArrow:setImageSource(markerRoot .. 'exiva-guide-arrows.png')
+          previewArrow.onMousePress = function() return true end
+          previewArrow.onMouseRelease = function() return true end
+        end
+        local direction, best = 0, -math.huge
+        for index = 0, 15 do
+          local angle = index * 2 * math.pi / 16
+          local score = dx * math.cos(angle) + dy * math.sin(angle)
+          if score > best then direction, best = index, score end
+        end
+        local arrowCache = cache[previewArrow] or {}; cache[previewArrow] = arrowCache
+        if arrowCache.direction ~= direction then
+          previewArrow:setImageClip({x = direction * 17, y = 0, width = 17, height = 17})
+          arrowCache.direction = direction
+        end
+        local pos = {x = math.floor(origin.x + (destination.x - origin.x) * part + 0.5),
+          y = math.floor(origin.y + (destination.y - origin.y) * part + 0.5), z = camera.z}
+        local where = mapKey .. '|' .. positionText(pos)
+        if arrowCache.where ~= where then map:centerInPosition(previewArrow, pos); arrowCache.where = where end
+        set(previewArrow, 'setTooltip', session.target .. '\n' .. (target and target.state .. '\n' .. positionText(target.pos) or
+          'Rumbo aproximado; distancia sin confirmar'))
+        set(previewArrow, 'setVisible', true)
+        arrowVisible = true
+      end
     end
   end
   for i = used + 1, #previewDots do set(previewDots[i].widget, 'setVisible', false) end
+  if previewArrow and not arrowVisible then set(previewArrow, 'setVisible', false); set(previewArrow, 'setTooltip', '') end
+
   if raiseMarkers then
     local referenceMarker = previewMarkers['member:' .. key(referenceName)]
     if referenceMarker then referenceMarker.widget:raise() end
@@ -372,7 +424,7 @@ local function renderPreviewMarkers(panel, all, reference, referenceName, sessio
       local distance = not reference and ('piso ' .. target.pos.z) or
         target.pos.z ~= reference.z and ('piso ' .. target.pos.z) or
         ((target.kind ~= 'exact' and '~' or '') .. tileDistance(reference, target.pos) .. ' casillas')
-      message = shortName(target.name, 12) .. ': ' .. distance
+      message = shortName(target.name, 12) .. ': ' .. (target.kind == 'approach' and 'guia ' or '') .. distance
       tooltip = tooltip .. '\n' .. target.name .. ': ' .. target.state .. '\n' .. distance
     else
       message = shortName(session.target, 12) .. ': ' .. (estimate and estimate.unbounded and 'rumbo aprox.' or 'sin posicion')
@@ -397,6 +449,9 @@ end
 
 local function updatePreview(panel, pos, all, referenceName, session, estimate, reference)
   local show = settings.preview and pos ~= nil
+  -- UIMinimap uses color for its empty-map fill; keep the tiles' own colors.
+  set(panel.Preview, 'setColor', '#000000')
+  set(panel.Preview, 'setBackgroundColor', '#000000')
   set(panel.Preview, 'setVisible', show)
   set(panel.PreviewToggle, 'setOn', settings.preview)
   set(panel.PreviewToggle, 'setText', settings.preview and 'Ocultar mapa' or 'Mini mapa')
@@ -418,8 +473,25 @@ local function updatePreview(panel, pos, all, referenceName, session, estimate, 
   renderPreviewMarkers(panel, all, reference, referenceName, session, estimate, pos)
 end
 
+local function newerSession(left, right)
+  return left and (not right or left.createdAt > right.createdAt or
+    (left.createdAt == right.createdAt and left.id > right.id))
+end
+
 local function previewSession()
-  if previewExiva then return activeExiva(nil, previewExiva.coordinator, previewExiva.target) end
+  if previewExiva then
+    local session, estimate = activeExiva(nil, nil, previewExiva.target)
+    if session then previewExiva.coordinator = session.coordinator end
+    -- Follow a new target searched by the viewed initiator. Other members'
+    -- independent searches must not take over this view.
+    local nextSession, nextEstimate = activeExiva(nil, previewExiva.coordinator)
+    if newerSession(nextSession, session or previewExiva) then session, estimate = nextSession, nextEstimate end
+    if session then
+      previewExiva.target, previewExiva.coordinator = session.target, session.coordinator
+      previewExiva.createdAt, previewExiva.id = session.createdAt, session.id
+    end
+    return session, estimate
+  end
   local session, estimate = activeExiva(nil, selected or selfName())
   if not session then return activeExiva() end
   return session, estimate
@@ -428,23 +500,26 @@ end
 function dashboard.locateExivaTarget()
   if not active() then return false end
   local session, estimate = previewSession()
-  if not previewTarget(snapshot(), session, estimate) then return false end
-  selected, previewExiva = nil, {target = session.target, coordinator = session.coordinator, centerTarget = true}
+  local all = snapshot()
+  local reference = session and memberPosition(all, session.coordinator)
+  if not previewTarget(all, session, estimate, reference and reference.z) then return false end
+  selected, previewExiva = nil, {target = session.target, coordinator = session.coordinator, centerTarget = true,
+    createdAt = session.createdAt, id = session.id}
   return openNaviMap()
 end
 
 local function renderSelected(all)
   local panel = botServerWindow.MembersPage.Selected
-  local referenceName = previewExiva and previewExiva.coordinator or selected or selfName()
   local session, estimate = previewSession()
+  local referenceName = previewExiva and previewExiva.coordinator or selected or selfName()
   local reference = memberPosition(all, referenceName)
-  local target = previewTarget(all, session, estimate)
+  local target = previewTarget(all, session, estimate, reference and reference.z)
   local centerTarget = previewExiva and previewExiva.centerTarget and target ~= nil
   local pos = centerTarget and target.pos or reference
   local title = selected and shortName(selected, 32) or 'Selecciona un companero'
   local tooltip = selected or 'Selecciona una fila de la lista'
   if previewExiva then
-    -- Follow repeat searches of this target by this initiator in the chosen view.
+    -- Follow the current initiator of the target pinned in this view.
     title, tooltip = 'Vista: ' .. shortName(referenceName, 24), referenceName .. '\nExiva: ' .. previewExiva.target
     if centerTarget then
       title = 'Exiva: ' .. shortName(target.name, 24)
@@ -455,7 +530,7 @@ local function renderSelected(all)
   set(panel.Name, 'setTooltip', tooltip)
   local displayPos
   if selected or previewExiva then displayPos = pos end
-  set(panel.Position, 'setText', 'Posicion: ' .. positionText(displayPos))
+  set(panel.Position, 'setText', (centerTarget and target.kind == 'approach' and 'Referencia: ' or 'Posicion: ') .. positionText(displayPos))
   set(panel.Status, 'setText', pos and 'Posicion reciente compartida' or 'Sin posicion reciente')
   set(panel.Locate, 'setEnabled', (selected ~= nil or previewExiva ~= nil) and reference ~= nil)
   set(panel.TargetLocate, 'setEnabled', target ~= nil)
@@ -543,7 +618,8 @@ activeExiva = function(wantedId, coordinator, target)
   local tracker = vBot.ExivaTracker
   if not connected() or not tracker or not BotServer.isExivaTrackerEnabled() or tracker.isPaused() then return end
   local latest, current = nil, exivaClock()
-  for _, session in pairs(tracker.getSessions()) do
+  local sessions = tracker.getSessions()
+  for _, session in pairs(sessions) do
     if session.visualUntil and session.visualUntil > current and not session.castCancelled and
       (not wantedId or session.id == wantedId) and (not coordinator or key(session.coordinator) == key(coordinator)) and
       (not target or key(session.target) == key(target)) and
@@ -552,7 +628,18 @@ activeExiva = function(wantedId, coordinator, target)
   end
   if not latest then return end
   local estimate = tracker.getEstimates()[key(latest.target)]
-  if estimate and (estimate.expiresAt <= current or estimate.sessionId ~= latest.id) then estimate = nil end
+  if estimate and estimate.expiresAt <= current then estimate = nil end
+  if estimate and estimate.sessionId ~= latest.id then
+    local source = sessions[estimate.sessionId]
+    -- A fresh previous measurement of this same player bridges the next round.
+    -- Do not extend its lifetime or reuse a cancelled/expired/other target's data.
+    if not source or source.castCancelled or not source.visualUntil or source.visualUntil <= current or
+      key(source.target) ~= key(latest.target) then estimate = nil
+    elseif estimate.locationType == 'exact' then
+      local previous = {}; for k, v in pairs(estimate) do previous[k] = v end
+      previous.locationType = 'lastSeen'; estimate = previous
+    end
+  end
   return latest, estimate
 end
 
@@ -583,7 +670,11 @@ local function renderExiva(all)
         estimate.locationType == 'lastSeen' and 'Ultima vista' or 'Aproximada'
       text = 'Posicion: ' .. state .. ' | ' .. positionText(position(estimate.position))
       if estimate.seenBy then text = text .. ' | visto por ' .. estimate.seenBy end
-      if estimate.unbounded then text = 'Posicion: rumbo aproximado, sin distancia definida' end
+      if estimate.unbounded then
+        local approach = position(estimate.approachPosition)
+        text = approach and ('Referencia: ' .. positionText(approach) .. ' | distancia sin confirmar') or
+          'Posicion: rumbo aproximado, sin distancia definida'
+      end
     else text = 'Posicion: esperando respuesta' end
   end
   set(panel.CurrentPosition, 'setText', text)
@@ -798,7 +889,7 @@ if botServerWindow and botServerWindow.MembersPage then
     if not active() then return end
     local session, estimate = activeExiva()
     if session then
-      selected, previewExiva = nil, {id = session.id, target = session.target, coordinator = session.coordinator}
+      selected, previewExiva = nil, {id = session.id, target = session.target, coordinator = session.coordinator, createdAt = session.createdAt}
       openNaviMap()
     end
   end

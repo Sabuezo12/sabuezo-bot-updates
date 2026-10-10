@@ -1,3 +1,12 @@
+3.0.27 - Mapa Navi y referencias de exiva
+- Navi cambia al nuevo objetivo buscado por el iniciador que estas viendo; retira el punto anterior mientras espera sus respuestas y mantiene separadas las coordenadas de cada jugador.
+- Las respuestas muy lejos aportan un punto amarillo de acercamiento compatible con las lecturas disponibles, identificado como orientativo y con la distancia del objetivo sin confirmar.
+- Punto exiva permite centrar Navi en esa referencia; una estimacion con distancia o un avistamiento actual la sustituye cuando llega informacion mas precisa.
+- Se conserva una estimacion vigente del mismo jugador entre rondas mientras llegan nuevas respuestas, sin renovar su caducidad ni reutilizar mediciones canceladas.
+- Las estimaciones de piso incierto se muestran sobre un piso permitido de la vista; los avistamientos confirmados conservan su piso real.
+- El minimapa de Navi usa fondo negro y una flecha de rumbo cuando el punto queda fuera de la vista; las guias se ocultan al terminar, cancelar o cerrar el mapa.
+- El mapa del cliente conserva su camara independiente; se mantiene la seleccion sin tope fijo de observadores, el filtro de redundancia por pantalla y la recarga automatica al actualizar.
+
 3.0.26 - Exivas sin tope y Punto exiva en Navi
 - Se elimina el limite fijo de tres observadores: todos los miembros disponibles con tracker y posicion reciente pueden responder a la ronda.
 - La redundancia se filtra por vision real del iniciador: los companeros que aparecen en su pantalla no dicen exiva para esa ronda; se retira la exclusión por distancia minima entre observadores.

@@ -1,6 +1,6 @@
 # Sabuezo Bot - MythicOT
 
-Version actual: **3.0.26**. Actualizaciones publicas mediante GitHub, sin contrasenas.
+Version actual: **3.0.27**. Actualizaciones publicas mediante GitHub, sin contrasenas.
 
 ## Instalacion
 
@@ -10,19 +10,31 @@ Ejecuta este script en el editor de scripts del bot:
 modules.corelib.HTTP.get('https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/bootstrap.lua', function(script, err) if err or not script then warn('No se pudo descargar Sabuezo') return end assert(loadstring(script))() end)
 ```
 
-El instalador descarga el paquete completo antes de reemplazar archivos, valida el tamano de cada descarga y coloca el Loader al final. Al terminar, recarga el bot. Los archivos anteriores se respaldan en `bot/<config>/_updates/bootstrap_3.0.26/`. Los perfiles y las configuraciones guardadas de cada usuario se conservan.
+El instalador descarga el paquete completo antes de reemplazar archivos, valida el tamano de cada descarga y coloca el Loader al final. Al terminar, recarga el bot. Los archivos anteriores se respaldan en `bot/<config>/_updates/bootstrap_3.0.27/`. Los perfiles y las configuraciones guardadas de cada usuario se conservan.
 
 ## Actualizaciones
 
 El panel **Updater** aparece en **Main**. **Check** consulta GitHub y **Update** instala los archivos pendientes. Se conserva la actualizacion automatica al entrar si esta activada en los ajustes existentes. El bot se recarga automaticamente al terminar una instalacion, tambien al pulsar Update.
 
-Los archivos del manifest apuntan a la etiqueta `v3.0.26`, para que una descarga use una sola version del bot. La antigua version de cierre 3.0.17 esta bloqueada y su payload fue retirado de la version actual del repositorio.
+Los archivos del manifest apuntan a la etiqueta `v3.0.27`, para que una descarga use una sola version del bot. La antigua version de cierre 3.0.17 esta bloqueada y su payload fue retirado de la version actual del repositorio.
 
 ## Contenido publicado
 
 Se publican los scripts Lua, interfaces OTUI, imagenes y textos de licencia necesarios para el bot. Se conservan los scripts de la version anterior y se incorporan las mejoras de BotServer, Player List y exiva probadas en pruebas.
 
 Quedan fuera los perfiles de `storage/`, configuraciones de HealBot/AttackBot/Supplies, listas de jugadores, teclas del editor, rutas de CaveBot, configuraciones de TargetBot, distribucion de paneles, tokens, contrasenas y respaldos. No se publica ni se importa una plantilla personal de Sabuezo.
+
+## Cambios de 3.0.27
+
+- Navi cambia al nuevo objetivo buscado por el iniciador que estas viendo; retira el punto anterior mientras espera sus respuestas y mantiene separadas las coordenadas de cada jugador.
+- Las respuestas muy lejos aportan un punto amarillo de acercamiento compatible con las lecturas disponibles, identificado como orientativo y con la distancia del objetivo sin confirmar.
+- Punto exiva permite centrar Navi en esa referencia; una estimacion con distancia o un avistamiento actual la sustituye cuando llega informacion mas precisa.
+- Se conserva una estimacion vigente del mismo jugador entre rondas mientras llegan nuevas respuestas, sin renovar su caducidad ni reutilizar mediciones canceladas.
+- Las estimaciones de piso incierto se muestran sobre un piso permitido de la vista; los avistamientos confirmados conservan su piso real.
+- El minimapa de Navi usa fondo negro y una flecha de rumbo cuando el punto queda fuera de la vista; las guias se ocultan al terminar, cancelar o cerrar el mapa.
+- El mapa del cliente conserva su camara independiente; se mantiene la seleccion sin tope fijo de observadores, el filtro de redundancia por pantalla y la recarga automatica al actualizar.
+
+Instala 3.0.27 desde Updater: Check y Update. El bot se recarga automaticamente al terminar y conserva las configuraciones personales. En Navi, Punto exiva centra el mapa en la estimacion o referencia de acercamiento disponible.
 
 ## Cambios de 3.0.26
 
