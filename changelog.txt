@@ -1,3 +1,12 @@
+3.0.26 - Exivas sin tope y Punto exiva en Navi
+- Se elimina el limite fijo de tres observadores: todos los miembros disponibles con tracker y posicion reciente pueden responder a la ronda.
+- La redundancia se filtra por vision real del iniciador: los companeros que aparecen en su pantalla no dicen exiva para esa ronda; se retira la exclusión por distancia minima entre observadores.
+- La rediscovery incorpora companeros tardios sin repetir hechizos de quienes ya respondieron; se mantienen los controles de cancelacion, caducidad, pausa y cooldown.
+- Se agrega Punto exiva junto a Mini mapa para abrir Navi centrado en la posicion aproximada, exacta o ultima vista del objetivo, con los marcadores del grupo y nombres al pasar el mouse.
+- La vista del objetivo conserva las distancias medidas desde el iniciador; Centrar mapa vuelve a su perspectiva y el minimapa del cliente sigue independiente.
+- El boton Punto exiva se desactiva cuando no hay un punto vigente o solo hay rumbo sin distancia; se mantiene la limpieza de marcadores al parar o terminar la busqueda.
+- Se conserva la recarga automatica al terminar la actualizacion y las configuraciones personales.
+
 3.0.25 - Navi independiente y correcciones de exiva
 - BotServer se presenta como Navi By: Sabuezo; se corrige la X de cierre, se retira el boton Cerrar y se ajustan iconos y el interruptor ON/OFF.
 - El minimapa opcional de Navi se despliega hacia abajo con una vista ampliada y controles de zoom; su camara, piso y zoom son independientes del minimapa del cliente.

@@ -234,7 +234,7 @@ local function tileDistance(left, right)
   return math.max(math.abs(left.x - right.x), math.abs(left.y - right.y))
 end
 
-local function renderPreviewMarkers(panel, all, reference, referenceName, session, estimate)
+local function renderPreviewMarkers(panel, all, reference, referenceName, session, estimate, camera)
   local map = panel.Preview
   local ok, width, height, scale = pcall(function()
     local size = map:getSize()
@@ -243,7 +243,7 @@ local function renderPreviewMarkers(panel, all, reference, referenceName, sessio
   if not ok or not width or not height or not scale or width <= 0 or height <= 0 or scale <= 0 then
     hidePreviewMarkers(); return
   end
-  local mapKey = positionText(reference) .. '|' .. scale .. '|' .. width .. '|' .. height
+  local mapKey = positionText(camera) .. '|' .. scale .. '|' .. width .. '|' .. height
   local target = previewTarget(all, session, estimate)
   local order = key(referenceName) .. '|' .. (target and key(target.name) or '')
   local raiseMarkers = previewOrder ~= order
@@ -258,8 +258,10 @@ local function renderPreviewMarkers(panel, all, reference, referenceName, sessio
         image = markerRoot .. 'member-diamond.png', size = 13, color = '#ffffff'}
     end
   end
-  points[#points + 1] = {id = 'member:' .. key(referenceName), name = referenceName, pos = reference,
-    image = assetRoot .. 'status-green.png', size = 14, color = '#ffffff', reference = true}
+  if reference then
+    points[#points + 1] = {id = 'member:' .. key(referenceName), name = referenceName, pos = reference,
+      image = assetRoot .. 'status-green.png', size = 14, color = '#ffffff', reference = true}
+  end
   if target then
     points[#points + 1] = {id = 'exiva', name = target.name, pos = target.pos,
       image = markerRoot .. 'exiva-target.png', size = 19, color = target.color, target = true}
@@ -276,10 +278,10 @@ local function renderPreviewMarkers(panel, all, reference, referenceName, sessio
   end
   local wanted = {}
   for _, point in ipairs(points) do
-    local x = width / 2 + (point.pos.x - reference.x) * scale
-    local y = height / 2 + (point.pos.y - reference.y) * scale
+    local x = width / 2 + (point.pos.x - camera.x) * scale
+    local y = height / 2 + (point.pos.y - camera.y) * scale
     local half = point.size / 2
-    if point.pos.z == reference.z and x >= half and x <= width - half and y >= half and y <= height - half then
+    if point.pos.z == camera.z and x >= half and x <= width - half and y >= half and y <= height - half then
       local marker = previewMarkers[point.id]
       if not marker then
         local widget = UI.createWidget('BotServerPreviewMarker', map)
@@ -304,7 +306,9 @@ local function renderPreviewMarkers(panel, all, reference, referenceName, sessio
       else
         if point.target then tooltip = tooltip .. '\n' .. target.state end
         local prefix = point.target and target.kind ~= 'exact' and 'Aprox. ' or ''
-        tooltip = tooltip .. '\n' .. prefix .. tileDistance(reference, point.pos) .. ' casillas de ' .. referenceName
+        if reference then
+          tooltip = tooltip .. '\n' .. prefix .. tileDistance(reference, point.pos) .. ' casillas de ' .. referenceName
+        end
       end
       if point.target then tooltip = tooltip .. '\n' .. positionText(point.pos) end
       set(marker.widget, 'setTooltip', tooltip)
@@ -324,8 +328,12 @@ local function renderPreviewMarkers(panel, all, reference, referenceName, sessio
 
   -- A short dotted bearing shows the visible part of the direction, never a path.
   local used = 0
-  if target and target.pos.z == reference.z then
-    local dx, dy = (target.pos.x - reference.x) * scale, (target.pos.y - reference.y) * scale
+  if target and reference and target.pos.z == reference.z and camera.z == reference.z then
+    -- Either endpoint can be the camera center. Clip toward the other endpoint
+    -- so a target-centered map keeps only the visible part of the same bearing.
+    local origin, destination = reference, target.pos
+    if positionText(camera) == positionText(target.pos) then origin, destination = target.pos, reference end
+    local dx, dy = (destination.x - origin.x) * scale, (destination.y - origin.y) * scale
     local length = math.sqrt(dx * dx + dy * dy)
     if length > 0 then
       local part = math.min(1, dx ~= 0 and (width / 2 - 12) / math.abs(dx) or 1,
@@ -342,8 +350,8 @@ local function renderPreviewMarkers(panel, all, reference, referenceName, sessio
           dot = {widget = widget}; previewDots[i] = dot
         end
         local t = i * spacing / length
-        local pos = {x = math.floor(reference.x + (target.pos.x - reference.x) * t + 0.5),
-          y = math.floor(reference.y + (target.pos.y - reference.y) * t + 0.5), z = reference.z}
+        local pos = {x = math.floor(origin.x + (destination.x - origin.x) * t + 0.5),
+          y = math.floor(origin.y + (destination.y - origin.y) * t + 0.5), z = origin.z}
         local where = mapKey .. '|' .. positionText(pos)
         if dot.where ~= where then map:centerInPosition(dot.widget, pos); dot.where = where end
         set(dot.widget, 'setVisible', true)
@@ -361,7 +369,8 @@ local function renderPreviewMarkers(panel, all, reference, referenceName, sessio
   local message, tooltip = '', 'Vista de ' .. referenceName
   if session then
     if target then
-      local distance = target.pos.z ~= reference.z and ('piso ' .. target.pos.z) or
+      local distance = not reference and ('piso ' .. target.pos.z) or
+        target.pos.z ~= reference.z and ('piso ' .. target.pos.z) or
         ((target.kind ~= 'exact' and '~' or '') .. tileDistance(reference, target.pos) .. ' casillas')
       message = shortName(target.name, 12) .. ': ' .. distance
       tooltip = tooltip .. '\n' .. target.name .. ': ' .. target.state .. '\n' .. distance
@@ -370,7 +379,7 @@ local function renderPreviewMarkers(panel, all, reference, referenceName, sessio
       tooltip = tooltip .. '\n' .. message
     end
     tooltip = tooltip .. '\nIniciador: ' .. session.coordinator .. '\nLa guia muestra direccion, no un camino transitable.'
-  else
+  elseif reference then
     local nearest, distance
     for _, who in ipairs(names) do
       local pos = recentPosition(all[who])
@@ -386,7 +395,7 @@ local function renderPreviewMarkers(panel, all, reference, referenceName, sessio
   set(panel.MapInfo, 'setColor', session and '#ffe38a' or '#a6b3bf')
 end
 
-local function updatePreview(panel, pos, all, referenceName, session, estimate)
+local function updatePreview(panel, pos, all, referenceName, session, estimate, reference)
   local show = settings.preview and pos ~= nil
   set(panel.Preview, 'setVisible', show)
   set(panel.PreviewToggle, 'setOn', settings.preview)
@@ -406,25 +415,41 @@ local function updatePreview(panel, pos, all, referenceName, session, estimate)
     panel.Preview:setCameraPosition(pos)
     previewPosition = id
   end
-  renderPreviewMarkers(panel, all, pos, referenceName, session, estimate)
+  renderPreviewMarkers(panel, all, reference, referenceName, session, estimate, pos)
+end
+
+local function previewSession()
+  if previewExiva then return activeExiva(nil, previewExiva.coordinator, previewExiva.target) end
+  local session, estimate = activeExiva(nil, selected or selfName())
+  if not session then return activeExiva() end
+  return session, estimate
+end
+
+function dashboard.locateExivaTarget()
+  if not active() then return false end
+  local session, estimate = previewSession()
+  if not previewTarget(snapshot(), session, estimate) then return false end
+  selected, previewExiva = nil, {target = session.target, coordinator = session.coordinator, centerTarget = true}
+  return openNaviMap()
 end
 
 local function renderSelected(all)
   local panel = botServerWindow.MembersPage.Selected
-  local referenceName = selected or selfName()
-  local session, estimate
-  local pos = memberPosition(all, referenceName)
+  local referenceName = previewExiva and previewExiva.coordinator or selected or selfName()
+  local session, estimate = previewSession()
+  local reference = memberPosition(all, referenceName)
+  local target = previewTarget(all, session, estimate)
+  local centerTarget = previewExiva and previewExiva.centerTarget and target ~= nil
+  local pos = centerTarget and target.pos or reference
   local title = selected and shortName(selected, 32) or 'Selecciona un companero'
   local tooltip = selected or 'Selecciona una fila de la lista'
   if previewExiva then
-    -- Follow fresh repeat exivas of this target by this initiator, without changing perspective.
-    session, estimate = activeExiva(nil, previewExiva.coordinator, previewExiva.target)
-    referenceName = previewExiva.coordinator
-    pos = memberPosition(all, referenceName)
+    -- Follow repeat searches of this target by this initiator in the chosen view.
     title, tooltip = 'Vista: ' .. shortName(referenceName, 24), referenceName .. '\nExiva: ' .. previewExiva.target
-  else
-    session, estimate = activeExiva(nil, referenceName)
-    if not session then session, estimate = activeExiva() end
+    if centerTarget then
+      title = 'Exiva: ' .. shortName(target.name, 24)
+      tooltip = target.name .. '\n' .. target.state .. '\nIniciador: ' .. referenceName
+    end
   end
   set(panel.Name, 'setText', title)
   set(panel.Name, 'setTooltip', tooltip)
@@ -432,10 +457,15 @@ local function renderSelected(all)
   if selected or previewExiva then displayPos = pos end
   set(panel.Position, 'setText', 'Posicion: ' .. positionText(displayPos))
   set(panel.Status, 'setText', pos and 'Posicion reciente compartida' or 'Sin posicion reciente')
-  set(panel.Locate, 'setEnabled', (selected ~= nil or previewExiva ~= nil) and pos ~= nil)
-  -- With no selection, opening the map shows the local player's position.
+  set(panel.Locate, 'setEnabled', (selected ~= nil or previewExiva ~= nil) and reference ~= nil)
+  set(panel.TargetLocate, 'setEnabled', target ~= nil)
+  set(panel.TargetLocate, 'setOn', centerTarget and true or false)
+  set(panel.TargetLocate, 'setTooltip', target and
+    ('Ver ' .. target.name .. ' en Navi: ' .. target.state .. '\n' .. positionText(target.pos)) or
+    session and (estimate and estimate.unbounded and 'Solo hay rumbo; aun no hay un punto estimado' or
+      'Esperando la posicion del exiveado') or 'Sin exiva activo')
   set(panel.PreviewHint, 'setText', 'Sin posicion reciente de ' .. referenceName)
-  updatePreview(panel, pos, all, referenceName, session, estimate)
+  updatePreview(panel, pos, all, referenceName, session, estimate, reference)
 end
 
 local function renderMembers(all)
@@ -722,8 +752,9 @@ if botServerWindow and botServerWindow.MembersPage then
   end
   page.Selected.Locate.onClick = function()
     if selected then dashboard.locateMember(selected)
-    elseif previewExiva then openNaviMap() end
+    elseif previewExiva then previewExiva.centerTarget = nil; openNaviMap() end
   end
+  page.Selected.TargetLocate.onClick = function() dashboard.locateExivaTarget() end
   page.Selected.PreviewToggle.onClick = function()
     settings.preview = not settings.preview; dashboard.refresh(true)
   end

@@ -16,8 +16,6 @@ local CAPABILITY_TOPIC = "exiva_cap"
 local CAPABILITY_VERSION = 1
 local CAPABILITY_INTERVAL = 5000
 local CAPABILITY_TIMEOUT = 30000
-local MAX_OBSERVERS = 3
-local MIN_OBSERVER_SEPARATION = 12
 local OBSERVATION_WINDOW = 4000
 local MEMBER_POSITION_MAX_AGE = 5000
 local DAMAGE_LIMIT = 500
@@ -623,94 +621,58 @@ local function selectedContains(selected, wantedName)
   return false
 end
 
-local function chebyshev(left, right)
-  return math.max(math.abs(left.x - right.x), math.abs(left.y - right.y))
+-- Read current creatures once per selection; never retain native creature handles.
+local function visibleObserverNames()
+  local ok, spectators = pcall(function()
+    if type(getSpectators) == 'function' then return getSpectators(true) end
+    local own = currentPosition()
+    if own and g_map and type(g_map.getSpectators) == 'function' then
+      return g_map.getSpectators(own, true)
+    end
+  end)
+  local visible = {}
+  if not ok or type(spectators) ~= 'table' then return visible end
+  for _, creature in ipairs(spectators) do
+    local readOk, who = pcall(function()
+      if creature:isPlayer() then return normalizedName(creature:getName()) end
+    end)
+    if readOk and who and who ~= '' then visible[who] = true end
+  end
+  return visible
 end
 
-local function selectObservers(target, invited)
+local function selectObservers(target)
   local selfPos = currentPosition()
   if not selfPos then return {}, nil end
   local ownName = selfName()
-  if hasLiveSighting and hasLiveSighting(target) then return {ownName},selfPos end
+  if hasLiveSighting and hasLiveSighting(target) then return {ownName}, selfPos end
   local capabilityTime = clockMillis()
   trackerMembers[normalizedName(ownName)] = capabilityTime
-  local candidates = {{name = ownName, pos = selfPos}}
-  local known = {[normalizedName(ownName)] = true}
   local snapshot = {}
-  if type(BotServer.getMemberSnapshot) == "function" then
+  if type(BotServer.getMemberSnapshot) == 'function' then
     local ok, result = pcall(BotServer.getMemberSnapshot)
-    if ok and type(result) == "table" then snapshot = result end
+    if ok and type(result) == 'table' then snapshot = result end
   end
 
+  -- Every available tracker may contribute. Only peers actually visible to the
+  -- initiator are redundant; distance alone and other peers' views do not exclude them.
+  local visible = visibleObserverNames()
+  local names, known = {}, {[normalizedName(ownName)] = true}
   local current = now or clockMillis()
   for memberName, info in pairs(snapshot) do
     local key = normalizedName(memberName)
     local pos = info and copyPosition(info.pos)
     local positionTime = info and (info.positionSeenAt or info.lastSeen)
     local age = positionTime and current - positionTime or math.huge
-    local trackerAge = trackerMembers[key] and
-      capabilityTime - trackerMembers[key] or math.huge
-    if not known[key] and pos and age >= 0 and age <= MEMBER_POSITION_MAX_AGE and
-      trackerAge <= CAPABILITY_TIMEOUT then
+    local trackerAge = trackerMembers[key] and capabilityTime - trackerMembers[key] or math.huge
+    if not known[key] and not visible[key] and pos and age >= 0 and
+      age <= MEMBER_POSITION_MAX_AGE and trackerAge >= 0 and trackerAge <= CAPABILITY_TIMEOUT then
       known[key] = true
-      table.insert(candidates, {name = memberName, pos = pos})
+      names[#names + 1] = memberName
     end
   end
-  table.sort(candidates, function(left, right)
-    if normalizedName(left.name) == normalizedName(ownName) then return true end
-    if normalizedName(right.name) == normalizedName(ownName) then return false end
-    return normalizedName(left.name) < normalizedName(right.name)
-  end)
-
-  local selected = {candidates[1]}
-  local used = {[normalizedName(candidates[1].name)] = true}
-  -- Fill undiscovered slots without assigning a fourth caster to this round.
-  for _,who in ipairs(invited or {}) do
-    local key = normalizedName(who)
-    if not used[key] and #selected < MAX_OBSERVERS then
-      local pos
-      for _,candidate in ipairs(candidates) do
-        if normalizedName(candidate.name) == key then pos = candidate.pos; break end
-      end
-      pos = pos or (snapshot[who] and copyPosition(snapshot[who].pos)) or selfPos
-      selected[#selected+1] = {name=who, pos=pos}
-      used[key] = true
-    end
-  end
-  while #selected < math.min(MAX_OBSERVERS, #candidates) do
-    local best, bestDistance
-    for _, candidate in ipairs(candidates) do
-      if not used[normalizedName(candidate.name)] then
-        local minimum = math.huge
-        for _, chosen in ipairs(selected) do
-          minimum = math.min(minimum, chebyshev(candidate.pos, chosen.pos))
-        end
-        -- Same nearby origin usually repeats the same range and direction.
-        -- Prefer a wide baseline and, when available, a different viewing angle.
-        local score = minimum
-        local reference = estimates[normalizedName(target)]
-        if reference and not reference.unbounded and reference.expiresAt > capabilityTime then
-          score = math.min(minimum,250)
-          local tx,ty = reference.position.x,reference.position.y
-          local ax,ay = selfPos.x-tx,selfPos.y-ty
-          local bx,by = candidate.pos.x-tx,candidate.pos.y-ty
-          local length = math.sqrt((ax*ax+ay*ay)*(bx*bx+by*by))
-          if length > 0 then score = score*(1+2*math.abs(ax*by-ay*bx)/length) end
-          local predictedDistance = chebyshev(candidate.pos,reference.position)
-          score = score*(predictedDistance <= 100 and 2 or predictedDistance <= 250 and 1.25 or 0.5)
-        end
-        if minimum >= MIN_OBSERVER_SEPARATION and (not best or score > bestDistance) then
-          best, bestDistance = candidate, score
-        end
-      end
-    end
-    if not best then break end
-    used[normalizedName(best.name)] = true
-    table.insert(selected, best)
-  end
-
-  local names = {}
-  for _, candidate in ipairs(selected) do table.insert(names, candidate.name) end
+  table.sort(names, function(left, right) return normalizedName(left) < normalizedName(right) end)
+  table.insert(names, 1, ownName)
   return names, selfPos
 end
 
@@ -830,8 +792,8 @@ local function beginManualSession(target, source)
       latestSessions[normalizedName(currentSession.target)] ~= currentSession.id or
       currentSession.requestSocket ~= BotServer._websocket then return end
 
-    if #currentSession.selected >= MAX_OBSERVERS or hasLiveSighting(currentSession.target) then return end
-    local refreshed = selectObservers(currentSession.target, currentSession.selected)
+    if hasLiveSighting(currentSession.target) then return end
+    local refreshed = selectObservers(currentSession.target)
     currentSession.selected = refreshed
     sendBotServer(REQUEST_TOPIC, {
       id = currentSession.id,
@@ -2296,7 +2258,7 @@ local function getDiagnostics(sessionId)
   elseif hasLiveSighting(session.target) then result.reason='Objetivo visible: no hace falta otro exiva'
   elseif session.observations[own] then result.reason='Respuesta enviada'
   elseif normalizedName(session.coordinator) == own then result.reason='Iniciador de la ronda'
-  elseif not selectedContains(session.selected, selfName()) then result.reason='No seleccionado: se usan hasta 3 observadores separados'
+  elseif not selectedContains(session.selected, selfName()) then result.reason='No seleccionado por el iniciador'
   elseif pendingCasts[session.id] then result.reason='Esperando respuesta del juego'
   elseif queuedCasts[session.id] then
     result.reason=clockMillis()-lastLargeDamageAt < DAMAGE_SAFE_TIME and

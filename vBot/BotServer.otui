@@ -702,7 +702,7 @@ BotServerCompanions < Panel
       text: Selecciona un companero
       anchors.left: parent.left
       anchors.top: parent.top
-      width: 360
+      width: 284
       height: 16
 
     BotServerDashboardLabel
@@ -759,8 +759,19 @@ BotServerCompanions < Panel
       tooltip: Desplegar o contraer el mapa grande dentro de Navi
 
     BotServerSkinButton
-      id: ZoomOut
+      id: TargetLocate
       anchors.left: PreviewToggle.right
+      anchors.top: Locate.top
+      margin-left: 4
+      size: 88 22
+      height: 22
+      text: Punto exiva
+      tooltip: Centrar el mapa de Navi en la posicion del exiveado
+      enabled: false
+
+    BotServerSkinButton
+      id: ZoomOut
+      anchors.left: TargetLocate.right
       anchors.top: Locate.top
       margin-left: 8
       size: 26 22
@@ -782,9 +793,10 @@ BotServerCompanions < Panel
 
     BotServerDashboardLabel
       id: MapInfo
-      anchors.left: ZoomIn.right
+      anchors.left: Name.right
       anchors.right: parent.right
-      anchors.verticalCenter: ZoomIn.verticalCenter
+      anchors.top: Name.top
+      height: 16
       margin-left: 8
       text:
       phantom: false
