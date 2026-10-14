@@ -1,0 +1,238 @@
+ManaTrainerSpellRow < Panel
+  height: 22
+  margin-top: 2
+  background-color: #00000022
+
+  HelperThemeCheck
+    id: enabled
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 2
+    width: 16
+    height: 16
+    tooltip: Enable this spell
+
+  HelperThemeInput
+    id: spell
+    anchors.left: enabled.right
+    anchors.right: mana.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 2
+    margin-right: 3
+    height: 18
+    font: verdana-11px-antialised
+    tooltip: Spell words
+
+  HelperThemeSpin
+    id: mana
+    anchors.right: percent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 2
+    width: 48
+    height: 18
+    minimum: 1
+    maximum: 100
+    step: 1
+    editable: true
+    focusable: true
+    tooltip: Cast when mana is at or above this percent
+
+  HelperThemeLabel
+    id: percent
+    height: 18
+    anchors.right: remove.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 5
+    width: 12
+    text: %
+    font: verdana-11px-antialised
+
+  HelperThemeButton
+    id: remove
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 0
+    width: 18
+    height: 18
+    text: X
+    tooltip: Remove spell
+
+ManaTrainerWindow < HelperThemeWindow
+  padding-bottom: 8
+  padding-top: 8
+  !text: tr('Mana Trainer')
+  size: 408 244
+  padding: 8
+  @onEscape: self:hide()
+
+  HelperThemeLabel
+    height: 20
+    width: 98
+    margin-top: 0
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: creaturesLabel
+    text: Creature names
+    font: verdana-11px-antialised
+    color: #9dd1ce
+
+  HelperThemeInput
+    width: 288
+    margin-top: 0
+    margin-left: 104
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: creatures
+    height: 20
+    font: verdana-11px-antialised
+    tooltip: Separate names with comma. Supports * wildcard.
+
+  HelperThemeLabel
+    margin-top: 26
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: delayLabel
+    width: 98
+    height: 18
+    text: Cast delay ms
+    font: verdana-11px-antialised
+
+  HelperThemeSpin
+    margin-top: 26
+    margin-left: 104
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: castDelay
+    width: 76
+    height: 18
+    minimum: 250
+    maximum: 60000
+    step: 250
+    editable: true
+    focusable: true
+
+  HelperThemeCheck
+    margin-top: 52
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: pauseAttackBot
+    width: 126
+    height: 18
+    text: Pause AttackBot
+    tooltip: Pause AttackBot while attacking a configured trainer target.
+
+  HelperThemeCheck
+    margin-top: 52
+    margin-left: 132
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: pauseHealBot
+    width: 116
+    height: 18
+    text: Pause HealBot
+    tooltip: Pause HealBot while attacking a configured trainer target.
+
+  HelperThemeCheck
+    margin-top: 52
+    margin-left: 254
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: manaOnly
+    width: 112
+    height: 18
+    text: Mana Only
+    tooltip: Ignore creature target and cast using only mana percent.
+
+  HelperThemeLabel
+    width: 392
+    margin-top: 76
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: spellsLabel
+    height: 14
+    text: Spells
+    text-align: center
+    font: verdana-11px-antialised
+    color: #9dd1ce
+
+  HelperThemeScroll
+    padding-right: 16
+    height: 104
+    width: 392
+    margin-top: 92
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: spellList
+    padding: 2
+    vertical-scrollbar: spellListScrollBar
+    layout: verticalBox
+
+  VerticalScrollBar
+    height: 104
+    width: 12
+    margin-top: 92
+    margin-left: 380
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: spellListScrollBar
+    step: 18
+    pixels-scroll: true
+
+  HelperThemeDivider
+    height: 1
+    width: 392
+    margin-top: 200
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: bottomSep
+
+  HelperThemeButton
+    margin-top: 206
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: addSpell
+    width: 60
+    height: 18
+    text: New
+    tooltip: Add spell
+
+  HelperThemeButton
+    margin-top: 206
+    margin-left: 66
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: resetTimers
+    width: 60
+    height: 18
+    text: Reset
+    tooltip: Reset mana trainer delay
+
+  HelperThemeLabel
+    height: 18
+    width: 190
+    margin-top: 206
+    margin-left: 132
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: summary
+    text-align: center
+    font: verdana-11px-antialised
+    color: #cfd3d7
+
+  HelperThemeButton
+    margin-top: 206
+    margin-left: 328
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: closeButton
+    width: 64
+    height: 18
+    text: Close
+    @onClick: self:getParent():hide()

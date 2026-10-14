@@ -1,0 +1,20 @@
+{
+  "result": "passed",
+  "automatedChecks": 1018,
+  "compiledLuaFiles": 118,
+  "releaseFiles": 296,
+  "filesystemTests": {
+    "officialClassicFiles": 343,
+    "extraEncodingAndCaseFixture": 1,
+    "protectedFiles": 15,
+    "backupFilesVerified": 344,
+    "whatIfWrites": 0,
+    "codeRestoredByteForByte": true,
+    "settingsPreserved": true,
+    "windowsPowerShell": true,
+    "powerShellModern": true
+  },
+  "nativeClassicCopyPilot": "Confirmed by the user: opens and preserves settings and selected profile after reload.",
+  "companionsPilot": "Pending one or two companion installations.",
+  "stableChannel": "Unchanged at 3.0.28."
+}

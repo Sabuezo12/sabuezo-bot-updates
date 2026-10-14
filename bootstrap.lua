@@ -1,3 +1,18 @@
+-- RinoBot bridge bootstrap guard: a saved installation snippet must not
+-- race the transactional updater or reinstall the classic base on every login.
+local rinoBootstrapReady=false
+pcall(function()
+  local option=modules.game_bot.contentsPanel.config:getCurrentOption()
+  local path="/bot/" .. option.text .. "/vBot/Updater.lua"
+  if g_resources.fileExists(path) then
+    local source=g_resources.readFileContents(path)
+    rinoBootstrapReady=type(source)=="string" and source:find("local UpdateTx = (function()",1,true)~=nil
+  end
+end)
+if rinoBootstrapReady then
+  warn("RinoBot: el updater ya esta preparado. Usa Updater para actualizar; este instalador termina aqui.")
+  return
+end
 -- Sabuezo public installer. Downloads and validates all files before changing the bot.
 local httpDownloadSerial = 0
 local function httpGet(url, callback, allowPlainText)
