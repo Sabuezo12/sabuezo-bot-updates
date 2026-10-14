@@ -1,0 +1,901 @@
+HelperThemeButton < Button
+  font: verdana-11px-antialised
+  color: #e4edf3
+  height: 22
+  padding: 0
+  text-offset: 0 0
+  image-source:
+  background-color: #263640
+  border-width: 1
+  border-color: #3e515e
+  $hover !disabled:
+    image-source:
+    background-color: #304650
+    text-offset: 0 0
+  $pressed:
+    image-source:
+    background-color: #1d5359
+    text-offset: 0 0
+  $on:
+    image-source:
+    background-color: #18434a
+    border-color: #50d7d4
+    color: #dcffff
+  $disabled:
+    image-source:
+    opacity: 0.45
+
+HelperThemeSwitch < HelperThemeButton
+  size: 44 18
+  height: 18
+  padding: 0
+  text:
+  background-color: #212e37
+
+HelperThemeLabel < Label
+  font: verdana-11px-antialised
+  color: #e4edf3
+
+HelperThemeInput < TextEdit
+  font: verdana-11px-antialised
+  color: #e4edf3
+  height: 22
+  image-source:
+  background-color: #0f1920
+  border-width: 1
+  border-color: #6a8492
+  padding: 4
+  selection-color: #ffffff
+  selection-background-color: #356571
+  $focus:
+    border-color: #50d7d4
+
+HelperThemeMultiline < MultilineTextEdit
+  font: verdana-11px-antialised
+  color: #e4edf3
+  image-source:
+  background-color: #0f1920
+  border-width: 1
+  border-color: #6a8492
+  padding: 6
+  selection-color: #ffffff
+  selection-background-color: #356571
+
+HelperThemeCard < FlatPanel
+  image-source:
+  background-color: #25333d
+  border-width: 1
+  border-color: #58717e
+  padding: 4
+
+HelperThemeSection < Panel
+  image-source:
+  background-color: #25333d
+  border-width: 1
+  border-color: #58717e
+  padding: 0
+
+HelperThemeSubsection < HelperThemeSection
+  background-color: #1b2932
+
+HelperThemeSectionTitle < HelperThemeLabel
+  height: 20
+  background-color: #244b53
+  border-width: 1
+  border-color: #4d7279
+  color: #dcffff
+  text-align: center
+
+HelperThemeDivider < HorizontalSeparator
+  image-source:
+  background-color: #58717e
+  border-width: 0
+  height: 1
+  phantom: true
+
+HelperThemeVerticalDivider < VerticalSeparator
+  image-source:
+  background-color: #58717e
+  border-width: 0
+  width: 1
+  phantom: true
+
+HelperThemeList < TextList
+  image-source:
+  background-color: #0f1920
+  border-width: 1
+  border-color: #6a8492
+  padding: 3
+  color: #e4edf3
+  font: verdana-11px-antialised
+
+HelperThemeScroll < ScrollablePanel
+  image-source:
+  background-color: #00000000
+  border-width: 0
+
+HelperThemeComboPopupMenu < ComboBoxPopupMenu
+  image-source:
+  background-color: #212e37
+  border-width: 1
+  border-color: #3e515e
+  padding: 3
+
+HelperThemeComboPopupMenuButton < ComboBoxPopupMenuButton
+  font: verdana-11px-antialised
+  color: #e4edf3
+  image-source:
+  background-color: #212e37
+  $hover:
+    image-source:
+    background-color: #18434a
+    color: #dcffff
+
+  $focus:
+    image-source:
+    background-color: #18434a
+    color: #dcffff
+  $pressed:
+    image-source:
+    background-color: #18434a
+    color: #dcffff
+
+HelperThemeCombo < ComboBox
+  font: verdana-11px-antialised
+  color: #e4edf3
+  height: 22
+  image-source:
+  image-border: 0
+  background-color: #0f1920
+  border-width: 1
+  border-color: #6a8492
+  padding: 4
+  $hover:
+    image-source:
+    border-color: #50d7d4
+  $pressed:
+    image-source:
+    background-color: #18434a
+
+  $on:
+    image-source:
+    image-border: 0
+    background-color: #18434a
+    border-color: #50d7d4
+    color: #dcffff
+  $disabled:
+    image-source:
+    image-border: 0
+    opacity: 0.45
+
+HelperThemeCheck < CheckBox
+  font: verdana-11px-antialised
+  color: #e4edf3
+
+HelperThemeWindow < MainWindow
+  image-source:
+  background-color: #172126
+  border-width: 0
+  padding: 8
+  padding-top: 10
+  font: verdana-11px-antialised
+  color: #e4edf3
+
+HelperThemeToggle < BotSwitch
+  height: 30
+  image-source:
+  background-color: #00000000
+  border-width: 0
+  text:
+  $on:
+    image-source:
+    background-color: #00000000
+  $off:
+    image-source:
+    background-color: #00000000
+  $hover:
+    image-source:
+    background-color: #263640
+  $pressed:
+    image-source:
+    text-offset: 0 0
+  HelperThemeLabel
+    id: helperCaption
+    anchors.left: parent.left
+    anchors.right: helperTrack.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 6
+    margin-right: 8
+    height: 22
+    text-align: left
+    text-wrap: false
+    phantom: true
+  HelperThemeSwitch
+    id: helperTrack
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 4
+    phantom: true
+    focusable: false
+    HelperThemeLabel
+      id: helperState
+      anchors.fill: parent
+      text: OFF
+      text-align: center
+      phantom: true
+      focusable: false
+
+HelperThemePower < HelperThemeButton
+  height: 20
+
+HelperThemeSpin < SpinBox
+  image-source:
+  background-color: #0f1920
+  border-width: 1
+  border-color: #6a8492
+  color: #e4edf3
+  font: verdana-11px-antialised
+  selection-color: #ffffff
+  selection-background-color: #356571
+
+HelperThemeTabBar < TabBar
+  image-source:
+  background-color: #00000000
+
+HelperThemeTabBarPanel < Panel
+
+HelperThemeTabBarButton < TabBarButton
+  padding-left: 10
+  padding-right: 10
+  height: 24
+  image-source:
+  background-color: #263640
+  border-width: 1
+  border-color: #3e515e
+  color: #e4edf3
+  font: verdana-11px-antialised
+  $on:
+    image-source:
+    background-color: #18434a
+    border-color: #50d7d4
+  $hover:
+    image-source:
+    background-color: #304650
+  $checked:
+    image-source:
+    background-color: #18434a
+    border-color: #50d7d4
+
+HelperThemeComboPopupScrollMenu < ComboBoxPopupScrollMenu
+  image-source:
+  background-color: #212e37
+  border-width: 1
+  border-color: #3e515e
+  padding: 3
+
+HelperThemeComboPopupScrollMenuButton < HelperThemeComboPopupMenuButton
+
+HelperSelectorPopupScrollMenu < HelperThemeComboPopupScrollMenu
+HelperSelectorPopupScrollMenuButton < HelperThemeComboPopupScrollMenuButton
+
+HelperSelectorPopupMenu < HelperThemeComboPopupMenu
+HelperSelectorPopupMenuButton < HelperThemeComboPopupMenuButton
+
+TargetBotCreatureEditorAmmoPopupMenu < HelperThemeComboPopupMenu
+TargetBotCreatureEditorAmmoPopupMenuButton < HelperThemeComboPopupMenuButton
+
+HelperAppearanceWindow < HelperThemeWindow
+  size: 500 438
+  text:
+  padding: 8
+  padding-top: 8
+
+  HelperTitle
+    id: heading
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 0
+    size: 450 24
+    text: Apariencia del bot
+
+  HelperThemeButton
+    id: closeButton
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 462
+    margin-top: 0
+    size: 22 22
+    text: X
+
+  HelperThemeLabel
+    id: paletteLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 32
+    size: 56 22
+    text: Paleta
+
+  HelperThemeCombo
+    id: palette
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 58
+    margin-top: 32
+    size: 250 22
+
+  HelperThemeCheck
+    id: remember
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 318
+    margin-top: 32
+    size: 166 22
+    text: Recordar al recargar
+
+  HelperThemeLabel
+    id: nameLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 61
+    size: 56 22
+    text: Nombre
+
+  HelperThemeInput
+    id: paletteName
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 58
+    margin-top: 61
+    size: 222 22
+    placeholder: Mi paleta
+
+  HelperThemeButton
+    id: savePalette
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 285
+    margin-top: 61
+    size: 116 22
+    text: Guardar paleta
+
+  HelperThemeButton
+    id: deletePalette
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 406
+    margin-top: 61
+    size: 78 22
+    text: Eliminar
+
+  HelperThemeLabel
+    id: windowLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 96
+    size: 80 22
+    text: Fondo
+
+  HelperThemeInput
+    id: windowHex
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 80
+    margin-top: 96
+    size: 100 22
+    max-length: 7
+    padding: 2
+
+  HelperThemeButton
+    id: windowSwatch
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 184
+    margin-top: 96
+    size: 30 22
+    image-source:
+    border-color: #58717e
+
+  HelperThemeLabel
+    id: panelLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 124
+    size: 80 22
+    text: Paneles
+
+  HelperThemeInput
+    id: panelHex
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 80
+    margin-top: 124
+    size: 100 22
+    max-length: 7
+    padding: 2
+
+  HelperThemeButton
+    id: panelSwatch
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 184
+    margin-top: 124
+    size: 30 22
+    image-source:
+    border-color: #58717e
+
+  HelperThemeLabel
+    id: buttonLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 152
+    size: 80 22
+    text: Botones
+
+  HelperThemeInput
+    id: buttonHex
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 80
+    margin-top: 152
+    size: 100 22
+    max-length: 7
+    padding: 2
+
+  HelperThemeButton
+    id: buttonSwatch
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 184
+    margin-top: 152
+    size: 30 22
+    image-source:
+    border-color: #58717e
+
+  HelperThemeLabel
+    id: inputLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 180
+    size: 80 22
+    text: Campos
+
+  HelperThemeInput
+    id: inputHex
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 80
+    margin-top: 180
+    size: 100 22
+    max-length: 7
+    padding: 2
+
+  HelperThemeButton
+    id: inputSwatch
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 184
+    margin-top: 180
+    size: 30 22
+    image-source:
+    border-color: #58717e
+
+  HelperThemeLabel
+    id: textLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 252
+    margin-top: 96
+    size: 80 22
+    text: Texto
+
+  HelperThemeInput
+    id: textHex
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 332
+    margin-top: 96
+    size: 100 22
+    max-length: 7
+    padding: 2
+
+  HelperThemeButton
+    id: textSwatch
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 436
+    margin-top: 96
+    size: 30 22
+    image-source:
+    border-color: #58717e
+
+  HelperThemeLabel
+    id: accentLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 252
+    margin-top: 124
+    size: 80 22
+    text: Acento
+
+  HelperThemeInput
+    id: accentHex
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 332
+    margin-top: 124
+    size: 100 22
+    max-length: 7
+    padding: 2
+
+  HelperThemeButton
+    id: accentSwatch
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 436
+    margin-top: 124
+    size: 30 22
+    image-source:
+    border-color: #58717e
+
+  HelperThemeLabel
+    id: borderLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 252
+    margin-top: 152
+    size: 80 22
+    text: Bordes
+
+  HelperThemeInput
+    id: borderHex
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 332
+    margin-top: 152
+    size: 100 22
+    max-length: 7
+    padding: 2
+
+  HelperThemeButton
+    id: borderSwatch
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 436
+    margin-top: 152
+    size: 30 22
+    image-source:
+    border-color: #58717e
+
+  HelperThemeLabel
+    id: activeLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 252
+    margin-top: 180
+    size: 80 22
+    text: Activo
+
+  HelperThemeInput
+    id: activeHex
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 332
+    margin-top: 180
+    size: 100 22
+    max-length: 7
+    padding: 2
+
+  HelperThemeButton
+    id: activeSwatch
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 436
+    margin-top: 180
+    size: 30 22
+    image-source:
+    border-color: #58717e
+
+  HelperThemeLabel
+    id: quickTitle
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 213
+    size: 484 22
+    text: Color rapido: Fondo
+
+  HelperThemeButton
+    id: quick1
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 239
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick2
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 40
+    margin-top: 239
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick3
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 80
+    margin-top: 239
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick4
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 120
+    margin-top: 239
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick5
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 160
+    margin-top: 239
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick6
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 200
+    margin-top: 239
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick7
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 240
+    margin-top: 239
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick8
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 280
+    margin-top: 239
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick9
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 320
+    margin-top: 239
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick10
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 360
+    margin-top: 239
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick11
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 400
+    margin-top: 239
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick12
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 440
+    margin-top: 239
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick13
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 267
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick14
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 40
+    margin-top: 267
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick15
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 80
+    margin-top: 267
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick16
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 120
+    margin-top: 267
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick17
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 160
+    margin-top: 267
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick18
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 200
+    margin-top: 267
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick19
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 240
+    margin-top: 267
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick20
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 280
+    margin-top: 267
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick21
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 320
+    margin-top: 267
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick22
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 360
+    margin-top: 267
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick23
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 400
+    margin-top: 267
+    size: 34 22
+    image-source:
+
+  HelperThemeButton
+    id: quick24
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 440
+    margin-top: 267
+    size: 34 22
+    image-source:
+
+  HelperThemeLabel
+    id: opacityLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 303
+    size: 92 22
+    text: Opacidad
+
+  HorizontalScrollBar
+    id: opacity
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 92
+    margin-top: 305
+    size: 326 16
+
+  HelperThemeLabel
+    id: opacityValue
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 429
+    margin-top: 303
+    size: 55 22
+    text: 100%
+    text-align: right
+
+  HelperThemeLabel
+    id: preview
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 333
+    size: 310 20
+    text: Los cambios se muestran al instante.
+
+  HelperThemeLabel
+    id: feedback
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 359
+    size: 484 32
+    text-wrap: true
+    color: #a9bbc6
+
+  HelperThemeButton
+    id: reset
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 400
+    size: 126 22
+    text: Restablecer Oscuro
+
+  HelperThemeButton
+    id: apply
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 314
+    margin-top: 400
+    size: 80 22
+    text: Aplicar
+
+  HelperThemeButton
+    id: cancel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 400
+    margin-top: 400
+    size: 84 22
+    text: Cancelar

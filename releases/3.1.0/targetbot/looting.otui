@@ -1,0 +1,131 @@
+TargetBotLootingPanel < Panel
+  layout:
+    type: verticalBox
+    fit-children: true
+
+  HelperThemeDivider
+    margin-top: 5
+
+  HelperThemeLabel
+    margin-top: 5
+    text: Ignore creatures
+    text-align: center
+    tooltip: Lista de monstruos que el TargetBot ignorara completamente.
+
+  Panel
+    id: ignoreCreaturesPanel
+    height: 120
+    margin-top: 3
+
+    HelperThemeList
+      id: ignoreCreaturesList
+      anchors.fill: parent
+      vertical-scrollbar: ignoreCreaturesScrollbar
+      margin-right: 15
+      focusable: false
+      auto-focus: first
+
+    VerticalScrollBar
+      id: ignoreCreaturesScrollbar
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      anchors.right: parent.right
+      pixels-scroll: true
+      step: 10
+
+  Panel
+    id: ignoreCreaturesButtons
+    height: 20
+    margin-top: 2
+
+    HelperThemeButton
+      id: add
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      anchors.left: parent.left
+      text: Add
+      width: 56
+      tooltip: Agrega un monstruo a la lista de ignorados.
+
+    HelperThemeButton
+      id: edit
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      anchors.horizontalCenter: parent.horizontalCenter
+      text: Edit
+      width: 56
+      tooltip: Edita el monstruo seleccionado.
+
+    HelperThemeButton
+      id: remove
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      anchors.right: parent.right
+      text: Remove
+      width: 56
+      tooltip: Elimina el monstruo seleccionado.
+
+  HelperThemeDivider
+    margin-top: 5
+
+  HelperThemeLabel
+    margin-top: 5
+    text: Items to loot
+    text-align: center    
+
+  BotContainer
+    id: items
+    margin-top: 3
+  
+  HelperThemePower
+    id: everyItem
+    !text: tr("Loot every item")
+    margin-top: 2
+
+  HelperThemeLabel
+    margin-top: 5
+    text: Containers for loot
+    text-align: center
+
+  BotContainer
+    id: containers
+    margin-top: 3
+    height: 34
+  
+  Panel
+    id: maxDangerPanel
+    height: 20
+    margin-top: 5
+    
+    HelperThemeInput
+      id: value
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      margin-right: 6
+      width: 80
+
+    HelperThemeLabel
+      anchors.left: parent.left
+      anchors.verticalCenter: prev.verticalCenter
+      text: Max. danger:
+      margin-left: 5
+
+  Panel
+    id: minCapacityPanel
+    height: 20
+    margin-top: 3
+    
+    HelperThemeInput
+      id: value
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      margin-right: 6
+      width: 80
+
+    HelperThemeLabel
+      anchors.left: parent.left
+      anchors.verticalCenter: prev.verticalCenter
+      text: Min. capacity:
+      margin-left: 5

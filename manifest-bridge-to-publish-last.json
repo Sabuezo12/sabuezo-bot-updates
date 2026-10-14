@@ -1,0 +1,32 @@
+{
+  "name": "RinoBot migration bridge",
+  "channel": "stable",
+  "version": "3.0.29",
+  "updatedAt": "2026-10-14",
+  "summary": [
+    "Preparacion de RinoBot: updater con descarga verificada y respaldo antes de instalar.",
+    "Conserva la interfaz y los ajustes durante esta primera etapa."
+  ],
+  "manifestUrl": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/manifest.json",
+  "minimumClassicVersion": "3.0.28",
+  "files": [
+    {
+      "path": "vBot/Updater.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.0.29/vBot/Updater.lua",
+      "sha256": "fe4b54667ae21057729dc2c43212e06da235399f27b8362405e2cceffb36a932",
+      "size": 71737
+    }
+  ],
+  "history": [
+    {
+      "version": "3.0.29",
+      "title": "Updater seguro para RinoBot",
+      "changes": [
+        "Prepara la migracion a RinoBot 3.1.0."
+      ],
+      "files": [
+        "vBot/Updater.lua"
+      ]
+    }
+  ]
+}
