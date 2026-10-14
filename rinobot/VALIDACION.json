@@ -1,7 +1,7 @@
 {
   "result": "passed",
-  "automatedChecks": 1003,
-  "compiledLuaFiles": 117,
+  "automatedChecks": 1018,
+  "compiledLuaFiles": 118,
   "releaseFiles": 296,
   "filesystemTests": {
     "officialClassicFiles": 343,

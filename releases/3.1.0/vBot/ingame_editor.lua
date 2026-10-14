@@ -78,6 +78,17 @@ local function safeFileName(text)
 end
 
 local function compileScript(text, chunkName, environment)
+  -- Retain saved installer text and ON/OFF; it must not overwrite RinoBot
+  -- when the personal script manager runs it again after a migration.
+  local publicSnippet = "modules.corelib.HTTP.get('https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/bootstrap.lua', function(script, err) if err or not script then warn('No se pudo descargar Sabuezo') return end assert(loadstring(script))() end)"
+  if type(text)=="string" then
+    local normalized=text:gsub("^%s+", ""):gsub("%s+$", ""):gsub("%s+", " "):gsub('"', "'")
+    local fullInstaller=text:find("-- Sabuezo public installer. Downloads and validates all files before changing the bot.",1,true) and
+      text:find("/_updates/bootstrap_",1,true) and text:find("sabuezoInstall=",1,true)
+    if normalized==publicSnippet or fullInstaller then
+      text="if HelperProfiles and HelperProfiles.valid() then warn('RinoBot: instalador clasico conservado; usa Updater para actualizar.'); return end\n" .. text
+    end
+  end
   local loader = loadstring or load
   if not loader then
     return false, "Este cliente no tiene load/loadstring disponible."

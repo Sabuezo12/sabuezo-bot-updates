@@ -26,6 +26,8 @@ Los originales numéricos permanecen en sus carpetas. Se importan hasta los diez
 
 El instalador verifica los archivos antes de reemplazarlos, conserva un respaldo íntegro y escribe un registro de recuperación. El updater descarga todo el paquete y comprueba su SHA-256 antes de instalar. Si encuentra código personalizado que no reconoce, detiene la actualización indicando el archivo. Esos cambios deben revisarse; no hay una opción de sobrescritura forzada.
 
+El instalador clásico reconocido que esté guardado en Scripts conserva su texto y su estado ON/OFF, pero RinoBot omite su ejecución para evitar que reinstale el código antiguo. Los scripts personales ordinarios conservan su ejecución. Durante la prueba previa a publicar el bootstrap nuevo, desactiva temporalmente un script personalizado que combine el instalador antiguo con otras funciones; ese código requiere revisión por separado.
+
 Los respaldos están en `_updates/transactions/tN/backup/`, con `backup-index.json` y `journal.json`. La instalación queda pendiente de validar hasta que RinoBot abre correctamente. Ante una instalación o arranque fallidos, el cargador puede recuperar el código anterior. La restauración automática conserva los datos personales; no deshace ajustes realizados después.
 
 Para restaurar manualmente el código desde el último respaldo, con el cliente cerrado:
@@ -44,10 +46,10 @@ La restauración verifica el respaldo y guarda el estado reciente en `_updates/r
 
 Tras confirmar la prueba con los compañeros, la publicación tiene dos etapas:
 
-1. Subir `publish/releases/3.1.0`, `publish/releases/3.0.29` y `publish/rinobot/manifest.json` al repositorio de updates. Verificar los hashes de los archivos descargados. Los directorios versionados deben conservarse sin modificar.
+1. Subir `publish/bootstrap.lua`, `publish/releases/3.1.0`, `publish/releases/3.0.29` y `publish/rinobot/manifest.json` al repositorio de updates. El bootstrap nuevo evita competir con el updater puente. Verificar los hashes de los archivos descargados. Los directorios versionados deben conservarse sin modificar.
 2. Como último paso, publicar `publish/manifest-bridge-to-publish-last.json` con el nombre `manifest.json` en la raíz del repositorio. Es el cambio que empieza la distribución a todos: instala primero el updater puente 3.0.29 y después permite descargar RinoBot 3.1.0.
 
-El puente está preparado para la base clásica publicada 3.0.28. Las instalaciones anteriores deben actualizarse a esa base o revisarse con el instalador antes de distribuir el puente. El nuevo updater conserva la preferencia de actualización automática. No se cambia el nombre físico de la carpeta del bot.
+El puente está preparado para la base clásica publicada 3.0.28. Su manifest conserva los 283 archivos de esa base, fijados a v3.0.28, e incorpora el updater puente: un cliente 3.0.28 cambia únicamente Updater; una instalación nueva también obtiene la base completa para poder arrancar. Las instalaciones anteriores deben actualizarse a esa base o revisarse con el instalador antes de distribuir el puente. El nuevo updater conserva la preferencia de actualización automática. No se cambia el nombre físico de la carpeta del bot.
 
 La copia privada «RinoBot-Piloto» de Alfonso tiene `_updates/pilot.marker`, que desactiva las descargas públicas en esa copia. Este marcador no forma parte del paquete para compañeros.
 

@@ -1983,9 +1983,10 @@
     {
       "path": "vBot/ingame_editor.lua",
       "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.0/vBot/ingame_editor.lua",
-      "sha256": "162ad657005d8ca09c122b37ed56ccdf9140fe351d5fa7a914a28b65f0146810",
-      "size": 29021,
+      "sha256": "25940fa585b862a3084d30779c1ce08c06960e507473b6c125b24c4e04698197",
+      "size": 29156,
       "acceptedSha256": [
+        "162ad657005d8ca09c122b37ed56ccdf9140fe351d5fa7a914a28b65f0146810",
         "517c7b18acc67252be1346cdb389817e414119c1481a4d3e871eb9af203233db"
       ]
     },
