@@ -1,3 +1,20 @@
+3.1.1 - RinoBot RPG y actualización completa
+- Nueva interfaz RinoBot con el rinoceronte original, categorías visuales y favoritos.
+- Inicio con personaje, vocación, nivel, guild, montura y resumen de sesión/ruta.
+- Iconos flotantes transparentes, clic derecho para configurar y arrastre con Mover iconos ON.
+- Inmortal: SSA y Energy Ring con mochilas cerradas y prioridad de Energy Ring frente a Might Ring.
+- AttackBot: catálogo, iconos y vista de áreas; elección entre spells disponibles y alineación con CaveBot ON.
+- TargetBot integrado, tooltips en varias líneas, espera de flecha y prioridad del movimiento manual.
+- Waypoints numerados con visualización opcional y revisión del contador de muertes.
+- Corrección del botón Recargar y del autorrechazo del updater/loader durante una actualización completa.
+- Conserva perfiles, heals, supplies, rutas, scripts personales y preferencias existentes.
+- Incluye 324 archivos oficiales. Validación local: 3432 comprobaciones simuladas y 127 fuentes Lua compiladas.
+
+3.0.29 - Puente del clásico a RinoBot
+- Instala el updater transaccional y conserva primero la base clásica.
+- Tras recargar obtiene RinoBot 3.1.1; con la opción automática ON continúa por sí mismo.
+- La opción automática OFF se respeta. Sin Updater hay que instalarlo una primera vez.
+
 3.0.28 - Updater renovado y ajuste ON/OFF
 - Updater By: Sabuezo estrena una ventana compacta con el estilo de Navi, cierre con X y acceso con estado y version desde Main.
 - Las pestanas Novedades, Historial y Detalles muestran las notas de la version, todas las versiones publicadas y los archivos pendientes reales.

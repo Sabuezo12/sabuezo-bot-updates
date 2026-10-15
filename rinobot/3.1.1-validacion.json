@@ -1,0 +1,37 @@
+{
+  "status": "LOCAL_SIMULADO_APROBADO_NO_PUBLICADO",
+  "version": "3.1.1",
+  "officialFiles": 324,
+  "compiledLuaFiles": 127,
+  "tests": {
+    "fullInstallationAndNativeLoaderPreludeAcrossThreeVersions": 2243,
+    "classicProfileMigration": 117,
+    "actualClassicDataMigration": 20,
+    "transactionRecoveryAndRollback": 52,
+    "updaterUiHttpFlow": 36,
+    "selfUpdateAndRetiredPayloadRegression": 8,
+    "bootstrapFreshAndSavedScriptGuard": 5,
+    "shellAndReloadCaption": 162,
+    "geometryAndBitmapFont": 789
+  },
+  "totalAssertions": 3432,
+  "gameActionsExecuted": false,
+  "publicManifestsChanged": false,
+  "confirmedNativeBeforeCandidate": [
+    "RinoBot profile migration",
+    "R38 symbols",
+    "R35 keyboard movement"
+  ],
+  "stillNeedsNativeCheck": [
+    "R37 mouse/BugMap",
+    "R39 original logo/transparency",
+    "R40 reload caption",
+    "complete 3.1.1 online rollout"
+  ],
+  "knownPrerequisites": [
+    "Auto ON for automatic installation; OFF remains respected",
+    "Existing classic 3.0.28 or installed RinoBot updater",
+    "Pilot/development lock intentionally prevents automatic writes",
+    "Unknown modified official files can be protected by the existing updater"
+  ]
+}

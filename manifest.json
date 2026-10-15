@@ -1,9 +1,13 @@
 {
-  "name": "Sabuezo Bot Updates",
+  "name": "RinoBot migration bridge",
   "channel": "stable",
-  "version": "3.0.28",
-  "updatedAt": "2026-10-10",
+  "version": "3.0.29",
+  "updatedAt": "2026-10-15",
   "manifestUrl": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/manifest.json",
+  "minimumClassicVersion": "3.0.28",
+  "summary": [
+    "Prepara el updater para migrar a RinoBot conservando perfiles y rutas."
+  ],
   "files": [
     {
       "path": "cavebot/actions.lua",
@@ -1471,9 +1475,9 @@
     },
     {
       "path": "vBot/Updater.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/v3.0.28/vBot/Updater.lua",
-      "sha256": "2bc3a650f8125084e4758f056accdc367aa608ad1b6a41c889efcda16a4bb819",
-      "size": 42067
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.0.29/vBot/Updater.lua",
+      "sha256": "0a6e821f754cd3c683b24fc9252164f4b87f88605958641ba0d960e98b4ba38d",
+      "size": 71749
     },
     {
       "path": "dummy.lua",
@@ -1705,6 +1709,16 @@
     }
   ],
   "history": [
+    {
+      "version": "3.0.29",
+      "title": "Puente a RinoBot",
+      "changes": [
+        "Instala primero el updater transaccional; después obtiene RinoBot 3.1.1."
+      ],
+      "files": [
+        "vBot/Updater.lua"
+      ]
+    },
     {
       "version": "3.0.28",
       "date": "2026-10-10",
