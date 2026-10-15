@@ -1,12 +1,12 @@
 {
   "name": "RinoBot migration bridge",
   "channel": "stable",
-  "version": "3.0.29",
+  "version": "3.0.30",
   "updatedAt": "2026-10-15",
   "manifestUrl": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/manifest.json",
   "minimumClassicVersion": "3.0.28",
   "summary": [
-    "Prepara el updater para migrar a RinoBot conservando perfiles y rutas."
+    "Puente al updater automatico de RinoBot 3.1.2."
   ],
   "files": [
     {
@@ -1475,9 +1475,9 @@
     },
     {
       "path": "vBot/Updater.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.0.29/vBot/Updater.lua",
-      "sha256": "0a6e821f754cd3c683b24fc9252164f4b87f88605958641ba0d960e98b4ba38d",
-      "size": 71749
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.0.30/vBot/Updater.lua",
+      "sha256": "2a52103c4e4392e9b29c9f538fb92958b39ab10b4736b2c01c533b9fcfeecd0f",
+      "size": 73236
     },
     {
       "path": "dummy.lua",
@@ -1709,6 +1709,16 @@
     }
   ],
   "history": [
+    {
+      "version": "3.0.30",
+      "title": "Puente a RinoBot automatico",
+      "changes": [
+        "Prepara RinoBot 3.1.2 y su regreso a Helper al actualizar."
+      ],
+      "files": [
+        "vBot/Updater.lua"
+      ]
+    },
     {
       "version": "3.0.29",
       "title": "Puente a RinoBot",

@@ -1,0 +1,20 @@
+{
+  "stage": "PREPUBLICATION_TEST_REPORT",
+  "checkedAt": "2026-10-15T20:31:24.807221+00:00",
+  "version": "3.1.2",
+  "officialFiles": 324,
+  "compiledLuaFiles": 127,
+  "totalSimulatedAssertions": 3415,
+  "tests": {
+    "completeInstallsAndHelperBootAcrossFourVersions": 2923,
+    "nativeButtonOwnership": 53,
+    "updaterAutoPolicyAndPeriodicChecks": 78,
+    "shellLauncherAndPalette": 166,
+    "profileMigrationAndSharedLauncherState": 122,
+    "actualClassicDataMigration": 20,
+    "rollbackAndFailedVersionHold": 53
+  },
+  "nativeGameActionsExecuted": false,
+  "nativeButtonAndOnlineTransition": "Pending user confirmation",
+  "priorAutoOffCaveat": "Older versions with Auto OFF need one manual install before mandatory automatic updates can run."
+}

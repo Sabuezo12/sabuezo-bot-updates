@@ -1,3 +1,15 @@
+3.1.2 - RBot y actualizaciones siempre automaticas
+- El mismo boton rojo del cliente muestra u oculta el icono RBot en Helper; en Clasico conserva su funcion original.
+- Ocultar RBot no apaga motores ni cambia la posicion del icono. Su visibilidad se conserva al recargar y entre perfiles.
+- Actualizacion automatica siempre ON: comprueba al cargar y cada cinco minutos, sin descargas duplicadas mientras esta ocupado.
+- Cada actualizacion verificada vuelve a Helper, aunque se haya elegido Clasico. Elegir Clasico sigue disponible hasta la siguiente actualizacion.
+- Una version que falle al arrancar queda en espera; la siguiente version corregida puede instalarse automaticamente. Se evita instalar versiones anteriores.
+- Quien conserve una version anterior con Auto OFF debe instalar esta actualizacion una vez desde Updater; el codigo viejo apagado no puede activarse remotamente.
+
+3.0.30 - Puente al updater automatico
+- Prepara RinoBot 3.1.2 conservando la base clasica durante la primera fase.
+- Mantiene los respaldos, comprobaciones de hashes y protecciones de recuperacion/desarrollo.
+
 3.1.1 - RinoBot RPG y actualización completa
 - Nueva interfaz RinoBot con el rinoceronte original, categorías visuales y favoritos.
 - Inicio con personaje, vocación, nivel, guild, montura y resumen de sesión/ruta.
