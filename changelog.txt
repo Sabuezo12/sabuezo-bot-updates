@@ -1,3 +1,14 @@
+3.1.3 - SSA y actualizaciones mas ligeras
+- Reparte los turnos de cuello y anillo para que una reposicion continua no bloquee el SSA.
+- Detecta peticiones sin confirmacion y recupera SSA/Energy abriendo automaticamente la BP principal y ramas necesarias si hace falta.
+- Mantiene prioridad de Energy sobre Might, cargas y ajustes de cada perfil.
+- Divide la verificacion en tareas breves y evita repetirla en consultas automaticas con una publicacion identica ya verificada.
+- Crea la ventana del Updater y sus listas bajo demanda; conserva automatico obligatorio, Helper tras actualizar y recuperacion.
+- 324 archivos oficiales, 127 fuentes Lua compiladas y 13.606 comprobaciones simuladas. Confirmacion reciente en MythicOT pendiente.
+
+3.0.31 - Puente al updater ligero
+- Prepara RinoBot 3.1.3 conservando los datos propios de cada jugador.
+
 3.1.2 - RBot y actualizaciones siempre automaticas
 - El mismo boton rojo del cliente muestra u oculta el icono RBot en Helper; en Clasico conserva su funcion original.
 - Ocultar RBot no apaga motores ni cambia la posicion del icono. Su visibilidad se conserva al recargar y entre perfiles.

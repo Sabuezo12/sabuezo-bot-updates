@@ -1,0 +1,101 @@
+{
+  "stage": "PREPUBLICATION_TEST_REPORT",
+  "version": "3.1.3",
+  "checkedAt": "2026-10-16T07:24:21.052898+00:00",
+  "officialFiles": 324,
+  "compiledLuaFiles": 127,
+  "totalSimulatedAssertions": 13606,
+  "tests": [
+    {
+      "name": "compile",
+      "assertions": 0,
+      "status": "PASS"
+    },
+    {
+      "name": "newInstallerFullPackages",
+      "assertions": 4945,
+      "status": "PASS"
+    },
+    {
+      "name": "published312InstallerFullPackages",
+      "assertions": 4945,
+      "status": "PASS"
+    },
+    {
+      "name": "transactionRollback",
+      "assertions": 53,
+      "status": "PASS"
+    },
+    {
+      "name": "updaterPolicyUIHTTP",
+      "assertions": 78,
+      "status": "PASS"
+    },
+    {
+      "name": "updaterAsync",
+      "assertions": 1492,
+      "status": "PASS"
+    },
+    {
+      "name": "updaterLight",
+      "assertions": 60,
+      "status": "PASS"
+    },
+    {
+      "name": "ssaHidden",
+      "assertions": 87,
+      "status": "PASS"
+    },
+    {
+      "name": "equipmentFairness",
+      "assertions": 1835,
+      "status": "PASS"
+    },
+    {
+      "name": "closedBackpacks",
+      "assertions": 53,
+      "status": "PASS"
+    },
+    {
+      "name": "shield",
+      "assertions": 21,
+      "status": "PASS"
+    },
+    {
+      "name": "potion",
+      "assertions": 10,
+      "status": "PASS"
+    },
+    {
+      "name": "spellCancellation",
+      "assertions": 9,
+      "status": "PASS"
+    },
+    {
+      "name": "mspUI",
+      "assertions": 18,
+      "status": "PASS"
+    }
+  ],
+  "nativeGameActionsExecuted": false,
+  "nativeValidation": "R46-R49 pending user confirmation after reload; source/API simulations are not gameplay confirmation.",
+  "origins": [
+    "classic 3.0.28",
+    "RinoBot 3.1.0",
+    "RinoBot 3.1.1",
+    "RinoBot 3.1.2",
+    "direct installer v5",
+    "local R46/R47",
+    "local R48/R49"
+  ],
+  "installerContexts": [
+    "actual public 3.1.2 transaction implementation",
+    "actual new 3.1.3 transaction implementation"
+  ],
+  "personalDataPreservation": "Full in-memory install and packaged loader boot tests keep named profiles, scripts, layouts, routes, heals, supplies, false and zero values.",
+  "limits": [
+    "No live MythicOT upgrade or equipment commands executed.",
+    "New SSA fallback may open necessary BPs; existing windows are preserved.",
+    "First audit, disk IO and transactional backup/commit/recovery retain their costs."
+  ]
+}
