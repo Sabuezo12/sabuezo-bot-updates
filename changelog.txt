@@ -2,7 +2,7 @@
 - Ocho funciones PvP en un tablero compacto: incluye AntiPush, anclajes corregidos y controles ON/OFF independientes.
 - Clic derecho abre solo la configuracion; AntiPush mantiene Numpad0/NIns y deja Gold Converter independiente.
 - Combo Leader detecta UE/SD y spells naranjas, evita disparos por ataques normales y agrega Follow de 1 a 5 SQM.
-- Inmortal equipa SSA sin bloquearse por ordenar Normal; retira equipo Normal a main BP y conserva Energy sobre Might.
+- Inmortal prioriza SSA e intenta retirar el amuleto Normal configurado a main BP sin bloquear la proteccion si falla; conserva Energy sobre Might.
 - Container Manager agrega C para BP cerrada y busqueda limitada de padres; tooltip corto, sin casilla duplicada.
 - CaveBot agrega labels al cambiar de piso en autorecording; Scripts lista los macros cargados con ON/OFF.
 - AttackBot elimina una penalizacion ficticia de 30 s tras intentos sin confirmar.
