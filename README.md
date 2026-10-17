@@ -1,28 +1,30 @@
-# Sabuezo Bot - MythicOT
+# RinoBot - MythicOT
 
-Version actual: **3.0.28**. Actualizaciones publicas mediante GitHub, sin contrasenas.
+Versión estable: **3.1.4**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.4). Puente para instalaciones clásicas: **3.0.31**.
 
-## Instalacion
+## Actualización
 
-Ejecuta este script en el editor de scripts del bot:
+Si ya tienes el updater obligatorio, recarga el bot o espera su comprobación automática: se ejecuta al cargar y cada cinco minutos. La instalación conserva tus perfiles, rutas, scripts, heals y supplies. Después de instalar y verificar una versión vuelve al modo Helper. Puedes elegir clásico manualmente hasta la siguiente actualización.
+
+Las versiones antiguas con actualización automática desactivada necesitan instalar el nuevo updater una primera vez desde su panel Updater. Si no dispones de Updater, usa la instalación inicial. Se respetan development.lock, recuperación de versiones fallidas y protección contra downgrades.
+
+## Instalación inicial
+
+En el editor de scripts del bot ejecuta:
 
 ```lua
 modules.corelib.HTTP.get('https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/bootstrap.lua', function(script, err) if err or not script then warn('No se pudo descargar Sabuezo') return end assert(loadstring(script))() end)
 ```
 
-El instalador descarga el paquete completo antes de reemplazar archivos, valida el tamano de cada descarga y coloca el Loader al final. Al terminar, recarga el bot. Los archivos anteriores se respaldan en `bot/<config>/_updates/bootstrap_3.0.28/`. Los perfiles y las configuraciones guardadas de cada usuario se conservan.
+El bootstrap instala el puente clásico 3.0.31. Cuando indique que terminó, recarga el bot para que su updater descubra e instale RinoBot 3.1.4. El bootstrap y las publicaciones anteriores se conservan sin cambios.
 
-## Actualizaciones
+## Contenido y validación
 
-El panel **Updater** aparece en **Main**. **Buscar actualizacion** consulta GitHub y **Actualizar** instala los archivos pendientes. En versiones anteriores, los botones se llaman **Check** y **Update**. Se conserva la actualizacion automatica al entrar si esta activada en los ajustes existentes. El bot se recarga automaticamente al terminar una instalacion, tambien al pulsar Update.
+325 archivos oficiales, incluidos estilos, imágenes y el nuevo módulo de controles de macros. Los payloads están en `releases/3.1.4/` y cada entrada de `rinobot/manifest.json` incluye tamaño y SHA-256. No se distribuyen configuraciones personales del entorno de desarrollo.
 
-Los archivos del manifest apuntan a la etiqueta `v3.0.28`, para que una descarga use una sola version del bot. La antigua version de cierre 3.0.17 esta bloqueada y su payload fue retirado de la version actual del repositorio.
+25.430 comprobaciones simuladas o estáticas y 128 fuentes Lua compiladas; se probaron once orígenes de instalación y conservación de datos. La comprobación nativa en MythicOT de las mejoras recientes sigue pendiente. Consulta las [notas completas](rinobot/3.1.4-notas.md) y el [informe de validación](rinobot/3.1.4-validacion.json).
 
-## Contenido publicado
-
-Se publican los scripts Lua, interfaces OTUI, imagenes y textos de licencia necesarios para el bot. Se conservan los scripts de la version anterior y se incorporan las mejoras de BotServer, Player List y exiva probadas en pruebas.
-
-Quedan fuera los perfiles de `storage/`, configuraciones de HealBot/AttackBot/Supplies, listas de jugadores, teclas del editor, rutas de CaveBot, configuraciones de TargetBot, distribucion de paneles, tokens, contrasenas y respaldos. No se publica ni se importa una plantilla personal de Sabuezo.
+## Historial clásico
 
 ## Cambios de 3.0.28
 

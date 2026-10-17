@@ -1,0 +1,210 @@
+{
+  "id": "R74",
+  "version": "3.1.4",
+  "stage": "VALIDATED_PREPUBLICATION",
+  "checkedAt": "2026-10-17T22:56:34.134179+00:00",
+  "officialFiles": 325,
+  "luaSourcesCompiled": 128,
+  "totalSimulatedAndStaticAssertions": 25430,
+  "tests": [
+    {
+      "test": "compile",
+      "assertions": 0,
+      "status": "PASS"
+    },
+    {
+      "test": "public313-installer",
+      "assertions": 7653,
+      "status": "PASS"
+    },
+    {
+      "test": "public312-installer",
+      "assertions": 7653,
+      "status": "PASS"
+    },
+    {
+      "test": "rollback",
+      "assertions": 53,
+      "status": "PASS"
+    },
+    {
+      "test": "updater-policy",
+      "assertions": 78,
+      "status": "PASS"
+    },
+    {
+      "test": "updater-async",
+      "assertions": 1492,
+      "status": "PASS"
+    },
+    {
+      "test": "updater-light",
+      "assertions": 60,
+      "status": "PASS"
+    },
+    {
+      "test": "shell-pvp",
+      "assertions": 612,
+      "status": "PASS"
+    },
+    {
+      "test": "icons",
+      "assertions": 164,
+      "status": "PASS"
+    },
+    {
+      "test": "profiles",
+      "assertions": 122,
+      "status": "PASS"
+    },
+    {
+      "test": "geometry-pvp",
+      "assertions": 2271,
+      "status": "PASS"
+    },
+    {
+      "test": "antipush-activation",
+      "assertions": 33,
+      "status": "PASS"
+    },
+    {
+      "test": "antipush-nins",
+      "assertions": 73,
+      "status": "PASS"
+    },
+    {
+      "test": "antipush-hotkey",
+      "assertions": 64,
+      "status": "PASS"
+    },
+    {
+      "test": "attack-response",
+      "assertions": 188,
+      "status": "PASS"
+    },
+    {
+      "test": "attack-geometry-selection",
+      "assertions": 1666,
+      "status": "PASS"
+    },
+    {
+      "test": "attack-dispatcher",
+      "assertions": 24,
+      "status": "PASS"
+    },
+    {
+      "test": "recorder",
+      "assertions": 20,
+      "status": "PASS"
+    },
+    {
+      "test": "scripts",
+      "assertions": 56,
+      "status": "PASS"
+    },
+    {
+      "test": "combo-triggers",
+      "assertions": 111,
+      "status": "PASS"
+    },
+    {
+      "test": "combo-response",
+      "assertions": 208,
+      "status": "PASS"
+    },
+    {
+      "test": "combo-follow",
+      "assertions": 149,
+      "status": "PASS"
+    },
+    {
+      "test": "normal-amulet",
+      "assertions": 204,
+      "status": "PASS"
+    },
+    {
+      "test": "hidden-supply",
+      "assertions": 87,
+      "status": "PASS"
+    },
+    {
+      "test": "equipment-fairness",
+      "assertions": 1835,
+      "status": "PASS"
+    },
+    {
+      "test": "closed-backpacks",
+      "assertions": 53,
+      "status": "PASS"
+    },
+    {
+      "test": "shield",
+      "assertions": 21,
+      "status": "PASS"
+    },
+    {
+      "test": "msp-controls",
+      "assertions": 18,
+      "status": "PASS"
+    },
+    {
+      "test": "potion",
+      "assertions": 10,
+      "status": "PASS"
+    },
+    {
+      "test": "shield-cancellation",
+      "assertions": 9,
+      "status": "PASS"
+    },
+    {
+      "test": "container-hidden-parents",
+      "assertions": 373,
+      "status": "PASS"
+    },
+    {
+      "test": "container-deposits",
+      "assertions": 44,
+      "status": "PASS"
+    },
+    {
+      "test": "container-editor-save",
+      "assertions": 18,
+      "status": "PASS"
+    },
+    {
+      "test": "release scope, hashes, sizes, recorded intermediates, data exclusions, new module and loader",
+      "assertions": 8,
+      "status": "PASS"
+    }
+  ],
+  "installerContexts": [
+    "actual public 3.1.3 transaction core (identical to 3.1.4)",
+    "actual public 3.1.2 transaction core"
+  ],
+  "migrationOrigins": [
+    "classic 3.0.28",
+    "RinoBot 3.1.0",
+    "RinoBot 3.1.1",
+    "RinoBot 3.1.2",
+    "RinoBot 3.1.3",
+    "installer v5",
+    "local R46/R47",
+    "local R48/R49",
+    "local R55",
+    "local R60",
+    "local R73"
+  ],
+  "personalDataPreservedInSimulations": true,
+  "nativeGameActionsExecuted": false,
+  "nativeValidation": "Previous user confirmation of R67 keypad activation is preserved. Integrated AntiPush UI and other recent improvements keep their individual pending native status; simulated tests do not establish MythicOT gameplay confirmation.",
+  "packaged": true,
+  "published": false,
+  "bridgeVersionUnchanged": "3.0.31",
+  "limitations": [
+    "No online upgrade or gameplay actions executed in MythicOT.",
+    "Older installations with automatic updates OFF need a first manual adoption.",
+    "Development lock intentionally prevents installing automatically into development roots.",
+    "Closed-BP recovery may open intermediate parents; no claim of arbitrary hidden inventory access."
+  ]
+}
