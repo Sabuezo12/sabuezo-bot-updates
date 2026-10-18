@@ -1,0 +1,57 @@
+-- tools tab
+setDefaultTab("Tools")
+
+
+if type(storage.moneyItems) ~= "table" then
+  storage.moneyItems = {3031, 3035}
+end
+local goldConverterMacro = macro(100, "Change Gold", function()
+  if AntiPush and AntiPush.isOn and AntiPush.isOn() then return end
+  if storage.antipushCoins and storage.antipushCoins.enabled == true then return end
+  if not storage.moneyItems[1] then return end
+  local containers = g_game.getContainers()
+  for index, container in pairs(containers) do
+    if not container.lootContainer then -- ignore monster containers
+      for i, item in ipairs(container:getItems()) do
+        if item:getCount() == 100 then
+          for m, moneyId in ipairs(storage.moneyItems) do
+            local id = type(moneyId) == "table" and moneyId.id or moneyId
+            if item:getId() == tonumber(id) then
+              return g_game.use(item)            
+            end
+          end
+        end
+      end
+    end
+  end
+end)
+
+GoldConverter = {
+  isOn = function() return goldConverterMacro.isOn() == true end,
+  setOn = function() goldConverterMacro.setOn() end,
+  setOff = function() goldConverterMacro.setOff() end,
+  isPaused = function() return storage.antipushCoins and storage.antipushCoins.enabled == true or false end
+}
+
+local moneyContainer = UI.Container(function(widget, items)
+  storage.moneyItems = items
+end, true)
+moneyContainer:setHeight(35)
+moneyContainer:setItems(storage.moneyItems)
+
+UI.Separator()
+
+macro(60000, "Send message on trade", function()
+  local trade = getChannelId("advertising")
+  if not trade then
+    trade = getChannelId("trade")
+  end
+  if trade and storage.autoTradeMessage:len() > 0 then    
+    sayChannel(trade, storage.autoTradeMessage)
+  end
+end)
+UI.TextEdit(storage.autoTradeMessage or "I'm using OTClientV8!", function(widget, text)    
+  storage.autoTradeMessage = text
+end)
+
+UI.Separator()

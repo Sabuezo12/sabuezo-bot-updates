@@ -1,0 +1,573 @@
+UturaComboBoxPopupMenu < HelperThemeComboPopupMenu
+UturaComboBoxPopupMenuButton < HelperThemeComboPopupMenuButton
+UturaComboBox < HelperThemeCombo
+  @onSetup: |
+    self:addOption("Utura")
+    self:addOption("Utura Gran")
+
+ConditionSpinBox < HelperThemeSpin
+  size: 50 18
+  minimum: 0
+  maximum: 9999
+  step: 1
+  editable: true
+  text-align: center
+  font: verdana-11px-antialised
+
+ConditionSectionTitle < HelperThemeSectionTitle
+  height: 16
+  background-color: #244b53
+  color: #d8ffff
+  font: verdana-11px-antialised
+  text-align: center
+
+ConditionName < HelperThemeLabel
+  width: 80
+  height: 18
+  color: #ffaa00
+  font: verdana-11px-antialised
+  text-align: left
+
+AntiParalyseConditions < HelperThemeSection
+  id: Anti
+  height: 68
+
+  ConditionSectionTitle
+    height: 16
+    width: 476
+    margin-top: 4
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: title
+    text: ANTI-PARALYZE
+
+  HelperThemeCheck
+    margin-top: 24
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: CureParalyse
+    width: 72
+    height: 18
+    text: Activar
+    tooltip: Quita la paralisis con prioridad, incluso en PZ o atacando monstruos.
+
+  HelperThemeLabel
+    height: 18
+    margin-top: 24
+    margin-left: 80
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: spellLabel
+    width: 34
+    text: Spell:
+    font: verdana-11px-antialised
+
+  HelperThemeInput
+    margin-top: 24
+    margin-left: 116
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: ParalyseSpell
+    width: 214
+    height: 18
+    font: verdana-11px-antialised
+    tooltip: Hechizo principal para quitar la paralisis.
+    padding: 1
+    padding-left: 4
+    padding-right: 4
+    text-align: left
+
+  HelperThemeLabel
+    height: 18
+    margin-top: 24
+    margin-left: 336
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: manaLabel
+    width: 38
+    text: Mana:
+    font: verdana-11px-antialised
+
+  ConditionSpinBox
+    height: 18
+    width: 50
+    margin-top: 24
+    margin-left: 378
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: ParalyseCost
+
+  HelperThemeCheck
+    margin-top: 46
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: UseHasteFallback
+    width: 238
+    height: 18
+    text: Usar Haste como respaldo
+    tooltip: Si el principal no esta disponible o sigues paralizado, intenta el Haste configurado respetando sus cooldowns.
+
+  HelperThemeLabel
+    margin-top: 46
+    margin-left: 246
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: AntiStatus
+    width: 234
+    height: 18
+    text: Anti: esperando
+    text-align: right
+    color: #7de58a
+    font: verdana-11px-antialised
+
+CureConditions < HelperThemeSection
+  id: Cure
+  width: 224
+  height: 184
+
+  ConditionSectionTitle
+    height: 16
+    width: 216
+    margin-top: 4
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: title
+    text: CURAR CONDICIONES
+
+  ConditionName
+    height: 18
+    width: 78
+    margin-top: 24
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: poisonLabel
+    text: Poison
+
+  ConditionSpinBox
+    height: 18
+    width: 50
+    margin-top: 24
+    margin-left: 86
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: PoisonCost
+
+  HelperThemeCheck
+    height: 18
+    margin-top: 24
+    margin-left: 146
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: CurePoison
+    width: 70
+    text: Curar
+
+  ConditionName
+    height: 18
+    width: 78
+    margin-top: 44
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: curseLabel
+    text: Curse
+
+  ConditionSpinBox
+    height: 18
+    width: 50
+    margin-top: 44
+    margin-left: 86
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: CurseCost
+
+  HelperThemeCheck
+    height: 18
+    margin-top: 44
+    margin-left: 146
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: CureCurse
+    width: 70
+    text: Curar
+
+  ConditionName
+    height: 18
+    width: 78
+    margin-top: 64
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: bleedLabel
+    text: Bleed
+
+  ConditionSpinBox
+    height: 18
+    width: 50
+    margin-top: 64
+    margin-left: 86
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: BleedCost
+
+  HelperThemeCheck
+    height: 18
+    margin-top: 64
+    margin-left: 146
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: CureBleed
+    width: 70
+    text: Curar
+
+  ConditionName
+    height: 18
+    width: 78
+    margin-top: 84
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: burnLabel
+    text: Burn
+
+  ConditionSpinBox
+    height: 18
+    width: 50
+    margin-top: 84
+    margin-left: 86
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: BurnCost
+
+  HelperThemeCheck
+    height: 18
+    margin-top: 84
+    margin-left: 146
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: CureBurn
+    width: 70
+    text: Curar
+
+  ConditionName
+    height: 18
+    width: 78
+    margin-top: 104
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: electrifyLabel
+    text: Electrify
+
+  ConditionSpinBox
+    height: 18
+    width: 50
+    margin-top: 104
+    margin-left: 86
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: ElectrifyCost
+
+  HelperThemeCheck
+    height: 18
+    margin-top: 104
+    margin-left: 146
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: CureElectrify
+    width: 70
+    text: Curar
+
+  HelperThemeDivider
+    height: 1
+    width: 216
+    margin-top: 126
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: safetySeparator
+
+  HelperThemeLabel
+    text-wrap: true
+    margin-top: 132
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: zoneRule
+    width: 216
+    height: 24
+    text: PZ y combate: opciones a la derecha
+    font: verdana-9px
+
+  HelperThemeLabel
+    margin-top: 160
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: combatRule
+    width: 216
+    height: 16
+    text: No afectan Anti-Paralyze
+    font: verdana-9px
+
+HoldConditions < HelperThemeSection
+  id: Hold
+  width: 254
+  height: 184
+
+  ConditionSectionTitle
+    height: 16
+    width: 246
+    margin-top: 4
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: title
+    text: MANTENER BUFFS
+
+  ConditionName
+    height: 18
+    width: 78
+    margin-top: 24
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: hasteLabel
+    text: Haste
+
+  ConditionSpinBox
+    height: 18
+    width: 50
+    margin-top: 24
+    margin-left: 86
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: HasteCost
+
+  HelperThemeCheck
+    height: 18
+    margin-top: 24
+    margin-left: 146
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: HoldHaste
+    width: 100
+    text: Mantener
+    tooltip: Renueva Haste al caminar. Respeta mana, cooldown, la opcion de PZ y la pausa mientras tienes un ataque activo.
+
+  HelperThemeLabel
+    margin-top: 44
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: hasteSpellLabel
+    width: 40
+    height: 18
+    text: Spell:
+    font: verdana-11px-antialised
+
+  HelperThemeInput
+    margin-top: 44
+    margin-left: 48
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: HasteSpell
+    width: 198
+    height: 18
+    font: verdana-11px-antialised
+    padding: 1
+    padding-left: 4
+    padding-right: 4
+    text-align: left
+
+  ConditionName
+    height: 18
+    width: 78
+    margin-top: 64
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: utamoLabel
+    text: Utamo Vita
+
+  ConditionSpinBox
+    height: 18
+    width: 50
+    margin-top: 64
+    margin-left: 86
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: UtamoCost
+
+  HelperThemeCheck
+    height: 18
+    margin-top: 64
+    margin-left: 146
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: HoldUtamo
+    width: 100
+    text: Mantener
+
+  ConditionName
+    height: 18
+    width: 78
+    margin-top: 84
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: utanaLabel
+    text: Utana Vid
+
+  ConditionSpinBox
+    height: 18
+    width: 50
+    margin-top: 84
+    margin-left: 86
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: UtanaCost
+
+  HelperThemeCheck
+    height: 18
+    margin-top: 84
+    margin-left: 146
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: HoldUtana
+    width: 100
+    text: Mantener
+
+  ConditionName
+    height: 18
+    width: 78
+    margin-top: 104
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: recoveryLabel
+    text: Recovery
+
+  ConditionSpinBox
+    height: 18
+    width: 50
+    margin-top: 104
+    margin-left: 86
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: UturaCost
+
+  HelperThemeCheck
+    height: 18
+    margin-top: 104
+    margin-left: 146
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: HoldUtura
+    width: 100
+    text: Mantener
+
+  HelperThemeLabel
+    margin-top: 124
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: recoverySpellLabel
+    width: 40
+    height: 18
+    text: Spell:
+    font: verdana-11px-antialised
+
+  UturaComboBox
+    margin-top: 124
+    margin-left: 48
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: UturaType
+    width: 198
+    height: 18
+    font: verdana-11px-antialised
+
+  HelperThemeCheck
+    margin-top: 148
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: IgnoreInPz
+    width: 246
+    height: 14
+    text: No lanzar en PZ
+    tooltip: Pausa curas, buffs y Recovery en PZ. Anti-Paralyze queda independiente.
+    font: verdana-11px-antialised
+
+  HelperThemeCheck
+    margin-top: 166
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: PauseWhileAttacking
+    width: 246
+    height: 14
+    text: Pausar en combate (PvE/PvP)
+    tooltip: Haste pausa con un ataque activo. Las otras curas y buffs pausan con estado de combate, un objetivo activo o monstruos a 7 casillas. Exana Pox, Utura y Utura Gran siempre esperan a salir de combate. Anti-Paralyze queda independiente.
+    font: verdana-11px-antialised
+
+ConditionsWindow < HelperThemeWindow
+  padding-bottom: 8
+  padding-top: 8
+  padding: 8
+  id: ConditionsWindow
+  !text: tr('Conditions')
+  size: 500 306
+  @onEscape: self:hide()
+
+  AntiParalyseConditions
+    height: 68
+    width: 484
+    margin-top: 0
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: Anti
+
+  CureConditions
+    height: 184
+    width: 224
+    margin-top: 74
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: Cure
+
+  HoldConditions
+    height: 184
+    width: 254
+    margin-top: 74
+    margin-left: 230
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: Hold
+
+  HelperThemeDivider
+    height: 1
+    width: 484
+    margin-top: 264
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: separator
+
+  HelperThemeButton
+    height: 18
+    width: 58
+    margin-top: 272
+    margin-left: 426
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: closeButton
+    !text: tr('Close')

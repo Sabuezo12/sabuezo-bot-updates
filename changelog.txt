@@ -1,3 +1,12 @@
+3.1.7 - ZonaPZ, Push Max normal, AntiPush y Spy Level
+- CaveBot: ZonaPZ como destino de Huida PvP; compara caminos conocidos y continua la ruta al llegar al punto seguro.
+- Wait Stamina restaura minima/maxima y opciones de label; una huida omite la espera.
+- Push Max normal: elige Destroy Field para fields y Disintegrate para objetos; confirma la limpieza y conserva los tiempos de empuje.
+- AntiPush: !withdraw 2000 fijo, cambio descendente y reserva de 20 gold/20 platinum cuando el inventario lo permite.
+- Gold Converter: ON/OFF independiente; se pausa mientras AntiPush esta activo.
+- Spy Level: icono con clic izquierdo para subir y derecho para bajar.
+- Conserva los datos propios, la actualizacion automatica y la recuperacion. El experimento de Aeron queda fuera.
+
 3.1.6 - Perfiles, Huida PvP, AttackBot, contenedores, Timer y Dummy
 - Timer Executor: filtros combinables, stamina HH:MM, cantidad de items, horario, PZ y motores; condiciones compactas en dos columnas.
 - Dummy Smart: listas ordenadas de items y dummies, alternativas y confirmacion del servidor; interfaz mas compacta.

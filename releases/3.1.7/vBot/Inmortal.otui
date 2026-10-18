@@ -1,0 +1,479 @@
+AutoProtectWindow < HelperThemeWindow
+  !text: tr('Inmortal by Sabuezo')
+  size: 430 520
+  @onEscape: self:hide()
+
+  HelperThemeLabel
+    id: counts
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 28
+    font: verdana-11px-antialised
+    text-align: center
+    color: #d8e8ff
+    tooltip: ~ = ultimo total conocido. ? = sin datos.
+
+  HelperThemeCard
+    id: ering
+    anchors.top: counts.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 6
+    padding: 6
+    height: 166
+
+    HelperThemePower
+      id: enabled
+      anchors.top: parent.top
+      anchors.left: parent.left
+      width: 80
+      height: 17
+      text-align: center
+      text: Magic Shield
+
+    HelperThemeButton
+      id: modeBtn
+      anchors.top: parent.top
+      anchors.left: enabled.right
+      anchors.right: parent.right
+      margin-left: 5
+      height: 17
+      text: Mode: Ring
+
+    HelperThemeLabel
+      id: label
+      anchors.top: enabled.bottom
+      anchors.left: parent.left
+      anchors.right: parent.right
+      margin-top: 4
+      height: 17
+      color: #77D390
+      text-align: center
+      font: verdana-11px-antialised
+
+    HelperThemeLabel
+      id: hpLabel
+      anchors.top: label.bottom
+      anchors.left: parent.left
+      margin-top: 4
+      width: 34
+      text: ON:
+      color: #dfdfdf
+      font: verdana-11px-antialised
+
+    HorizontalScrollBar
+      id: hpThreshold
+      anchors.verticalCenter: hpLabel.verticalCenter
+      anchors.left: hpLabel.right
+      anchors.right: parent.right
+      margin-left: 4
+      minimum: 1
+      maximum: 100
+      step: 1
+
+    HelperThemeLabel
+      id: mpLabel
+      anchors.top: hpLabel.bottom
+      anchors.left: parent.left
+      margin-top: 5
+      width: 34
+      text: OFF:
+      color: #dfdfdf
+      font: verdana-11px-antialised
+
+    HorizontalScrollBar
+      id: mpThreshold
+      anchors.verticalCenter: mpLabel.verticalCenter
+      anchors.left: mpLabel.right
+      anchors.right: parent.right
+      margin-left: 4
+      minimum: 1
+      maximum: 100
+      step: 1
+
+    Panel
+      id: ringMode
+      anchors.top: mpThreshold.bottom
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.bottom: parent.bottom
+      margin-top: 15
+
+      HelperThemeLabel
+        id: dangerLabel
+        anchors.top: parent.top
+        anchors.left: parent.left
+        margin-top: 2
+        text: ER:
+        color: #ff5959
+        font: verdana-11px-antialised
+
+      BotItem
+        id: dangerItem
+        anchors.verticalCenter: dangerLabel.verticalCenter
+        anchors.left: dangerLabel.right
+        margin-left: 4
+        width: 32
+        height: 32
+
+      HelperThemeLabel
+        id: normalLabel
+        anchors.verticalCenter: dangerLabel.verticalCenter
+        anchors.left: dangerItem.right
+        margin-left: 10
+        text: Normal:
+        color: #dfdfdf
+        font: verdana-11px-antialised
+
+      BotItem
+        id: normalItem
+        tooltip: Vuelve tras 0.5 s con HP/MP 10 puntos por encima de sus limites (maximo 100%).
+        anchors.verticalCenter: normalLabel.verticalCenter
+        anchors.left: normalLabel.right
+        margin-left: 4
+        width: 32
+        height: 32
+
+    Panel
+      id: spellMode
+      anchors.top: mpThreshold.bottom
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.bottom: parent.bottom
+      margin-top: 15
+      visible: false
+
+      HelperThemeLabel
+        id: spellLabel
+        anchors.top: parent.top
+        anchors.left: parent.left
+        margin-top: 2
+        text: Spells:
+        color: #dfdfdf
+        font: verdana-11px-antialised
+
+      HelperThemeInput
+        id: spellOn
+        anchors.verticalCenter: spellLabel.verticalCenter
+        anchors.left: spellLabel.right
+        margin-left: 4
+        width: 160
+        height: 20
+        padding: 1
+        padding-left: 4
+        padding-right: 4
+        tooltip: Hechizo para activar el escudo al llegar al HP de ON.
+
+      HelperThemeInput
+        id: spellOff
+        anchors.verticalCenter: spellLabel.verticalCenter
+        anchors.left: spellOn.right
+        margin-left: 4
+        width: 160
+        height: 20
+        padding: 1
+        padding-left: 4
+        padding-right: 4
+        tooltip: Hechizo para quitar el escudo al llegar al HP de OFF. Respeta su cooldown propio y de grupo.
+
+      HelperThemeLabel
+        id: manaLabel
+        anchors.top: spellLabel.bottom
+        anchors.left: parent.left
+        margin-top: 12
+        text: MSP HP:
+        tooltip: Usa la MSP con HP menor o igual a este limite y sin escudo. OFF debe ser mayor; Ajustar OFF corrige el cruce.
+        color: #dfdfdf
+        font: verdana-11px-antialised
+
+      BotItem
+        id: manaItem
+        anchors.verticalCenter: manaLabel.verticalCenter
+        anchors.left: manaLabel.right
+        margin-left: 4
+        width: 20
+        height: 20
+        
+      HelperThemeLabel
+        id: manaPctLabel
+        anchors.verticalCenter: manaLabel.verticalCenter
+        anchors.left: manaItem.right
+        margin-left: 4
+        width: 30
+        text: 50%
+        color: #dfdfdf
+        font: verdana-11px-antialised
+
+      HorizontalScrollBar
+        id: manaItemThreshold
+        anchors.verticalCenter: manaLabel.verticalCenter
+        anchors.left: manaPctLabel.right
+        anchors.right: parent.right
+        margin-left: 4
+        minimum: 1
+        maximum: 100
+        step: 1
+
+      HelperThemeLabel
+        id: mspWarning
+        anchors.top: manaItemThreshold.bottom
+        anchors.left: parent.left
+        anchors.right: fixOff.left
+        margin-top: 8
+        margin-right: 6
+        height: 16
+        color: #ffb467
+        font: verdana-11px-antialised
+        visible: false
+
+      HelperThemeButton
+        id: fixOff
+        anchors.top: manaItemThreshold.bottom
+        anchors.right: parent.right
+        margin-top: 8
+        size: 88 18
+        text: Ajustar OFF
+        tooltip: Sube OFF por encima de ON y de MSP para que no se bloquee o cancele la pocion. Solo cambia al pulsarlo.
+        visible: false
+
+  HelperThemeDivider
+    id: sep1
+    visible: false
+    anchors.top: ering.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 5
+
+  HelperThemeCard
+    id: ring
+    anchors.top: ering.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 8
+    padding: 6
+    height: 132
+
+    HelperThemePower
+      id: enabled
+      anchors.top: parent.top
+      anchors.left: parent.left
+      anchors.right: parent.right
+      height: 17
+      text-align: center
+      text: Might / Ring
+
+    HelperThemeLabel
+      id: label
+      anchors.top: enabled.bottom
+      anchors.left: parent.left
+      anchors.right: parent.right
+      margin-top: 4
+      height: 17
+      color: #77D390
+      text-align: center
+      font: verdana-11px-antialised
+
+    HelperThemeLabel
+      id: hpLabel
+      anchors.top: label.bottom
+      anchors.left: parent.left
+      margin-top: 4
+      width: 34
+      text: HP:
+      color: #dfdfdf
+      font: verdana-11px-antialised
+
+    HorizontalScrollBar
+      id: hpThreshold
+      anchors.verticalCenter: hpLabel.verticalCenter
+      anchors.left: hpLabel.right
+      anchors.right: parent.right
+      margin-left: 4
+      minimum: 1
+      maximum: 100
+      step: 1
+
+    HelperThemeLabel
+      id: mpLabel
+      anchors.top: hpLabel.bottom
+      anchors.left: parent.left
+      margin-top: 5
+      width: 34
+      text: MP:
+      color: #dfdfdf
+      font: verdana-11px-antialised
+
+    HorizontalScrollBar
+      id: mpThreshold
+      anchors.verticalCenter: mpLabel.verticalCenter
+      anchors.left: mpLabel.right
+      anchors.right: parent.right
+      margin-left: 4
+      minimum: 1
+      maximum: 100
+      step: 1
+
+    HelperThemeLabel
+      id: dangerLabel
+      anchors.top: mpThreshold.bottom
+      anchors.left: parent.left
+      margin-top: 14
+      text: Ring:
+      color: #ff5959
+      font: verdana-11px-antialised
+
+    BotItem
+      id: dangerItem
+      anchors.verticalCenter: dangerLabel.verticalCenter
+      anchors.left: dangerLabel.right
+      margin-left: 4
+      width: 32
+      height: 32
+
+    HelperThemeLabel
+      id: normalLabel
+      anchors.verticalCenter: dangerLabel.verticalCenter
+      anchors.left: dangerItem.right
+      margin-left: 10
+      text: Normal:
+      color: #dfdfdf
+      font: verdana-11px-antialised
+
+    BotItem
+      id: normalItem
+      tooltip: Conserva el Might Ring hasta consumirse. El normal vuelve sin condiciones de peligro y tras 0.5 s con HP/MP recuperados (+10 puntos, maximo 100%).
+      anchors.verticalCenter: normalLabel.verticalCenter
+      anchors.left: normalLabel.right
+      margin-left: 4
+      width: 32
+      height: 32
+
+  HelperThemeDivider
+    id: sep2
+    visible: false
+    anchors.top: ring.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 5
+
+  HelperThemeCard
+    id: amulet
+    anchors.top: ring.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 8
+    padding: 6
+    height: 132
+
+    HelperThemePower
+      id: enabled
+      anchors.top: parent.top
+      anchors.left: parent.left
+      anchors.right: parent.right
+      height: 17
+      text-align: center
+      text: Amulet
+
+    HelperThemeLabel
+      id: label
+      anchors.top: enabled.bottom
+      anchors.left: parent.left
+      anchors.right: parent.right
+      margin-top: 4
+      height: 17
+      color: #77D390
+      text-align: center
+      font: verdana-11px-antialised
+
+    HelperThemeLabel
+      id: hpLabel
+      anchors.top: label.bottom
+      anchors.left: parent.left
+      margin-top: 4
+      width: 34
+      text: HP:
+      color: #dfdfdf
+      font: verdana-11px-antialised
+
+    HorizontalScrollBar
+      id: hpThreshold
+      anchors.verticalCenter: hpLabel.verticalCenter
+      anchors.left: hpLabel.right
+      anchors.right: parent.right
+      margin-left: 4
+      minimum: 1
+      maximum: 100
+      step: 1
+
+    HelperThemeLabel
+      id: mpLabel
+      anchors.top: hpLabel.bottom
+      anchors.left: parent.left
+      margin-top: 5
+      width: 34
+      text: MP:
+      color: #dfdfdf
+      font: verdana-11px-antialised
+
+    HorizontalScrollBar
+      id: mpThreshold
+      anchors.verticalCenter: mpLabel.verticalCenter
+      anchors.left: mpLabel.right
+      anchors.right: parent.right
+      margin-left: 4
+      minimum: 1
+      maximum: 100
+      step: 1
+
+    HelperThemeLabel
+      id: dangerLabel
+      anchors.top: mpThreshold.bottom
+      anchors.left: parent.left
+      margin-top: 14
+      text: Amulet:
+      color: #ff5959
+      font: verdana-11px-antialised
+
+    BotItem
+      id: dangerItem
+      anchors.verticalCenter: dangerLabel.verticalCenter
+      anchors.left: dangerLabel.right
+      margin-left: 4
+      width: 32
+      height: 32
+
+    HelperThemeLabel
+      id: normalLabel
+      anchors.verticalCenter: dangerLabel.verticalCenter
+      anchors.left: dangerItem.right
+      margin-left: 10
+      text: Normal:
+      color: #dfdfdf
+      font: verdana-11px-antialised
+
+    BotItem
+      id: normalItem
+      tooltip: Conserva el SSA hasta consumirse. El normal vuelve sin condiciones de peligro y tras 0.5 s con HP/MP recuperados (+10 puntos, maximo 100%).
+      anchors.verticalCenter: normalLabel.verticalCenter
+      anchors.left: normalLabel.right
+      margin-left: 4
+      width: 32
+      height: 32
+
+  HelperThemePower
+    id: showHud
+    text: Mostrar HUD
+    tooltip: Muestra SSA, Might Rings y MSP (Magic shield potion) en la esquina inferior derecha del juego.
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    size: 130 21
+    text-align: center
+
+  HelperThemeButton
+    id: closeButton
+    !text: tr('Close')
+    font: verdana-11px-antialised
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 45 21

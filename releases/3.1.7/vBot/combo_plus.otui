@@ -1,0 +1,353 @@
+ComboPlusLeaderRow < Panel
+  height: 24
+  margin-top: 4
+
+  HelperThemeInput
+    id: textEdit
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: choose.left
+    margin-right: 6
+    height: 22
+    text-align: left
+
+  HelperThemeButton
+    id: choose
+    anchors.top: parent.top
+    anchors.right: parent.right
+    size: 100 22
+    text: Elegir jugador
+    text-align: center
+
+ComboPlusTriggerRow < Panel
+  height: 24
+  margin-top: 4
+
+  HelperThemePower
+    id: offensive
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.horizontalCenter
+    margin-right: 3
+    height: 22
+    text: Solo UE
+    text-align: center
+
+  HelperThemePower
+    id: list
+    anchors.top: parent.top
+    anchors.left: parent.horizontalCenter
+    anchors.right: parent.right
+    margin-left: 3
+    height: 22
+    text: Mi lista
+    text-align: center
+
+ComboPlusScrollBar < Panel
+  height: 32
+  margin-top: 4
+
+  UIWidget
+    id: text
+    height: 14
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    text-align: left
+
+  HorizontalScrollBar
+    id: scroll
+    anchors.top: prev.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 3
+    minimum: 0
+    maximum: 10
+    step: 1
+
+ComboPlusTextEdit < Panel
+  height: 42
+  margin-top: 5
+
+  UIWidget
+    id: text
+    height: 14
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    text-align: left
+
+  HelperThemeInput
+    id: textEdit
+    anchors.top: prev.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 4
+    font: verdana-11px-antialised
+    text-align: left
+
+ComboPlusItem < Panel
+  height: 34
+  margin-top: 6
+  margin-left: 18
+  margin-right: 18
+
+  UIWidget
+    id: text
+    anchors.verticalCenter: next.verticalCenter
+    anchors.left: parent.left
+    anchors.right: item.left
+    margin-right: 8
+    height: 16
+
+  BotItem
+    id: item
+    anchors.top: parent.top
+    anchors.right: parent.right
+
+ComboPlusCheckBox < HelperThemeToggle
+  height: 20
+  margin-top: 6
+
+ComboPlusModeRow < Panel
+  height: 42
+  margin-top: 6
+
+  UIWidget
+    id: text
+    height: 14
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    text-align: left
+
+  HelperThemePower
+    id: autoButton
+    anchors.top: prev.bottom
+    anchors.left: parent.left
+    width: 82
+    height: 18
+    margin-top: 4
+    text-align: left
+    text: Auto
+
+  HelperThemePower
+    id: halfButton
+    anchors.top: autoButton.top
+    anchors.left: autoButton.right
+    anchors.right: parent.right
+    height: 18
+    margin-left: 4
+    text-align: left
+    text: Semicirculo
+
+ComboPlusSection < UIWidget
+  height: 18
+  margin-top: 8
+  font: verdana-11px-antialised
+  color: #ffaa00
+  text-align: left
+
+ComboPlusHint < HelperThemeLabel
+  height: 62
+  margin-top: 10
+  color: #a9bbc6
+  text-align: left
+  text-wrap: true
+
+ComboPlusBody < HelperThemeSection
+  anchors.top: parent.top
+  anchors.left: parent.left
+  anchors.right: parent.right
+  padding: 8
+  layout:
+    type: verticalBox
+    fit-children: true
+
+ComboPlusWindow < HelperThemeWindow
+  text: Combo
+  size: 580 640
+  padding: 12
+  padding-top: 34
+
+  HelperThemeLabel
+    id: heading
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: master.left
+    margin-right: 8
+    height: 24
+    text: Combo Leader
+    color: #50d7d4
+    text-align: left
+
+  HelperThemePower
+    id: master
+    anchors.top: parent.top
+    anchors.right: parent.right
+    size: 106 24
+    text: Combo ON
+    text-align: center
+
+  Panel
+    id: tabs
+    anchors.top: heading.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 8
+    height: 26
+    layout:
+      type: horizontalBox
+      spacing: 5
+
+    HelperThemePower
+      id: combo
+      width: 126
+      height: 26
+      text: Combo
+      text-align: center
+
+    HelperThemePower
+      id: options
+      width: 120
+      height: 26
+      text: Ajustes
+      text-align: center
+
+    HelperThemePower
+      id: wall
+      width: 140
+      height: 26
+      text: Magic Wall
+      text-align: center
+
+    HelperThemePower
+      id: follow
+      width: 126
+      height: 26
+      text: Follow
+      text-align: center
+
+  HelperThemeLabel
+    id: status
+    anchors.top: tabs.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 8
+    height: 62
+    text-align: left
+    text-wrap: true
+    color: #b6d8dd
+
+  VerticalScrollBar
+    id: comboScroll
+    anchors.top: status.bottom
+    anchors.bottom: separator.top
+    anchors.right: parent.right
+    margin-top: 8
+    margin-bottom: 8
+    step: 30
+    pixels-scroll: true
+
+  HelperThemeScroll
+    id: comboPage
+    anchors.top: comboScroll.top
+    anchors.bottom: comboScroll.bottom
+    anchors.left: parent.left
+    anchors.right: comboScroll.left
+    margin-right: 4
+    vertical-scrollbar: comboScroll
+
+    ComboPlusBody
+      id: body
+
+  VerticalScrollBar
+    id: optionsScroll
+    anchors.top: status.bottom
+    anchors.bottom: separator.top
+    anchors.right: parent.right
+    margin-top: 8
+    margin-bottom: 8
+    step: 30
+    pixels-scroll: true
+
+  HelperThemeScroll
+    id: optionsPage
+    anchors.top: optionsScroll.top
+    anchors.bottom: optionsScroll.bottom
+    anchors.left: parent.left
+    anchors.right: optionsScroll.left
+    margin-right: 4
+    vertical-scrollbar: optionsScroll
+
+    ComboPlusBody
+      id: body
+
+  VerticalScrollBar
+    id: wallScroll
+    anchors.top: status.bottom
+    anchors.bottom: separator.top
+    anchors.right: parent.right
+    margin-top: 8
+    margin-bottom: 8
+    step: 30
+    pixels-scroll: true
+
+  HelperThemeScroll
+    id: wallPage
+    anchors.top: wallScroll.top
+    anchors.bottom: wallScroll.bottom
+    anchors.left: parent.left
+    anchors.right: wallScroll.left
+    margin-right: 4
+    vertical-scrollbar: wallScroll
+
+    ComboPlusBody
+      id: body
+
+  VerticalScrollBar
+    id: followScroll
+    anchors.top: status.bottom
+    anchors.bottom: separator.top
+    anchors.right: parent.right
+    margin-top: 8
+    margin-bottom: 8
+    step: 30
+    pixels-scroll: true
+
+  HelperThemeScroll
+    id: followPage
+    anchors.top: followScroll.top
+    anchors.bottom: followScroll.bottom
+    anchors.left: parent.left
+    anchors.right: followScroll.left
+    margin-right: 4
+    vertical-scrollbar: followScroll
+
+    ComboPlusBody
+      id: body
+
+  HelperThemeDivider
+    id: separator
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: closeButton.top
+    margin-bottom: 8
+
+  HelperThemeLabel
+    anchors.left: parent.left
+    anchors.right: closeButton.left
+    anchors.verticalCenter: closeButton.verticalCenter
+    margin-right: 8
+    height: 18
+    text: Los cambios se guardan al ajustar cada control.
+    text-align: left
+    color: #a9bbc6
+
+  HelperThemeButton
+    id: closeButton
+    anchors.bottom: parent.bottom
+    anchors.right: parent.right
+    size: 62 24
+    text: Cerrar
+    text-align: center
