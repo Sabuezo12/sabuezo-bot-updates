@@ -1,3 +1,16 @@
+3.1.6 - Perfiles, Huida PvP, AttackBot, contenedores, Timer y Dummy
+- Timer Executor: filtros combinables, stamina HH:MM, cantidad de items, horario, PZ y motores; condiciones compactas en dos columnas.
+- Dummy Smart: listas ordenadas de items y dummies, alternativas y confirmacion del servidor; interfaz mas compacta.
+- AttackBot: una configuracion por personaje con vocaciones; cooldowns nativos revisados al vencer sus paquetes.
+- Perfiles: catalogos de rutas y objetivos independientes por personaje; curaciones y ataques iniciales por vocacion.
+- HealBot: uso de items por inventario, incluido purse cuando el cliente lo permite.
+- CaveBot: Huida PvP integrada, salida forzada hacia refill/PZ y herramientas antitrap; Wait Stamina respeta su limite.
+- TargetBot: correcciones de Dynamic Lure y conteo durante el recorrido.
+- Container Manager: recuperacion del destino cerrado y conservacion de Main ante eventos ajenos de quiver/purse.
+- Retira el ajuste de compra por promedio y mejora los diagnosticos de la consola.
+- Push Max conserva motor y tiempos publicados, con las pausas estables de Huida PvP. El experimento de Aeron queda fuera.
+- Conserva los datos propios de cada jugador y la actualizacion automatica obligatoria.
+
 3.1.5 - AttackBot para las cinco vocaciones, CaveBot y consola
 - Automatica usa dano estimado por turno entre ataques listos; conserva condiciones, Harmony y seguridad.
 - Cooldowns nativos sin bloqueos compartidos ficticios; selector de runa por arrastre con Aplicar/Descartar.

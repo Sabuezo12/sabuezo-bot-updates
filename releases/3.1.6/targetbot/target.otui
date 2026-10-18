@@ -1,0 +1,845 @@
+TargetStudioText < HelperThemeLabel
+  font: verdana-11px-antialised
+  text-align: left
+  phantom: true
+
+TargetStudioAmount < Panel
+  height: 22
+  width: 192
+  margin-top: 2
+  TargetStudioText
+    id: caption
+    anchors.left: parent.left
+    anchors.right: controls.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 3
+    height: 18
+  Panel
+    id: controls
+    anchors.right: parent.right
+    anchors.top: parent.top
+    width: 78
+    height: 22
+    HelperThemeButton
+      id: minus
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 0
+      margin-top: 0
+      width: 18
+      height: 22
+      text: -
+    HelperThemeButton
+      id: plus
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 60
+      margin-top: 0
+      width: 18
+      height: 22
+      text: +
+    HelperThemeInput
+      id: input
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 19
+      margin-top: 0
+      width: 40
+      height: 22
+      text-align: center
+
+TargetStudioOption < UIWidget
+  height: 20
+  margin-top: 2
+  focusable: true
+  HelperThemePower
+    id: track
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 1
+    width: 38
+    height: 18
+    text-align: center
+    color: #e4edf3
+    phantom: true
+    focusable: false
+  TargetStudioText
+    id: caption
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-left: 46
+    height: 20
+
+TargetStudioAmmo < Panel
+  height: 22
+  margin-top: 3
+  TargetStudioText
+    id: caption
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 0
+    width: 126
+    height: 20
+    text: Municion preferida
+  HelperThemeCombo
+    id: list
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-left: 128
+    height: 22
+
+TargetStudioCard < HelperThemeCard
+  padding: 5
+  TargetStudioText
+    id: heading
+    anchors.left: parent.left
+    anchors.top: parent.top
+    anchors.right: parent.right
+    height: 18
+    color: #50d7d4
+  Panel
+    id: fields
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-top: 23
+    layout: 
+      type: verticalBox
+      fit-children: true
+
+TargetStudioEntry < HelperThemeButton
+  height: 44
+  margin-top: 1
+  padding: 0
+  UICreature
+    id: portrait
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 2
+    margin-top: 6
+    width: 30
+    height: 30
+    phantom: true
+    visible: false
+  TargetStudioText
+    id: fallback
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 3
+    margin-top: 10
+    width: 28
+    height: 24
+    text: *
+    text-align: center
+    color: #50d7d4
+  TargetStudioText
+    id: title
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-left: 38
+    margin-right: 4
+    margin-top: 3
+    height: 28
+    text: 
+    text-wrap: true
+    font: verdana-11px-antialised
+  TargetStudioText
+    id: priority
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    margin-left: 38
+    margin-right: 4
+    margin-bottom: 1
+    height: 12
+    text: 
+    text-align: left
+    font: verdana-9px
+
+TargetBotEntry < HelperThemeLabel
+  background-color: alpha
+  text-offset: 2 0
+  focusable: true
+
+  $focus:
+    background-color: #00000055
+
+TargetBotDualLabel < Panel
+  height: 18
+  margin-left: 3
+  margin-right: 4
+
+  HelperThemeLabel
+    id: left
+    anchors.top: parent.top
+    anchors.left: parent.left
+    width: 56
+    height: 18
+    text-auto-resize: false
+
+  HelperThemeLabel
+    id: right
+    anchors.top: parent.top
+    anchors.left: left.right
+    anchors.right: parent.right
+    margin-left: 6
+    height: 18
+    text-align: left
+    text-auto-resize: false
+    text-wrap: false
+
+
+TargetStudioProfile < Panel
+  height: 28
+  HelperThemeCombo
+    id: list
+    anchors.left: parent.left
+    anchors.right: add.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 0
+    margin-right: 6
+    height: 24
+  HelperThemeButton
+    id: add
+    anchors.right: remove.left
+    anchors.top: parent.top
+    margin-right: 6
+    margin-top: 0
+    width: 54
+    height: 24
+    text: Nueva
+    tooltip: Crear un perfil de TargetBot dentro de este panel.
+  HelperThemeButton
+    id: remove
+    anchors.right: switch.left
+    anchors.top: parent.top
+    margin-right: 6
+    margin-top: 0
+    width: 54
+    height: 24
+    text: Borrar
+    tooltip: Eliminar el perfil seleccionado mediante la confirmacion del cliente.
+  HelperThemeButton
+    id: edit
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 340
+    margin-top: 0
+    width: 44
+    height: 24
+    text: JSON
+    visible: false
+  HelperThemePower
+    id: switch
+    anchors.top: parent.top
+    anchors.right: parent.right
+    width: 64
+    height: 24
+    tooltip: Activa o desactiva este perfil de TargetBot.
+    $on:
+      text: ON
+    $!on:
+      text: OFF
+
+TargetBotPanel < Panel
+  width: 820
+  height: 592
+  TargetStudioText
+    id: profileLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 2
+    margin-top: 2
+    width: 138
+    height: 24
+    text: Perfil de TargetBot
+    color: #50d7d4
+  TargetStudioProfile
+    id: profile
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 144
+    margin-top: 0
+    width: 676
+    height: 28
+  Panel
+    id: newProfile
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 30
+    width: 820
+    height: 26
+    visible: false
+    TargetStudioText
+      id: label
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 0
+      margin-top: 0
+      width: 110
+      height: 22
+      text: Nuevo perfil
+    HelperThemeInput
+      id: name
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 110
+      margin-top: 0
+      width: 330
+      height: 22
+    HelperThemeButton
+      id: create
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 446
+      margin-top: 0
+      width: 82
+      height: 22
+      text: Crear
+    HelperThemeButton
+      id: cancel
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 534
+      margin-top: 0
+      width: 82
+      height: 22
+      text: Cancelar
+  Panel
+    id: live
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 34
+    width: 820
+    height: 20
+    TargetBotDualLabel
+      id: status
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 0
+      margin-top: 0
+      width: 204
+      height: 18
+    TargetBotDualLabel
+      id: target
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 212
+      margin-top: 0
+      width: 240
+      height: 18
+    TargetBotDualLabel
+      id: config
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 460
+      margin-top: 0
+      width: 252
+      height: 18
+    TargetBotDualLabel
+      id: danger
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 720
+      margin-top: 0
+      width: 100
+      height: 18
+  Panel
+    id: body
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 60
+    width: 820
+    height: 430
+    HelperThemeCard
+      id: monsters
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 0
+      margin-top: 0
+      width: 204
+      height: 430
+      padding: 5
+      TargetStudioText
+        id: heading
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 0
+        margin-top: 0
+        width: 188
+        height: 20
+        text: Monstruos
+        color: #50d7d4
+      HelperThemeInput
+        id: search
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 0
+        margin-top: 25
+        width: 188
+        height: 22
+        placeholder: Buscar monstruo...
+      HelperThemeScroll
+        id: list
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 0
+        margin-top: 53
+        width: 176
+        height: 304
+        vertical-scrollbar: scroll
+        layout: 
+          type: verticalBox
+          spacing: 1
+      VerticalScrollBar
+        id: scroll
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 178
+        margin-top: 53
+        width: 10
+        height: 304
+        pixels-scroll: true
+        step: 46
+      TargetStudioText
+        id: empty
+        anchors.left: list.left
+        anchors.right: list.right
+        anchors.top: list.top
+        margin-top: 14
+        height: 58
+        text-align: center
+        text-wrap: true
+        color: #a9bbc6
+        visible: false
+      HelperThemeButton
+        id: add
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 0
+        margin-top: 364
+        width: 92
+        height: 22
+        text: + Agregar
+      HelperThemeButton
+        id: remove
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 98
+        margin-top: 364
+        width: 90
+        height: 22
+        text: Quitar
+      TargetStudioText
+        id: help
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 0
+        margin-top: 391
+        width: 188
+        height: 24
+        text: Un clic muestra sus ajustes a la derecha.
+        font: verdana-9px
+        text-wrap: true
+    Panel
+      id: details
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 212
+      margin-top: 0
+      width: 608
+      height: 430
+      UICreature
+        id: portrait
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 0
+        margin-top: 0
+        width: 32
+        height: 32
+        visible: false
+        phantom: true
+      TargetStudioText
+        id: fallback
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 0
+        margin-top: 0
+        width: 32
+        height: 32
+        text: *
+        text-align: center
+        color: #50d7d4
+      TargetStudioText
+        id: title
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 38
+        margin-top: 0
+        width: 570
+        height: 18
+        text: Selecciona un monstruo
+        color: #50d7d4
+      HelperThemeInput
+        id: name
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 38
+        margin-top: 20
+        width: 570
+        height: 22
+        tooltip: Nombre del monstruo. Usa * para todos, ? o nombres separados por comas.
+      HelperThemeCard
+        id: priority
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 0
+        margin-top: 48
+        width: 608
+        height: 58
+        padding: 5
+        TargetStudioText
+          id: heading
+          text: Prioridad y alcance
+          anchors.left: parent.left
+          anchors.top: parent.top
+          anchors.right: parent.right
+          height: 18
+          color: #50d7d4
+        Panel
+          id: fields
+          anchors.left: parent.left
+          anchors.right: parent.right
+          anchors.top: parent.top
+          margin-top: 23
+          layout: 
+            type: horizontalBox
+            spacing: 10
+          height: 24
+      HelperThemeCard
+        id: movement
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 0
+        margin-top: 112
+        width: 300
+        height: 176
+        padding: 5
+        TargetStudioText
+          id: heading
+          text: Movimiento
+          anchors.left: parent.left
+          anchors.top: parent.top
+          anchors.right: parent.right
+          height: 18
+          color: #50d7d4
+        Panel
+          id: fields
+          anchors.left: parent.left
+          anchors.right: parent.right
+          anchors.top: parent.top
+          margin-top: 23
+          layout: 
+            type: verticalBox
+            fit-children: true
+      HelperThemeCard
+        id: pull
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 308
+        margin-top: 112
+        width: 300
+        height: 176
+        padding: 5
+        TargetStudioText
+          id: heading
+          text: Pull / Lure
+          anchors.left: parent.left
+          anchors.top: parent.top
+          anchors.right: parent.right
+          height: 18
+          color: #50d7d4
+        Panel
+          id: fields
+          anchors.left: parent.left
+          anchors.right: parent.right
+          anchors.top: parent.top
+          margin-top: 23
+          layout: 
+            type: verticalBox
+            fit-children: true
+      HelperThemeCard
+        id: combat
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 0
+        margin-top: 294
+        width: 608
+        height: 114
+        padding: 5
+        TargetStudioText
+          id: heading
+          text: Combate y loot
+          anchors.left: parent.left
+          anchors.top: parent.top
+          anchors.right: parent.right
+          height: 18
+          color: #50d7d4
+        Panel
+          id: fields
+          anchors.left: parent.left
+          anchors.right: parent.right
+          anchors.top: parent.top
+          margin-top: 23
+          layout: 
+            type: verticalBox
+            fit-children: true
+      TargetStudioText
+        id: movementNote
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 8
+        margin-top: 246
+        width: 284
+        height: 36
+        text: Al usar AttackBot, la alineacion ofensiva requiere CaveBot ON.
+        font: verdana-9px
+        text-wrap: true
+        color: #c0cdd6
+      TargetStudioText
+        id: hint
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 0
+        margin-top: 412
+        width: 608
+        height: 18
+        text: Los cambios de criaturas se aplican con Guardar cambios.
+        font: verdana-9px
+        color: #c0cdd6
+  HelperThemeButton
+    id: lootToggle
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 498
+    width: 820
+    height: 22
+    text: + Loot general: objetos, mochilas e ignorados
+  Panel
+    id: lootHost
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 524
+    width: 820
+    height: 306
+    visible: false
+  HelperThemeButton
+    id: advancedToggle
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 524
+    width: 820
+    height: 22
+    text: + Opciones avanzadas de esta criatura
+  Panel
+    id: advancedHost
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 550
+    width: 820
+    height: 190
+    visible: false
+    HelperThemeCard
+      id: movement
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 0
+      margin-top: 0
+      width: 268
+      height: 164
+      padding: 5
+      TargetStudioText
+        id: heading
+        text: Anclaje y movimiento
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.right: parent.right
+        height: 18
+        color: #50d7d4
+      Panel
+        id: fields
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        margin-top: 23
+        layout: 
+          type: verticalBox
+          fit-children: true
+    HelperThemeCard
+      id: pull
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 276
+      margin-top: 0
+      width: 268
+      height: 164
+      padding: 5
+      TargetStudioText
+        id: heading
+        text: Lure clasico y cercano
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.right: parent.right
+        height: 18
+        color: #50d7d4
+      Panel
+        id: fields
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        margin-top: 23
+        layout: 
+          type: verticalBox
+          fit-children: true
+    HelperThemeCard
+      id: combat
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 552
+      margin-top: 0
+      width: 268
+      height: 164
+      padding: 5
+      TargetStudioText
+        id: heading
+        text: Emergencia
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.right: parent.right
+        height: 18
+        color: #50d7d4
+      Panel
+        id: fields
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        margin-top: 23
+        layout: 
+          type: verticalBox
+          fit-children: true
+    TargetStudioText
+      id: note
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 0
+      margin-top: 170
+      width: 820
+      height: 18
+      text: Loot general se guarda al editar; los cambios de criaturas requieren Guardar cambios.
+      font: verdana-9px
+      color: #c0cdd6
+  Panel
+    id: footer
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 556
+    width: 820
+    height: 30
+    TargetStudioText
+      id: message
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 0
+      margin-top: 1
+      width: 444
+      height: 28
+      text: Sin cambios pendientes
+      text-wrap: true
+      font: verdana-11px-antialised
+    HelperThemeButton
+      id: discard
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 448
+      margin-top: 2
+      width: 102
+      height: 24
+      text: Descartar
+      tooltip: Restaura los ultimos ajustes guardados de este perfil.
+    HelperThemeButton
+      id: close
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 556
+      margin-top: 2
+      width: 88
+      height: 24
+      text: Cerrar
+    HelperThemeButton
+      id: save
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 650
+      margin-top: 2
+      width: 170
+      height: 24
+      text: Guardar cambios
+      color: #50d7d4
+      tooltip: Aplica y guarda el borrador del perfil. Se habilita al hacer cambios.
+  Panel
+    id: listPanel
+    visible: false
+    width: 1
+    height: 1
+    HelperThemeList
+      id: list
+      width: 1
+      height: 1
+  Panel
+    id: editor
+    visible: false
+    width: 1
+    height: 1
+    Panel
+      id: buttons
+      HelperThemeButton
+        id: add
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 0
+        margin-top: 0
+        width: 1
+        height: 1
+        text: 
+      HelperThemeButton
+        id: edit
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 0
+        margin-top: 0
+        width: 1
+        height: 1
+        text: 
+      HelperThemeButton
+        id: remove
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 0
+        margin-top: 0
+        width: 1
+        height: 1
+        text: 

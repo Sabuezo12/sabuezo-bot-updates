@@ -1,0 +1,304 @@
+{
+  "id": "R112",
+  "version": "3.1.6",
+  "stage": "VALIDATED_PREPUBLICATION",
+  "at": "2026-10-18T16:51:04.958712+00:00",
+  "officialFiles": 334,
+  "compiled": 135,
+  "assertions": 44161,
+  "tests": [
+    {
+      "name": "compile",
+      "status": "PASS",
+      "assertions": 0
+    },
+    {
+      "name": "timer-dummy",
+      "status": "PASS",
+      "assertions": 159
+    },
+    {
+      "name": "compact",
+      "status": "PASS",
+      "assertions": 59
+    },
+    {
+      "name": "layout",
+      "status": "PASS",
+      "assertions": 0
+    },
+    {
+      "name": "shell",
+      "status": "PASS",
+      "assertions": 639
+    },
+    {
+      "name": "native-cooldown",
+      "status": "PASS",
+      "assertions": 156
+    },
+    {
+      "name": "attack-boot",
+      "status": "PASS",
+      "assertions": 190
+    },
+    {
+      "name": "attack-response",
+      "status": "PASS",
+      "assertions": 188
+    },
+    {
+      "name": "all-vocations",
+      "status": "PASS",
+      "assertions": 260
+    },
+    {
+      "name": "attack-movement",
+      "status": "PASS",
+      "assertions": 24
+    },
+    {
+      "name": "profile-catalogs",
+      "status": "PASS",
+      "assertions": 120
+    },
+    {
+      "name": "recorder-profiles",
+      "status": "PASS",
+      "assertions": 60
+    },
+    {
+      "name": "vocation-defaults",
+      "status": "PASS",
+      "assertions": 260
+    },
+    {
+      "name": "heal-purse",
+      "status": "PASS",
+      "assertions": 33
+    },
+    {
+      "name": "attack-editor",
+      "status": "PASS",
+      "assertions": 53
+    },
+    {
+      "name": "heal-defaults",
+      "status": "PASS",
+      "assertions": 10
+    },
+    {
+      "name": "cave-lure",
+      "status": "PASS",
+      "assertions": 13
+    },
+    {
+      "name": "cave-stamina",
+      "status": "PASS",
+      "assertions": 35
+    },
+    {
+      "name": "cave-auto-flee",
+      "status": "PASS",
+      "assertions": 21
+    },
+    {
+      "name": "cave-escape",
+      "status": "PASS",
+      "assertions": 118
+    },
+    {
+      "name": "cave-monsters",
+      "status": "PASS",
+      "assertions": 77
+    },
+    {
+      "name": "cave-ui",
+      "status": "PASS",
+      "assertions": 31
+    },
+    {
+      "name": "cave-integration",
+      "status": "PASS",
+      "assertions": 26
+    },
+    {
+      "name": "manual",
+      "status": "PASS",
+      "assertions": 179
+    },
+    {
+      "name": "recorder",
+      "status": "PASS",
+      "assertions": 20
+    },
+    {
+      "name": "record-start",
+      "status": "PASS",
+      "assertions": 70
+    },
+    {
+      "name": "container-events",
+      "status": "PASS",
+      "assertions": 23
+    },
+    {
+      "name": "container-native",
+      "status": "PASS",
+      "assertions": 439
+    },
+    {
+      "name": "container-recovery",
+      "status": "PASS",
+      "assertions": 142
+    },
+    {
+      "name": "container-AFK",
+      "status": "PASS",
+      "assertions": 41
+    },
+    {
+      "name": "container-deposit",
+      "status": "PASS",
+      "assertions": 44
+    },
+    {
+      "name": "container-editor",
+      "status": "PASS",
+      "assertions": 18
+    },
+    {
+      "name": "combo-triggers",
+      "status": "PASS",
+      "assertions": 111
+    },
+    {
+      "name": "combo-response",
+      "status": "PASS",
+      "assertions": 208
+    },
+    {
+      "name": "combo-follow",
+      "status": "PASS",
+      "assertions": 149
+    },
+    {
+      "name": "antipush-activation",
+      "status": "PASS",
+      "assertions": 33
+    },
+    {
+      "name": "antipush-nins",
+      "status": "PASS",
+      "assertions": 73
+    },
+    {
+      "name": "antipush-hotkey",
+      "status": "PASS",
+      "assertions": 64
+    },
+    {
+      "name": "inmortal-normal",
+      "status": "PASS",
+      "assertions": 204
+    },
+    {
+      "name": "inmortal-hidden",
+      "status": "PASS",
+      "assertions": 87
+    },
+    {
+      "name": "inmortal-fairness",
+      "status": "PASS",
+      "assertions": 1835
+    },
+    {
+      "name": "console",
+      "status": "PASS",
+      "assertions": 50
+    },
+    {
+      "name": "version",
+      "status": "PASS",
+      "assertions": 50
+    },
+    {
+      "name": "updater-policy",
+      "status": "PASS",
+      "assertions": 78
+    },
+    {
+      "name": "updater-async",
+      "status": "PASS",
+      "assertions": 1492
+    },
+    {
+      "name": "updater-light",
+      "status": "PASS",
+      "assertions": 60
+    },
+    {
+      "name": "full-install",
+      "status": "PASS",
+      "assertions": 18053
+    },
+    {
+      "name": "legacy-install",
+      "status": "PASS",
+      "assertions": 18053
+    },
+    {
+      "name": "rollback",
+      "status": "PASS",
+      "assertions": 53
+    }
+  ],
+  "migrationOrigins": [
+    "3.1.0",
+    "3.1.1",
+    "3.1.2",
+    "3.1.3",
+    "3.1.4",
+    "3.1.5",
+    "classic-3.0.31",
+    "classic-3.0.28",
+    "direct-installer-v5",
+    "local-attack-boot-single-profile-20261018",
+    "local-attack-native-timing-20261018",
+    "local-cave-flee-clear-shortest-20261018",
+    "local-cave-flee-monsters-ui-20261018",
+    "local-cave-flee-single-switch-20261018",
+    "local-cave-pvp-flee-20261018",
+    "local-container-closed-deposit-recovery-20261018",
+    "local-container-native-identity-20261018",
+    "local-container-no-reopen-average-remove-20261018",
+    "local-container-root-events-20261018",
+    "local-container-sandbox-next-20261018",
+    "local-flee-auto-stamina-lure-20261018",
+    "local-flee-default-on-20261018",
+    "local-profile-catalog-isolation-20261018",
+    "local-timer-dummy-compact-20261018",
+    "local-timer-dummy-renewal-20261018",
+    "local-vocation-profiles-heal-purse-20261018"
+  ],
+  "layout": {
+    "anchors": 302,
+    "widgets": 140,
+    "boundsChecks": 687,
+    "siblingChecks": 2974,
+    "moveChecks": 813,
+    "nativeVisualValidation": false
+  },
+  "pushMaxScope": {
+    "publicLuaSha256": "2df49375489ee98c87369dc0371959d3ba084ea51a3df1725c370a08cd4b8ad4",
+    "stableLuaSha256": "7a9e6252ad3752afdbc80e440a3e659bc6a8d5de11ebad33ddfefc348066274e",
+    "otuiSha256": "9acfbac746111350b9970e7a4c14a9902018d49f7e3da2f1d15815d765f064d3",
+    "onlyStableFleePauseGuards": true,
+    "algorithmAndTimingsUnchanged": true
+  },
+  "personalDataIncluded": false,
+  "nativeGameActionsExecuted": false,
+  "nativeValidationPending": true,
+  "packaged": true,
+  "published": false
+}
