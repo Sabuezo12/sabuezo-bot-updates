@@ -1,12 +1,22 @@
 # RinoBot - MythicOT
 
-Versión estable: **3.1.4**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.4). Puente para instalaciones clásicas: **3.0.31**.
+Versión estable: **3.1.5**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.5). Puente clásico: **3.0.31**.
 
 ## Actualización
 
-Si ya tienes el updater obligatorio, recarga el bot o espera su comprobación automática: se ejecuta al cargar y cada cinco minutos. La instalación conserva tus perfiles, rutas, scripts, heals y supplies. Después de instalar y verificar una versión vuelve al modo Helper. Puedes elegir clásico manualmente hasta la siguiente actualización.
+Recarga el bot o espera su comprobación automática cada cinco minutos. Conserva perfiles, rutas, scripts, heals y supplies; después de instalar y verificar vuelve a Helper. Puedes elegir clásico manualmente hasta la siguiente actualización. Se respetan development.lock, recuperación de versiones fallidas y protección contra downgrades.
 
-Las versiones antiguas con actualización automática desactivada necesitan instalar el nuevo updater una primera vez desde su panel Updater. Si no dispones de Updater, usa la instalación inicial. Se respetan development.lock, recuperación de versiones fallidas y protección contra downgrades.
+Versiones antiguas con Auto OFF necesitan adoptar el nuevo updater una primera vez desde su panel. Si no hay Updater, usa la instalación inicial.
+
+## Cambios de 3.1.5
+
+- AttackBot: criterio de daño estimado por turno para las cinco vocaciones entre ataques listos; sin bloqueos compartidos ficticios sobre cooldowns nativos. Respeta condiciones, seguridad y Harmony.
+- Arrastra la runa para seleccionar su ID; conserva Aplicar/Descartar y Quitar.
+- CaveBot: interruptor en cabecera; activar guarda y apaga la grabación. Clic derecho abre ruta y waypoints.
+- Versión coherente entre perfiles y consola general en Ajustes con distribución corregida.
+- **Push Max conserva exactamente 3.1.4. Las mejoras experimentales de Push Max y su coordinador quedan fuera.**
+
+328 archivos oficiales, 130 fuentes Lua compiladas y 33.536 comprobaciones locales simuladas/estáticas; pruebas nativas recientes pendientes. [Notas completas](rinobot/3.1.5-notas.md) e [informe de validación](rinobot/3.1.5-validacion.json). No se distribuyen datos personales. [Versión anterior 3.1.4](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.4).
 
 ## Instalación inicial
 
@@ -16,13 +26,7 @@ En el editor de scripts del bot ejecuta:
 modules.corelib.HTTP.get('https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/bootstrap.lua', function(script, err) if err or not script then warn('No se pudo descargar Sabuezo') return end assert(loadstring(script))() end)
 ```
 
-El bootstrap instala el puente clásico 3.0.31. Cuando indique que terminó, recarga el bot para que su updater descubra e instale RinoBot 3.1.4. El bootstrap y las publicaciones anteriores se conservan sin cambios.
-
-## Contenido y validación
-
-325 archivos oficiales, incluidos estilos, imágenes y el nuevo módulo de controles de macros. Los payloads están en `releases/3.1.4/` y cada entrada de `rinobot/manifest.json` incluye tamaño y SHA-256. No se distribuyen configuraciones personales del entorno de desarrollo.
-
-25.430 comprobaciones simuladas o estáticas y 128 fuentes Lua compiladas; se probaron once orígenes de instalación y conservación de datos. La comprobación nativa en MythicOT de las mejoras recientes sigue pendiente. Consulta las [notas completas](rinobot/3.1.4-notas.md) y el [informe de validación](rinobot/3.1.4-validacion.json).
+El bootstrap instala el puente clásico 3.0.31. Recarga el bot para que su updater descubra e instale RinoBot 3.1.5. Se conservan bootstrap, puente y publicaciones anteriores.
 
 ## Historial clásico
 

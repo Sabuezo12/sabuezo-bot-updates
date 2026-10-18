@@ -1,0 +1,1624 @@
+StudioLabel < HelperThemeLabel
+  font: verdana-11px-antialised
+  text-align: left
+  color: #e1e4e3
+  phantom: true
+
+StudioButton < HelperThemeButton
+  font: verdana-11px-antialised
+  height: 20
+  $on:
+    image-color: #dfdfdf
+    color: #dcfffa
+
+StudioAccentButton < StudioButton
+
+StudioToggle < HelperThemeSwitch
+
+StudioTab < StudioButton
+  padding: 0
+  UIWidget
+    id: indicator
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    margin-left: 8
+    margin-right: 8
+    margin-bottom: 2
+    height: 2
+    background-color: #59c8bf
+    phantom: true
+    visible: false
+
+StudioCheck < HelperThemeCheck
+  font: verdana-11px-antialised
+  height: 18
+  color: #e1e4e3
+
+StudioBox < HelperThemeCard
+  padding: 0
+
+StudioSpellBox < StudioBox
+  image-color: #a6a6a6
+
+StudioEdit < HelperThemeInput
+  font: verdana-11px-antialised
+  color: #dce5e2
+  selection-color: #ffffff
+  selection-background-color: #477b72
+  image-source:
+  image-border: 1
+
+StudioNumber < Panel
+  height: 20
+  StudioButton
+    id: minus
+    anchors.left: parent.left
+    anchors.top: parent.top
+    width: 15
+    height: 20
+    padding: 0
+    text: -
+  StudioEdit
+    id: input
+    anchors.left: minus.right
+    anchors.right: plus.left
+    anchors.top: parent.top
+    height: 20
+    margin-left: 2
+    margin-right: 2
+    text-align: center
+  StudioButton
+    id: plus
+    anchors.right: parent.right
+    anchors.top: parent.top
+    width: 15
+    height: 20
+    padding: 0
+    text: +
+
+StudioEntry < UIWidget
+  height: 30
+  focusable: true
+  background-color: #17171788
+  $hover:
+    background-color: #393939bb
+  $on:
+    background-color: #3c3c3ccc
+    border-width: 1
+    border-color: #59bdb2
+  StudioCheck
+    id: enabled
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 5
+    margin-top: 7
+    width: 15
+    height: 15
+  UIWidget
+    id: icon
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 25
+    margin-top: 4
+    width: 22
+    height: 22
+    phantom: true
+  UIItem
+    id: item
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 24
+    margin-top: 3
+    width: 24
+    height: 24
+    virtual: true
+    phantom: true
+    visible: false
+  StudioLabel
+    id: title
+    anchors.left: parent.left
+    anchors.right: minimum.left
+    anchors.top: parent.top
+    margin-left: 53
+    margin-right: 4
+    margin-top: 1
+    height: 15
+    font: verdana-11px-antialised
+  StudioLabel
+    id: words
+    margin-top: 1
+    anchors.left: title.left
+    anchors.right: title.right
+    anchors.top: title.bottom
+    height: 12
+    color: #a4b3af
+    font: verdana-9px
+  StudioLabel
+    id: minimum
+    anchors.right: cooldown.left
+    anchors.verticalCenter: parent.verticalCenter
+    width: 28
+    height: 16
+    text-align: center
+  StudioLabel
+    id: cooldown
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 5
+    width: 30
+    height: 16
+    text-align: center
+
+AttackStudioWindow < HelperThemeWindow
+  text: AttackBot | Rotacion de caza
+  font: verdana-11px-antialised
+  size: 552 560
+  padding-top: 10
+  padding-bottom: 8
+  StudioLabel
+    id: vocationLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 0
+    width: 52
+    height: 22
+    text: Vocacion
+  HelperThemeCombo
+    tooltip: Edita la rotacion de esta vocacion. Cada vocacion conserva su lista dentro del perfil.
+    id: vocation
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 54
+    margin-top: 0
+    width: 100
+    height: 22
+  StudioLabel
+    id: modeLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 164
+    margin-top: 0
+    width: 34
+    height: 22
+    text: Modo
+  HelperThemeCombo
+    tooltip: PvE o PvP del perfil. Los cambios se guardan al pulsar Aplicar cambios.
+    id: mode
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 200
+    margin-top: 0
+    width: 58
+    height: 22
+  StudioLabel
+    id: profileLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 270
+    margin-top: 0
+    width: 34
+    height: 22
+    text: Perfil
+  HelperThemeCombo
+    tooltip: Elige uno de los cinco perfiles. Si hay cambios, puedes aplicarlos o descartarlos antes de cambiar.
+    id: profile
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 306
+    margin-top: 0
+    width: 174
+    height: 22
+  StudioToggle
+    id: enabled
+    anchors.left: parent.left
+    anchors.verticalCenter: profile.verticalCenter
+    margin-left: 486
+    width: 44
+    height: 18
+    padding: 0
+    text: OFF
+  StudioTab
+    tooltip: Lista, condiciones y detalles de cada spell. Selecciona una fila para editarlo aqui mismo.
+    id: rotationTab
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 28
+    width: 94
+    height: 22
+    text: Rotacion
+  StudioTab
+    tooltip: Protecciones frente a jugadores, listas Anti-RS, kills y trainers.
+    id: safetyTab
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 102
+    margin-top: 28
+    width: 94
+    height: 22
+    text: Seguridad
+  StudioTab
+    tooltip: Nombre del perfil, cooldowns, requisitos, giro y restauracion de la rotacion.
+    id: advancedTab
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 204
+    margin-top: 28
+    width: 94
+    height: 22
+    text: Avanzado
+  StudioLabel
+    id: pending
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 310
+    margin-top: 30
+    width: 226
+    height: 18
+    text-align: right
+    color: #d7bb75
+  Panel
+    id: rotation
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 56
+    width: 536
+    height: 430
+    StudioSpellBox
+      id: listBox
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 0
+      margin-top: 0
+      width: 286
+      height: 270
+      StudioLabel
+        id: heading
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 6
+        margin-top: 7
+        width: 116
+        height: 18
+        text: Hechizos
+        color: #8dd7d1
+        font: verdana-11px-antialised
+      HelperThemeCombo
+        id: selectionMode
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 128
+        margin-top: 6
+        width: 150
+        height: 20
+      StudioLabel
+        id: searchLabel
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 6
+        margin-top: 34
+        width: 40
+        height: 20
+        text: Buscar
+        color: #a4b3af
+      StudioEdit
+        tooltip: Filtra la lista por nombre, formula o ID de runa. No cambia la rotacion.
+        id: search
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 46
+        margin-top: 34
+        width: 154
+        height: 20
+      StudioAccentButton
+        tooltip: Agrega un spell del catalogo o crea uno personalizado. Se agrega desactivado.
+        id: add
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 208
+        margin-top: 34
+        width: 72
+        height: 20
+        text: + Agregar
+      StudioSpellBox
+        id: tableHeader
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 6
+        margin-top: 60
+        width: 274
+        height: 18
+      StudioLabel
+        id: spellHeader
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 59
+        margin-top: 61
+        width: 143
+        height: 16
+        text: Spell
+        color: #a4b3af
+      StudioLabel
+        id: minimumHeader
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 204
+        margin-top: 61
+        width: 28
+        height: 16
+        text: Min.
+        text-align: center
+        color: #a4b3af
+      StudioLabel
+        id: cooldownHeader
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 231
+        margin-top: 61
+        width: 32
+        height: 16
+        text: CD
+        text-align: center
+        color: #a4b3af
+      HelperThemeScroll
+        id: entries
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 6
+        margin-top: 80
+        width: 260
+        height: 160
+        vertical-scrollbar: entryScroll
+        layout:
+          type: verticalBox
+          spacing: 1
+      VerticalScrollBar
+        id: entryScroll
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 268
+        margin-top: 80
+        width: 11
+        height: 160
+        step: 31
+        pixels-scroll: true
+      StudioButton
+        tooltip: Sube el spell en la prioridad de la lista. En modo automatico, el orden resuelve empates.
+        id: up
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 6
+        margin-top: 248
+        width: 48
+        height: 20
+        text: Subir
+      StudioButton
+        tooltip: Baja el spell en la prioridad de la lista. En modo automatico, el orden resuelve empates.
+        id: down
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 58
+        margin-top: 248
+        width: 48
+        height: 20
+        text: Bajar
+      StudioButton
+        tooltip: Quita el spell seleccionado del borrador. Se confirma al aplicar la rotacion.
+        id: remove
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 222
+        margin-top: 248
+        width: 58
+        height: 20
+        text: Quitar
+      StudioLabel
+        id: count
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 110
+        margin-top: 248
+        width: 106
+        height: 20
+        text:
+        color: #a4b3af
+        text-align: center
+    StudioSpellBox
+      id: editor
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 294
+      margin-top: 0
+      width: 242
+      height: 270
+      UIWidget
+        id: icon
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 8
+        margin-top: 7
+        width: 24
+        height: 24
+        phantom: true
+      UIItem
+        id: item
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 8
+        margin-top: 5
+        width: 28
+        height: 28
+        virtual: true
+        phantom: true
+        visible: false
+      StudioLabel
+        id: title
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 40
+        margin-top: 5
+        width: 194
+        height: 28
+        text: Selecciona un spell
+        color: #f3cf80
+        text-wrap: true
+        font: verdana-11px-antialised
+      StudioLabel
+        font: verdana-9px
+        id: words
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 40
+        margin-top: 35
+        width: 194
+        height: 12
+        text:
+        color: #a4b3af
+      StudioCheck
+        tooltip: Incluye o excluye este spell de la rotacion al aplicar los cambios.
+        id: enabled
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 8
+        margin-top: 50
+        width: 226
+        height: 18
+        text: Usar este spell
+      StudioSpellBox
+        id: conditionsFrame
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 6
+        margin-top: 74
+        width: 230
+        height: 116
+      StudioLabel
+        id: conditionsTitle
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 12
+        margin-top: 80
+        width: 214
+        height: 16
+        text: Cuando usarlo
+        color: #8dd7d1
+        font: verdana-11px-antialised
+      StudioLabel
+        id: minimumLabel
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 12
+        margin-top: 102
+        width: 136
+        height: 20
+        text: Monstruos alcanzados
+      StudioNumber
+        id: minimum
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 160
+        margin-top: 102
+        width: 70
+        height: 20
+      StudioCheck
+        id: orMore
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 12
+        margin-top: 124
+        width: 218
+        height: 18
+        text: Esa cantidad o mas
+      StudioLabel
+        id: manaLabel
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 12
+        margin-top: 146
+        width: 136
+        height: 20
+        text: Mana minimo (%)
+      StudioNumber
+        tooltip: Mana minimo disponible, en porcentaje de 0 a 100. 0 no exige un minimo adicional.
+        id: mana
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 160
+        margin-top: 146
+        width: 70
+        height: 20
+      StudioLabel
+        tooltip: Rango de vida del objetivo en porcentaje.
+        id: healthLabel
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 12
+        margin-top: 170
+        width: 62
+        height: 20
+        text: Vida (%)
+      StudioNumber
+        tooltip: Vida minima del objetivo, en porcentaje. 0 permite objetivos con cualquier vida minima.
+        id: minHp
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 78
+        margin-top: 170
+        width: 68
+        height: 20
+      StudioLabel
+        id: healthTo
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 148
+        margin-top: 170
+        width: 10
+        height: 20
+        text: a
+        text-align: center
+      StudioNumber
+        tooltip: Vida maxima del objetivo, en porcentaje. 100 permite cualquier vida maxima.
+        id: maxHp
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 160
+        margin-top: 170
+        width: 70
+        height: 20
+      StudioSpellBox
+        id: cooldownFrame
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 6
+        margin-top: 196
+        width: 230
+        height: 68
+      StudioLabel
+        id: cooldownTitle
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 12
+        margin-top: 202
+        width: 208
+        height: 16
+        text: Cooldown
+        color: #8dd7d1
+        font: verdana-11px-antialised
+      StudioLabel
+        tooltip: Cooldown de respaldo en segundos.
+        id: cooldownLabel
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 12
+        margin-top: 224
+        width: 132
+        height: 20
+        text: Respaldo (s)
+      StudioNumber
+        tooltip: Espera de respaldo en segundos. Se usa cuando no hay cooldown del cliente o este esta desactivado.
+        id: cooldown
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 156
+        margin-top: 224
+        width: 74
+        height: 20
+      StudioLabel
+        font: verdana-9px
+        id: cooldownHelp
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 12
+        margin-top: 246
+        width: 218
+        height: 16
+        text: Prioridad al cooldown del cliente.
+        color: #a4b3af
+        text-wrap: true
+      StudioButton
+        visible: false
+        id: optionsButton
+        anchors.left: parent.left
+        anchors.top: parent.top
+        margin-left: 8
+        margin-top: 242
+        width: 226
+        height: 20
+        text: Area y opciones del spell
+    AttackStudioDetails
+      id: details
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 0
+      margin-top: 278
+      width: 536
+      height: 148
+  StudioBox
+    id: safety
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 56
+    width: 536
+    height: 324
+    visible: false
+    StudioLabel
+      id: heading
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 12
+      margin-top: 8
+      width: 510
+      height: 18
+      text: Proteccion durante la caza
+      color: #8dd7d1
+      font: verdana-11px-antialised
+    StudioCheck
+      tooltip: Evita dano de area a jugadores ajenos.
+      id: pvpSafe
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 12
+      margin-top: 38
+      width: 510
+      height: 18
+      text: Evitar dano a jugadores
+    StudioLabel
+      font: verdana-9px
+      text-wrap: true
+      id: pvpHelp
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 32
+      margin-top: 60
+      width: 486
+      height: 24
+      text: Comprueba jugadores ajenos antes de usar ataques de area.
+      color: #a4b3af
+    StudioCheck
+      tooltip: Pausa si hay un jugador de tu lista Anti-RS dentro de la distancia configurada.
+      id: blacklist
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 12
+      margin-top: 98
+      width: 510
+      height: 18
+      text: Pausar si hay un jugador de la lista Anti-RS cerca
+    StudioLabel
+      id: rangeLabel
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 32
+      margin-top: 124
+      width: 270
+      height: 20
+      text: Distancia de deteccion (SQM)
+    StudioNumber
+      tooltip: Distancia de deteccion Anti-RS, en SQM (casillas).
+      id: range
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 316
+      margin-top: 124
+      width: 70
+      height: 20
+    StudioCheck
+      tooltip: Bloquea ataques de area al acercarte al limite de red skull.
+      id: kills
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 12
+      margin-top: 164
+      width: 510
+      height: 18
+      text: Bloquear ataques de area cerca del limite de red skull
+    StudioLabel
+      id: killsLabel
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 32
+      margin-top: 190
+      width: 270
+      height: 20
+      text: Kills restantes para bloquear
+    StudioNumber
+      tooltip: Kills restantes para empezar a bloquear ataques de area.
+      id: killsAmount
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 316
+      margin-top: 190
+      width: 70
+      height: 20
+    StudioCheck
+      tooltip: Detiene los ataques contra trainers.
+      id: training
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 12
+      margin-top: 230
+      width: 510
+      height: 18
+      text: Detener ataques contra trainers
+    StudioLabel
+      font: verdana-9px
+      id: help
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 12
+      margin-top: 274
+      width: 510
+      height: 32
+      text: Los ajustes pertenecen a la vocacion seleccionada dentro de este perfil.
+      text-wrap: true
+      color: #a4b3af
+  StudioBox
+    id: advanced
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 56
+    width: 536
+    height: 324
+    visible: false
+    StudioLabel
+      id: heading
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 12
+      margin-top: 8
+      width: 510
+      height: 18
+      text: Ajustes de la rotacion
+      color: #8dd7d1
+      font: verdana-11px-antialised
+    StudioLabel
+      id: nameLabel
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 12
+      margin-top: 36
+      width: 114
+      height: 20
+      text: Nombre del perfil
+    StudioEdit
+      tooltip: Nombre guardado para este perfil de AttackBot.
+      id: name
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 132
+      margin-top: 36
+      width: 392
+      height: 20
+    StudioCheck
+      id: cooldown
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 12
+      margin-top: 70
+      width: 510
+      height: 18
+      text: Comprobar cooldowns y exhaust
+    StudioCheck
+      id: client
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 12
+      margin-top: 94
+      width: 510
+      height: 18
+      text: Usar cooldowns del cliente
+    StudioCheck
+      tooltip: Comprueba que cumplas los requisitos de nivel y mana del spell.
+      id: requirements
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 12
+      margin-top: 118
+      width: 510
+      height: 18
+      text: Comprobar nivel y mana requeridos por el spell
+    StudioCheck
+      id: rotate
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 12
+      margin-top: 142
+      width: 510
+      height: 18
+      text: Girar y reposicionar waves y beams
+    StudioCheck
+      tooltip: Busca runas solo en contenedores abiertos.
+      id: visible
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 12
+      margin-top: 166
+      width: 510
+      height: 18
+      text: Buscar runas solo en contenedores abiertos
+    StudioCheck
+      tooltip: Usa runas sin hotkeys en servidores Old School.
+      id: oldSchool
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 12
+      margin-top: 190
+      width: 510
+      height: 18
+      text: Old School: usar runas sin hotkeys
+    StudioLabel
+      font: verdana-9px
+      id: help
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 12
+      margin-top: 220
+      width: 510
+      height: 26
+      text: Elige Automatica o Prioridad por orden en la pestana Rotacion.
+      text-wrap: true
+      color: #a4b3af
+    StudioButton
+      tooltip: Reemplaza la lista de esta vocacion por su rotacion base, con confirmacion. Debes aplicar para guardarla.
+      id: restore
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 12
+      margin-top: 278
+      width: 242
+      height: 22
+      text: Restaurar spells de esta vocacion
+    StudioLabel
+      font: verdana-9px
+      text-wrap: true
+      id: restoreHelp
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 262
+      margin-top: 272
+      width: 262
+      height: 36
+      text: Requiere confirmacion. Se revisa antes de aplicar.
+      color: #a4b3af
+  StudioCheck
+    tooltip: Evita usar ataques de area que puedan alcanzar jugadores ajenos.
+    id: pvpSafe
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 6
+    margin-top: 494
+    width: 230
+    height: 18
+    text: Evitar dano a jugadores
+  StudioLabel
+    font: verdana-9px
+    id: status
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 6
+    margin-top: 520
+    width: 318
+    height: 22
+    text: Seleccion automatica por area y cooldown.
+    color: #a4b3af
+    text-wrap: true
+  StudioButton
+    tooltip: Cierra AttackBot. Si hay cambios sin aplicar, permite guardarlos o descartarlos.
+    id: closeButton
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 338
+    margin-top: 520
+    width: 70
+    height: 22
+    text: Cerrar
+  StudioAccentButton
+    tooltip: Valida y guarda toda la rotacion del perfil. Hasta pulsarlo, estas editando un borrador.
+    id: apply
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 414
+    margin-top: 520
+    width: 122
+    height: 22
+    text: Aplicar cambios
+
+AttackStudioPicker < HelperThemeWindow
+  padding-bottom: 8
+  text: Agregar spell
+  size: 460 390
+  padding-top: 10
+  StudioLabel
+    id: searchLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 0
+    width: 44
+    height: 20
+    text: Buscar
+  StudioEdit
+    id: search
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 46
+    margin-top: 0
+    width: 398
+    height: 20
+  HelperThemeScroll
+    id: entries
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 28
+    width: 429
+    height: 256
+    vertical-scrollbar: scroll
+    layout:
+      type: verticalBox
+      spacing: 1
+  VerticalScrollBar
+    id: scroll
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 433
+    margin-top: 28
+    width: 11
+    height: 256
+    step: 31
+    pixels-scroll: true
+  StudioLabel
+    font: verdana-9px
+    id: help
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 290
+    width: 444
+    height: 24
+    text: Se agrega desactivado. Activa solo spells que puedas usar.
+    text-wrap: true
+    color: #a4b3af
+  StudioButton
+    id: custom
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 334
+    width: 190
+    height: 22
+    text: Spell o runa personalizados
+  StudioButton
+    id: closeButton
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 276
+    margin-top: 334
+    width: 72
+    height: 22
+    text: Cerrar
+  StudioAccentButton
+    id: add
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 354
+    margin-top: 334
+    width: 90
+    height: 22
+    text: Agregar
+
+AttackStudioOptions < HelperThemeWindow
+  padding-bottom: 8
+  text: Area y opciones del spell
+  size: 360 286
+  padding-top: 10
+  StudioLabel
+    id: nameLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 0
+    width: 102
+    height: 20
+    text: Formula
+  StudioEdit
+    id: words
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 108
+    margin-top: 0
+    width: 236
+    height: 20
+  StudioLabel
+    id: itemLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 24
+    width: 102
+    height: 20
+    text: ID de runa
+  StudioNumber
+    id: itemId
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 108
+    margin-top: 24
+    width: 100
+    height: 20
+  StudioLabel
+    font: verdana-9px
+    id: itemHelp
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 216
+    margin-top: 24
+    width: 128
+    height: 20
+    text: 0: usar formula
+    color: #a4b3af
+  StudioLabel
+    id: categoryLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 48
+    width: 102
+    height: 20
+    text: Tipo de ataque
+  HelperThemeCombo
+    id: category
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 108
+    margin-top: 48
+    width: 236
+    height: 20
+  StudioLabel
+    id: patternLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 72
+    width: 102
+    height: 20
+    text: Area / alcance
+  HelperThemeCombo
+    id: pattern
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 108
+    margin-top: 72
+    width: 236
+    height: 20
+  StudioLabel
+    id: namesLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 96
+    width: 102
+    height: 20
+    text: Monstruos
+  StudioEdit
+    id: names
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 108
+    margin-top: 96
+    width: 236
+    height: 20
+  StudioLabel
+    font: verdana-9px
+    id: namesHelp
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 118
+    width: 344
+    height: 12
+    text: * para todos; separa nombres con comas.
+    color: #a4b3af
+  StudioLabel
+    tooltip: Alcance moderno en SQM.
+    id: rangeLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 136
+    width: 84
+    height: 20
+    text: Alcance
+  StudioNumber
+    tooltip: Alcance moderno en SQM.
+    id: range
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 88
+    margin-top: 136
+    width: 80
+    height: 20
+  StudioLabel
+    tooltip: Objetivos en cadena. 0 conserva el valor original.
+    id: targetsLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 160
+    width: 84
+    height: 20
+    text: Objetivos
+  StudioNumber
+    tooltip: Objetivos en cadena. 0 conserva el valor original.
+    id: targets
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 88
+    margin-top: 160
+    width: 80
+    height: 20
+  StudioLabel
+    tooltip: Salto de cadena. 0 conserva el valor original.
+    id: jumpLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 180
+    margin-top: 160
+    width: 84
+    height: 20
+    text: Salto cadena
+  StudioNumber
+    tooltip: Salto de cadena. 0 conserva el valor original.
+    id: jump
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 268
+    margin-top: 160
+    width: 76
+    height: 20
+  StudioLabel
+    tooltip: Harmony minimo para Monk.
+    id: harmonyLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 180
+    margin-top: 136
+    width: 84
+    height: 20
+    text: Harmony
+  StudioNumber
+    tooltip: Harmony minimo para Monk.
+    id: harmony
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 268
+    margin-top: 136
+    width: 76
+    height: 20
+  StudioLabel
+    id: secondaryLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 184
+    width: 236
+    height: 20
+    text: Cooldown compartido (s; 0: original)
+  StudioNumber
+    id: secondary
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 244
+    margin-top: 184
+    width: 100
+    height: 20
+  StudioLabel
+    font: verdana-9px
+    id: help
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 212
+    width: 344
+    height: 28
+    text: Conserva la geometria original salvo que la cambies. El cooldown principal se edita en la rotacion.
+    text-wrap: true
+    color: #a4b3af
+  StudioButton
+    id: closeButton
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 160
+    margin-top: 248
+    width: 80
+    height: 20
+    text: Cancelar
+  StudioAccentButton
+    id: apply
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 246
+    margin-top: 248
+    width: 98
+    height: 20
+    text: Usar ajustes
+
+AttackStudioDetails < StudioSpellBox
+  width: 536
+  height: 148
+  StudioLabel
+    id: heading
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 8
+    margin-top: 4
+    width: 520
+    height: 16
+    text: Spell, area y alcance
+    color: #8dd7d1
+  StudioLabel
+    id: nameLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 8
+    margin-top: 26
+    width: 42
+    height: 20
+    text: Formula
+  StudioEdit
+    tooltip: Palabras del spell que se lanzara. Para una runa, arrastrala al recuadro Runa.
+    id: words
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 56
+    margin-top: 26
+    width: 200
+    height: 20
+  StudioLabel
+    id: itemLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 268
+    margin-top: 26
+    width: 54
+    height: 20
+    text: Runa
+  BotItem
+    tooltip: Arrastra aqui la runa desde tu mochila. Quitar deja el campo sin runa para usar una formula.
+    id: itemId
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 324
+    margin-top: 24
+    size: 24 24
+  StudioLabel
+    font: verdana-9px
+    id: itemHelp
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 354
+    margin-top: 26
+    width: 126
+    height: 20
+    text: Arrastra una runa
+    color: #a4b3af
+  StudioButton
+    id: clearItem
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 486
+    margin-top: 26
+    width: 42
+    height: 20
+    text: Quitar
+    tooltip: Quita la runa del borrador. Conserva la formula escrita y los demas ajustes.
+  StudioLabel
+    id: categoryLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 8
+    margin-top: 50
+    width: 42
+    height: 20
+    text: Tipo
+  HelperThemeCombo
+    tooltip: Tipo de ataque: dirigido, area, runa, buff o moderno/cadena. Debe corresponder a la formula o runa.
+    id: category
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 56
+    margin-top: 50
+    width: 200
+    height: 20
+  StudioLabel
+    id: patternLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 268
+    margin-top: 50
+    width: 34
+    height: 20
+    text: Area
+  HelperThemeCombo
+    tooltip: Forma real del area o alcance del ataque. Cambiarla modifica como se cuentan los monstruos alcanzados.
+    id: pattern
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 306
+    margin-top: 50
+    width: 222
+    height: 20
+  StudioLabel
+    id: namesLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 8
+    margin-top: 74
+    width: 66
+    height: 20
+    text: Monstruos
+  StudioEdit
+    tooltip: * o vacio permite todos los monstruos. Para filtrar, separa nombres completos con comas.
+    id: names
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 78
+    margin-top: 74
+    width: 178
+    height: 20
+  StudioLabel
+    visible: false
+    font: verdana-9px
+    id: namesHelp
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 8
+    margin-top: 122
+    width: 520
+    height: 20
+    text: * para todos; separa nombres con comas.
+    color: #a4b3af
+  StudioLabel
+    tooltip: Alcance moderno en SQM.
+    id: rangeLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 8
+    margin-top: 98
+    width: 46
+    height: 20
+    text: Alcance
+  StudioNumber
+    tooltip: Alcance moderno en SQM (casillas), de 0 a 10. Se usa en ataques modernos y cadenas.
+    id: range
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 58
+    margin-top: 98
+    width: 68
+    height: 20
+  StudioLabel
+    tooltip: Objetivos en cadena. 0 conserva el valor original.
+    id: targetsLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 268
+    margin-top: 98
+    width: 54
+    height: 20
+    text: Objetivos
+  StudioNumber
+    tooltip: Maximo de objetivos de una cadena. 0 conserva el valor original del modelo.
+    id: targets
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 326
+    margin-top: 98
+    width: 68
+    height: 20
+  StudioLabel
+    tooltip: Salto de cadena. 0 conserva el valor original.
+    id: jumpLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 400
+    margin-top: 98
+    width: 48
+    height: 20
+    text: Salto
+  StudioNumber
+    tooltip: Distancia maxima entre saltos de la cadena, en SQM. 0 conserva el valor original.
+    id: jump
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 452
+    margin-top: 98
+    width: 76
+    height: 20
+  StudioLabel
+    tooltip: Harmony minimo para Monk.
+    id: harmonyLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 134
+    margin-top: 98
+    width: 58
+    height: 20
+    text: Harmony
+  StudioNumber
+    tooltip: Harmony minimo para Monk, de 0 a 5. El requisito propio del spell sigue aplicandose.
+    id: harmony
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 196
+    margin-top: 98
+    width: 60
+    height: 20
+  StudioLabel
+    id: secondaryLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 268
+    margin-top: 74
+    width: 152
+    height: 20
+    text: CD compartido (s)
+  StudioNumber
+    tooltip: Cooldown compartido, en segundos. 0 conserva el tiempo original. El CD de respaldo se edita arriba.
+    id: secondary
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 428
+    margin-top: 74
+    width: 100
+    height: 20
+  StudioLabel
+    font: verdana-9px
+    id: help
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 8
+    margin-top: 122
+    width: 520
+    height: 24
+    text: Conserva la geometria original salvo que la cambies. El cooldown principal se edita en la rotacion.
+    text-wrap: true
+    color: #a4b3af
+
+  Panel
+    id: preview
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 8
+    margin-top: 28
+    width: 520
+    height: 94
+    Panel
+      id: grid
+      anchors.left: parent.left
+      anchors.top: parent.top
+      width: 90
+      height: 90
+    StudioLabel
+      id: legend
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 100
+      width: 414
+      height: 18
+      text: Vista del area (1 cuadro = 1 SQM)
+      color: #8dd7d1
+      font: verdana-9px
+    StudioLabel
+      id: explanation
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 100
+      margin-top: 21
+      width: 414
+      height: 46
+      text-wrap: true
+      font: verdana-9px
+    StudioButton
+      id: direction
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 100
+      margin-top: 70
+      width: 106
+      height: 20
+      text: Girar: N
+      tooltip: Gira solo la vista previa. No mueve tu personaje.
+    StudioLabel
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 214
+      margin-top: 70
+      width: 300
+      height: 20
+      text: Wheel y reglas del servidor pueden variar.
+      font: verdana-9px
+      color: #a4b3af
+  StudioButton
+    id: previewToggle
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 426
+    margin-top: 2
+    width: 102
+    height: 20
+    text: Editar area
+    tooltip: Alterna la vista del spell y sus campos de area. Conserva el borrador.
+
+AttackPreviewCell < UIWidget
+  anchors.left: parent.left
+  anchors.top: parent.top
+  phantom: true
+
+AttackStudioConfirm < HelperThemeWindow
+  padding-bottom: 8
+  text: AttackBot
+  size: 440 156
+  padding-top: 10
+  StudioLabel
+    id: message
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 0
+    width: 424
+    height: 70
+    text:
+    text-wrap: true
+  StudioButton
+    id: cancel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 104
+    width: 132
+    height: 22
+    text: Volver
+  StudioButton
+    id: discard
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 146
+    margin-top: 104
+    width: 132
+    height: 22
+    text: Descartar
+  StudioAccentButton
+    id: accept
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 292
+    margin-top: 104
+    width: 132
+    height: 22
+    text: Aplicar

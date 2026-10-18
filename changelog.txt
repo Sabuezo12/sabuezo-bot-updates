@@ -1,3 +1,12 @@
+3.1.5 - AttackBot para las cinco vocaciones, CaveBot y consola
+- Automatica usa dano estimado por turno entre ataques listos; conserva condiciones, Harmony y seguridad.
+- Cooldowns nativos sin bloqueos compartidos ficticios; selector de runa por arrastre con Aplicar/Descartar.
+- CaveBot ON/OFF en cabecera, apaga y guarda grabacion al ejecutar; clic derecho abre ruta y waypoints.
+- Indicador de version coherente entre perfiles; consola general en Ajustes con controles y distribucion corregidos.
+- Push Max conserva exactamente su codigo de 3.1.4. Motor/coordinador y mejoras experimentales excluidos.
+- 328 archivos oficiales, 130 fuentes Lua compiladas y 33.536 comprobaciones locales. Prueba nativa reciente pendiente.
+- Conserva perfiles, datos personales, automatico obligatorio, Helper tras verificar y puente clasico 3.0.31.
+
 3.1.4 - CombatePvP, Combo y protecciones renovados
 - Ocho funciones PvP en un tablero compacto: incluye AntiPush, anclajes corregidos y controles ON/OFF independientes.
 - Clic derecho abre solo la configuracion; AntiPush mantiene Numpad0/NIns y deja Gold Converter independiente.

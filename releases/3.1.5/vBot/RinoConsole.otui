@@ -1,0 +1,101 @@
+RinoConsoleWindow < HelperThemeWindow
+  text: Consola de RinoBot
+  size: 680 430
+  fixed-size: true
+  @onEscape: self:hide()
+
+  HelperThemeCombo
+    id: filter
+    anchors.top: parent.top
+    anchors.left: parent.left
+    size: 150 24
+
+  HelperThemeInput
+    id: search
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-left: 156
+    margin-right: 106
+    height: 24
+    placeholder: Buscar modulo o mensaje...
+
+  HelperThemeButton
+    id: pause
+    anchors.top: parent.top
+    anchors.right: parent.right
+    size: 100 24
+    text: Pausar vista
+
+  HelperThemeMultiline
+    id: log
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    margin-top: 32
+    margin-right: 17
+    margin-bottom: 56
+    editable: false
+    text-wrap: true
+    text-align: topLeft
+    vertical-scrollbar: scroll
+
+  VerticalScrollBar
+    id: scroll
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    anchors.right: parent.right
+    margin-top: 32
+    margin-bottom: 56
+    width: 12
+    pixels-scroll: true
+    step: 14
+
+  HelperThemeLabel
+    id: status
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    margin-bottom: 30
+    height: 18
+    text-align: left
+    text: Historial local. La vista no pausa el bot.
+
+  HelperThemeButton
+    id: clear
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    size: 68 24
+    text: Limpiar
+
+  HelperThemeButton
+    id: copy
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    margin-left: 74
+    size: 72 24
+    text: Copiar
+
+  HelperThemeButton
+    id: save
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    margin-left: 152
+    size: 100 24
+    text: Guardar log
+
+  HelperThemeButton
+    id: inspect
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    margin-left: 258
+    size: 100 24
+    text: Estado ahora
+
+  HelperThemeButton
+    id: closeButton
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 64 24
+    text: Cerrar
