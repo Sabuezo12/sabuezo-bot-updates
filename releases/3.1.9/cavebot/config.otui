@@ -1,0 +1,541 @@
+CaveBotConfigNumberValuePanel < Panel
+  height: 26
+  margin-top: 4
+
+  HelperThemeInput
+    id: value
+    anchors.right: parent.right
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    width: 70
+
+  HelperThemeLabel
+    id: title
+    anchors.left: parent.left
+    anchors.right: value.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 8
+    height: 18
+    text-align: left
+
+CaveBotConfigBooleanValuePanel < Panel
+  height: 26
+  margin-top: 4
+
+  HelperThemePower
+    id: value
+    anchors.right: parent.right
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    width: 70
+
+    $on:
+      text: On
+
+    $!on:
+      text: Off
+
+  HelperThemeLabel
+    id: title
+    anchors.left: parent.left
+    anchors.right: value.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 8
+    height: 18
+    text-align: left
+
+CaveBotConfigTextValuePanel < Panel
+  height: 26
+  margin-top: 4
+
+  HelperThemeInput
+    id: value
+    anchors.right: parent.right
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    width: 110
+
+  HelperThemeLabel
+    id: title
+    anchors.left: parent.left
+    anchors.right: value.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 8
+    height: 18
+    text-align: left
+
+CaveBotConfigChoiceValuePanel < Panel
+  height: 26
+  margin-top: 4
+
+  HelperThemeButton
+    id: value
+    anchors.right: parent.right
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    width: 110
+
+  HelperThemeLabel
+    id: title
+    anchors.left: parent.left
+    anchors.right: value.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 8
+    height: 18
+    text-align: left
+
+CaveBotDeathSafetyPanel < Panel
+  id: deathSafety
+  anchors.top: flee.bottom
+  anchors.left: parent.left
+  anchors.right: parent.right
+  margin-top: 12
+  height: 270
+
+  HelperThemeLabel
+    id: title
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 18
+    text: Muertes
+    text-align: left
+
+  Panel
+    id: statusRow
+    anchors.top: title.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 4
+    height: 26
+
+    HelperThemeButton
+      id: resetButton
+      text: Reiniciar
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      width: 70
+
+    HelperThemeLabel
+      id: deathCounterLabel
+      text: 0 muertes
+      anchors.left: parent.left
+      anchors.right: resetButton.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-right: 8
+      height: 18
+      text-align: left
+
+  Panel
+    id: limitRow
+    anchors.top: statusRow.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 6
+    height: 26
+
+    HelperThemeInput
+      id: limitEdit
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      width: 70
+
+    HelperThemeLabel
+      id: limitTitle
+      text: Limite de muertes
+      anchors.left: parent.left
+      anchors.right: limitEdit.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-right: 8
+      height: 18
+      text-align: left
+
+  HelperThemeLabel
+    id: actionTitle
+    anchors.top: limitRow.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 10
+    height: 18
+    text: Al llegar al limite:
+    text-align: left
+
+  Panel
+    id: actionRow
+    anchors.top: actionTitle.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 6
+    height: 26
+
+    HelperThemeButton
+      id: stopButton
+      text: Stop
+      anchors.left: parent.left
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      width: 78
+
+    HelperThemeButton
+      id: labelButton
+      text: Label
+      anchors.left: stopButton.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      margin-left: 4
+      width: 78
+
+    HelperThemeButton
+      id: waitButton
+      text: Esperar
+      anchors.left: labelButton.right
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      margin-left: 4
+
+  Panel
+    id: labelRow
+    anchors.top: actionRow.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 8
+    height: 26
+    visible: false
+
+    HelperThemeInput
+      id: labelEdit
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      width: 150
+
+    HelperThemeLabel
+      id: labelTitle
+      text: Label destino
+      anchors.left: parent.left
+      anchors.right: labelEdit.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-right: 8
+      height: 18
+      text-align: left
+
+  Panel
+    id: waitRow
+    anchors.top: actionRow.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 8
+    height: 26
+    visible: false
+
+    HelperThemeInput
+      id: waitEdit
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      width: 70
+
+    HelperThemeLabel
+      id: waitTitle
+      text: Espera (minutos)
+      anchors.left: parent.left
+      anchors.right: waitEdit.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-right: 8
+      height: 18
+      text-align: left
+
+  Panel
+    id: antiRedRow
+    anchors.top: actionRow.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 48
+    height: 26
+
+    HelperThemePower
+      id: antiRedSwitch
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      width: 70
+
+      $on:
+        text: On
+
+      $!on:
+        text: Off
+
+    HelperThemeLabel
+      id: antiRedTitle
+      text: Anti Red
+      anchors.left: parent.left
+      anchors.right: antiRedSwitch.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-right: 8
+      height: 18
+      text-align: left
+
+  HelperThemeLabel
+    id: help
+    anchors.top: antiRedRow.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 12
+    height: 42
+    text: Stop detiene los bots. Label salta al destino indicado. Esperar pausa y retoma la hunt.
+    text-wrap: true
+    text-align: topLeft
+    color: #aaaaaa
+
+CaveBotConfigWindow < HelperThemeWindow
+  id: cavebotConfigWindow
+  text: CaveBot Config - Sabuezo
+  size: 660 500
+  padding-top: 8
+
+  HelperThemeButton
+    id: routeTab
+    text: Ruta y seguridad
+    size: 140 22
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeButton
+    id: caveTargetTab
+    text: Cave y Target
+    size: 140 22
+    anchors.top: routeTab.top
+    anchors.left: routeTab.right
+    margin-left: 6
+
+  HelperThemeLabel
+    id: description
+    anchors.top: routeTab.bottom
+    margin-top: 6
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 18
+    text: Configura el movimiento y la seguridad de la ruta.
+    text-align: left
+    color: #aaaaaa
+
+  HelperThemeButton
+    id: closeButton
+    anchors.bottom: parent.bottom
+    anchors.right: parent.right
+    size: 85 24
+    text: Cerrar
+
+  HelperThemeLabel
+    id: savedHint
+    anchors.bottom: parent.bottom
+    anchors.left: parent.left
+    anchors.right: closeButton.left
+    margin-right: 12
+    height: 24
+    text: Los cambios se guardan automaticamente en la ruta seleccionada.
+    text-align: left
+    color: #03C04A
+
+  HelperThemeCard
+    id: movement
+    anchors.left: parent.left
+    anchors.top: description.bottom
+    anchors.bottom: closeButton.top
+    margin-top: 12
+    margin-bottom: 12
+    width: 306
+    padding: 10
+
+    HelperThemeLabel
+      id: title
+      anchors.top: parent.top
+      anchors.left: parent.left
+      anchors.right: parent.right
+      height: 18
+      text: Movimiento
+      text-align: left
+      color: #03C04A
+
+    VerticalScrollBar
+      id: scrollbar
+      anchors.top: title.bottom
+      anchors.right: parent.right
+      anchors.bottom: parent.bottom
+      margin-top: 8
+      width: 10
+      step: 30
+      pixels-scroll: true
+
+    HelperThemeScroll
+      id: options
+      anchors.top: title.bottom
+      anchors.left: parent.left
+      anchors.right: scrollbar.left
+      anchors.bottom: parent.bottom
+      margin-top: 8
+      margin-right: 8
+      vertical-scrollbar: scrollbar
+
+      CaveBotConfigNumberValuePanel
+        id: ping
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+      CaveBotConfigNumberValuePanel
+        id: walkDelay
+        anchors.top: ping.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+      CaveBotConfigBooleanValuePanel
+        id: mapClick
+        anchors.top: walkDelay.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+      CaveBotConfigNumberValuePanel
+        id: mapClickDelay
+        anchors.top: mapClick.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+      CaveBotConfigBooleanValuePanel
+        id: ignoreFields
+        anchors.top: mapClickDelay.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+      CaveBotConfigBooleanValuePanel
+        id: skipBlocked
+        anchors.top: ignoreFields.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+      CaveBotConfigNumberValuePanel
+        id: useDelay
+        anchors.top: skipBlocked.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+      CaveBotConfigBooleanValuePanel
+        id: pauseWhileFollowing
+        anchors.top: useDelay.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+  HelperThemeCard
+    id: security
+    anchors.left: movement.right
+    anchors.right: parent.right
+    anchors.top: movement.top
+    anchors.bottom: movement.bottom
+    margin-left: 12
+    padding: 10
+
+    HelperThemeLabel
+      id: title
+      anchors.top: parent.top
+      anchors.left: parent.left
+      anchors.right: parent.right
+      height: 18
+      text: Seguridad
+      text-align: left
+      color: #ffcc66
+
+    VerticalScrollBar
+      id: scrollbar
+      anchors.top: title.bottom
+      anchors.right: parent.right
+      anchors.bottom: parent.bottom
+      margin-top: 8
+      width: 10
+      step: 30
+      pixels-scroll: true
+
+    HelperThemeScroll
+      id: contents
+      anchors.top: title.bottom
+      anchors.left: parent.left
+      anchors.right: scrollbar.left
+      anchors.bottom: parent.bottom
+      margin-top: 8
+      margin-right: 8
+      vertical-scrollbar: scrollbar
+
+  Panel
+    id: caveTargetHost
+    anchors.top: movement.top
+    anchors.bottom: movement.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    clipping: true
+    visible: false
+
+CaveBotPvpFleePanel < Panel
+  id: flee
+  anchors.top: parent.top
+  anchors.left: parent.left
+  anchors.right: parent.right
+  height: 214
+
+  HelperThemeLabel
+    id: title
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 18
+    text: Huida PvP
+    text-align: left
+    color: #50d7d4
+
+  Panel
+    id: options
+    anchors.top: title.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 6
+    height: 30
+
+  HelperThemeCard
+    id: statusCard
+    anchors.top: options.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 8
+    height: 60
+    padding: 6
+
+    HelperThemeLabel
+      id: status
+      anchors.fill: parent
+      text-wrap: true
+      text-align: topLeft
+      color: #ffcc66
+
+  HelperThemeButton
+    id: resetRest
+    anchors.top: statusCard.bottom
+    anchors.right: parent.right
+    margin-top: 6
+    width: 142
+    height: 22
+    text: Reiniciar espera
+    tooltip: Vuelve a los minutos configurados en ZonaPZ.
+
+  HelperThemeLabel
+    id: help
+    anchors.top: resetRest.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 8
+    height: 48
+    text-wrap: true
+    text-align: topLeft
+    color: #aaaaaa
+    text: ZonaPZ: espera solo tras una huida PvP. Configura los minutos con doble clic. En ruta normal continua sin esperar.

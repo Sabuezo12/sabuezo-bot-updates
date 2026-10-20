@@ -1,0 +1,73 @@
+3.1.9 - Limpieza de Push Max, Huida, Arrows y niveles de sesion
+- Push Max prioriza el antipush debajo del jugador; no gasta Disintegrate delante si el destino es caminable.
+- Huida PvP incorpora esa limpieza bajo el jugador, sin Fire Field ni BugMap.
+- Container Manager reconoce la siguiente BP de Arrows vacia aunque use el mismo tipo y ventana.
+- Inicio muestra niveles ganados o perdidos durante la sesion y conserva el balance al recargar.
+- Se conserva el movimiento publicado en 3.1.8; el cambio experimental de WASD queda descartado.
+- Conserva perfiles, rutas, scripts, actualizacion automatica y recuperacion.
+
+3.1.8 - Push Max, Huida PvP, ZonaPZ y Friend Healer
+- Push Max renovado: marcas PUSH/DEST, Fire Field a distancia, Disintegrate melee, Destroy Field y cierre con Magic Wall.
+- Objetos y pociones coordinados con el push; curacion urgente prioritaria y spells libres.
+- Huida PvP sin BugMap ni Fire Field; atraviesa fields, busca salida, empuja jugadores y ataca monstruos bloqueadores.
+- ZonaPZ: espera configurable solo tras una huida, con boton para reiniciar el contador.
+- AntiPush: proteccion opcional al caminar mas de dos pasos, activada por defecto.
+- Friend Healer: excluye enemigos/atacantes y evita Mas Res si puede curar jugadores ajenos; VIP no equivale a amigo.
+- Conserva perfiles, rutas, scripts, actualizacion automatica y recuperacion. Aeron Knight sigue intacto.
+
+3.1.7 - ZonaPZ, Push Max normal, AntiPush y Spy Level
+- CaveBot: ZonaPZ como destino de Huida PvP; compara caminos conocidos y continua la ruta al llegar al punto seguro.
+- Wait Stamina restaura minima/maxima y opciones de label; una huida omite la espera.
+- Push Max normal: elige Destroy Field para fields y Disintegrate para objetos; confirma la limpieza y conserva los tiempos de empuje.
+- AntiPush: !withdraw 2000 fijo, cambio descendente y reserva de 20 gold/20 platinum cuando el inventario lo permite.
+- Gold Converter: ON/OFF independiente; se pausa mientras AntiPush esta activo.
+- Spy Level: icono con clic izquierdo para subir y derecho para bajar.
+- Conserva los datos propios, la actualizacion automatica y la recuperacion. El experimento de Aeron queda fuera.
+
+3.1.6 - Perfiles, Huida PvP, AttackBot, contenedores, Timer y Dummy
+- Timer Executor: filtros combinables, stamina HH:MM, cantidad de items, horario, PZ y motores; condiciones compactas en dos columnas.
+- Dummy Smart: listas ordenadas de items y dummies, alternativas y confirmacion del servidor; interfaz mas compacta.
+- AttackBot: una configuracion por personaje con vocaciones; cooldowns nativos revisados al vencer sus paquetes.
+- Perfiles: catalogos de rutas y objetivos independientes por personaje; curaciones y ataques iniciales por vocacion.
+- HealBot: uso de items por inventario, incluido purse cuando el cliente lo permite.
+- CaveBot: Huida PvP integrada, salida forzada hacia refill/PZ y herramientas antitrap; Wait Stamina respeta su limite.
+- TargetBot: correcciones de Dynamic Lure y conteo durante el recorrido.
+- Container Manager: recuperacion del destino cerrado y conservacion de Main ante eventos ajenos de quiver/purse.
+- Retira el ajuste de compra por promedio y mejora los diagnosticos de la consola.
+- Push Max conserva motor y tiempos publicados, con las pausas estables de Huida PvP. El experimento de Aeron queda fuera.
+- Conserva los datos propios de cada jugador y la actualizacion automatica obligatoria.
+
+3.0.14 - 2026-08-26
+- Buff Guild se carga desde el loader; mejoras para Exiva Tracker, Conditions, Inmortal y Timer Executor.
+3.0.13 - 2026-08-02
+- Mejoras de minimizado de mochilas y distancia inicial de GoTo.
+3.0.12 - 2026-08-02
+- Protecciones y tiempos mas confiables para Dummy Smart.
+3.0.11 - 2026-08-02
+- Ajustes de pathfinding, marcadores de aliados y Container Manager.
+3.0.10 - 2026-08-02
+- Bot Settings unificado; Icon Editor renovado; mejoras para TargetBot, CaveBot y Container Manager.
+3.0.9 - 2026-08-02
+- Correcciones de carga de scripts y mensajes de error.
+3.0.5 - 2026-08-02
+- Correcciones en Exiva Tracker y la lectura de dano.
+3.0.4 - 2026-08-01
+- Compatibilidad y seleccion de observadores para Exiva Tracker.
+3.0.3 - 2026-08-01
+- Tracker coordinado con marcas de mapa y minimapa.
+3.0.2 - 2026-08-01
+- Tiempos de Dummy Smart, BotServer y marcadores de aliados.
+3.0.1 - 2026-07-31
+- Mejora la colocacion directa de Energy Ring, Might Ring y Stone Skin Amulet.
+3.0.0 - 2026-07-31
+- Primer Icon Editor con posiciones, colores y configuracion por perfil.
+2.0.30 - 2026-07-31
+- El administrador de scripts se carga desde el loader y recupera scripts existentes.
+2.0.29 - 2026-07-31
+- Nuevo administrador de scripts y reorganizacion de modulos de Main.
+2.0.28 - 2026-07-30
+- Inmortal separado de Energy Ring y mejoras de iconos y Dummy Smart.
+2026.05.20.2
+- Resumen visual del updater e iconos renovados.
+2026.05.20.1
+- Primera version del updater de Sabuezo.

@@ -1,0 +1,884 @@
+{
+  "id": "R151",
+  "version": "3.1.9",
+  "stage": "VALIDATED_PREPUBLICATION",
+  "at": "2026-10-20T16:55:26.579047+00:00",
+  "officialFiles": 335,
+  "compiled": 136,
+  "assertions": 94621,
+  "tests": [
+    {
+      "name": "items-only",
+      "status": "PASS",
+      "assertions": 63
+    },
+    {
+      "name": "spells",
+      "status": "PASS",
+      "assertions": 45
+    },
+    {
+      "name": "adaptive",
+      "status": "PASS",
+      "assertions": 37
+    },
+    {
+      "name": "cooperative",
+      "status": "PASS",
+      "assertions": 32
+    },
+    {
+      "name": "controller-turns",
+      "status": "PASS",
+      "assertions": 11
+    },
+    {
+      "name": "inmortal-normal",
+      "status": "PASS",
+      "assertions": 204
+    },
+    {
+      "name": "inmortal-hidden",
+      "status": "PASS",
+      "assertions": 87
+    },
+    {
+      "name": "inmortal-fairness",
+      "status": "PASS",
+      "assertions": 1835
+    },
+    {
+      "name": "timer-dummy",
+      "status": "PASS",
+      "assertions": 159
+    },
+    {
+      "name": "combo-triggers",
+      "status": "PASS",
+      "assertions": 111
+    },
+    {
+      "name": "combo-response",
+      "status": "PASS",
+      "assertions": 208
+    },
+    {
+      "name": "combo-follow",
+      "status": "PASS",
+      "assertions": 149
+    },
+    {
+      "name": "coins",
+      "status": "PASS",
+      "assertions": 33
+    },
+    {
+      "name": "walk-recovery",
+      "status": "PASS",
+      "assertions": 41
+    },
+    {
+      "name": "route-recovery",
+      "status": "PASS",
+      "assertions": 62
+    },
+    {
+      "name": "gap",
+      "status": "PASS",
+      "assertions": 54
+    },
+    {
+      "name": "response",
+      "status": "PASS",
+      "assertions": 75
+    },
+    {
+      "name": "item-turns",
+      "status": "PASS",
+      "assertions": 68
+    },
+    {
+      "name": "fire-retreat-selection",
+      "status": "PASS",
+      "assertions": 110
+    },
+    {
+      "name": "distance-first",
+      "status": "PASS",
+      "assertions": 40
+    },
+    {
+      "name": "experiment",
+      "status": "PASS",
+      "assertions": 69
+    },
+    {
+      "name": "paired-engine",
+      "status": "PASS",
+      "assertions": 20
+    },
+    {
+      "name": "engine",
+      "status": "PASS",
+      "assertions": 234
+    },
+    {
+      "name": "legacy-distance",
+      "status": "PASS",
+      "assertions": 17
+    },
+    {
+      "name": "legacy-engine-fire",
+      "status": "PASS",
+      "assertions": 31
+    },
+    {
+      "name": "hybrid",
+      "status": "PASS",
+      "assertions": 27
+    },
+    {
+      "name": "native-hybrid",
+      "status": "PASS",
+      "assertions": 42
+    },
+    {
+      "name": "shell",
+      "status": "PASS",
+      "assertions": 651
+    },
+    {
+      "name": "push-panel",
+      "status": "PASS",
+      "assertions": 355
+    },
+    {
+      "name": "heal-purse",
+      "status": "PASS",
+      "assertions": 35
+    },
+    {
+      "name": "heal-ui",
+      "status": "PASS",
+      "assertions": 10
+    },
+    {
+      "name": "manual",
+      "status": "PASS",
+      "assertions": 179
+    },
+    {
+      "name": "dispatch",
+      "status": "PASS",
+      "assertions": 24
+    },
+    {
+      "name": "attack",
+      "status": "PASS",
+      "assertions": 188
+    },
+    {
+      "name": "route",
+      "status": "PASS",
+      "assertions": 14
+    },
+    {
+      "name": "rest",
+      "status": "PASS",
+      "assertions": 86
+    },
+    {
+      "name": "flee-paired",
+      "status": "PASS",
+      "assertions": 67
+    },
+    {
+      "name": "antipush-movement",
+      "status": "PASS",
+      "assertions": 32
+    },
+    {
+      "name": "compile",
+      "status": "PASS",
+      "assertions": 0
+    },
+    {
+      "name": "flee-recovery",
+      "status": "PASS",
+      "assertions": 56
+    },
+    {
+      "name": "flee-escape",
+      "status": "PASS",
+      "assertions": 112
+    },
+    {
+      "name": "flee-fields-monsters",
+      "status": "PASS",
+      "assertions": 220
+    },
+    {
+      "name": "flee-monsters",
+      "status": "PASS",
+      "assertions": 77
+    },
+    {
+      "name": "flee-cardinal",
+      "status": "PASS",
+      "assertions": 61
+    },
+    {
+      "name": "flee-paths",
+      "status": "PASS",
+      "assertions": 59
+    },
+    {
+      "name": "flee-walking",
+      "status": "PASS",
+      "assertions": 42
+    },
+    {
+      "name": "flee-zone",
+      "status": "PASS",
+      "assertions": 38
+    },
+    {
+      "name": "flee-editor",
+      "status": "PASS",
+      "assertions": 20
+    },
+    {
+      "name": "flee-ui",
+      "status": "PASS",
+      "assertions": 32
+    },
+    {
+      "name": "flee-stamina",
+      "status": "PASS",
+      "assertions": 26
+    },
+    {
+      "name": "flee-integration",
+      "status": "PASS",
+      "assertions": 26
+    },
+    {
+      "name": "flee-combat",
+      "status": "PASS",
+      "assertions": 7
+    },
+    {
+      "name": "release-timer-dummy",
+      "status": "PASS",
+      "assertions": 159
+    },
+    {
+      "name": "compact",
+      "status": "PASS",
+      "assertions": 59
+    },
+    {
+      "name": "native-cooldown",
+      "status": "PASS",
+      "assertions": 156
+    },
+    {
+      "name": "attack-boot",
+      "status": "PASS",
+      "assertions": 190
+    },
+    {
+      "name": "all-vocations",
+      "status": "PASS",
+      "assertions": 260
+    },
+    {
+      "name": "attack-movement",
+      "status": "PASS",
+      "assertions": 24
+    },
+    {
+      "name": "profile-catalogs",
+      "status": "PASS",
+      "assertions": 120
+    },
+    {
+      "name": "recorder-profiles",
+      "status": "PASS",
+      "assertions": 60
+    },
+    {
+      "name": "vocation-defaults",
+      "status": "PASS",
+      "assertions": 260
+    },
+    {
+      "name": "attack-editor",
+      "status": "PASS",
+      "assertions": 53
+    },
+    {
+      "name": "cave-lure",
+      "status": "PASS",
+      "assertions": 13
+    },
+    {
+      "name": "record-start",
+      "status": "PASS",
+      "assertions": 70
+    },
+    {
+      "name": "container-events",
+      "status": "PASS",
+      "assertions": 23
+    },
+    {
+      "name": "container-native",
+      "status": "PASS",
+      "assertions": 439
+    },
+    {
+      "name": "container-recovery",
+      "status": "PASS",
+      "assertions": 142
+    },
+    {
+      "name": "container-AFK",
+      "status": "PASS",
+      "assertions": 41
+    },
+    {
+      "name": "container-deposit",
+      "status": "PASS",
+      "assertions": 44
+    },
+    {
+      "name": "container-editor",
+      "status": "PASS",
+      "assertions": 18
+    },
+    {
+      "name": "antipush-activation",
+      "status": "PASS",
+      "assertions": 33
+    },
+    {
+      "name": "antipush-nins",
+      "status": "PASS",
+      "assertions": 73
+    },
+    {
+      "name": "console",
+      "status": "PASS",
+      "assertions": 50
+    },
+    {
+      "name": "version",
+      "status": "PASS",
+      "assertions": 50
+    },
+    {
+      "name": "spy-icon",
+      "status": "PASS",
+      "assertions": 176
+    },
+    {
+      "name": "antipush-hotkey",
+      "status": "PASS",
+      "assertions": 54
+    },
+    {
+      "name": "friend-controller",
+      "status": "PASS",
+      "assertions": 166
+    },
+    {
+      "name": "friend-ui",
+      "status": "PASS",
+      "assertions": 35
+    },
+    {
+      "name": "layout",
+      "status": "PASS",
+      "assertions": 0
+    },
+    {
+      "name": "updater-policy",
+      "status": "PASS",
+      "assertions": 78
+    },
+    {
+      "name": "updater-async",
+      "status": "PASS",
+      "assertions": 1492
+    },
+    {
+      "name": "updater-light",
+      "status": "PASS",
+      "assertions": 60
+    },
+    {
+      "name": "full-install",
+      "status": "PASS",
+      "assertions": 41717
+    },
+    {
+      "name": "legacy-install",
+      "status": "PASS",
+      "assertions": 41717
+    },
+    {
+      "name": "rollback",
+      "status": "PASS",
+      "assertions": 53
+    },
+    {
+      "name": "push-origin-R144",
+      "status": "PASS",
+      "assertions": 47
+    },
+    {
+      "name": "flee-origin-R145",
+      "status": "PASS",
+      "assertions": 165
+    },
+    {
+      "name": "arrows-next-R146",
+      "status": "PASS",
+      "assertions": 192
+    },
+    {
+      "name": "session-levels-R147",
+      "status": "PASS",
+      "assertions": 36
+    },
+    {
+      "name": "session-runtime",
+      "status": "PASS",
+      "assertions": 15
+    }
+  ],
+  "migrationOrigins": [
+    "3.1.0",
+    "3.1.1",
+    "3.1.2",
+    "3.1.3",
+    "3.1.4",
+    "3.1.5",
+    "classic-3.0.31",
+    "classic-3.0.28",
+    "direct-installer-v5",
+    "local-attack-boot-single-profile-20261018",
+    "local-attack-native-timing-20261018",
+    "local-cave-flee-clear-shortest-20261018",
+    "local-cave-flee-monsters-ui-20261018",
+    "local-cave-flee-single-switch-20261018",
+    "local-cave-pvp-flee-20261018",
+    "local-container-closed-deposit-recovery-20261018",
+    "local-container-native-identity-20261018",
+    "local-container-no-reopen-average-remove-20261018",
+    "local-container-root-events-20261018",
+    "local-container-sandbox-next-20261018",
+    "local-flee-auto-stamina-lure-20261018",
+    "local-flee-default-on-20261018",
+    "local-profile-catalog-isolation-20261018",
+    "local-timer-dummy-compact-20261018",
+    "local-timer-dummy-renewal-20261018",
+    "local-vocation-profiles-heal-purse-20261018",
+    "3.1.6",
+    "local-stable-push-coins-spy-20261018",
+    "local-zone-pz-stamina-20261018",
+    "3.1.7",
+    "local-flee-walk-only-20261018",
+    "local-flee-fields-monsters-20261018",
+    "local-flee-area-ammo-20261018",
+    "local-flee-path-straight-20261018",
+    "local-flee-stall-20261018",
+    "local-flee-cardinal-only-20261019",
+    "local-zone-rest-reset-20261019",
+    "local-flee-push-paired-20261019",
+    "local-antipush-movement-guard-20261019",
+    "local-sabuezo-push-experiment-20261019",
+    "local-sabuezo-push-distance-20261019",
+    "local-sabuezo-push-fire-retreat-target-20261019",
+    "local-sabuezo-push-potion-gap-20261019",
+    "local-sabuezo-push-item-turns-20261019",
+    "local-sabuezo-push-item-response-20261019",
+    "local-sabuezo-push-route-recovery-20261019",
+    "local-sabuezo-push-spells-free-20261019",
+    "local-sabuezo-push-response-items-20261019",
+    "local-sabuezo-push-support-turns-20261019",
+    "local-sabuezo-push-items-only-20261019",
+    "local-flee-push-recovery-20261019",
+    "local-friend-healer-enemies-20261019",
+    "local-Rod-Master-R141",
+    "3.1.8",
+    "local-manual-cave-wasd-20261019",
+    "local-push-origin-cleanup-20261020",
+    "local-flee-origin-cleanup-20261020",
+    "local-container-arrows-next-20261020",
+    "local-home-session-levels-20261020",
+    "local-Rod-Master-R147"
+  ],
+  "layout": {
+    "anchors": 302,
+    "widgets": 140,
+    "boundsChecks": 687,
+    "siblingChecks": 2974,
+    "moveChecks": 813,
+    "nativeVisualValidation": false
+  },
+  "sourceHashes": {
+    "dummy.lua": "0b497fc6789fdd9951a6d8c5f8da71bde319eb0a0d7b680e521903743e858b5e",
+    "_Loader.lua": "aa9026b438338dfebfcd9bdcde44fbba58ddb14849e2aee690ed26df3ee95012",
+    "cavebot/actions.lua": "53299bf5d56cb882171ac75e0fe4171f169ea12c40ac971690b8e6484bb9fed4",
+    "cavebot/auto_explorer.lua": "b1674745487336d5bde116c2f8d2cf18615e4df2dc1f51b49807cc21e881648a",
+    "cavebot/bank.lua": "545c50bc9b897aa7ba890fd133a03e6798f08d15fed2b9c888a4b6ad41753bb2",
+    "cavebot/buy_supplies.lua": "a6af7429c896e97118743f9c8eaa94243bb2be62241bbe75e8156551a2d35c3e",
+    "cavebot/cavebot.lua": "4809e1f8260799cf2414df5f8d6ac2d6af2cd6503e663b3d067a723a028bec1f",
+    "cavebot/cavebot.otui": "62849509506f11cefc4a147f5d3f5825e9c0e38d1ff668d6829dfa0c823e1aa6",
+    "cavebot/clear_tile.lua": "84c5a00341d777ec3a50b4afb881efae9cbd564758d0d1a80bd134f97991b22c",
+    "cavebot/config.lua": "d243484762cc9aea146f29a6bf8e033457aea99fbed9f32efa4190da25dcace4",
+    "cavebot/config.otui": "f7d30ef324428967f61856c3bdbeeec09b34bb6de42a9b18bc45ea0e24e26f58",
+    "cavebot/deaths.lua": "0984b7e04a51d1de12aeaa7db0fafa385a6f45e1aa8b035e176f6720585f24d8",
+    "cavebot/depositor.lua": "0cb8a10a0e7e3d328d9f42371881c5a0341f5156ce2e3d34bd6e9d55206c3d2b",
+    "cavebot/depot_manager.lua": "0da77fda01da71cae3af6446a45451d1978c7746c584bb419f86a76e95a4ed68",
+    "cavebot/doors.lua": "0cf94a715e266bef867930f7014e058a799c8de7f02a6e7886305616958e0027",
+    "cavebot/d_withdraw.lua": "873ef4cbe6e8b0927ba0b3e4bf85151ab341d0bd4f3302904617f2ac752c66b6",
+    "cavebot/editor.lua": "d821b3d6f545bbda9ad3bf92e0604b4dceeab550770105deedb51338b5650de5",
+    "cavebot/editor.otui": "023a76a309f766eb81622c66beea435049c1c1b28ac418aaa7af6a272be86fb6",
+    "cavebot/example_functions.lua": "c0dd03b965432ea38fbd381d9ef48b1bcf0f64f7ed5fdcb767194e65f0897949",
+    "cavebot/extension_template.lua": "76c2eb50b385acd625bba4660fe1af38390c539a69d94d7206a49c2cc8635063",
+    "cavebot/flee_tools.lua": "4dab7149933062a9c03f9e84b20e0b1001b177f82b951955314bc5e2913178b6",
+    "cavebot/imbuing.lua": "b25343b88da41f4ed0e4b16e24dfcc4373fa94761afcadfe2f8ec29ce91a96cd",
+    "cavebot/inbox_withdraw.lua": "84ff63ec70d826c620a5181aac79ea086ee3d25402cbb9f04a94b3dfc88102c2",
+    "cavebot/lure.lua": "133af89967b19d8fee9c531780ee573f5803fedeea7084b8877491ca55cacaf8",
+    "cavebot/minimap.lua": "0a7937625b9c3d8424292e8df719e7b768e3c85a3746d5ce4ef3ab45a24b8e2b",
+    "cavebot/pos_check.lua": "66349fc2655d914210430e945fe273d55b49502a15ef8224d064343c41b7b137",
+    "cavebot/pvp_flee.lua": "f171a896f601329549c6a46be1dcfc19ca636c58778265b768b3fe840b85a8d8",
+    "cavebot/recorder.lua": "1c84e5c87d84789e1a5ac4850122a1357b5bbfbe6df21e694ae9b1b998f58885",
+    "cavebot/sell_all.lua": "84cc4fb50a25177f3703b30ddf82a031b774d4bebebb9661620ced97cca5377c",
+    "cavebot/stand_lure.lua": "6aabb77ac1002e54f9e3b0c874a0bf74b8c4f8d32a8bc82edc909ad4e397c499",
+    "cavebot/supply_check.lua": "237f04de28164b6eeb87ba9a3807540bcbc9783c15af91d7e05aa4656134ba2d",
+    "cavebot/tasker.lua": "0ff843a25cae07dd8e1debc69cf3e3ba1b4f6b827d1351f205f66ca030131ece",
+    "cavebot/travel.lua": "10dcf067bce9edc932ca458e9365eeb1360e7f350bf4fc6be8d79d691f2b4a80",
+    "cavebot/walking.lua": "94e2440210a63314d69aec5f054c32e427309a28f0d3c9cef73213e3adcc325d",
+    "cavebot/waypoints.lua": "301f257fe715694b8e2ecfae6f5602a3a4934876116f55a79f1555eafbac9176",
+    "cavebot/withdraw.lua": "439a886483dbebbbd95cbd5096e8b8032a87643a2d0583431e814f2664b72eca",
+    "targetbot/antitrap.lua": "ed906f7f2db5982f9853d88569270fd5ce0e9147641389ce56eb3d57af26e974",
+    "targetbot/creature.lua": "24bd7784b3c3b92824b98ea8b028bc64d975c4f66e9551554287f053ba5b9586",
+    "targetbot/creature_attack.lua": "c8b761eddd9d14d2e963bc02cc86124f1f74d9d1d98fa22d66dec837a202bd8c",
+    "targetbot/creature_editor.lua": "29c3e71d03e3ed6feb7a58404b0c50e7fa697cd9559f706fa3ce3e0baf750924",
+    "targetbot/creature_editor.otui": "2e3931443c7df5c3ab89dfd7c8cf98a57cde52c8015799b26caedd9e96014b2a",
+    "targetbot/creature_priority.lua": "8d5632023ca2c2132d99f0e38f32011e1a44c15caef9cfc0ec438d7cc4e416e1",
+    "targetbot/looting.lua": "13a3be74245c06b0e1d26e68746aa4dc03e33162be1c8995e756192597ed1947",
+    "targetbot/looting.otui": "09b2c440164e56c0383787ae4a19fb8edddabf6b1118a205ed9dba6f65ab8074",
+    "targetbot/shot_lock.lua": "3a62f843dd935d3a7abdef3bb8f182a6d6b55923597d2693a229f611aae2c75c",
+    "targetbot/target.lua": "9cff5542d56bea22e5b2ba45592adcfda5ee5da7340fd67096ad23518963bb43",
+    "targetbot/target.otui": "e4fbbd691ca4e64b3dba0807d917f1a73f25a85269ef8ea93cfbe97d31448e1c",
+    "targetbot/unified.lua": "b61ef8d6e3e1027c80d5e07f14c4fd355c0fb6b507834aeb97862a2c5fb8e737",
+    "targetbot/unified_theme.lua": "453c5f1bd4fc681ddca9033f81ff2abbaa8dde6edcf091c29a90a7535b60e919",
+    "targetbot/walking.lua": "847611aff09980a4fdde8603825f86993b14877bcc8e1d384ec7b78219d34570",
+    "vBot/alarms.lua": "7e7e76f07d7c3c39aa766206cba8b2394be7c2f25dc8500f7a4efcc12376e82b",
+    "vBot/alarms.otui": "1febf984fe919975ec30ee2bbfd3e2229a04e1b23ccca0203a390b83b3beadcc",
+    "vBot/analyzer.lua": "d585838d3e8a4d6c15ba25ead4a83038ec2c06547650c56395da1970c81269fa",
+    "vBot/analyzer.otui": "e28d35cd3d9dec82854eee5c9b7498d01aa3bc1568b98d28f13601613519177b",
+    "vBot/Antipush1.lua": "bb892907d9a56697f5407fe0f0441caba08a74b13e57017a98587e299fcf74be",
+    "vBot/AttackBot.lua": "3253ab7645b707440a1b54b4363e4f4389b6a2846376b18505536ff56d700119",
+    "vBot/AttackBot.otui": "5d480da7a21deca92059f1b689ca8fa8af3a0dcbd1f85e84a5ce369e242c4874",
+    "vBot/attack_alignment.lua": "2bf7f823a248edc5f52eb19ae8efefeed8a47a166fa9280445f3f7f279fe6d31",
+    "vBot/attack_editor.lua": "8e0884e7f80e750adf7fe38c6789a3c3f238cc54bd40804aa7cb3011a1ccfc86",
+    "vBot/attack_editor.otui": "4658a9040ddebb2e0cebf7c744f298a8f70020cc63456e60fd5419f9754bd69e",
+    "vBot/attack_profile.lua": "f2380ed33ab829d2f49db36aaf47361a38eb3137d7fc57aa120777f52fc4017f",
+    "vBot/attack_rotation.lua": "a2b4b146b5822ff7ec9659ec2cecc886a655e7808dc04280d83ea4d0b93e267c",
+    "vBot/attack_spell_catalog.lua": "ff9de9e4dd22c62a32d67c6f87f35f0ecf096fdf0d344f391eccfa70fdf59eb7",
+    "vBot/attack_spell_preview.lua": "aa096a8339f8a19da3517ba6d0fc61ecf3ca1edb100875c4a1e2628256589ae9",
+    "vBot/attack_spell_vocations.lua": "d2bd3669881b4cd600cab1c8bf9e7fef3a38e63120c0c18e16a6c1cfebec8a87",
+    "vBot/BotServer.lua": "3881a7ff27e823dfde8f8f601c1bd34cae48bdded00dd8041aeb3a4484e181aa",
+    "vBot/BotServer.otui": "2103e9fb4d8196d3ea4353b3842d350a992ea5b067f662263af3942e28e80dd8",
+    "vBot/BotServerDashboard.lua": "3484c14bec1261200b95bd74a153bc4aea774904ce145eef37ff5343ba6f3eab",
+    "vBot/BotSettings.lua": "30cc1264c19e23c1e227a73820c5395f89a9695a65d7fa3271b0c0ea130e8cf6",
+    "vBot/BotSettings.otui": "6e0278f4d2a74e7b5728817026abe8dfd0ea2ef7b6de1495f6627b4e58e8f5cc",
+    "vBot/bot_tabs.lua": "229aa318497d402a5a342e7f71b4593f72e63e312c2f0ef7ee9cc463d0b6997a",
+    "vBot/Buffguild.lua": "2dd850ebfd70634c3f984a1186542a0e0dc314f828962b23f556cc229ac528f2",
+    "vBot/BugMapMouse.lua": "2b3f4d2589396aa974017553de7dc71c48a8d70de9443bccd3373e74f04ee925",
+    "vBot/BugMapMouse.otui": "713a29760a6ddfba94d97ed2f7b8446aa8bb608947354fa54921c77b62cfcf2b",
+    "vBot/cavebot.lua": "2e1f63db37dedb0e746161b5a36302442d2bd45cb39605c5a4fa4b16a025efc4",
+    "vBot/cavebot_control_panel.lua": "5d52f53bb21b31b0641ce43d551d998a64e6396af0f6b16aa556d2f2d98188f2",
+    "vBot/cave_target_settings.lua": "268c980008a5a2818d921ea881c51980973fc310db2d3748a15c76531f14ef34",
+    "vBot/cave_target_settings.otui": "874387ee3a749a4360e7ccb1e354a51715dd1ebf3ddffda3341af82267092b54",
+    "vBot/client_compat.lua": "c5c958817f18a21b156355da75f9db2bca422724d3e4266b464aa9fc7f144760",
+    "vBot/combo_plus.lua": "bfd0c1454cace32ca74173dd76e76022f206a4619c5aefc326f604a8016738fe",
+    "vBot/combo_plus.otui": "c715111163d252b4fe2a077431b07a3bde3671f3ce2bb8ac5647f88fa264995f",
+    "vBot/Conditions.lua": "80dafd84eb9bcb96ab92b08b5d0e82a3e840624ec0375636e815f935cb6731d9",
+    "vBot/Conditions.otui": "08b2d0bde42a1093fbe5deef5380852ae4bf222fa0560dd9242dfa613cf4ff59",
+    "vBot/configs.lua": "38ae0776334d8de6f6d69e8bec527159b8f0e2241bc491d10840032853978af3",
+    "vBot/console_ui.lua": "2637970899247275239e8aaadbd40b40796bb7770897cbbe933098f383a0e592",
+    "vBot/ContainerManager.lua": "88507b0bdf79b37e32ff10f2529332f1709112ee669f32a889c3cdcac0aaf002",
+    "vBot/container_layout.lua": "6af9164f16a71ad0c61acdd83486a217da6c07f4c71044fab8940197ecc5cdb6",
+    "vBot/cosmetic_visibility.lua": "ea9f697140c40c317316662d4e6f0d25325da12f5ca73ab12e1c4cc581af1902",
+    "vBot/dash.lua": "1facb3f29e4094275c5893d4d1631633456652ef0652b7c0b45e7cf24ca4c5b8",
+    "vBot/depositer_config.lua": "f5af7707086a586744333b4207ef8202d7c888514ddb596f365cadc978acb89a",
+    "vBot/depositer_config.otui": "399105ae3c93030186df5677f1745b888fe0819ab46dfa4fdf8e59a5a1258630",
+    "vBot/DummySmart.otui": "ad8aa2fd6f7571ca3e2d82e5371d8ea45d1a4e57e8fc3c00288e1fffeec802c3",
+    "vBot/eat_food.lua": "777d3cb8eaf6329a788bc81ffdf05f472767619b9d41bccc0c7d0e6a2463ed20",
+    "vBot/equip.lua": "15fe160b72c822c45bfd2249c3733c8c2b521bcce874290a264f09c7540251d4",
+    "vBot/Equipper.lua": "5e77a898d5d25bd6034752739729f76d0e9a974a245f313fb5366f61d3baa33a",
+    "vBot/equipper.otui": "72fde2979af1842f9aa73f34cc5460589433f1e4ae69e7aadaba6d0747af2ee8",
+    "vBot/Ering.lua": "28948c15403da66d3185574d503bafe91d9ae9ebd171ff9670d88a85974fb5d1",
+    "vBot/Ering.otui": "7023b72ab24c49cbcdc6d162ba958e14a76a04f94d6eb5879050fc8536c3387b",
+    "vBot/exeta.lua": "efaa9261ccf35d4b2344bcf21e2bb7c2bf160f90a85259c6d832d42726ecf2d0",
+    "vBot/exiva_calibrator.lua": "f9bfedd35206081abc9299d62c243ec04006e1974be1e80bcbd703f4360aa7a4",
+    "vBot/exiva_tracker.lua": "01432bce388b1f61f180b5335e1e756d27616b014d0a18240e1177b83b32c7fb",
+    "vBot/extras.lua": "2f71988593bc4a03b9896b4d2e7b49824e0f0633ef298bbc01fff7ba9cd80fc2",
+    "vBot/extras.otui": "12e10f8425113c26a5322372999b8bff41047db65a0f2b553fbf1e43815c937b",
+    "vBot/extrasPvp.lua": "fb3babf798e28191418718446592c6d4eced279b6fdb640f1fddba6499fd8e7e",
+    "vBot/extrasPvp.otui": "f8397395ebe980ab817a54523724dfd3ac11eda366d55ae1121a956eaed54218",
+    "vBot/FireBomb.lua": "d5100c8f3f67cf45119f410f3d26f2bf07328f8f7b06b7e09f9a7d84426087d3",
+    "vBot/friend_healer.lua": "792be471161b29edcf165b1f037497379142ae14af7ca12eb2987a512f1b4e8b",
+    "vBot/friend_healer.otui": "fc6a3638bfd929f75198bf1affdcd2b7a4b0bbcc40a3f96f7c55408d303a936e",
+    "vBot/GameBotServerTransport.lua": "3d68e230a70c77e68ac7437852e8fa3f1b0658c5aab5f31ef26c29b156080ef6",
+    "vBot/HealBot.lua": "341a3bb40b420d674ccc8a185524b1cd2e9390399cc5d9f39a6858887d753fc5",
+    "vBot/HealBot.otui": "a1c44e0456f367da2fd5c3b7ac89168eb30aebbd3dc390b5c70b42de74a866fe",
+    "vBot/Helper.lua": "dd2f04de0f0401ade694effb4ed390fd07a2c3d14ff4dba4e421189bc7c79cf9",
+    "vBot/Helper.otui": "0aa354cb11eb0831a742cc30484ef8f7bf53e22e2d0fe15736c5f81b6667d25a",
+    "vBot/HelperAppearance.lua": "17959d5e80cbe7712aa7a3ba07f49a94b1b6f0ccc2e076bf443ba11e984ed26d",
+    "vBot/HelperPause.lua": "6979cce0dcb55b5348ea12eb2e3d30cc3fd7cd6c28ac05d40bce7aa8e8d6b6b0",
+    "vBot/HelperProfileCatalogs.lua": "93d6dce4876ee7b4eb67208f1c4112a8431f123dbcce26b6f93efd4c6865060d",
+    "vBot/HelperProfileDefaults.json": "741d4e9abb3d024f3194c5b7ab527108a88107564c89b0226f2d776f79d39711",
+    "vBot/HelperProfiles.lua": "a148f76a42168fcf6f51abb40bcfadec01ee240fa6c2381f0607bf5d652d081f",
+    "vBot/HelperRegistry.lua": "a71e316d132224cb2d7cb6dfd8b86e70875284ef29bd9a5ff659d01c434acc91",
+    "vBot/HelperTheme.lua": "0e2e5229409d7ac3f2822b43fb672ddb02f7ff8505233518097d45213c399313",
+    "vBot/HelperTheme.otui": "bf6d04bf106eb9e4b109fa894213c0c749dc480a1e453858f74a5de8e1e1558f",
+    "vBot/helper_home.lua": "6892abfc29f51312b96ef9c912dcf7caf03494790cc10a6d63bf5d46979fc743",
+    "vBot/IconEditor.otui": "d6d5f2efb71482a13a3348de91f3a7df9a099120289868141b6bca2cf5a99003",
+    "vBot/iconos.lua": "0911fdba6b11d3e5387c31bced24f75e28cdf75b132c9d16b89bd55bbe3f010f",
+    "vBot/ImbuementScrolls.lua": "32d0d6a95de191c646b0df754415a1abb27c684f8db4f833a330045834bf9668",
+    "vBot/ImbuementScrolls.otui": "1f86d935e9ca866d8bb419d4632539e4c91c88ce715fd0ac12681541d743f8e7",
+    "vBot/ingame_editor.lua": "21d7ad588d18967c99efe5239fae60db9628ac0ab0326dd2ec8abdcfa41678aa",
+    "vBot/ingame_editor.otui": "9a607ab033df8ba93441f4a282140838beb806a107024fecb25539525d60b8ee",
+    "vBot/Inmortal.lua": "00871113fd1dcce574347b8b0fb08c0e44a3ae96e4f7e5f851058c158750288f",
+    "vBot/Inmortal.otui": "6cf9d70cc076a0b8273ccccae9b481b7f65d499870a0ef9a08ff8f5528b960aa",
+    "vBot/ItemCounter.lua": "180c4801f38268862face9f5cdb402467fc4aef08416541ce201dcdfc3255723",
+    "vBot/ItemCounter.otui": "861360845378a319b789c3879ad5d5bb809f05fc84aea83a2af4b30983c6c66c",
+    "vBot/items.lua": "3ba82e69853cfd5d2638361e3cc4b812af93e915ea31cef70d96d63fd5b536ea",
+    "vBot/keepwall.lua": "51a2d6f7b4a5e83cec9ac95b9d680b762dce2e73659c8d96c9a3c61f8eda87cb",
+    "vBot/keepwall.otui": "ab7bb2ca6cf9f344587f360981c58f5ba7d5ea5918f2c5b263904f962463f117",
+    "vBot/layout_persistence.lua": "58ac8d5c3ede3d29896839eb2675909557b72a69c3d3f2587c9aec0a6b19ec52",
+    "vBot/magicbag.lua": "39737c26fa4ca99ed27c492b952ee41f582f1420596a9014ffa38abd41991b3e",
+    "vBot/main.lua": "0e0c0b0c4d8e561e274fa2fe71ccee1f036f97d6700b2727d7b8ed684c0fa68a",
+    "vBot/ManaTrainer.lua": "c39021185534d401e5745157897a71711c761c85cbcea35432b2900e1bcf5b29",
+    "vBot/ManaTrainer.otui": "4554231f11c2a165e573edc3b7e3cbd4803bda6df7964cc2dc1035ef93fc445a",
+    "vBot/minimap_drag.lua": "b041ca7644c64489c1c1c8136d1b90ae488845bfc10b7164ae6da78a9a195878",
+    "vBot/new_cavebot_lib.lua": "a36459e6864a2e0dbcbf587e3ba8cffb270ea65460031bb442fba447fb2ab52c",
+    "vBot/npc_talk.lua": "c811add626d52e2a9cbd8ac980a9a1fd18ec11cafbc691a83b0f5e3e6eba19e8",
+    "vBot/paladin_rotation_20261001.lua": "f3f967880291a3c0dd31009a25021bba8ca5c86054a894b6ea12defdc9a7b5bd",
+    "vBot/playerlist.lua": "352ddddb2f773fedf33b7536654fecda4b7d1cfc91b0b0802b713f507cd55f4b",
+    "vBot/playerlist.otui": "b924815c7fc9191d0718759b4f4df23b182cdd15004459e275f059ab9824a4cd",
+    "vBot/Pullitems.lua": "a952e966f66629d11ad41d5a81a50846653b8b371c99956a5bb8b16b2e4855df",
+    "vBot/pushmax.lua": "f41bb09ed71ca7b0151e709ca38e349d6646b4198bf09c99d7118e306b325b98",
+    "vBot/pushmax.otui": "71efc78ee917a67275398bf25f70d379e07e010e804d8d40b54b50226972c5f3",
+    "vBot/pushmax_engine.lua": "a7b4f68998399a33a842f60545cdfcba47a8ce4a061803b208bcccfc0f144269",
+    "vBot/pvp_support.lua": "30be45b93eae29c88a1731571e240ee190838de49b1dec62fd936812f3e0525e",
+    "vBot/Recoge.lua": "d87bff977b8f7e89628803f4034df7ebe9f447497e2b16ccf9a83c1b66523d01",
+    "vBot/RinoConsole.lua": "880fdb7f67c38aaa80dc95f7d33de3943b158990d14137c33c0f631608c8cc08",
+    "vBot/RinoConsole.otui": "492408ec97167728fdc8bfa4ec3e3ae45b76ef3683878df2718a017a1caff177",
+    "vBot/RinoSession.lua": "4228eac5c33cd9e288af1cb293e1ddfa06b36857b3a6e60e4d88b628cbcf9f49",
+    "vBot/RinoSkin.lua": "d7dcb7cbb86ef45babf676e66a64fdc432266ec829b19e879546ec21058b3875",
+    "vBot/rpg_styles.lua": "3cff3bf4c84673b5f5d1919433e9c3dcab133057298e45e99e79d69a5decf7b4",
+    "vBot/SabuezoChangelog.fallback.txt": "539642a42d99238b933d7f5799ad7f4c0ec8e115799076c5d664bec015f0fb37",
+    "vBot/script_controls.lua": "9b781e13f0a3b5d6dfed3887bb7326b15187fd0466631d00d9229838c0f13812",
+    "vBot/sorcerer_rotation.lua": "51eb1c7021fa136a6cfc38c9a86a818c6645c8cf084f052afc1f4ac97cb9b981",
+    "vBot/spy_level.lua": "3845e2a44ffe308e2a2e7c23fb3567fd5498b80a2d51fe055c5de24f396b91de",
+    "vBot/SuperHealth.lua": "4cd2b97d93cab4bae6b1e6f09d968ae5753e9db31db041facf155f4ef584a945",
+    "vBot/supplies.lua": "bd51de7f4b2ed3fb1b5e24d4ff3d0f00e8a57f4dd55850efba7ae1b06e1697e8",
+    "vBot/supplies.otui": "f51299d33b6190e215a247da851913bd1d197452e1eb0f13fb57d702013a5668",
+    "vBot/TimerExecutor.lua": "9a95d1d9364b4b3e3ff0c78f6d94765522afc20038960f8a6cde0a2e62f007c0",
+    "vBot/TimerExecutor.otui": "2e266a4f2f3a71569c7cbc85ace9adcb0a6cd6539ed91973de2c2506d64a36df",
+    "vBot/timer_conditions.lua": "cea630130b5b64c5902cad4491cc867e65783c93036d9c5a49f19c9856f9d428",
+    "vBot/tools.lua": "5a158df5a6263fced55c80d6935b2636d6cdb1db06178af79c9a47236d0cc25f",
+    "vBot/Updater.lua": "662172aaf4522866bbc0117ed17d4a05938d0c715ec7f8870e7ed3a8716090e2",
+    "vBot/Updater.otui": "ce6fbcd3f74ea43880b8d43b68f568c71bb5596b843b1d36119f62d449674f81",
+    "vBot/vlib.lua": "ed7a803909453de9a043bc8a6b47fef76e726c6ae7be054fc692799465a2c62d",
+    "vBot/xeno_menu.lua": "0bca8ab864e92fabb92526910626c51a836f61568382bc766ae0a0f80651491d",
+    "zFreeScripts/CaveBotHUD.lua": "7ae17d7205009d21f12d32e051fe0a8e1be4423b1af3fa65df2288dbae7059f2",
+    "zFreeScripts/SkillsHUD.lua": "dbce64ac36a5aeeff1dd85d188ea0560c58f3edf31ae395e3baaa8c09c84420b",
+    "zFreeScripts/zAutoBuff.lua": "116caa2bdef978f756641181724a9876b4a2fee76dca19e36539624f8c67a212",
+    "zFreeScripts/z_Auto-Party.lua": "b650ffd80a8b714c9602c56592dac4dd3818c8c6c36b9c48501594010a915f94",
+    "zPaidScripts/zMacroAvoidTraps0614.lua": "4c1dedb003a47626f698d28acc85fcd8d6ff8457d3701c8575f05d0ef8533791",
+    "targetbot/editor_assets/combat.png": "701816ffae508aed7512007332665a8e3cf0481aa9f27a39c8c9f767f2a7d75a",
+    "targetbot/editor_assets/lure.png": "234562bfc21e5ae3b0a44fd85dd3de4b316d43e08e350067bdafb9e3b7e50eac",
+    "targetbot/editor_assets/movement.png": "3d6aa2780e2f102461253d37bbed302b5e26313359cc529f706c1e3673bb9cde",
+    "targetbot/editor_assets/summary.png": "ea51d8ec87102e15a1d57529e2fc859979971365e2958c83450b8b149bf3e133",
+    "targetbot/editor_assets/switch-off.png": "e0bc70b94e023c6301452ed963e2f60d0b3e2fbdb6e3f0af781f3616e8452bae",
+    "targetbot/editor_assets/switch-on.png": "120067e0782d74e198992b12d83b061bedb61788cf36b16a5e7cd2f3478b7ef2",
+    "vBot/attack_spell_icons/deathecho.png": "6b041bd20f0c7e822f4c7c792b2a2c92a17cd3aa34d314f3310b5d39e1177ceb",
+    "vBot/attack_spell_icons/divinebarrage.png": "822552f6d60e7239fc806248942c54cc1869a186d45a7c7bcf4099f0172119c8",
+    "vBot/attack_spell_icons/etherealbarrage.png": "610520923888cffc5e75052ec98ac841b6b1209a4ff3b53a906e69c94cb3d747",
+    "vBot/attack_spell_icons/forkedglacier.png": "3f801f22679b40785fc922c21669c2bd2367a1006caf5402d0f458d82204ff73",
+    "vBot/attack_spell_icons/forkedthorns.png": "e4beb115230cef558fa058f54b1ebc8244677ee7750cb58865095174d15a168b",
+    "vBot/attack_spell_icons/lesseretherealspear.png": "41781d1cf9fc0e0bb8c6ae1902fa4c01417a6a2cb6413925d3ce899b9cc4d6d1",
+    "vBot/attack_spell_icons/lesserfrontsweep.png": "f62e3609288ad3d27648764038e2ee0e1e8b3126513be4ff328a0044eedf3367",
+    "vBot/attack_spell_icons/lessermysticrepulse.png": "097753797f318016891f581e2146208f32967bf4c46acf0777698e009d6a891e",
+    "vBot/attack_spell_icons/shieldbash.png": "7b5212dc00d758ddf68663942b531c20c6577f46753dbf15d3576c5fb3f2370e",
+    "vBot/attack_spell_icons/shieldslam.png": "895d2831a1271aef2230c140efdf4191a4f6bc117e8c3013e0deb346ed6d2a28",
+    "vBot/attack_spell_icons/thousandfistblow.png": "780009dc897fc1adf256be3ddd11b6bc3858836337963b1e3028ac31ea493525",
+    "vBot/botserver_assets/bar.png": "2a38adb7b2debe4385d7c8451a2889575c249296dca51d647450605add7e6878",
+    "vBot/botserver_assets/button-hover.png": "8d269c13dc760ca04e2b55b0343f592f43592fe5cbe3533b4f7fec0bacb126ac",
+    "vBot/botserver_assets/button-pressed.png": "106b48499a13606276a95e76b47f8bbea90b6c40c5adf15ea12912c43d295072",
+    "vBot/botserver_assets/button.png": "2677ec68222782cf9da155821afe6d8fbf42b34c9f096c772bcf9586694f86e5",
+    "vBot/botserver_assets/card.png": "205fb6401a17c9017733a27811c863e548f46269557e7909343395d69e718fd6",
+    "vBot/botserver_assets/chevron-down.png": "90a65d86fac20f8b401c88cc982e793461561231932638b9bf0e2f77fd1e197c",
+    "vBot/botserver_assets/chevron-right.png": "e1c235b1334951f100ea051aca8a422149f2cada0ca29780b55a3f06be6d80cc",
+    "vBot/botserver_assets/crosshair.png": "1c989daf776d3b00ac2887da9604ca035bcae84d8699fc6f08e95744de10d30c",
+    "vBot/botserver_assets/crown.png": "dfec72f3f2f3150c07d177efd07a4c0011980b7c3fd621ed0e942e0238fd8c0b",
+    "vBot/botserver_assets/danger.png": "b38e1db74f02f15effff7025a36b5eac03618c089435d54fcb6a3adfd778c9cf",
+    "vBot/botserver_assets/heading.png": "4690e48a02a7d782f3730e13ec48bc6ac5df6b90f7239afc9df80c381a7710b4",
+    "vBot/botserver_assets/helper-sabuezo-cyan-suave-46.png": "aea2fd8543247580b141c6caedc34c21bc9d15db7fdd19f1763368bf9e5b5638",
+    "vBot/botserver_assets/helper-sabuezo-cyan.png": "f91da7183df1c0adf6088f2fb20257fdf7839f68710cbd2de0e407b3122214be",
+    "vBot/botserver_assets/hp-fill.png": "ea0d07e955143466f15e0bb36d57f8cf6cf4368e30f3de0e42c1e370806f6f73",
+    "vBot/botserver_assets/input.png": "8e38bea7c9f8177f12d497e9afebdafb388fd67e7409261b084ae50758c4c138",
+    "vBot/botserver_assets/layers.png": "7ff251ca4a94f9a5bebd00b8a6d1048a1d39daaea04205e9126f8b4faecbff3d",
+    "vBot/botserver_assets/mana-fill.png": "ecd33adacd08274cf7aac65a2631e0094f104f6788cb029d2945a044ea0bc77d",
+    "vBot/botserver_assets/members.png": "dc17595b196a32e37b79dfd6cb352d7b8232efe35cf256f11b2a010cffa1f578",
+    "vBot/botserver_assets/pin.png": "ec5fae10ecb14c8d91a023af3dd21db4bfcd272ad6ef3fbc2ded98f6a1e44875",
+    "vBot/botserver_assets/power-on.png": "75c265293124d8604eb79e90d6996c2458b40a95bd41777e3126a3610ce5abf8",
+    "vBot/botserver_assets/rinobot-title-20.png": "a102eef3c5abbb698367374a7735fd5f81ca72be89651a0ea71854ad1833f570",
+    "vBot/botserver_assets/rinobot-title.otfont": "bb92052664557c76f1c1784ce532ac74a4ad00a552b76a107bc7f4ccc151e5b7",
+    "vBot/botserver_assets/row-hover.png": "8d8b79c17fb66481619b89863d123f7a4df0c736e26e26d906514d532fb0382f",
+    "vBot/botserver_assets/row-selected.png": "b4d045476bbc07a98c7eea78a4f97819555e5ef38d6c4f9c0ec9652d8394e72b",
+    "vBot/botserver_assets/row.png": "ce04dc08d4f799d04fe22def6636ef2e01aa865ced97da8000ed347199be23f8",
+    "vBot/botserver_assets/search.png": "a2d3bb500d493886b25084262ebbc7bfc6091b19fb2cc353dda9cf719bcba4c5",
+    "vBot/botserver_assets/star-filled.png": "e8d108845bb70f30ce548e5c99ae88ce96458c091006376899e3bf4ff18e028f",
+    "vBot/botserver_assets/star-outline.png": "fd6796d3198e5561b522f9e585d0368d527f05874856aebf361db9bf2c0887f6",
+    "vBot/botserver_assets/status-gray.png": "89ebcd7cc390a858ccaeb01ea71bfe11e8e5dd44b4a199f57891b6d411847a1c",
+    "vBot/botserver_assets/status-green.png": "cb257f3b3a4ef3df8499fd2a99fe9d5daf4da121bb6476f252abb5182778fc06",
+    "vBot/botserver_assets/status-red.png": "9c37aeda4f34b065c324551ca1b21352fcfd0dd69538a30cbdbb3778a9195bd9",
+    "vBot/botserver_assets/status-yellow.png": "eb4ed8e0f07144447615e2ac651121cfe92ba8052909ab9c744af2464030a544",
+    "vBot/botserver_assets/switch-off.png": "80e801a47af9280d74e585ba2c1bdf1d3bfa333d14abc593211130eca234d006",
+    "vBot/botserver_assets/switch-on.png": "f4e2b0e06cb5a3a88dede8ae9b00f3af26112a81e5caf8d7361b99ba0fa0dbce",
+    "vBot/botserver_assets/tab-active.png": "837a305a42ff303e95b18b2202d6d509c4ce56a4e6acd968516fc091321b5767",
+    "vBot/botserver_assets/window.png": "9c1dbfd3df56d3467de23707a2ac456c1d2da392711418e324423ec59266a495",
+    "vBot/imbuement_icons/0.png": "7ff1d2c26d1b28a599428f086ccf35dd0b14a24bb89c6af548012567b2760a0e",
+    "vBot/imbuement_icons/1.png": "4727bc4f603aa2718c596bef67ef49c74356b29f883c140199762ff4f0b9796e",
+    "vBot/imbuement_icons/10.png": "9e957243560e0773838e180cd3a05d7a1fd0b905ed5f6ce2668e70251df4f908",
+    "vBot/imbuement_icons/11.png": "3343340623a4a4c83c2396992c72f3bcb92040e21682dbdcde8c2ed92b8e76f3",
+    "vBot/imbuement_icons/12.png": "f7471491b3cb952fc2453e696fe403ba791158b24f97ad46ec42dcfc434128db",
+    "vBot/imbuement_icons/13.png": "5b35c1aa1f492da830b838200bc37f75c48cd6519d64cf5180803d937915d6df",
+    "vBot/imbuement_icons/14.png": "ebe87cbad2899c2badd9210cb9816e446e63dcb66da489663d2c5306cf500eff",
+    "vBot/imbuement_icons/15.png": "c53d990931a46d226ca2bdbc896235074a684a7b3e14b7f4fe03ea9ca152b5a3",
+    "vBot/imbuement_icons/16.png": "40402590f94a3ecf5f42996baece670707cdd14331695c9d487ca960d2565132",
+    "vBot/imbuement_icons/17.png": "e6f621840d846a503db137f0ee492654082598787d2dae4042fda3f3c7a1e1ef",
+    "vBot/imbuement_icons/18.png": "175bf213a7ff379b0f3635a86659bf6026c5438b8b4a04753130d21910c01b90",
+    "vBot/imbuement_icons/19.png": "6c0c0a826083cf8ce5408821a249da2e69deb32086353b4944dcde5d9cbc0592",
+    "vBot/imbuement_icons/2.png": "65d612c5dae11f045c9d280f6eb2a0b329e7257969bed63ea448700fb7dc8ae3",
+    "vBot/imbuement_icons/20.png": "976fb49c4f74478cf6797502c42f5e36d1bc4d57fd8be243de31633bc51dac10",
+    "vBot/imbuement_icons/21.png": "120c624f829e838796b16bdd63cd6cb200ca3b61f0268466ed27ed0c292d10c7",
+    "vBot/imbuement_icons/22.png": "5b391309685bdfa6cc9aaf6d157788202279e9020b3cd6f57046839baa51f30f",
+    "vBot/imbuement_icons/23.png": "63031c6a43a0f6b25b1ebd89be3593840d76db68a0cddc08d34efa0587749096",
+    "vBot/imbuement_icons/24.png": "8840b1c358799def02b0c111aa257766dc8bbc0cf754f0699a4b6c583ed1bf9c",
+    "vBot/imbuement_icons/25.png": "1b13a68e75d16eb86325baa4a337e1e6e7649564a2f5dd672553e9e9673c6ad7",
+    "vBot/imbuement_icons/26.png": "c8ce9b2a2b545968f44f7738f247840441552846cb342e71291aa14f8bf3a30f",
+    "vBot/imbuement_icons/27.png": "ee9fc968278b2154d968e83f8b0ee6910f1fe77b18f472da2bb3aaeb729f8026",
+    "vBot/imbuement_icons/28.png": "b1383ce16ea5b6b712024b667010413333125d35e1cc3aa7c2667637a9f8969d",
+    "vBot/imbuement_icons/29.png": "308b54e8d84450d446374bfd31a703bf2ad2bd1a4e6887ec66e84e38ec2cd6f3",
+    "vBot/imbuement_icons/3.png": "07eff191338951516227371f7c6fb6ed665b435dedac4b813f0ef37f277d4ae4",
+    "vBot/imbuement_icons/30.png": "90e3bc33601907ce9de123d852f31d8d4fd0832b703ceda9a8e29747500d6fda",
+    "vBot/imbuement_icons/31.png": "3dfab72f783ae17718ff1405be2e1e047f58146e188a50be7b3ccc0415e3c103",
+    "vBot/imbuement_icons/32.png": "ae69f408458492cba8a273326bbe78f4fe80a589cf928e1ab83e8ef30cbd449a",
+    "vBot/imbuement_icons/33.png": "12f11eb56280d1d9f87ee79bd736f7ab372cc52a2ebe983704a60f9733a319b0",
+    "vBot/imbuement_icons/34.png": "d95f2fed006be65dd3f1824ca26a7b9a45318baf6689d53137328bde3234f00b",
+    "vBot/imbuement_icons/35.png": "6ae51e28e39f5d059f0e84ba419e902ced9ac1bf588c32fcb4ce47cbb39a9761",
+    "vBot/imbuement_icons/36.png": "d78c2f004d9c83dbaa4ef277f3cba529d3e568e9c89d1a8ffd8837c6083400f9",
+    "vBot/imbuement_icons/37.png": "99c78563b9ebe1d93f1f443dcdd7e47491934a2ee3e4f6b6f63ba26787e13916",
+    "vBot/imbuement_icons/38.png": "4500bf2a41ad50a1aac78cd885807f6d90fbd6ad917ad868e326a8df349c73b4",
+    "vBot/imbuement_icons/39.png": "924839928628aea3f5a075414961c7f4ff3513b8da152c42d4679dd74869fc91",
+    "vBot/imbuement_icons/4.png": "131d13b8c5211ba00da3d46884e2409fe8b394bca1d8f906d807bb0bb08eeba9",
+    "vBot/imbuement_icons/40.png": "cb0c971acbeae38e3a9a70b6a694e8cb9849f5576de9eb2f99dc07b1ab469c65",
+    "vBot/imbuement_icons/41.png": "7097382d3594cdc5d149041a5f2133d2de3f19d2885a15d57b036fd4e7fa199a",
+    "vBot/imbuement_icons/42.png": "bcbcfeabd33f076af516aabaa2fbf6c3fd395a1ff8327c63795971d01a87d57f",
+    "vBot/imbuement_icons/43.png": "f6fdf740701d730b5c028f3fdb9745e82d2dec72871f49c8ffe0938960c17abc",
+    "vBot/imbuement_icons/44.png": "e078bda06031097dcf20af456313a4c1f20597136f50ccbdc48ba6bf56823c5a",
+    "vBot/imbuement_icons/45.png": "9249b54e64a1ebc4e1650456b835c8b6fc999d0312fc5630278b583cf7c065b7",
+    "vBot/imbuement_icons/46.png": "45311a48d95a46267ef448362fcf81f242b511a3cc6f67ba2ef23a56d8211c83",
+    "vBot/imbuement_icons/47.png": "b4dba8bd71acb6e8375012c5e2df73d7cd7780029bd5354ea49cbcd304b8c939",
+    "vBot/imbuement_icons/48.png": "02e78cea2f220a1e6e230028caf6333ea2712c0a53cf8358a89e9c882eaad477",
+    "vBot/imbuement_icons/49.png": "98f2c574ffe9eca395859e31b51b573fd04fc9a3c96838f0078739b565ae8164",
+    "vBot/imbuement_icons/5.png": "9ff4432bb28d230afcfbb2083e8f532555a6d512e55bab547fbf66cb57a259e3",
+    "vBot/imbuement_icons/50.png": "f588f1ecc570c02f4b1f33bd19d21bd4719929dfa31e8d95e1d7c9ea706e83e4",
+    "vBot/imbuement_icons/51.png": "c2fc3ee168ec04e39e0445a00c432a17ee9d41084ac8c0d218903cef2c6e1f8b",
+    "vBot/imbuement_icons/52.png": "104cc7891ebe362363d55273758f73af114a13bb071fae2c8cf039af3b2056bf",
+    "vBot/imbuement_icons/53.png": "0b3292209257172f0acf841c92ed8c3f0d00b4e6b246689f091831b08d77dde4",
+    "vBot/imbuement_icons/54.png": "1dfa5f032b3d9e1c52cb27dba139636c5509ace26913f323ff43015689d9089d",
+    "vBot/imbuement_icons/55.png": "20b7746240ec0c9f9c1a862579d7781b00580fdb72503d0bcd4b1b95cd748f67",
+    "vBot/imbuement_icons/56.png": "8476e1fbead78bde8a076e7df98d2a851c006a3315130b61c3eed6e8e1b2c3ef",
+    "vBot/imbuement_icons/57.png": "cd7e8446a458a82fa5733dd9b6b00a1a68c07a1579355c21815b21d743bd41bc",
+    "vBot/imbuement_icons/58.png": "04084414566c022943314c2076ceca4c1a917759df22b93722327363298a0cc8",
+    "vBot/imbuement_icons/59.png": "3e27cd336b7ceb3fb46ef4d85af09f6a4faf7b2fb86264fb0792cb36adaef7cc",
+    "vBot/imbuement_icons/6.png": "5c4b86ff3ba707e6e183589eb6babc5f9ef991a0bb3c67ed28321f8e693abbf1",
+    "vBot/imbuement_icons/60.png": "c34d9638ef87ccf460f9f18e2dbba78fd33f37933f19f28cc92c48735e75ab69",
+    "vBot/imbuement_icons/61.png": "690a8ccb8e7166f6b777528f592dec5fd32e0f58101c54cefa684fecc6256a5e",
+    "vBot/imbuement_icons/62.png": "13817d1f4158c64c5dbe930c7a591e1b07df532f5eeec962c5fe805c3d01c069",
+    "vBot/imbuement_icons/63.png": "b65fb0680d6a586b2ef1c2e8541c00734187bbe3d6fc432570095bd810a82ff7",
+    "vBot/imbuement_icons/64.png": "b81d686668e3b2660509909219710bb5b60350e158d724546bf678fd84a7851a",
+    "vBot/imbuement_icons/65.png": "454e137192744cb98634599bb64164cfdc1be8af71a3d3be0667bab2cae4af84",
+    "vBot/imbuement_icons/66.png": "ca04b257280d1291bcd38ab3fe6027d0704e51ccc6e34ca632a5e11b2445bdc5",
+    "vBot/imbuement_icons/67.png": "db3deb4648488da383d9d0c9855680e34009be37db7a9e5f55caad998cc3c24e",
+    "vBot/imbuement_icons/68.png": "482815a3c8aab18c6c6a904b31f9f588820ddcc8903bf103d9cba70dba01ce7d",
+    "vBot/imbuement_icons/69.png": "9ab69c78f50917d96d716ad7a970759f05925f1e72e627f93143b83d848b914d",
+    "vBot/imbuement_icons/7.png": "c15c0c617b4cbdc800d66e13c08eb73de3f70213fb7771efa1f6ae63cdf6c4f8",
+    "vBot/imbuement_icons/70.png": "2346feef92af1fad791669cdefaaf38221ce78451848c1e34442a5c8e2c85f48",
+    "vBot/imbuement_icons/71.png": "ab6fac341b7b0d3decd8867a9814d4f648633b2f62802180b8da6e6234045844",
+    "vBot/imbuement_icons/72.png": "d68569d8750b05aec7248a2f155ddb46baf47815918df39f6ded343265f64fe5",
+    "vBot/imbuement_icons/73.png": "ec98fb3ac73e41ac6ea1ae7a5a1a58ef0a6a18f439fda24f9faacc3127bba0e5",
+    "vBot/imbuement_icons/74.png": "316012d71a6e562e3fd98532e95114fec057a2a7253aa1fc1cd0b48b8c2b8bfa",
+    "vBot/imbuement_icons/75.png": "a36bec536fb8c4a6e8f3bec44c1a2a8a92c4f35d13f4eda9c21c5724eea0054e",
+    "vBot/imbuement_icons/76.png": "54ef4fb7ca70d477fc485d06c37dd60d564b26b9dc52847b0c43c5d48581e885",
+    "vBot/imbuement_icons/77.png": "d236b3ee7c5e78f082d0557d58afc96c74d2b6c100351b43a482e4705118b57c",
+    "vBot/imbuement_icons/78.png": "479e8b6dad1d391782496a0e396c6fe935250f3f5ff6140e4dd8634800edca26",
+    "vBot/imbuement_icons/79.png": "07d8a53139948fb9301b0429f71b9ad1b17ad8cdd816929625eddaadc82d5ad6",
+    "vBot/imbuement_icons/8.png": "98aa6573f43425f738bdcf6f4ee880f06e550a33f61fb854325cabcd4f7e1bce",
+    "vBot/imbuement_icons/80.png": "c75c777910c6b9ee20a6b5cc1a4466c87bfd03265be84f53659fcd0278bd80ca",
+    "vBot/imbuement_icons/81.png": "8f0ee294a7d767d7b1eca2233a8a717c790d4d2019170103bf05b7f624f66344",
+    "vBot/imbuement_icons/9.png": "4ab381ad6b1b9236536ee2ab0d677cd035a3faf26491ff125574afe68ee10aa6",
+    "vBot/imbuement_icons/LICENSE.txt": "9dfe774a4fa5347bf63abece99c242f0b6166a206c83bcf27d4ecc0dae73a0ab",
+    "vBot/map_markers/exiva-guide-arrows.png": "57a42400d1dbed035e0599c8d187ad678d9f88d4181bc04b969a5b4dfa15e16f",
+    "vBot/map_markers/exiva-guide-dot.png": "a91d23e4ff21e696e0894567384b24e419ad0e449fd05634787648658335809a",
+    "vBot/map_markers/exiva-target.png": "f077ce1411bffa9e5181e2247ed8678276b04f9960db2fe9522a54339869d7b3",
+    "vBot/map_markers/member-diamond.png": "c0033cd2030789a4cbd61501ece6b375d867d8ab93270932ca8b936f446e6f6c",
+    "vBot/rpg_assets/button.png": "719e026c2bd1ad90ebe2a28844c40e193777b32d13c8fd5fa9266e390ca36d4b",
+    "vBot/rpg_assets/chrome-chevron.png": "1a9d9fb29d6e0d61ff37fef90b68158b3737036e61d4ea99f880a1eb47fcd02e",
+    "vBot/rpg_assets/chrome-close.png": "69622d3eef53ed5e6e0d6fa0c62cef24e63eed14e5b0fdd59b61a6605daae9ce",
+    "vBot/rpg_assets/chrome-collapse.png": "a6e34c13fa2c996b2c97bb10e1b621704e20c4d749faef16f1e9f59f80da5e9e",
+    "vBot/rpg_assets/chrome-desktop.png": "cbdf54cd1188f82a58d55a0e22a24fdd037dc3ede0f8c6e9e3aecc0bbb754fca",
+    "vBot/rpg_assets/chrome-expand.png": "5b64375c50d291c6b651bb4c59572e377378992f71b45f0843ea9b4b74349f0e",
+    "vBot/rpg_assets/chrome-minimize.png": "6384c3b2a5b993e68a55dc2514beef6f672f936dbe3bbe8f209f39650ce11384",
+    "vBot/rpg_assets/chrome-pause.png": "1fd2de3c3c8e7377f07e78422633b1cbf67f2f197d3fd25daf14df1516f65712",
+    "vBot/rpg_assets/chrome-play.png": "692f9dfd332bcc3f9a271f282df79c38396592d3a0b07541bd5a594e9224e9d6",
+    "vBot/rpg_assets/chrome-reload.png": "ef21d0d6eeb0cbf2d43656fb497496adb68fb856452b4179ab9f6b8f6e68516c",
+    "vBot/rpg_assets/chrome-search.png": "74db24c32048ef026f422b81fa951da9b8d7bc52f5e325ed9678c91af53caf85",
+    "vBot/rpg_assets/icons.png": "1e9d66d92f74ace6214e18ca3df47d48d9d1b92fe17574e38e0535451fc9075b",
+    "vBot/rpg_assets/knob.png": "79905a2e22f814ce5275f62b2c4b00dce10616d2b961b71e8cb791145146ea99",
+    "vBot/rpg_assets/pill.png": "4dbe93f49e6cc718a0af448e80cccade635adbd13d1ff5eeaf68fa2e7a779bf7",
+    "vBot/rpg_assets/surface.png": "c25c0050dfc5fa116a944317cd1e6a9e6ac91d3ff3ce9777e0fbe5087ad0aff7",
+    "vBot/updater_assets/download.png": "fce84a06468c4c21eb6382245e8fcb11890bd7c6f593b098a7e7974797ff34e0",
+    "vBot/updater_assets/progress.png": "bf49231c6328a8e82a93a36219bde06e750477230bb9ff025ed34568ce81c86a",
+    "vBot/updater_assets/refresh.png": "4abd35f19446f8e6116c4763a90fd081964169136264ed6435d64f4fadf5890e"
+  },
+  "pushMaxScope": {
+    "currentSabuezoIncluded": true,
+    "baseRevision": "R139",
+    "engineIncluded": true,
+    "aeronSeparateExperimentIncluded": false,
+    "fleeFireAllowed": false,
+    "spellsUngated": true
+  },
+  "withdrawnWASDR143": true,
+  "hegalIncluded": false,
+  "unavailableHistoricalMigrations": [],
+  "personalDataIncluded": false,
+  "nativeGameActionsExecuted": false,
+  "nativeValidationPending": true,
+  "packaged": true,
+  "published": false
+}

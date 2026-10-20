@@ -1,12 +1,21 @@
 # RinoBot - MythicOT
 
-Versión estable: **3.1.8**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.8). Puente clásico: **3.0.31**.
+Versión estable: **3.1.9**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.9). Puente clásico: **3.0.31**.
 
 ## Actualización
 
 Recarga el bot o espera su comprobación automática cada cinco minutos. Conserva perfiles, rutas, scripts, heals y supplies; después de instalar y verificar vuelve a Helper. Puedes elegir clásico manualmente hasta la siguiente actualización. Se respetan development.lock, recuperación de versiones fallidas y protección contra downgrades.
 
 Versiones antiguas con Auto OFF necesitan adoptar el nuevo updater una primera vez desde su panel. Si no hay Updater, usa la instalación inicial.
+
+## Cambios de 3.1.9
+
+- Push Max y Huida priorizan la limpieza bajo el jugador; no gastan Disintegrate en objetos de un destino caminable.
+- Container Manager vuelve a abrir la siguiente BP anidada de Arrows al vaciarse la actual, incluso del mismo tipo.
+- Inicio muestra el balance de niveles de la sesion y lo conserva al recargar.
+- El cambio local de WASD queda descartado: CaveBot conserva el movimiento publicado en 3.1.8.
+
+335 archivos oficiales, 136 Lua compilados y 94,621 comprobaciones locales simuladas/estaticas; 60 origenes de migracion completos. Configuraciones propias conservadas; confirmacion reciente en MythicOT pendiente. [Notas completas](rinobot/3.1.9-notas.md) e [informe de validacion](rinobot/3.1.9-validacion.json).
 
 ## Cambios de 3.1.8
 
@@ -57,7 +66,7 @@ En el editor de scripts del bot ejecuta:
 modules.corelib.HTTP.get('https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/bootstrap.lua', function(script, err) if err or not script then warn('No se pudo descargar Sabuezo') return end assert(loadstring(script))() end)
 ```
 
-El bootstrap instala el puente clásico 3.0.31. Recarga el bot para que su updater descubra e instale RinoBot 3.1.8. Se conservan bootstrap, puente y publicaciones anteriores.
+El bootstrap instala el puente clásico 3.0.31. Recarga el bot para que su updater descubra e instale RinoBot 3.1.9. Se conservan bootstrap, puente y publicaciones anteriores.
 
 ## Historial clásico
 

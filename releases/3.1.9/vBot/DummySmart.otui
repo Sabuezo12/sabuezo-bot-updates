@@ -1,0 +1,223 @@
+DummySmartEntry < Panel
+  height: 30
+  margin-top: 2
+  background-color: #172830
+  HelperThemeCheck
+    id: enabled
+    text: 
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    width: 18
+    height: 18
+  HelperThemeLabel
+    id: rank
+    anchors.left: enabled.right
+    anchors.verticalCenter: parent.verticalCenter
+    width: 16
+    height: 16
+    text-align: center
+    color: #00ffff
+  BotItem
+    id: item
+    anchors.left: rank.right
+    anchors.verticalCenter: parent.verticalCenter
+    size: 28 28
+    tooltip: Arrastra el objeto aqui.
+  HelperThemeLabel
+    id: description
+    anchors.left: item.right
+    anchors.right: up.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 4
+    margin-right: 3
+    height: 16
+  HelperThemeButton
+    id: remove
+    text: X
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    width: 20
+    height: 20
+    tooltip: Quitar opcion
+  HelperThemeButton
+    id: down
+    text: v
+    anchors.right: remove.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 2
+    width: 20
+    height: 20
+    tooltip: Menor prioridad
+  HelperThemeButton
+    id: up
+    text: ^
+    anchors.right: down.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 2
+    width: 20
+    height: 20
+    tooltip: Mayor prioridad
+
+DummySmartList < Panel
+  HelperThemeScroll
+    id: list
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    anchors.bottom: add.top
+    margin-right: 14
+    margin-bottom: 4
+    layout: verticalBox
+    vertical-scrollbar: scroll
+  VerticalScrollBar
+    id: scroll
+    anchors.top: list.top
+    anchors.bottom: list.bottom
+    anchors.right: parent.right
+    step: 32
+    pixels-scroll: true
+  HelperThemeButton
+    id: add
+    text: + Agregar
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    height: 20
+
+DummySmartWindow < HelperThemeWindow
+  id: DummySmartWindow
+  text: Dummy Smart
+  size: 480 172
+  @onEscape: self:hide()
+  HelperThemeLabel
+    id: itemsTitle
+    anchors.left: parent.left
+    anchors.top: parent.top
+    width: 228
+    height: 18
+    color: #00ffff
+    text: ITEMS PARA ENTRENAR
+    tooltip: Arrastra items. Prioridad de arriba abajo. Deben estar visibles en una BP abierta o equipados.
+  HelperThemeLabel
+    id: dummiesTitle
+    anchors.left: itemsTitle.right
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-left: 8
+    height: 18
+    color: #00ffff
+    text: DUMMIES POR PRIORIDAD
+    tooltip: Arrastra tipos de dummy. Prueba alternativas de arriba abajo sin caminar.
+  DummySmartList
+    id: items
+    anchors.left: parent.left
+    anchors.top: itemsTitle.bottom
+    anchors.bottom: options.top
+    margin-top: 2
+    margin-bottom: 4
+    width: 228
+  DummySmartList
+    id: dummies
+    anchors.left: items.right
+    anchors.right: parent.right
+    anchors.top: items.top
+    anchors.bottom: items.bottom
+    margin-left: 8
+  Panel
+    id: options
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: status.top
+    margin-bottom: 4
+    height: 24
+    HelperThemeLabel
+      id: rangeLabel
+      anchors.left: parent.left
+      anchors.top: parent.top
+      width: 32
+      height: 22
+      text: SQM
+    HelperThemeSpin
+      id: range
+      anchors.left: rangeLabel.right
+      anchors.top: parent.top
+      width: 42
+      height: 22
+      minimum: 1
+      maximum: 7
+      step: 1
+      tooltip: Alcance del dummy: 1-7 SQM
+    HelperThemeLabel
+      id: waitLabel
+      anchors.left: range.right
+      anchors.top: parent.top
+      margin-left: 10
+      width: 64
+      height: 22
+      text: Pausa (s)
+    HelperThemeSpin
+      id: waitSeconds
+      anchors.left: waitLabel.right
+      anchors.top: parent.top
+      width: 46
+      height: 22
+      minimum: 30
+      maximum: 120
+      step: 1
+      tooltip: Espera al moverte, recargar o reconectar
+    HelperThemeLabel
+      id: retryLabel
+      anchors.left: waitSeconds.right
+      anchors.top: parent.top
+      margin-left: 10
+      width: 74
+      height: 22
+      text: Intentos (s)
+    HelperThemeSpin
+      id: retrySeconds
+      anchors.left: retryLabel.right
+      anchors.top: parent.top
+      width: 46
+      height: 22
+      minimum: 3
+      maximum: 15
+      step: 1
+      tooltip: Pausa entre intentos
+    HelperThemeCheck
+      id: onlyPz
+      text: Solo PZ
+      anchors.left: retrySeconds.right
+      anchors.top: parent.top
+      margin-left: 12
+      width: 76
+      height: 22
+  HelperThemeLabel
+    id: status
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: master.top
+    margin-bottom: 3
+    height: 18
+    color: #ffd166
+  HelperThemePower
+    id: master
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    width: 110
+    height: 20
+    text: Dummy Smart
+  HelperThemeButton
+    id: retry
+    text: Reintentar
+    anchors.left: master.right
+    anchors.bottom: parent.bottom
+    margin-left: 6
+    width: 84
+    height: 20
+  HelperThemeButton
+    id: closeButton
+    text: Cerrar
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    width: 64
+    height: 20

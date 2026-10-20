@@ -1,3 +1,11 @@
+3.1.9 - Limpieza de Push Max, Huida, Arrows y niveles de sesion
+- Push Max prioriza el antipush debajo del jugador; no gasta Disintegrate delante si el destino es caminable.
+- Huida PvP incorpora esa limpieza bajo el jugador, sin Fire Field ni BugMap.
+- Container Manager reconoce la siguiente BP de Arrows vacia aunque use el mismo tipo y ventana.
+- Inicio muestra niveles ganados o perdidos durante la sesion y conserva el balance al recargar.
+- Se conserva el movimiento publicado en 3.1.8; el cambio experimental de WASD queda descartado.
+- Conserva perfiles, rutas, scripts, actualizacion automatica y recuperacion.
+
 3.1.8 - Push Max, Huida PvP, ZonaPZ y Friend Healer
 - Push Max renovado: marcas PUSH/DEST, Fire Field a distancia, Disintegrate melee, Destroy Field y cierre con Magic Wall.
 - Objetos y pociones coordinados con el push; curacion urgente prioritaria y spells libres.

@@ -1,0 +1,303 @@
+ScriptControlRow < Panel
+  height: 34
+  margin-right: 14
+
+  HelperThemeLabel
+    id: name
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: power.left
+    margin-right: 6
+    height: 16
+    text-align: left
+
+  HelperThemeLabel
+    id: source
+    anchors.top: name.bottom
+    anchors.left: parent.left
+    anchors.right: power.left
+    margin-right: 6
+    height: 14
+    font: verdana-11px-antialised
+    color: #a9bbc6
+    text-align: left
+
+  HelperThemePower
+    id: power
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    size: 50 22
+    text: OFF
+    text-align: center
+
+ScriptControlsPanel < Panel
+  height: 190
+
+  HelperThemeLabel
+    id: heading
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 18
+    text: Macros cargados
+    color: #50d7d4
+    text-align: left
+
+  HelperThemeInput
+    id: search
+    anchors.top: heading.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 3
+    height: 22
+    placeholder: Buscar macro o archivo...
+
+  HelperThemeList
+    id: list
+    anchors.top: search.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: empty.top
+    margin-top: 4
+    margin-bottom: 4
+    vertical-scrollbar: scroll
+
+  VerticalScrollBar
+    id: scroll
+    anchors.top: list.top
+    anchors.bottom: list.bottom
+    anchors.right: list.right
+    step: 34
+    pixels-scroll: true
+
+  HelperThemeLabel
+    id: empty
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    height: 14
+    font: verdana-11px-antialised
+    text-align: left
+    color: #a9bbc6
+    text: ON/OFF actua al momento.
+
+InGameScriptRow < UIWidget
+  background-color: alpha
+  focusable: true
+  height: 22
+  font: verdana-11px-antialised
+
+  $focus:
+    background-color: #00000066
+
+  HelperThemeCheck
+    id: enabled
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 4
+    size: 15 15
+    tooltip: Activar o desactivar este script.
+
+  HelperThemeLabel
+    id: name
+    anchors.left: enabled.right
+    anchors.right: edit.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 5
+    margin-right: 5
+    text-align: left
+    text-auto-resize: false
+
+  HelperThemeButton
+    id: edit
+    anchors.right: remove.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 3
+    size: 48 18
+    text: Editar
+    tooltip: Editar el codigo de este script.
+
+  HelperThemeButton
+    id: remove
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 15
+    size: 20 18
+    text: X
+    tooltip: Eliminar este script y crear un respaldo.
+
+InGameScriptManagerWindow < HelperThemeWindow
+  id: InGameScriptManagerWindow
+  !text: tr('In-Game Scripts')
+  size: 380 240
+  @onEscape: self:hide()
+
+  HelperThemeLabel
+    id: status
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 18
+    text-align: center
+    color: #b8c7cc
+    text: Scripts guardados
+
+  HelperThemeList
+    id: scriptList
+    anchors.top: status.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 66
+    margin-top: 5
+    vertical-scrollbar: scriptListScrollBar
+
+  VerticalScrollBar
+    id: scriptListScrollBar
+    anchors.top: scriptList.top
+    anchors.bottom: scriptList.bottom
+    anchors.right: scriptList.right
+    step: 22
+    pixels-scroll: true
+
+  ScriptControlsPanel
+    id: liveControls
+    anchors.top: scriptList.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 6
+
+  HelperThemeDivider
+    id: separator
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: scriptName.top
+    margin-bottom: 7
+
+  HelperThemeInput
+    id: scriptName
+    anchors.left: parent.left
+    anchors.right: renameButton.left
+    anchors.bottom: closeButton.top
+    margin-right: 4
+    margin-bottom: 9
+    height: 20
+    font: verdana-11px-antialised
+    tooltip: Nombre del script nuevo o seleccionado.
+
+  HelperThemeButton
+    id: renameButton
+    anchors.right: addButton.left
+    anchors.bottom: closeButton.top
+    margin-right: 4
+    margin-bottom: 9
+    size: 72 20
+    text: Renombrar
+    tooltip: Cambiar el nombre del script seleccionado.
+
+  HelperThemeButton
+    id: addButton
+    anchors.right: parent.right
+    anchors.bottom: closeButton.top
+    margin-bottom: 9
+    size: 58 20
+    text: Nuevo
+    tooltip: Crear un script con el nombre escrito.
+
+  HelperThemeButton
+    id: closeButton
+    text: Cerrar
+    font: verdana-11px-antialised
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 45 21
+    margin-right: 5
+    @onClick: self:getParent():hide()
+
+// Compact Helper workspace; Classic retains the original manager above.
+HelperScriptsCompact < HelperThemeWindow
+  id: InGameScriptManagerWindow
+  text:
+  size: 340 108
+  fixed-size: true
+  text-align: left
+  padding: 8
+  padding-top: 8
+  @onEscape: self:hide()
+
+  HelperThemeInput
+    id: scriptName
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: renameButton.left
+    margin-right: 4
+    height: 22
+    placeholder: Nombre del script
+    tooltip: Nombre del script nuevo o seleccionado.
+
+  HelperThemeButton
+    id: renameButton
+    anchors.top: parent.top
+    anchors.right: addButton.left
+    margin-right: 4
+    size: 72 22
+    text: Renombrar
+    tooltip: Cambiar el nombre del script seleccionado.
+
+  HelperThemeButton
+    id: addButton
+    anchors.top: parent.top
+    anchors.right: parent.right
+    size: 58 22
+    text: Nuevo
+    tooltip: Crear un script con el nombre escrito.
+
+  HelperThemeLabel
+    id: status
+    anchors.top: scriptName.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 4
+    height: 16
+    text: Selecciona un script o crea uno.
+    text-align: left
+    text-wrap: false
+    color: #b8c7cc
+
+  HelperThemeList
+    id: scriptList
+    anchors.top: status.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 22
+    margin-top: 4
+    vertical-scrollbar: scriptListScrollBar
+
+  VerticalScrollBar
+    id: scriptListScrollBar
+    anchors.top: scriptList.top
+    anchors.bottom: scriptList.bottom
+    anchors.right: scriptList.right
+    step: 22
+    pixels-scroll: true
+
+  // Keep existing handler IDs; Helper's X/Inicio provide workspace navigation.
+  ScriptControlsPanel
+    id: liveControls
+    anchors.top: scriptList.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 6
+
+  HelperThemeDivider
+    id: separator
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 1 1
+    visible: false
+
+  HelperThemeButton
+    id: closeButton
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 20 20
+    visible: false
