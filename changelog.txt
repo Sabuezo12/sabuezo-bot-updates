@@ -1,3 +1,12 @@
+3.1.8 - Push Max, Huida PvP, ZonaPZ y Friend Healer
+- Push Max renovado: marcas PUSH/DEST, Fire Field a distancia, Disintegrate melee, Destroy Field y cierre con Magic Wall.
+- Objetos y pociones coordinados con el push; curacion urgente prioritaria y spells libres.
+- Huida PvP sin BugMap ni Fire Field; atraviesa fields, busca salida, empuja jugadores y ataca monstruos bloqueadores.
+- ZonaPZ: espera configurable solo tras una huida, con boton para reiniciar el contador.
+- AntiPush: proteccion opcional al caminar mas de dos pasos, activada por defecto.
+- Friend Healer: excluye enemigos/atacantes y evita Mas Res si puede curar jugadores ajenos; VIP no equivale a amigo.
+- Conserva perfiles, rutas, scripts, actualizacion automatica y recuperacion. Aeron Knight sigue intacto.
+
 3.1.7 - ZonaPZ, Push Max normal, AntiPush y Spy Level
 - CaveBot: ZonaPZ como destino de Huida PvP; compara caminos conocidos y continua la ruta al llegar al punto seguro.
 - Wait Stamina restaura minima/maxima y opciones de label; una huida omite la espera.

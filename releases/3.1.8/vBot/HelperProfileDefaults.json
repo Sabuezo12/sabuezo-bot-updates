@@ -1,0 +1,679 @@
+{
+  "schema": 1,
+  "storage": {
+    "extras": {
+      "pathfinding": true,
+      "talkDelay": 1000,
+      "looting": 7,
+      "lootDelay": 200,
+      "huntRoutes": 300,
+      "killUnder": 1,
+      "gotoMaxDistance": 90,
+      "quickLootCorpses": false,
+      "buySuppliesV15": true,
+      "lootLast": true,
+      "joinBot": false,
+      "reachable": true,
+      "stake": false,
+      "suppliesControl": false,
+      "showTargetPriority": false,
+      "rope": 3003,
+      "shovel": 3457,
+      "machete": 3308,
+      "scythe": 3453,
+      "maxUseDist": 2,
+      "useAll": "|",
+      "title": true,
+      "separatePm": true,
+      "antiKick": true,
+      "oberon": false,
+      "autoOpenDoors": true,
+      "bless": true,
+      "reUse": false,
+      "checkPlayer": true,
+      "highlightTarget": false,
+      "hideAurasAndPets": true
+    },
+    "newHealer": {
+      "version": 2,
+      "enabled": false,
+      "customPlayers": [],
+      "vocations": {},
+      "groups": {},
+      "priorities": [
+        {
+          "name": "Exura Gran Sio",
+          "enabled": true,
+          "strong": true
+        },
+        {
+          "name": "Exura Sio",
+          "enabled": true,
+          "normal": true
+        },
+        {
+          "name": "Exura Gran Mas Res",
+          "enabled": true,
+          "area": true
+        },
+        {
+          "name": "Custom Spell",
+          "enabled": false,
+          "custom": true
+        },
+        {
+          "name": "Health Item",
+          "enabled": false,
+          "health": true
+        },
+        {
+          "name": "Mana Item",
+          "enabled": false,
+          "mana": true
+        }
+      ],
+      "settings": [
+        {
+          "type": "HealScroll",
+          "text": "Item Range: ",
+          "value": 6
+        },
+        {
+          "type": "HealItem",
+          "text": "Health Item ",
+          "value": 0
+        },
+        {
+          "type": "HealScroll",
+          "text": "Mas Res Players: ",
+          "value": 3
+        },
+        {
+          "type": "HealScroll",
+          "text": "Friend HP < %: ",
+          "value": 80
+        },
+        {
+          "type": "HealScroll",
+          "text": "Gran Sio HP < %: ",
+          "value": 30
+        },
+        {
+          "type": "HealScroll",
+          "text": "If MY HP < %: ",
+          "value": 20
+        },
+        {
+          "type": "HealScroll",
+          "text": "If MY MP < %: ",
+          "value": 30
+        },
+        {
+          "type": "HealItem",
+          "text": "Mana Item ",
+          "value": 0
+        },
+        {
+          "type": "HealScroll",
+          "text": "Friend MP < %: ",
+          "value": 50
+        }
+      ],
+      "conditions": {
+        "knights": true,
+        "paladins": true,
+        "druids": true,
+        "sorcerers": true,
+        "monks": true,
+        "party": true,
+        "guild": true,
+        "friends": true,
+        "customPlayers": true
+      }
+    },
+    "cManager": {
+      "openBack": true,
+      "openPurse": true,
+      "reopenAtLogin": true,
+      "openQuiver": false,
+      "sortItems": true,
+      "rememberPositions": true,
+      "qtdFullAfk": 1,
+      "onFullAfk": false,
+      "pausedCave": false,
+      "inmortalSupplies": {
+        "mightContainerId": 0,
+        "ssaContainerId": 0
+      },
+      "list": [
+        {
+          "eId": 58124,
+          "eName": "Main",
+          "eEnabled": false,
+          "eMinimize": false,
+          "eInfinite": false,
+          "ePages": false,
+          "eFull": false,
+          "eOpenNext": false,
+          "eOpenNextEmpty": true,
+          "eRename": false,
+          "eResize": true,
+          "eItems": []
+        },
+        {
+          "eId": 58183,
+          "eName": "Seller",
+          "eEnabled": false,
+          "eMinimize": false,
+          "eInfinite": false,
+          "ePages": false,
+          "eFull": false,
+          "eOpenNext": false,
+          "eOpenNextEmpty": true,
+          "eRename": false,
+          "eResize": true,
+          "eItems": []
+        }
+      ]
+    },
+    "playerList": {
+      "enemyList": [],
+      "friendList": [],
+      "blackList": [],
+      "vocations": {},
+      "guildMembers": {},
+      "manualFriendList": [],
+      "manualFriendListInitialized": true,
+      "guildName": "",
+      "groupMembers": true,
+      "autoGuildMembers": true,
+      "autoDetectGuild": true,
+      "outfits": false,
+      "vocationOutfits": false,
+      "marks": true,
+      "highlight": false,
+      "autoAdd": true
+    },
+    "iconEditor": {
+      "icons": {},
+      "layout": {
+        "holdToMove": true
+      }
+    }
+  },
+  "configs": {
+    "heal": {
+      "healbot": [
+        {
+          "enabled": true,
+          "spellTable": [],
+          "itemTable": [],
+          "name": "Profile #1",
+          "Visible": false,
+          "OldSchool": false,
+          "Cooldown": true,
+          "Interval": false,
+          "Conditions": true,
+          "Delay": false,
+          "MessageDelay": false
+        },
+        {
+          "enabled": false,
+          "spellTable": [],
+          "itemTable": [],
+          "name": "Profile #2",
+          "Visible": true,
+          "OldSchool": false,
+          "Cooldown": true,
+          "Interval": true,
+          "Conditions": true,
+          "Delay": true,
+          "MessageDelay": false
+        },
+        {
+          "enabled": false,
+          "spellTable": [],
+          "itemTable": [],
+          "name": "Profile #3",
+          "Visible": true,
+          "OldSchool": false,
+          "Cooldown": true,
+          "Interval": true,
+          "Conditions": true,
+          "Delay": true,
+          "MessageDelay": false
+        },
+        {
+          "enabled": false,
+          "spellTable": [],
+          "itemTable": [],
+          "name": "Profile #4",
+          "Visible": true,
+          "OldSchool": false,
+          "Cooldown": true,
+          "Interval": true,
+          "Conditions": true,
+          "Delay": true,
+          "MessageDelay": false
+        },
+        {
+          "enabled": false,
+          "spellTable": [],
+          "itemTable": [],
+          "name": "Profile #5",
+          "Visible": true,
+          "OldSchool": false,
+          "Cooldown": true,
+          "Interval": true,
+          "Conditions": true,
+          "Delay": true,
+          "MessageDelay": false
+        }
+      ],
+      "currentHealBotProfile": 1,
+      "ConditionPanel": {
+        "enabled": false,
+        "curePoison": false,
+        "poisonCost": 20,
+        "cureCurse": false,
+        "curseCost": 80,
+        "cureBleed": false,
+        "bleedCost": 45,
+        "cureBurn": false,
+        "burnCost": 30,
+        "cureElectrify": false,
+        "electrifyCost": 22,
+        "cureParalyse": false,
+        "paralyseCost": 40,
+        "paralyseSpell": "utani gran hur",
+        "paralyseUseHasteFallback": false,
+        "holdHaste": false,
+        "hasteCost": 40,
+        "hasteSpell": "utani gran hur",
+        "holdUtamo": false,
+        "utamoCost": 40,
+        "holdUtana": false,
+        "utanaCost": 440,
+        "holdUtura": false,
+        "uturaType": "Utura",
+        "uturaCost": 100,
+        "ignoreInPz": false,
+        "pauseWhileAttacking": true
+      }
+    },
+    "atk": {
+      "newProfileVocation": "Personalizado"
+    },
+    "supply": {}
+  },
+  "vocationDefaults": {
+    "Knight": {
+      "spells": [
+        {
+          "index": 1,
+          "spell": "exura gran ico",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 40,
+          "cost": 200,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 80
+        },
+        {
+          "index": 2,
+          "spell": "exura med ico",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 75,
+          "cost": 90,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 300
+        },
+        {
+          "index": 3,
+          "spell": "exura ico",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 90,
+          "cost": 40,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 9
+        },
+        {
+          "index": 4,
+          "spell": "exura infir ico",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 95,
+          "cost": 10,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 1
+        }
+      ],
+      "conditions": {
+        "enabled": true,
+        "curePoison": true,
+        "cureParalyse": true,
+        "paralyseSpell": "exura ico",
+        "paralyseCost": 40,
+        "paralyseUseHasteFallback": true,
+        "hasteSpell": "utani hur",
+        "hasteCost": 60,
+        "ignoreInPz": true,
+        "cureCurse": false,
+        "cureBleed": true,
+        "cureBurn": false,
+        "cureElectrify": false
+      }
+    },
+    "Paladin": {
+      "spells": [
+        {
+          "index": 1,
+          "spell": "exura gran san",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 70,
+          "cost": 210,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 60
+        },
+        {
+          "index": 2,
+          "spell": "exura san",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 85,
+          "cost": 160,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 35
+        },
+        {
+          "index": 3,
+          "spell": "exura gran",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 90,
+          "cost": 70,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 20
+        },
+        {
+          "index": 4,
+          "spell": "exura",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 95,
+          "cost": 20,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 8
+        },
+        {
+          "index": 5,
+          "spell": "exura infir",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 95,
+          "cost": 6,
+          "enabled": true,
+          "cooldown": 0,
+          "minLevel": 1,
+          "extraEnabled": false,
+          "extraRelation": "and"
+        }
+      ],
+      "conditions": {
+        "enabled": true,
+        "curePoison": true,
+        "cureParalyse": true,
+        "paralyseSpell": "exura",
+        "paralyseCost": 20,
+        "paralyseUseHasteFallback": true,
+        "hasteSpell": "utani hur",
+        "hasteCost": 60,
+        "ignoreInPz": true,
+        "cureCurse": true,
+        "cureBleed": false,
+        "cureBurn": false,
+        "cureElectrify": false
+      }
+    },
+    "Sorcerer": {
+      "spells": [
+        {
+          "index": 1,
+          "spell": "exura vita",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 70,
+          "cost": 160,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 30
+        },
+        {
+          "index": 2,
+          "spell": "exura gran",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 85,
+          "cost": 70,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 20
+        },
+        {
+          "index": 3,
+          "spell": "exura",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 95,
+          "cost": 20,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 8
+        },
+        {
+          "index": 4,
+          "spell": "exura infir",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 95,
+          "cost": 6,
+          "enabled": true,
+          "cooldown": 0,
+          "minLevel": 1,
+          "extraEnabled": false,
+          "extraRelation": "and"
+        }
+      ],
+      "conditions": {
+        "enabled": true,
+        "curePoison": true,
+        "cureParalyse": true,
+        "paralyseSpell": "exura",
+        "paralyseCost": 20,
+        "paralyseUseHasteFallback": true,
+        "hasteSpell": "utani gran hur",
+        "hasteCost": 100,
+        "ignoreInPz": true,
+        "cureCurse": false,
+        "cureBleed": false,
+        "cureBurn": false,
+        "cureElectrify": false
+      }
+    },
+    "Druid": {
+      "spells": [
+        {
+          "index": 1,
+          "spell": "exura vita",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 70,
+          "cost": 160,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 30
+        },
+        {
+          "index": 2,
+          "spell": "exura gran",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 85,
+          "cost": 70,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 20
+        },
+        {
+          "index": 3,
+          "spell": "exura",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 95,
+          "cost": 20,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 8
+        },
+        {
+          "index": 4,
+          "spell": "exura infir",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 95,
+          "cost": 6,
+          "enabled": true,
+          "cooldown": 0,
+          "minLevel": 1,
+          "extraEnabled": false,
+          "extraRelation": "and"
+        }
+      ],
+      "conditions": {
+        "enabled": true,
+        "curePoison": true,
+        "cureParalyse": true,
+        "paralyseSpell": "exura",
+        "paralyseCost": 20,
+        "paralyseUseHasteFallback": true,
+        "hasteSpell": "utani gran hur",
+        "hasteCost": 100,
+        "ignoreInPz": true,
+        "cureCurse": false,
+        "cureBleed": true,
+        "cureBurn": true,
+        "cureElectrify": true
+      }
+    },
+    "Monk": {
+      "spells": [
+        {
+          "index": 1,
+          "spell": "exura gran tio",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 70,
+          "cost": 210,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 80
+        },
+        {
+          "index": 2,
+          "spell": "exura gran",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 85,
+          "cost": 70,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 20
+        },
+        {
+          "index": 3,
+          "spell": "exura",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 95,
+          "cost": 20,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 8
+        },
+        {
+          "index": 4,
+          "spell": "exura infir",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 95,
+          "cost": 6,
+          "enabled": true,
+          "cooldown": 0,
+          "minLevel": 1,
+          "extraEnabled": false,
+          "extraRelation": "and"
+        }
+      ],
+      "conditions": {
+        "enabled": true,
+        "curePoison": true,
+        "cureParalyse": true,
+        "paralyseSpell": "exura",
+        "paralyseCost": 20,
+        "paralyseUseHasteFallback": true,
+        "hasteSpell": "utani gran hur",
+        "hasteCost": 100,
+        "ignoreInPz": true,
+        "cureCurse": false,
+        "cureBleed": false,
+        "cureBurn": false,
+        "cureElectrify": false
+      }
+    }
+  }
+}

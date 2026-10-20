@@ -1,0 +1,340 @@
+DepotItemRow < HelperThemeSubsection
+  height: 46
+  margin-bottom: 4
+  image-source:
+  image-border: 1
+  padding: 4
+
+  BotItem
+    id: item
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    size: 26 26
+
+  UIWidget
+    id: name
+    anchors.left: item.right
+    anchors.right: remove.left
+    anchors.top: parent.top
+    margin-left: 6
+    margin-right: 4
+    height: 16
+    text: Select item
+    text-align: left
+    font: verdana-11px-antialised
+    color: #ffffff
+
+  HelperThemeButton
+    id: active
+    anchors.right: parent.right
+    anchors.top: parent.top
+    width: 44
+    height: 18
+    text: On
+    font: verdana-11px-antialised
+
+  HelperThemeButton
+    id: remove
+    anchors.right: active.left
+    anchors.top: parent.top
+    margin-right: 4
+    width: 18
+    height: 18
+    text: X
+    font: verdana-11px-antialised
+
+  UIWidget
+    anchors.left: name.left
+    anchors.top: name.bottom
+    margin-top: 2
+    width: 62
+    height: 12
+    text: Mode
+    visible: false
+    text-align: center
+    font: verdana-11px-antialised
+    color: #c8c8c8
+
+  UIWidget
+    anchors.left: prev.right
+    anchors.top: prev.top
+    margin-left: 4
+    width: 54
+    height: 12
+    text: Amount
+    visible: false
+    text-align: center
+    font: verdana-11px-antialised
+    color: #c8c8c8
+
+  UIWidget
+    anchors.left: prev.right
+    anchors.top: prev.top
+    margin-left: 4
+    width: 44
+    height: 12
+    text: Box
+    visible: false
+    text-align: center
+    font: verdana-11px-antialised
+    color: #c8c8c8
+
+  UIWidget
+    anchors.left: prev.right
+    anchors.top: prev.top
+    margin-left: 4
+    width: 52
+    height: 12
+    text: Storage
+    visible: false
+    text-align: center
+    font: verdana-11px-antialised
+    color: #c8c8c8
+
+  UIWidget
+    anchors.left: prev.right
+    anchors.top: prev.top
+    margin-left: 4
+    width: 42
+    height: 12
+    text: Log
+    visible: false
+    text-align: center
+    font: verdana-11px-antialised
+    color: #c8c8c8
+
+  HelperThemeButton
+    id: mode
+    anchors.left: name.left
+    anchors.top: name.bottom
+    margin-top: 2
+    width: 74
+    height: 18
+    text: Deposit
+    font: verdana-11px-antialised
+
+  HelperThemeInput
+    id: amount
+    anchors.left: mode.right
+    anchors.top: mode.top
+    margin-left: 4
+    width: 52
+    height: 18
+    padding: 0
+    padding-left: 3
+    padding-right: 3
+    padding-top: 1
+    padding-bottom: 1
+    text-offset: 0 0
+    text-align: center
+    text: 0
+
+  HelperThemeInput
+    id: box
+    anchors.left: amount.right
+    anchors.top: amount.top
+    margin-left: 4
+    width: 36
+    height: 18
+    padding: 0
+    padding-left: 3
+    padding-right: 3
+    padding-top: 1
+    padding-bottom: 1
+    text-offset: 0 0
+    text-align: center
+    text: 3
+
+  HelperThemeButton
+    id: source
+    anchors.left: box.right
+    anchors.top: box.top
+    margin-left: 4
+    width: 56
+    height: 18
+    text: Box
+    font: verdana-11px-antialised
+
+  HelperThemeButton
+    id: alias
+    anchors.left: source.right
+    anchors.top: source.top
+    margin-left: 4
+    width: 36
+    height: 18
+    text: Log
+    font: verdana-11px-antialised
+
+  HelperThemeInput
+    id: aliasValue
+    anchors.left: alias.left
+    anchors.top: alias.top
+    width: 1
+    height: 1
+    visible: false
+
+  UIWidget
+    id: count
+    anchors.left: alias.right
+    anchors.right: parent.right
+    anchors.verticalCenter: mode.verticalCenter
+    margin-left: 6
+    height: 14
+    text: Actual: -
+    text-align: left
+    font: verdana-11px-antialised
+    color: #c8c8c8
+
+DepositerPanel < HelperThemeWindow
+  size: 580 226
+  !text: tr('Depot Settings')
+  @onEscape: self:hide()
+
+  UIWidget
+    id: title
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 20
+    text: Depot: depositos y retiros
+    background-color: #244b53
+    border-width: 1
+    border-color: #4d7279
+    text-align: left
+    font: verdana-11px-antialised
+    color: #d8d8d8
+
+  HelperThemeButton
+    id: addDeposit
+    anchors.left: parent.left
+    anchors.top: title.bottom
+    margin-top: 4
+    width: 90
+    height: 22
+    text: Depositar +
+    font: verdana-11px-antialised
+
+  HelperThemeButton
+    id: addWithdraw
+    anchors.left: addDeposit.right
+    anchors.top: addDeposit.top
+    margin-left: 5
+    width: 90
+    height: 22
+    text: Retirar +
+    font: verdana-11px-antialised
+
+  HelperThemeButton
+    id: resetCounters
+    anchors.right: parent.right
+    anchors.top: addDeposit.top
+    width: 96
+    height: 22
+    text: Reiniciar uso
+    font: verdana-11px-antialised
+
+  Panel
+    id: columns
+    anchors.top: addDeposit.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-right: 14
+    margin-top: 5
+    height: 16
+    HelperThemeLabel
+      id: modeTitle
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 39
+      width: 74
+      height: 16
+      text: Accion
+      text-align: center
+    HelperThemeLabel
+      id: amountTitle
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 117
+      width: 52
+      height: 16
+      text: Cantidad
+      text-align: center
+    HelperThemeLabel
+      id: boxTitle
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 173
+      width: 36
+      height: 16
+      text: Box
+      text-align: center
+    HelperThemeLabel
+      id: sourceTitle
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 213
+      width: 56
+      height: 16
+      text: Origen
+      text-align: center
+    HelperThemeLabel
+      id: aliasTitle
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 273
+      width: 36
+      height: 16
+      text: Alias
+      text-align: center
+
+  HelperThemeScroll
+    id: DepositerList
+    anchors.top: columns.bottom
+    margin-top: 3
+    anchors.left: parent.left
+    anchors.right: DepositerScrollBar.left
+    margin-right: 4
+    anchors.bottom: sep.top
+    margin-bottom: 5
+    padding: 3
+    vertical-scrollbar: DepositerScrollBar
+    layout:
+      type: verticalBox
+
+  VerticalScrollBar
+    id: DepositerScrollBar
+    anchors.top: columns.bottom
+    margin-top: 3
+    anchors.bottom: sep.top
+    margin-bottom: 5
+    anchors.right: parent.right
+    width: 10
+    step: 18
+    pixels-scroll: true
+
+  ResizeBorder
+    id: bottomResizeBorder
+    visible: false
+    anchors.fill: next
+    height: 3
+    minimum: 260
+    maximum: 800
+    margin-left: 3
+    margin-right: 3
+    background: #ffffff88
+
+  HelperThemeDivider
+    id: sep
+    anchors.right: parent.right
+    anchors.left: parent.left
+    anchors.bottom: CloseButton.top
+    margin-bottom: 8
+
+  HelperThemeButton
+    id: CloseButton
+    text: Cerrar
+    font: verdana-11px-antialised
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 65 20
+    margin-right: 5

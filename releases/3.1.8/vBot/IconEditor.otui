@@ -1,0 +1,866 @@
+IconEditorRow < UIWidget
+  height: 24
+  focusable: true
+  background-color: alpha
+
+  $focus:
+    background-color: #00000066
+
+  HelperThemeCheck
+    id: visible
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 3
+    size: 15 15
+    tooltip: Mostrar u ocultar este icono.
+
+  UIItem
+    id: item
+    anchors.left: visible.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 4
+    size: 24 24
+    phantom: true
+
+  HelperThemeLabel
+    id: name
+    anchors.left: item.right
+    anchors.right: coords.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 5
+    margin-right: 4
+    height: 20
+    text-align: left
+    text-auto-resize: false
+    font: verdana-11px-antialised
+
+  HelperThemeLabel
+    id: coords
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 15
+    width: 70
+    height: 18
+    text-align: right
+    color: #a8a8a8
+
+IconEditorColorSwatch < UIWidget
+  size: 22 18
+  focusable: true
+  border-width: 1
+  border-color: #777777
+  tooltip: Seleccionar este color.
+
+  $hover:
+    border-color: #ffffff
+
+  $focus:
+    border-width: 2
+    border-color: #ffffff
+
+IconEditorModeComboBoxPopupMenu < HelperThemeComboPopupMenu
+IconEditorModeComboBoxPopupMenuButton < HelperThemeComboPopupMenuButton
+IconEditorModeComboBox < HelperThemeCombo
+  @onSetup: |
+    self:addOption("Icono")
+    self:addOption("Barra")
+
+IconEditorSelectedModeComboBoxPopupMenu < HelperThemeComboPopupMenu
+IconEditorSelectedModeComboBoxPopupMenuButton < HelperThemeComboPopupMenuButton
+IconEditorSelectedModeComboBox < HelperThemeCombo
+  @onSetup: |
+    self:addOption("Del conjunto")
+    self:addOption("Icono")
+    self:addOption("Barra")
+
+IconEditorMovementComboBoxPopupMenu < HelperThemeComboPopupMenu
+IconEditorMovementComboBoxPopupMenuButton < HelperThemeComboPopupMenuButton
+IconEditorMovementComboBox < HelperThemeCombo
+  @onSetup: |
+    self:addOption("Bloqueado")
+    self:addOption("Mover seleccionado")
+    self:addOption("Mover todos")
+
+IconEditorSample < Panel
+  size: 156 58
+  border-width: 1
+  border-color: #3e515e
+  background-color: #0f1920
+  phantom: true
+  UIItem
+    id: item
+    anchors.horizontalCenter: parent.horizontalCenter
+    anchors.top: parent.top
+    margin-top: 3
+    size: 32 32
+    phantom: true
+  HelperThemeLabel
+    id: name
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    margin-bottom: 2
+    height: 18
+    text-align: center
+    text-wrap: false
+    phantom: true
+
+IconEditorWindow < HelperThemeWindow
+  id: IconEditorWindow
+  text: Iconos
+  size: 620 436
+  @onEscape: self:hide()
+
+  HelperThemeInput
+    id: search
+    anchors.top: parent.top
+    anchors.left: parent.left
+    width: 220
+    height: 24
+    placeholder: Buscar icono...
+    tooltip: Filtra por nombre o funcion; no cambia tus iconos.
+
+  HelperThemeLabel
+    id: listTitle
+    anchors.top: search.bottom
+    anchors.left: parent.left
+    width: 220
+    height: 20
+    margin-top: 5
+    text: Iconos
+    color: #50d7d4
+
+  HelperThemeScroll
+    id: iconList
+    anchors.top: listTitle.bottom
+    anchors.left: parent.left
+    anchors.bottom: showAll.top
+    width: 220
+    margin-top: 3
+    margin-bottom: 7
+    padding: 2
+    vertical-scrollbar: iconListScrollBar
+    layout: verticalBox
+    background-color: #0f1920
+
+  VerticalScrollBar
+    id: iconListScrollBar
+    anchors.top: iconList.top
+    anchors.bottom: iconList.bottom
+    anchors.right: iconList.right
+    step: 24
+    pixels-scroll: true
+
+  HelperThemeLabel
+    id: emptySearch
+    anchors.top: iconList.top
+    anchors.left: iconList.left
+    anchors.right: iconList.right
+    margin-top: 8
+    height: 20
+    text: Sin coincidencias
+    text-align: center
+    color: #a9bbc6
+    visible: false
+    phantom: true
+
+  HelperThemeButton
+    id: showAll
+    anchors.left: parent.left
+    anchors.bottom: iconStatus.top
+    margin-bottom: 8
+    size: 106 22
+    text: Mostrar todos
+    tooltip: Muestra todos los iconos, sin activar sus funciones.
+
+  HelperThemeButton
+    id: hideAll
+    anchors.left: showAll.right
+    anchors.top: showAll.top
+    margin-left: 6
+    size: 108 22
+    text: Ocultar todos
+    tooltip: Oculta todos los iconos. Las funciones mantienen su estado.
+
+  HelperThemeVerticalDivider
+    id: middleSeparator
+    anchors.top: parent.top
+    anchors.bottom: iconStatus.top
+    anchors.left: search.right
+    margin-left: 8
+    margin-bottom: 8
+
+  HelperThemeButton
+    id: iconTab
+    anchors.top: parent.top
+    anchors.left: middleSeparator.right
+    size: 110 24
+    text: Icono
+    margin-left: 9
+
+  HelperThemeButton
+    id: layoutTab
+    anchors.top: parent.top
+    anchors.left: iconTab.right
+    size: 110 24
+    text: Conjunto
+    margin-left: 6
+
+  HelperThemeButton
+    id: helperTab
+    anchors.top: parent.top
+    anchors.left: layoutTab.right
+    size: 110 24
+    text: Helper
+    margin-left: 6
+
+  HelperThemeLabel
+    id: selectedTitle
+    anchors.top: iconTab.bottom
+    anchors.left: iconTab.left
+    anchors.right: parent.right
+    margin-top: 7
+    height: 20
+    color: #50d7d4
+    text: Selecciona un icono
+    text-wrap: false
+
+  HelperThemeLabel
+    id: nameLabel
+    anchors.top: selectedTitle.bottom
+    anchors.left: selectedTitle.left
+    width: 54
+    height: 18
+    text: Nombre
+    margin-top: 10
+
+  HelperThemeInput
+    id: selectedName
+    anchors.left: nameLabel.right
+    anchors.verticalCenter: nameLabel.verticalCenter
+    margin-left: 5
+    height: 22
+    anchors.right: parent.right
+    tooltip: Se guarda al escribir. Usa / para dividir el nombre en dos lineas.
+
+  HelperThemeLabel
+    id: itemLabel
+    anchors.top: nameLabel.bottom
+    anchors.left: selectedTitle.left
+    width: 54
+    height: 18
+    text: Item
+    margin-top: 10
+
+  BotItem
+    id: selectedItem
+    anchors.top: itemLabel.top
+    anchors.left: itemLabel.right
+    margin-left: 5
+    size: 32 32
+    tooltip: Arrastra un item aqui. Solo cambia la imagen del acceso.
+
+  HelperThemeCheck
+    id: selectedVisible
+    anchors.left: selectedItem.right
+    anchors.verticalCenter: selectedItem.verticalCenter
+    margin-left: 12
+    size: 170 18
+    text: Mostrar este icono
+    tooltip: Solo cambia la visibilidad del acceso; la funcion mantiene su estado.
+
+  HelperThemeLabel
+    id: selectedStyleLabel
+    anchors.top: selectedItem.bottom
+    anchors.left: selectedTitle.left
+    width: 54
+    height: 18
+    text: Estilo
+    margin-top: 8
+
+  IconEditorSelectedModeComboBox
+    id: selectedVisualMode
+    anchors.left: selectedStyleLabel.right
+    anchors.verticalCenter: selectedStyleLabel.verticalCenter
+    margin-left: 5
+    height: 22
+    width: 170
+    tooltip: Del conjunto usa el estilo general. Icono o Barra permite un estilo propio.
+
+  HelperThemeLabel
+    id: positionLabel
+    anchors.top: selectedStyleLabel.bottom
+    anchors.left: selectedTitle.left
+    width: 66
+    height: 18
+    text: Posicion
+    margin-top: 10
+
+  HelperThemeLabel
+    id: xLabel
+    anchors.top: positionLabel.top
+    anchors.left: positionLabel.right
+    width: 14
+    height: 18
+    text: X
+    margin-left: 5
+
+  HelperThemeSpin
+    id: selectedX
+    anchors.left: xLabel.right
+    anchors.verticalCenter: xLabel.verticalCenter
+    margin-left: 5
+    height: 22
+    width: 72
+    minimum: 0
+    maximum: 4000
+    step: 1
+    editable: true
+    tooltip: Coordenada horizontal. Se aplica al momento y respeta los bordes de la pantalla.
+
+  HelperThemeLabel
+    id: yLabel
+    anchors.top: positionLabel.top
+    anchors.left: selectedX.right
+    width: 14
+    height: 18
+    text: Y
+    margin-left: 12
+
+  HelperThemeSpin
+    id: selectedY
+    anchors.left: yLabel.right
+    anchors.verticalCenter: yLabel.verticalCenter
+    margin-left: 5
+    height: 22
+    width: 72
+    minimum: 0
+    maximum: 4000
+    step: 1
+    editable: true
+    tooltip: Coordenada vertical. Se aplica al momento y respeta los bordes de la pantalla.
+
+  HelperThemeLabel
+    id: onColorLabel
+    anchors.top: positionLabel.bottom
+    anchors.left: selectedTitle.left
+    width: 70
+    height: 18
+    text: Color ON
+    margin-top: 14
+
+  IconEditorColorSwatch
+    id: onGreen
+    anchors.left: onColorLabel.right
+    anchors.verticalCenter: onColorLabel.verticalCenter
+    margin-left: 0
+    background-color: #00d43a
+    tooltip: Aplicar #00d43a al color ON
+
+  IconEditorColorSwatch
+    id: onLime
+    anchors.left: onGreen.right
+    anchors.verticalCenter: onColorLabel.verticalCenter
+    margin-left: 6
+    background-color: #77ff55
+    tooltip: Aplicar #77ff55 al color ON
+
+  IconEditorColorSwatch
+    id: onCyan
+    anchors.left: onLime.right
+    anchors.verticalCenter: onColorLabel.verticalCenter
+    margin-left: 6
+    background-color: #32d8ff
+    tooltip: Aplicar #32d8ff al color ON
+
+  IconEditorColorSwatch
+    id: onYellow
+    anchors.left: onCyan.right
+    anchors.verticalCenter: onColorLabel.verticalCenter
+    margin-left: 6
+    background-color: #ffe45b
+    tooltip: Aplicar #ffe45b al color ON
+
+  HelperThemeInput
+    id: onColorHex
+    anchors.left: onYellow.right
+    anchors.verticalCenter: onColorLabel.verticalCenter
+    margin-left: 8
+    size: 92 22
+    tooltip: Color personalizado: #RRGGBB. Pulsa Enter para aplicarlo.
+
+  UIWidget
+    id: onColorPreview
+    anchors.left: onColorHex.right
+    anchors.verticalCenter: onColorLabel.verticalCenter
+    margin-left: 5
+    size: 24 18
+    background-color: #00d43a
+    border-width: 1
+    border-color: #58717e
+    tooltip: Color aplicado al icono
+
+  HelperThemeLabel
+    id: offColorLabel
+    anchors.top: onColorLabel.bottom
+    anchors.left: selectedTitle.left
+    width: 70
+    height: 18
+    text: Color OFF
+    margin-top: 10
+
+  IconEditorColorSwatch
+    id: offRed
+    anchors.left: offColorLabel.right
+    anchors.verticalCenter: offColorLabel.verticalCenter
+    margin-left: 0
+    background-color: #ff3b3b
+    tooltip: Aplicar #ff3b3b al color OFF
+
+  IconEditorColorSwatch
+    id: offWhite
+    anchors.left: offRed.right
+    anchors.verticalCenter: offColorLabel.verticalCenter
+    margin-left: 6
+    background-color: #ffffff
+    tooltip: Aplicar #ffffff al color OFF
+
+  IconEditorColorSwatch
+    id: offOrange
+    anchors.left: offWhite.right
+    anchors.verticalCenter: offColorLabel.verticalCenter
+    margin-left: 6
+    background-color: #ff9f32
+    tooltip: Aplicar #ff9f32 al color OFF
+
+  IconEditorColorSwatch
+    id: offYellow
+    anchors.left: offOrange.right
+    anchors.verticalCenter: offColorLabel.verticalCenter
+    margin-left: 6
+    background-color: #ffe45b
+    tooltip: Aplicar #ffe45b al color OFF
+
+  IconEditorColorSwatch
+    id: offCyan
+    anchors.left: offYellow.right
+    anchors.verticalCenter: offColorLabel.verticalCenter
+    margin-left: 6
+    background-color: #32d8ff
+    tooltip: Aplicar #32d8ff al color OFF
+
+  HelperThemeInput
+    id: offColorHex
+    anchors.left: offCyan.right
+    anchors.verticalCenter: offColorLabel.verticalCenter
+    margin-left: 8
+    size: 92 22
+    tooltip: Color personalizado: #RRGGBB. Pulsa Enter para aplicarlo.
+
+  UIWidget
+    id: offColorPreview
+    anchors.left: offColorHex.right
+    anchors.verticalCenter: offColorLabel.verticalCenter
+    margin-left: 5
+    size: 24 18
+    background-color: #ff3b3b
+    border-width: 1
+    border-color: #58717e
+    tooltip: Color aplicado al icono
+
+  HelperThemeLabel
+    id: previewLabel
+    anchors.top: offColorLabel.bottom
+    anchors.left: selectedTitle.left
+    width: 330
+    height: 18
+    text: Vista previa: ON / OFF
+    margin-top: 12
+
+  IconEditorSample
+    id: previewOn
+    anchors.top: previewLabel.bottom
+    anchors.left: selectedTitle.left
+    margin-top: 5
+    tooltip: Aspecto del icono cuando su funcion esta activada.
+
+  IconEditorSample
+    id: previewOff
+    anchors.top: previewOn.top
+    anchors.left: previewOn.right
+    margin-left: 8
+    tooltip: Aspecto del icono cuando su funcion esta desactivada.
+
+  HelperThemeButton
+    id: resetIcon
+    anchors.top: previewOn.bottom
+    anchors.left: selectedTitle.left
+    margin-top: 8
+    size: 172 24
+    text: Restablecer este icono
+    tooltip: Recupera el aspecto y la posicion originales. Puedes deshacerlo.
+
+  HelperThemeLabel
+    id: styleLabel
+    anchors.top: selectedTitle.bottom
+    anchors.left: selectedTitle.left
+    width: 112
+    height: 18
+    text: Estilo para todos
+    margin-top: 10
+
+  IconEditorModeComboBox
+    id: visualMode
+    anchors.left: styleLabel.right
+    anchors.verticalCenter: styleLabel.verticalCenter
+    margin-left: 5
+    height: 22
+    width: 100
+    tooltip: Aplica Icono o Barra a todo el conjunto y quita los estilos individuales.
+
+  HelperThemeLabel
+    id: opacityLabel
+    anchors.top: styleLabel.top
+    anchors.left: visualMode.right
+    width: 50
+    height: 18
+    text: Opac. %
+    margin-left: 10
+
+  HelperThemeSpin
+    id: barOpacity
+    anchors.left: opacityLabel.right
+    anchors.verticalCenter: opacityLabel.verticalCenter
+    margin-left: 5
+    height: 22
+    width: 54
+    minimum: 10
+    maximum: 100
+    step: 5
+    editable: true
+    tooltip: Transparencia del fondo de las barras; no afecta a las funciones.
+
+  HelperThemeCheck
+    id: snapEnabled
+    anchors.top: styleLabel.bottom
+    anchors.left: selectedTitle.left
+    margin-top: 14
+    size: 166 18
+    text: Ajustar al soltar
+    tooltip: Al terminar un arrastre, redondea la posicion al paso indicado.
+
+  HelperThemeLabel
+    id: gridLabel
+    anchors.top: snapEnabled.top
+    anchors.left: snapEnabled.right
+    width: 48
+    height: 18
+    text: Paso px
+    margin-left: 8
+
+  HelperThemeSpin
+    id: gridSize
+    anchors.left: gridLabel.right
+    anchors.verticalCenter: gridLabel.verticalCenter
+    margin-left: 5
+    height: 22
+    width: 58
+    minimum: 1
+    maximum: 32
+    step: 1
+    editable: true
+
+  HelperThemeDivider
+    id: layoutSeparator
+    anchors.top: snapEnabled.bottom
+    anchors.left: selectedTitle.left
+    anchors.right: parent.right
+    margin-top: 12
+
+  HelperThemeLabel
+    id: layoutTitle
+    anchors.top: layoutSeparator.bottom
+    anchors.left: selectedTitle.left
+    width: 330
+    height: 18
+    text: Distribucion
+    margin-top: 7
+    color: #50d7d4
+
+  HelperThemeButton
+    id: presetVertical
+    anchors.top: layoutTitle.bottom
+    anchors.left: selectedTitle.left
+    margin-top: 6
+    size: 88 22
+    text: Vertical
+    tooltip: Prepara esta distribucion. Pulsa Ordenar para aplicarla.
+
+  HelperThemeButton
+    id: presetRow
+    anchors.top: layoutTitle.bottom
+    anchors.left: presetVertical.right
+    margin-top: 6
+    size: 88 22
+    text: Fila
+    tooltip: Prepara esta distribucion. Pulsa Ordenar para aplicarla.
+    margin-left: 6
+
+  HelperThemeButton
+    id: presetColumns
+    anchors.top: layoutTitle.bottom
+    anchors.left: presetRow.right
+    margin-top: 6
+    size: 110 22
+    text: 2 columnas
+    tooltip: Prepara esta distribucion. Pulsa Ordenar para aplicarla.
+    margin-left: 6
+
+  HelperThemeLabel
+    id: columnsLabel
+    anchors.top: presetVertical.bottom
+    anchors.left: selectedTitle.left
+    width: 66
+    height: 18
+    text: Columnas
+    margin-top: 12
+
+  HelperThemeSpin
+    id: columns
+    anchors.left: columnsLabel.right
+    anchors.verticalCenter: columnsLabel.verticalCenter
+    margin-left: 5
+    height: 22
+    width: 72
+    minimum: 1
+    maximum: 32
+    step: 1
+    editable: true
+
+  HelperThemeCheck
+    id: visibleOnly
+    anchors.left: columns.right
+    anchors.verticalCenter: columnsLabel.verticalCenter
+    margin-left: 20
+    size: 156 18
+    text: Solo visibles
+    tooltip: Al ordenar, los iconos ocultos conservan su posicion.
+
+  HelperThemeLabel
+    id: gapXLabel
+    anchors.top: columnsLabel.bottom
+    anchors.left: selectedTitle.left
+    width: 66
+    height: 18
+    text: Paso X
+    margin-top: 12
+
+  HelperThemeSpin
+    id: gapX
+    anchors.left: gapXLabel.right
+    anchors.verticalCenter: gapXLabel.verticalCenter
+    margin-left: 5
+    height: 22
+    width: 72
+    minimum: 1
+    maximum: 300
+    step: 1
+    editable: true
+    tooltip: Distancia horizontal entre comienzos de iconos, en pixeles.
+
+  HelperThemeLabel
+    id: gapYLabel
+    anchors.top: gapXLabel.top
+    anchors.left: selectedTitle.left
+    width: 66
+    height: 18
+    text: Paso Y
+    margin-left: 184
+
+  HelperThemeSpin
+    id: gapY
+    anchors.left: gapYLabel.right
+    anchors.verticalCenter: gapYLabel.verticalCenter
+    margin-left: 5
+    height: 22
+    width: 72
+    minimum: 1
+    maximum: 300
+    step: 1
+    editable: true
+    tooltip: Distancia vertical entre comienzos de iconos, en pixeles.
+
+  HelperThemeLabel
+    id: originXLabel
+    anchors.top: gapXLabel.bottom
+    anchors.left: selectedTitle.left
+    width: 66
+    height: 18
+    text: Origen X
+    margin-top: 12
+
+  HelperThemeSpin
+    id: originX
+    anchors.left: originXLabel.right
+    anchors.verticalCenter: originXLabel.verticalCenter
+    margin-left: 5
+    height: 22
+    width: 72
+    minimum: 0
+    maximum: 4000
+    step: 1
+    editable: true
+    tooltip: Inicio horizontal de la distribucion. Se aplica al pulsar Ordenar.
+
+  HelperThemeLabel
+    id: originYLabel
+    anchors.top: originXLabel.top
+    anchors.left: selectedTitle.left
+    width: 66
+    height: 18
+    text: Origen Y
+    margin-left: 184
+
+  HelperThemeSpin
+    id: originY
+    anchors.left: originYLabel.right
+    anchors.verticalCenter: originYLabel.verticalCenter
+    margin-left: 5
+    height: 22
+    width: 72
+    minimum: 0
+    maximum: 4000
+    step: 1
+    editable: true
+    tooltip: Inicio vertical de la distribucion. Se aplica al pulsar Ordenar.
+
+  HelperThemeButton
+    id: alignGrid
+    anchors.top: originXLabel.bottom
+    anchors.left: selectedTitle.left
+    margin-top: 14
+    size: 112 24
+    text: Ordenar
+    tooltip: Aplica columnas, pasos y origen. Si no cabe en pantalla, conserva la distribucion anterior.
+
+  HelperThemeButton
+    id: resetAll
+    anchors.left: alignGrid.right
+    anchors.top: alignGrid.top
+    margin-left: 8
+    size: 158 24
+    text: Restablecer todos
+    tooltip: Recupera el aspecto y posiciones originales; Deshacer permite recuperarlos.
+
+  HelperThemeLabel
+    id: layoutHint
+    anchors.top: alignGrid.bottom
+    anchors.left: selectedTitle.left
+    width: 340
+    height: 34
+    text: Ajusta los valores y pulsa Ordenar. Usa Deshacer para volver.
+    margin-top: 9
+    text-wrap: true
+    color: #a9bbc6
+
+  Panel
+    id: helperHost
+    anchors.top: selectedTitle.bottom
+    anchors.left: selectedTitle.left
+    anchors.right: parent.right
+    anchors.bottom: iconStatus.top
+    margin-top: 10
+    margin-bottom: 8
+
+  HelperThemeLabel
+    id: helperNotice
+    anchors.top: helperHost.top
+    anchors.left: helperHost.left
+    anchors.right: helperHost.right
+    height: 46
+    text-wrap: true
+    text: La tecla y el tamano del Helper aparecen aqui al usar el modo Helper.
+    color: #a9bbc6
+
+  HelperThemeLabel
+    id: iconStatus
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: bottomSeparator.top
+    margin-bottom: 6
+    height: 20
+    text: Selecciona un icono. Los cambios se guardan al ajustar cada control.
+    color: #a9bbc6
+
+  HelperThemeDivider
+    id: bottomSeparator
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: closeButton.top
+    margin-bottom: 8
+
+  HelperThemeLabel
+    id: movementLabel
+    anchors.top: closeButton.top
+    anchors.left: parent.left
+    width: 60
+    height: 18
+    text: Arrastre
+
+  IconEditorMovementComboBox
+    id: movementMode
+    anchors.left: movementLabel.right
+    anchors.bottom: parent.bottom
+    margin-left: 4
+    size: 174 22
+    tooltip: Bloqueado: los iconos funcionan normalmente. Mover: arrastrar y seleccionar no cambia el estado de las funciones.
+
+  HelperThemeButton
+    id: undo
+    anchors.right: closeButton.left
+    anchors.bottom: parent.bottom
+    margin-right: 6
+    size: 96 22
+    text: Deshacer
+    enabled: false
+    tooltip: Recupera el aspecto y posiciones previos a la ultima operacion; no cambia ON/OFF del bot.
+
+  HelperThemeButton
+    id: closeButton
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 74 22
+    text: Cerrar
+    @onClick: self:getParent():hide()
+
+  HelperThemeCheck
+    id: moveSelected
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 18 18
+    visible: false
+    focusable: false
+
+  HelperThemeCheck
+    id: moveGroup
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 18 18
+    visible: false
+    focusable: false
+
+  HelperThemeButton
+    id: applyIcon
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 18 18
+    visible: false
+    focusable: false
+
+  HelperThemeDivider
+    id: colorSeparator
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 18 18
+    visible: false
+    focusable: false
