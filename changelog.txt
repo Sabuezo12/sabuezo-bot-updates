@@ -1,3 +1,13 @@
+3.1.10 - Combo cooperativo, favoritos y correcciones acumuladas
+- Combo compacto: lideres, objetivo, SD/UE y Magic Wall en un panel; Follow separado.
+- Navi copia el objetivo sin lanzar; SD responde con runa y UE con el spell configurado.
+- MW Auto completa huecos, prolonga paredes y recupera casillas ganadas por companeros; Navi coordina reservas.
+- Favoritos iniciales: Combo, Friend Healer, Player List, Timer Executor, Alarmas y Dummy Smart.
+- Target: doble clic derecho abre AttackBot y cierra TargetBot; Supplies permanece cerrado al recargar.
+- Push Max recupera intentos interrumpidos por spells propios validos; Inmortal guarda el anillo normal en Main BP.
+- Compras verificadas sin detener CaveBot; Huida puede ignorar guild, friends y party.
+- HealBot y Mana Trainer con textos y distribucion corregidos; menos mensajes rutinarios de Container Manager.
+
 3.1.9 - Limpieza de Push Max, Huida, Arrows y niveles de sesion
 - Push Max prioriza el antipush debajo del jugador; no gasta Disintegrate delante si el destino es caminable.
 - Huida PvP incorpora esa limpieza bajo el jugador, sin Fire Field ni BugMap.

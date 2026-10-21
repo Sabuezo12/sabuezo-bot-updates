@@ -1,12 +1,23 @@
 # RinoBot - MythicOT
 
-Versión estable: **3.1.9**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.9). Puente clásico: **3.0.31**.
+Versión estable: **3.1.10**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.10). Puente clásico: **3.0.31**.
 
 ## Actualización
 
 Recarga el bot o espera su comprobación automática cada cinco minutos. Conserva perfiles, rutas, scripts, heals y supplies; después de instalar y verificar vuelve a Helper. Puedes elegir clásico manualmente hasta la siguiente actualización. Se respetan development.lock, recuperación de versiones fallidas y protección contra downgrades.
 
 Versiones antiguas con Auto OFF necesitan adoptar el nuevo updater una primera vez desde su panel. Si no hay Updater, usa la instalación inicial.
+
+## Cambios de 3.1.10
+
+- Combo compacto con SD/UE separados, objetivo compartido por Navi y Follow independiente.
+- Magic Wall Auto completa huecos, prolonga extremos y coordina reservas con los companeros actualizados por Navi.
+- Seis favoritos iniciales compartidos entre perfiles, conservando las personalizaciones posteriores.
+- Doble clic derecho en Target abre AttackBot; Supplies permanece cerrado al recargar.
+- Recuperacion de Push Max tras spells, anillo normal de Inmortal hacia Main BP, compras y filtros de Huida.
+- Textos de HealBot/Mana Trainer corregidos y menos ruido de Container Manager.
+
+335 archivos oficiales, 136 Lua compilados, 19 grupos de pruebas especificas y 9.240 comprobaciones de migracion desde 13 origenes. Conserva configuraciones propias; confirmacion completa dentro de MythicOT pendiente. [Notas completas](rinobot/3.1.10-notas.md) e [informe de validacion](rinobot/3.1.10-validacion.json).
 
 ## Cambios de 3.1.9
 
@@ -66,7 +77,7 @@ En el editor de scripts del bot ejecuta:
 modules.corelib.HTTP.get('https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/bootstrap.lua', function(script, err) if err or not script then warn('No se pudo descargar Sabuezo') return end assert(loadstring(script))() end)
 ```
 
-El bootstrap instala el puente clásico 3.0.31. Recarga el bot para que su updater descubra e instale RinoBot 3.1.9. Se conservan bootstrap, puente y publicaciones anteriores.
+El bootstrap instala el puente clásico 3.0.31. Recarga el bot para que su updater descubra e instale RinoBot 3.1.10. Se conservan bootstrap, puente y publicaciones anteriores.
 
 ## Historial clásico
 

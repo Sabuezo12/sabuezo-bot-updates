@@ -1,0 +1,265 @@
+setDefaultTab("Tools")
+
+local panelName = "pvpSupport"
+if not storage[panelName] then
+  storage[panelName] = {
+    holdTarget = false,
+    holdTargetName = "",
+    lastPlayer = "",
+    lastExivaName = "",
+    exivaTarget = false,
+    exivaLast = false,
+    exivaSpell = "exiva"
+  }
+end
+
+local config = storage[panelName]
+local holdTargetId = nil
+local lastAutoExiva = 0
+
+local function getTime()
+  if now then return now end
+  if g_clock and g_clock.millis then return g_clock.millis() end
+  return 0
+end
+
+local function cleanName(name)
+  if not name then return "" end
+  return tostring(name):gsub("^%s*(.-)%s*$", "%1")
+end
+
+config.holdTarget = config.holdTarget == true
+config.exivaTarget = config.exivaTarget == true
+config.exivaLast = config.exivaLast == true
+config.holdTargetName = ""
+config.lastPlayer = cleanName(config.lastPlayer)
+config.lastExivaName = cleanName(config.lastExivaName)
+config.exivaSpell = config.exivaSpell or "exiva"
+
+local function isEscapeKey(keys)
+  return keys == "Escape" or keys == "Esc"
+end
+
+local function getAttackTarget()
+  if type(target) == "function" then
+    local ok, creature = pcall(target)
+    if ok and creature then return creature end
+  end
+
+  if g_game and g_game.getAttackingCreature then
+    return g_game.getAttackingCreature()
+  end
+end
+
+local function attackCreature(creature)
+  if CaveBot and CaveBot.Flee and CaveBot.Flee.blocksCombat() then return end
+  if not creature then return end
+
+  if type(attack) == "function" then
+    local ok = pcall(function()
+      attack(creature)
+    end)
+    if ok then return true end
+  end
+
+  if g_game and g_game.attack then
+    return g_game.attack(creature)
+  end
+end
+
+local function isPlayer(creature)
+  if not creature then return false end
+  local ok, result = pcall(function() return creature:isPlayer() end)
+  return ok and result == true
+end
+
+local function isNpc(creature)
+  if not creature then return false end
+  local ok, result = pcall(function() return creature:isNpc() end)
+  return ok and result == true
+end
+
+local function sameFloor(creature)
+  return creature and creature:getPosition() and creature:getPosition().z == posz()
+end
+
+local function rememberPlayer(creature)
+  if not creature or not isPlayer(creature) then return end
+  local name = cleanName(creature:getName())
+  if name ~= "" then
+    config.lastPlayer = name
+  end
+end
+
+local function rememberHoldTarget(creature)
+  if not creature or not sameFloor(creature) or isNpc(creature) then return end
+
+  holdTargetId = creature:getId()
+  config.holdTargetName = cleanName(creature:getName())
+  rememberPlayer(creature)
+end
+
+local function clearHoldTarget()
+  holdTargetId = nil
+  config.holdTargetName = ""
+end
+
+local function sayExiva(name, source)
+  name = cleanName(name)
+  if name == "" then return false end
+  local tracker = vBot and vBot.ExivaTracker
+  local ticket = tracker and type(tracker.prepareInitiatingExiva) == 'function' and
+    tracker.prepareInitiatingExiva(name, source) or nil
+  local message = (config.exivaSpell or "exiva") .. ' "' .. name .. '"'
+  local ok, result = pcall(function()
+    if type(say) == 'function' then return say(message) end
+    if g_game and type(g_game.talk) == 'function' then return g_game.talk(message) end
+    return false
+  end)
+  if not ok or result == false then
+    if ticket and type(tracker.forgetInitiatingExiva) == 'function' then
+      tracker.forgetInitiatingExiva(name, ticket)
+    end
+    return false
+  end
+  config.lastExivaName = name
+  return true
+end
+
+local function runAutoExiva()
+  local tracker=vBot and vBot.ExivaTracker
+  if tracker and type(tracker.isPaused)=='function' and tracker.isPaused() then return false end
+  local target, source
+  if config.exivaTarget and config.lastPlayer ~= "" then target,source=config.lastPlayer,'target'
+  elseif config.exivaLast and config.lastExivaName ~= "" then target,source=config.lastExivaName,'last' end
+  if not target then return false end
+  if tracker and type(tracker.shouldAutoExiva)=='function' and not tracker.shouldAutoExiva(target) then return false end
+  return sayExiva(target, source)
+end
+
+onAttackingCreatureChange(function(newCreature, oldCreature)
+  if newCreature then
+    rememberPlayer(newCreature)
+  elseif oldCreature then
+    rememberPlayer(oldCreature)
+  end
+end)
+
+onTalk(function(name, level, mode, text, channelId, pos)
+  if name ~= player:getName() then return end
+  local tracker = vBot and vBot.ExivaTracker
+  if tracker and type(tracker.handlesOwnExiva) == 'function' and tracker.handlesOwnExiva() then return end
+  if not tostring(text or ''):lower():match('^%s*exiva%s+') then return end
+
+  local exivaName = text:match('[Ee][Xx][Ii][Vv][Aa]%s+"([^"]+)"') or text:match('[Ee][Xx][Ii][Vv][Aa]%s+(.+)')
+  if exivaName then
+    config.lastExivaName = cleanName(exivaName:gsub('"', ""))
+  end
+end)
+
+onKeyDown(function(keys)
+  if isEscapeKey(keys) then
+    clearHoldTarget()
+  end
+end)
+
+onKeyPress(function(keys)
+  if isEscapeKey(keys) then
+    clearHoldTarget()
+  end
+end)
+
+macro(100, function()
+  if not config.holdTarget then return end
+
+  local currentTarget = getAttackTarget()
+  if currentTarget and sameFloor(currentTarget) and not isNpc(currentTarget) then
+    rememberHoldTarget(currentTarget)
+    return
+  end
+
+  if not holdTargetId then return end
+
+  for _, spec in ipairs(getSpectators()) do
+    if spec and sameFloor(spec) and spec:getId() == holdTargetId then
+      return attackCreature(spec)
+    end
+  end
+end)
+
+macro(100, function()
+  if not config.exivaTarget then return end
+
+  local currentTarget = getAttackTarget()
+  if currentTarget then
+    rememberPlayer(currentTarget)
+  end
+end)
+
+macro(200, function()
+  if not config.exivaTarget and not config.exivaLast then return end
+  if getTime() - lastAutoExiva < 4000 then return end
+
+  if runAutoExiva() then
+    lastAutoExiva = getTime()
+  end
+end)
+
+HoldTarget = {
+  isOn = function()
+    return config.holdTarget
+  end,
+  setOn = function()
+    config.holdTarget = true
+    local currentTarget = getAttackTarget()
+    if currentTarget then
+      rememberHoldTarget(currentTarget)
+    end
+  end,
+  setOff = function()
+    config.holdTarget = false
+    clearHoldTarget()
+  end
+}
+
+ExivaTarget = {
+  isOn = function()
+    return config.exivaTarget
+  end,
+  setOn = function()
+    local tracker=vBot and vBot.ExivaTracker
+    if tracker and type(tracker.isPaused)=='function' and tracker.isPaused() then return false end
+    config.exivaTarget = true
+    local currentTarget = getAttackTarget()
+    if currentTarget then
+      rememberPlayer(currentTarget)
+    end
+    if runAutoExiva() then
+      lastAutoExiva = getTime()
+    end
+  end,
+  setOff = function()
+    config.exivaTarget = false
+    local tracker = vBot and vBot.ExivaTracker
+    if tracker and type(tracker.cancelOwnAutomation) == 'function' then tracker.cancelOwnAutomation() end
+  end
+}
+
+ExivaLast = {
+  isOn = function()
+    return config.exivaLast
+  end,
+  setOn = function()
+    local tracker=vBot and vBot.ExivaTracker
+    if tracker and type(tracker.isPaused)=='function' and tracker.isPaused() then return false end
+    config.exivaLast = true
+    if runAutoExiva() then
+      lastAutoExiva = getTime()
+    end
+  end,
+  setOff = function()
+    config.exivaLast = false
+    local tracker = vBot and vBot.ExivaTracker
+    if tracker and type(tracker.cancelOwnAutomation) == 'function' then tracker.cancelOwnAutomation() end
+  end
+}

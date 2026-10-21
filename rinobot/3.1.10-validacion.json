@@ -1,0 +1,172 @@
+{
+  "version": "3.1.10",
+  "officialFiles": 335,
+  "changedSources": [
+    "_Loader.lua",
+    "cavebot/buy_supplies.lua",
+    "cavebot/config.otui",
+    "cavebot/pvp_flee.lua",
+    "vBot/ContainerManager.lua",
+    "vBot/HealBot.lua",
+    "vBot/HealBot.otui",
+    "vBot/Helper.lua",
+    "vBot/HelperProfiles.lua",
+    "vBot/Inmortal.lua",
+    "vBot/ManaTrainer.lua",
+    "vBot/ManaTrainer.otui",
+    "vBot/SabuezoChangelog.fallback.txt",
+    "vBot/combo_plus.lua",
+    "vBot/combo_plus.otui",
+    "vBot/iconos.lua",
+    "vBot/pushmax.lua",
+    "vBot/pushmax_engine.lua"
+  ],
+  "compiledLuaFiles": 136,
+  "focusedTestSuites": [
+    {
+      "name": "buy-supplies",
+      "status": "PASS",
+      "lastLine": "38 integration scenarios passed",
+      "returncode": 0
+    },
+    {
+      "name": "combo-combo",
+      "status": "PASS",
+      "lastLine": "PASS 187 exclusive SD/UE, target-only Navi, lifecycle, guards, MW and unified-panel assertions",
+      "returncode": 0
+    },
+    {
+      "name": "combo-cooperation",
+      "status": "PASS",
+      "lastLine": "PASS 100 automatic frontier, race recovery, bounded retries and multi-client Navi assertions",
+      "returncode": 0
+    },
+    {
+      "name": "combo-follow",
+      "status": "PASS",
+      "lastLine": "PASS 89 actual Combo UI/preservation/follow 1-5/radius/manual/floor/recovery/friend-command assertions",
+      "returncode": 0
+    },
+    {
+      "name": "combo-layout",
+      "status": "PASS",
+      "lastLine": "PASS 29 compact dimensions, input clearance and scrollability checks (no native screenshot)",
+      "returncode": 0
+    },
+    {
+      "name": "combo-walls",
+      "status": "PASS",
+      "lastLine": "PASS 147 wall-variant attribution, placement, parsing, migration and saved-list assertions",
+      "returncode": 0
+    },
+    {
+      "name": "default-favorites",
+      "status": "PASS",
+      "lastLine": "PASS 38 new/update defaults, user removals and actual shared-profile save/load assertions",
+      "returncode": 0
+    },
+    {
+      "name": "flee-allies",
+      "status": "PASS",
+      "lastLine": "44 integration scenarios passed",
+      "returncode": 0
+    },
+    {
+      "name": "heal-layout",
+      "status": "PASS",
+      "lastLine": "OTUI IDs, dropdown popup styles, compact field heights, scrollbar clearance and footer bounds OK",
+      "returncode": 0
+    },
+    {
+      "name": "heal-texts",
+      "status": "PASS",
+      "lastLine": "27 checks passed: Spanish and legacy rule labels preserve their internal values; LuaJIT syntax OK",
+      "returncode": 0
+    },
+    {
+      "name": "helper-callbacks",
+      "status": "PASS",
+      "lastLine": "PASS: 38 actual Helper callbacks, hidden-Supplies geometry and TargetBot/AttackBot handoff assertions.",
+      "returncode": 0
+    },
+    {
+      "name": "inmortal-main-bp",
+      "status": "PASS",
+      "lastLine": "PASS 86 Main BP routing, real pouch-exchange rejection, asynchronous inventory acknowledgement and compatibility checks (simulated)",
+      "returncode": 0
+    },
+    {
+      "name": "inmortal-pouch",
+      "status": "PASS",
+      "lastLine": "PASS 44 loot-pouch source, closed-purse recovery, consumption, slot coexistence and compatibility checks (simulated)",
+      "returncode": 0
+    },
+    {
+      "name": "push-cooperative",
+      "status": "PASS",
+      "lastLine": "PASS 32 real emitter boundaries, native attribution, shared item gap, normal/urgent/shield behavior, no native wrapping and cooperative lifecycle cases (simulated).",
+      "returncode": 0
+    },
+    {
+      "name": "push-native",
+      "status": "PASS",
+      "lastLine": "PASS 42 real adapter field/legacy/wall/range/message/path-cache tests (native-shaped simulation).",
+      "returncode": 0
+    },
+    {
+      "name": "push-recovery",
+      "status": "PASS",
+      "lastLine": "PASS 50 logged spell-interrupted push, bounded recovery, map races, lifecycle, manual/healing priority and PZ wall checks (simulated)",
+      "returncode": 0
+    },
+    {
+      "name": "push-spell-classifier",
+      "status": "PASS",
+      "lastLine": "PASS 27 real-helper false return, castle-war/haste ordering, custom catalogue, adjacent approach and bounded recovery checks (simulated)",
+      "returncode": 0
+    },
+    {
+      "name": "push-spells",
+      "status": "PASS",
+      "lastLine": "PASS 147 checks: actual movement detector, spell input/cooldowns, pending-request identity, items and lifecycle (simulated)",
+      "returncode": 0
+    },
+    {
+      "name": "target-icon",
+      "status": "PASS",
+      "lastLine": "PASS: 106 native icon, right-click, immediate drag and restricted-environment checks.",
+      "returncode": 0
+    }
+  ],
+  "migrationAssertions": 9240,
+  "migrationOrigins": [
+    "3.1.0",
+    "3.1.1",
+    "3.1.2",
+    "3.1.3",
+    "3.1.4",
+    "3.1.5",
+    "3.1.6",
+    "3.1.7",
+    "3.1.8",
+    "3.1.9",
+    "classic-3.0.31",
+    "local-Rod Master",
+    "local-Sabuezo"
+  ],
+  "privateDataIncluded": false,
+  "personalSettingsPreservedInMigration": true,
+  "nativeClientTested": false,
+  "automaticUpdatesPreserved": true,
+  "developmentLockRespected": true,
+  "classicBridgeAndBootstrapUnchanged": true,
+  "withdrawnWASDChangeAbsent": true,
+  "aeronAndHegalExcluded": true,
+  "simulatedMwGroups": [
+    2,
+    4,
+    8
+  ],
+  "simulatedMwServerRejections": 0,
+  "fixtureAdaptation": "Cooperative item-helper slice stops before Navi initialization, retaining the actual item wrapper. No production change for fixture compatibility."
+}

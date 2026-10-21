@@ -1,0 +1,750 @@
+// Compact controls need their own padding: 18px minus the theme's 8px
+// vertical padding leaves less room than the font and clips typed text.
+HealTextInput < HelperThemeInput
+  height: 22
+  padding: 0
+  padding-left: 5
+  padding-right: 5
+  text-offset: 0 0
+  text-align: left
+
+HealComboPopupMenu < HelperThemeComboPopupMenu
+HealComboPopupMenuButton < HelperThemeComboPopupMenuButton
+HealCombo < HelperThemeCombo
+  height: 22
+  padding: 0
+  padding-left: 5
+  padding-right: 18
+  text-offset: 0 0
+  text-align: left
+
+HealSettingCheckBox < HelperThemeCheck
+  height: 22
+  text-wrap: true
+  text-auto-resize: false
+  margin-top: 0
+  font: verdana-11px-antialised
+
+SpellSourceBoxPopupMenu < HelperThemeComboPopupMenu
+SpellSourceBoxPopupMenuButton < HelperThemeComboPopupMenuButton
+SpellSourceBox < HealCombo
+  @onSetup: |
+    self:addOption("Mana (%)")
+    self:addOption("Vida (%)")
+    self:addOption("Daño reciente")
+
+SpellConditionBoxPopupMenu < HelperThemeComboPopupMenu
+SpellConditionBoxPopupMenuButton < HelperThemeComboPopupMenuButton
+SpellConditionBox < HealCombo
+  @onSetup: |
+    self:addOption("Menor que")
+    self:addOption("Mayor que")
+    self:addOption("Igual a")
+
+HealRelationBoxPopupMenu < HelperThemeComboPopupMenu
+HealRelationBoxPopupMenuButton < HelperThemeComboPopupMenuButton
+HealRelationBox < HealCombo
+  @onSetup: |
+    self:addOption("y")
+    self:addOption("o")
+
+SpellEntry < HelperThemeLabel
+  background-color: #00000000
+  padding: 0
+  text-align: left
+  text-offset: 24 0
+  focusable: true
+  height: 22
+  $focus:
+    background-color: #18434a
+  HelperThemeCheck
+    id: enabled
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    size: 14 14
+    margin-left: 4
+  HelperThemeButton
+    id: remove
+    text: X
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 4
+    size: 16 16
+
+ItemEntry < HelperThemeLabel
+  background-color: #00000000
+  padding: 0
+  text-align: left
+  text-offset: 44 0
+  focusable: true
+  height: 22
+  $focus:
+    background-color: #18434a
+  HelperThemeCheck
+    id: enabled
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    size: 14 14
+    margin-left: 4
+  UIItem
+    id: id
+    anchors.left: enabled.right
+    margin-left: 4
+    anchors.verticalCenter: parent.verticalCenter
+    size: 18 18
+    focusable: false
+  HelperThemeButton
+    id: remove
+    text: X
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 4
+    size: 16 16
+
+HealBotSpellHealingV3 < Panel
+  size: 536 224
+  padding: 6
+  HelperThemeSection
+    margin-top: 0
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 212
+    width: 210
+    id: rulesGroup
+    phantom: true
+    focusable: false
+  HelperThemeSection
+    margin-top: 0
+    margin-left: 218
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 212
+    width: 306
+    id: editorGroup
+    phantom: true
+    focusable: false
+  HelperThemeSubsection
+    margin-top: 102
+    margin-left: 222
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 58
+    width: 298
+    id: extraConditionGroup
+    phantom: true
+    focusable: false
+  HelperThemeSectionTitle
+    tooltip: La primera regla tiene mayor prioridad. Doble clic para editar; Subir y Bajar cambian el orden.
+    margin-top: 4
+    margin-left: 6
+    anchors.top: parent.top
+    anchors.left: parent.left
+    width: 198
+    id: title
+    text: Hechizos
+    text-align: left
+    text-offset: 4 0
+    height: 18
+  HelperThemeList
+    margin-top: 26
+    margin-left: 6
+    anchors.top: parent.top
+    anchors.left: parent.left
+    width: 182
+    id: spellList
+    height: 154
+    vertical-scrollbar: spellListScrollBar
+  VerticalScrollBar
+    margin-top: 26
+    margin-left: 190
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: spellListScrollBar
+    width: 12
+    height: 154
+    step: 22
+    pixels-scroll: true
+  HelperThemeButton
+    margin-top: 188
+    margin-left: 6
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 18
+    width: 56
+    id: MoveUp
+    text: Subir
+  HelperThemeButton
+    margin-top: 188
+    margin-left: 66
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 18
+    width: 56
+    id: MoveDown
+    text: Bajar
+  HelperThemeSectionTitle
+    margin-top: 4
+    margin-left: 224
+    anchors.top: parent.top
+    anchors.left: parent.left
+    width: 294
+    id: rightTitle
+    text: Agregar o editar regla
+    text-align: left
+    text-offset: 4 0
+    height: 18
+  SpellSourceBox
+    margin-top: 26
+    margin-left: 224
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 22
+    id: spellSource
+    width: 124
+  SpellConditionBox
+    margin-top: 26
+    margin-left: 354
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 22
+    id: spellCondition
+    width: 96
+  HealTextInput
+    margin-top: 26
+    margin-left: 456
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 22
+    id: spellValue
+    placeholder: Valor
+    width: 54
+    tooltip: Valor que activa la regla (ejemplo: 80)
+  HealTextInput
+    margin-top: 50
+    margin-left: 224
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 22
+    id: spellFormula
+    width: 222
+    placeholder: Palabras del hechizo
+  HealTextInput
+    margin-top: 50
+    margin-left: 452
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 22
+    id: manaCost
+    width: 58
+    text: 0
+    tooltip: Mana minimo requerido. 0 desactiva el filtro.
+  HelperThemeLabel
+    margin-top: 74
+    margin-left: 224
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: spellCooldownLabel
+    text: Espera
+    width: 62
+    height: 18
+    color: #a9bbc6
+  HealTextInput
+    margin-top: 74
+    margin-left: 290
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 22
+    id: spellCooldown
+    placeholder: Opcional
+    width: 84
+    tooltip: Espera opcional: 3m, 30s, 180000ms
+  HelperThemeCheck
+    margin-top: 110
+    margin-left: 228
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 14
+    width: 14
+    id: spellAdvanced
+  HelperThemeLabel
+    margin-top: 106
+    margin-left: 248
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: spellExtraLabel
+    text: Segunda condición
+    width: 124
+    height: 20
+    color: #a9bbc6
+  HealRelationBox
+    margin-top: 108
+    margin-left: 378
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 22
+    id: spellExtraRelation
+    width: 64
+  SpellSourceBox
+    margin-top: 132
+    margin-left: 228
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 22
+    id: spellExtraSource
+    width: 122
+  SpellConditionBox
+    margin-top: 132
+    margin-left: 356
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 22
+    id: spellExtraCondition
+    width: 96
+  HealTextInput
+    margin-top: 132
+    margin-left: 458
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 22
+    id: spellExtraValue
+    placeholder: Valor
+    width: 54
+  HelperThemeButton
+    margin-top: 184
+    margin-left: 430
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 18
+    width: 84
+    id: addSpell
+    text: Agregar
+
+HealBotItemHealingV3 < Panel
+  size: 536 224
+  padding: 6
+  HelperThemeSection
+    margin-top: 0
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 212
+    width: 210
+    id: rulesGroup
+    phantom: true
+    focusable: false
+  HelperThemeSection
+    margin-top: 0
+    margin-left: 218
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 212
+    width: 306
+    id: editorGroup
+    phantom: true
+    focusable: false
+  HelperThemeSubsection
+    margin-top: 102
+    margin-left: 222
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 58
+    width: 298
+    id: extraConditionGroup
+    phantom: true
+    focusable: false
+  HelperThemeSectionTitle
+    tooltip: La primera regla tiene mayor prioridad. Doble clic para editar; Subir y Bajar cambian el orden.
+    margin-top: 4
+    margin-left: 6
+    anchors.top: parent.top
+    anchors.left: parent.left
+    width: 198
+    id: title
+    text: Objetos
+    text-align: left
+    text-offset: 4 0
+    height: 18
+  HelperThemeList
+    margin-top: 26
+    margin-left: 6
+    anchors.top: parent.top
+    anchors.left: parent.left
+    width: 182
+    id: itemList
+    height: 154
+    vertical-scrollbar: itemListScrollBar
+  VerticalScrollBar
+    margin-top: 26
+    margin-left: 190
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: itemListScrollBar
+    width: 12
+    height: 154
+    step: 22
+    pixels-scroll: true
+  HelperThemeButton
+    margin-top: 188
+    margin-left: 6
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 18
+    width: 56
+    id: MoveUp
+    text: Subir
+  HelperThemeButton
+    margin-top: 188
+    margin-left: 66
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 18
+    width: 56
+    id: MoveDown
+    text: Bajar
+  HelperThemeSectionTitle
+    margin-top: 4
+    margin-left: 224
+    anchors.top: parent.top
+    anchors.left: parent.left
+    width: 294
+    id: rightTitle
+    text: Agregar o editar regla
+    text-align: left
+    text-offset: 4 0
+    height: 18
+  SpellSourceBox
+    margin-top: 26
+    margin-left: 224
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 22
+    id: itemSource
+    width: 124
+  SpellConditionBox
+    margin-top: 26
+    margin-left: 354
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 22
+    id: itemCondition
+    width: 96
+  HealTextInput
+    margin-top: 26
+    margin-left: 456
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 22
+    id: itemValue
+    placeholder: Valor
+    width: 54
+    tooltip: Valor que activa la regla (ejemplo: 80)
+  BotItem
+    margin-top: 50
+    margin-left: 224
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 24
+    width: 24
+    id: itemId
+    tooltip: Arrastra el item que quieras usar
+  HelperThemeLabel
+    margin-top: 53
+    margin-left: 258
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: itemCooldownLabel
+    text: Espera
+    width: 62
+    height: 18
+    color: #a9bbc6
+  HealTextInput
+    margin-top: 53
+    margin-left: 324
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 22
+    id: itemCooldown
+    placeholder: Opcional
+    width: 84
+    tooltip: Espera opcional: 3m, 30s, 180000ms
+  HelperThemeCheck
+    margin-top: 110
+    margin-left: 228
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 14
+    width: 14
+    id: itemAdvanced
+  HelperThemeLabel
+    margin-top: 106
+    margin-left: 248
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: itemExtraLabel
+    text: Segunda condición
+    width: 124
+    height: 20
+    color: #a9bbc6
+  HealRelationBox
+    margin-top: 108
+    margin-left: 378
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 22
+    id: itemExtraRelation
+    width: 64
+  SpellSourceBox
+    margin-top: 132
+    margin-left: 228
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 22
+    id: itemExtraSource
+    width: 122
+  SpellConditionBox
+    margin-top: 132
+    margin-left: 356
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 22
+    id: itemExtraCondition
+    width: 96
+  HealTextInput
+    margin-top: 132
+    margin-left: 458
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 22
+    id: itemExtraValue
+    placeholder: Valor
+    width: 54
+  HelperThemeButton
+    margin-top: 184
+    margin-left: 430
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 18
+    width: 84
+    id: addItem
+    text: Agregar
+
+HealBotHealerPanelV3 < Panel
+  HealBotSpellHealingV3
+    id: spells
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+  HealBotItemHealingV3
+    id: items
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    visible: false
+
+HealBotSettingsPanelV3 < Panel
+  HelperThemeCard
+    id: list
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    anchors.right: parent.horizontalCenter
+    margin-right: 6
+    padding: 8
+    layout:
+      type: verticalBox
+      spacing: 4
+    HelperThemeLabel
+      text: Condiciones de curacion
+      color: #50d7d4
+      height: 24
+    HealSettingCheckBox
+      id: Cooldown
+      text: Revisar espera de hechizos
+    HealSettingCheckBox
+      id: Visible
+      text: Los items deben estar visibles
+    HealSettingCheckBox
+      id: Delay
+      text: Evitar items al interactuar
+    HealSettingCheckBox
+      id: Interval
+      text: Espera extra al recoger loot
+    HealSettingCheckBox
+      id: Conditions
+      text: Revisar condiciones de RL Tibia
+    HealSettingCheckBox
+      id: MessageDelay
+      text: Espera por mensaje Aaaah...
+    HealSettingCheckBox
+      id: OldSchool
+      text: Modo clasico sin hotkeys
+  HelperThemeCard
+    id: profiles
+    anchors.top: parent.top
+    anchors.left: parent.horizontalCenter
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    margin-left: 6
+    padding: 8
+    HelperThemeLabel
+      id: heading
+      text: Perfil actual
+      color: #50d7d4
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.top: parent.top
+      height: 20
+    HelperThemeLabel
+      id: nameLabel
+      text: Nombre del perfil
+      anchors.top: heading.bottom
+      anchors.left: parent.left
+      anchors.right: parent.right
+      margin-top: 8
+      height: 18
+    HealTextInput
+      height: 22
+      id: Name
+      anchors.top: nameLabel.bottom
+      anchors.left: parent.left
+      anchors.right: parent.right
+      margin-top: 6
+    HelperThemeLabel
+      anchors.top: Name.bottom
+      anchors.left: parent.left
+      anchors.right: parent.right
+      margin-top: 14
+      height: 70
+      text-wrap: true
+      color: #a9bbc6
+      text: Cada perfil conserva sus reglas, condiciones y estado. Cambiar de perfil carga sus valores guardados.
+    HelperThemeButton
+      height: 20
+      id: ResetSettings
+      text: Restablecer este perfil
+      color: #ffb4a7
+      anchors.bottom: parent.bottom
+      anchors.left: parent.left
+      anchors.right: parent.right
+
+HealWindowV3 < HelperThemeWindow
+  padding-bottom: 8
+  text: HealBot
+  size: 552 348
+  @onEscape: self:hide()
+  HelperThemeSection
+    margin-top: 0
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 46
+    width: 536
+    id: profileGroup
+    phantom: true
+    focusable: false
+  HelperThemeButton
+    margin-top: 3
+    margin-left: 488
+    anchors.top: parent.top
+    anchors.left: parent.left
+    width: 44
+    id: power
+    height: 18
+    padding: 0
+    text: OFF
+  HealCombo
+    margin-top: 2
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 22
+    width: 102
+    id: profileSelect
+  HelperThemeLabel
+    margin-top: 2
+    margin-left: 116
+    anchors.top: parent.top
+    anchors.left: parent.left
+    width: 364
+    id: profileName
+    height: 20
+    text: Perfil
+  Panel
+    margin-top: 26
+    margin-left: 4
+    anchors.top: parent.top
+    anchors.left: parent.left
+    width: 528
+    id: tabs
+    height: 20
+    layout:
+      type: horizontalBox
+      spacing: 4
+    HelperThemeButton
+      id: spells
+      text: Hechizos
+      size: 86 20
+    HelperThemeButton
+      id: items
+      text: Objetos
+      size: 76 20
+    HelperThemeButton
+      id: conditions
+      text: Condiciones y perfil
+      size: 150 20
+  HelperThemeLabel
+    margin-top: 50
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    font: verdana-11px-antialised
+    width: 536
+    id: title
+    text: Doble clic edita una regla; Subir y Bajar cambian su prioridad.
+    color: #a9bbc6
+    height: 18
+  HealBotHealerPanelV3
+    margin-top: 70
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 224
+    width: 536
+    id: healer
+  HealBotSettingsPanelV3
+    margin-top: 70
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 224
+    width: 536
+    id: settings
+    visible: false
+  HelperThemeDivider
+    margin-top: 300
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 1
+    width: 536
+    id: separator
+  HelperThemeButton
+    margin-top: 308
+    margin-left: 420
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 22
+    width: 116
+    id: closeButton
+    text: Guardar y volver
+  HelperThemeButton
+    margin-top: 308
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    height: 22
+    width: 100
+    id: settingsButton
+    text: Condiciones
+    visible: false
