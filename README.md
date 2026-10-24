@@ -1,12 +1,24 @@
 # RinoBot - MythicOT
 
-Versión estable: **3.1.10**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.10). Puente clásico: **3.0.31**.
+Versión estable: **3.1.11**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.11). Puente clásico: **3.0.31**.
 
 ## Actualización
 
 Recarga el bot o espera su comprobación automática cada cinco minutos. Conserva perfiles, rutas, scripts, heals y supplies; después de instalar y verificar vuelve a Helper. Puedes elegir clásico manualmente hasta la siguiente actualización. Se respetan development.lock, recuperación de versiones fallidas y protección contra downgrades.
 
 Versiones antiguas con Auto OFF necesitan adoptar el nuevo updater una primera vez desde su panel. Si no hay Updater, usa la instalación inicial.
+
+## Cambios de 3.1.11
+
+- Iconos compactos con paleta de colores y soporte de scripts propios.
+- Scripts en dos columnas ampliables, con carga y ejecucion separadas.
+- Imbuements compacto, contador de scrolls y quitar efectos; Dummy Smart lee estatuas y purse visible.
+- HealBot con cooldowns nativos por defecto y AttackBot con waves/beams durante la caza.
+- Auto Explorer de caza con plan de pasillos, tramos largos, radio y control de piso.
+- TargetBot sigue por fields transitables; CaveBot y grabacion ignoran fields.
+- Hold MW mantiene 2000 ms fijos y mejora la reaccion al desaparecer una pared.
+
+336 archivos oficiales, 137 Lua compilados y 40 grupos de validacion, con 9.953 comprobaciones de migracion desde 14 origenes. Conserva configuraciones propias. Pruebas simuladas; la demora percibida entre varias MW sigue sin medicion nativa. [Notas completas](rinobot/3.1.11-notas.md) e [informe de validacion](rinobot/3.1.11-validacion.json).
 
 ## Cambios de 3.1.10
 

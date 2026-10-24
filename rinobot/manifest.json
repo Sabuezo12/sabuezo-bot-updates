@@ -4,23 +4,24 @@
   "installProtocol": 1,
   "awaitBoot": true,
   "manifestUrl": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/rinobot/manifest.json",
-  "version": "3.1.10",
-  "updatedAt": "2026-10-21",
+  "version": "3.1.11",
+  "updatedAt": "2026-10-24",
   "summary": [
-    "Combo compacto: lideres, objetivo, SD/UE y Magic Wall en un panel; Follow separado.",
-    "Navi copia el objetivo sin lanzar; SD responde con runa y UE con el spell configurado.",
-    "MW Auto completa huecos, prolonga paredes y recupera casillas ganadas por companeros; Navi coordina reservas.",
-    "Favoritos iniciales: Combo, Friend Healer, Player List, Timer Executor, Alarmas y Dummy Smart.",
-    "Target: doble clic derecho abre AttackBot y cierra TargetBot; Supplies permanece cerrado al recargar.",
-    "Push Max recupera intentos interrumpidos por spells propios validos; Inmortal guarda el anillo normal en Main BP.",
-    "Compras verificadas sin detener CaveBot; Huida puede ignorar guild, friends y party.",
-    "HealBot y Mana Trainer con textos y distribucion corregidos; menos mensajes rutinarios de Container Manager."
+    "Iconos con editor unico compacto, paleta de colores y funciones de scripts propios.",
+    "Scripts en dos columnas ampliables: cargar el archivo y encender/apagar su funcion por separado.",
+    "Imbuements compacto, cantidades de scrolls y opcion de quitar efectos individuales.",
+    "Dummy Smart usa items del purse visible y permite leer el ID de estatuas bajo el cursor.",
+    "HealBot prioriza cooldowns nativos por defecto, tambien en objetos compatibles; textos sin acentos.",
+    "AttackBot recupera ataques con un monstruo y controla waves/beams, giro y reposicionamiento de caza.",
+    "Auto Explorer de caza: rutas por pasillos, tramos largos, radio visible y control del piso.",
+    "TargetBot agiliza el seguimiento y cruza fields transitables; CaveBot y grabacion ignoran fields.",
+    "Hold MW con intervalo fijo de 2000 ms y reaccion mas rapida al desaparecer una pared."
   ],
   "files": [
     {
       "path": "_Loader.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/_Loader.lua",
-      "sha256": "86cc40446847f1069dd82b14ab84905d654e4836e78aebd3bcc088837540ca1f",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/_Loader.lua",
+      "sha256": "cb47cec072808fdf7c9242ea63b4f0e982135e6bc8cb48e7a29a7bf2ea2ee5c8",
       "size": 32397,
       "acceptedSha256": [
         "08f61d31478dea85a083fe30c5c76f0e937449fe0e5a4af941d67240208b2548",
@@ -38,6 +39,7 @@
         "65e2000ef1437ac053f226803ad1af17b7ce331524dca6b15f30af1ebcff4c6d",
         "7508395cf55bd3f845539ef6f739604f09c9207512706c1367b2cdca281cec84",
         "7acaab0d6017b20c9f486bc28034f10bca492c2925ccd2f758617f3d22075b6c",
+        "86cc40446847f1069dd82b14ab84905d654e4836e78aebd3bcc088837540ca1f",
         "aa9026b438338dfebfcd9bdcde44fbba58ddb14849e2aee690ed26df3ee95012",
         "ad1c966ff44b12a4de9be2704825a529cd73fd0a08a479b55aa3a67fd9077f5d",
         "ad29712fe596de994ddd936dba6946e0ba5c072948ff5e6542a9acc8a2f702b7",
@@ -52,9 +54,9 @@
     },
     {
       "path": "cavebot/actions.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/actions.lua",
-      "sha256": "53299bf5d56cb882171ac75e0fe4171f169ea12c40ac971690b8e6484bb9fed4",
-      "size": 37532,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/actions.lua",
+      "sha256": "9708e78d41ffde6548fd056d966186d50587d1313717b5b2478cdc37c2dfc1bc",
+      "size": 37349,
       "acceptedSha256": [
         "0139fba6198032f92b9d8e5aa22afcc09c145a1416b8b21759123f4eb0aa4a56",
         "1667e0b1d44666983303a293109ceff7a1c80e5e83e0618ccf31be3998f6a12a",
@@ -64,6 +66,7 @@
         "3cdbc712934d92613c7aeae04dc4102f9d2b525b4e9baca7979173fd523cf2e7",
         "49d3f79f627d20de80c8196bba25cdddf19416dab860805c04fec63bb4e4a1b0",
         "4b8d17e4df4e57e68f4cf7459995ce51c8ea07f15e4889537c02cc184f8aaf32",
+        "53299bf5d56cb882171ac75e0fe4171f169ea12c40ac971690b8e6484bb9fed4",
         "53f1cc5f9af2039e949f160e787729ef1a40391aba87859f6f20930f6e9744f4",
         "54ba3abff0edc5954cebf17f5c7b30b0319272ee4ad2f7f0969c07448134be1b",
         "5eb8cd419ca168b54aa2d9c1f41abe5e781e65fed15042506a6b13bc79a58b98",
@@ -92,17 +95,22 @@
     },
     {
       "path": "cavebot/auto_explorer.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/auto_explorer.lua",
-      "sha256": "b1674745487336d5bde116c2f8d2cf18615e4df2dc1f51b49807cc21e881648a",
-      "size": 62503,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/auto_explorer.lua",
+      "sha256": "2e15c743818b5e6af604006889c3a4db64c39fc9db653221c36f062caf081102",
+      "size": 97104,
       "acceptedSha256": [
+        "0b5955c06e7c781113d4c214c4e08dc6ff8e27c715191ad5918cf96ad8858f73",
+        "1a6ec765186cf1cdd0b4ca62dac39b459fa03051e6e4c1f95b862f888b552ebe",
         "6d2f94e5a22972a62b6fa8e6ed191387345ab8db9096ce9990b527907ec86ca3",
-        "8e123d29e2df8b9b45b357bc1f21a122b720fa926c8c200d7b6599abdd1e8ee9"
+        "8e123d29e2df8b9b45b357bc1f21a122b720fa926c8c200d7b6599abdd1e8ee9",
+        "b1674745487336d5bde116c2f8d2cf18615e4df2dc1f51b49807cc21e881648a",
+        "b172ff92614df91cb41089d8d67453d07b1a2903933ab4497b9276e8ce5363e6",
+        "d15298de5b099858abda6bb2382324df41eea739e0ee1c7e1898f9086477c451"
       ]
     },
     {
       "path": "cavebot/bank.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/bank.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/bank.lua",
       "sha256": "545c50bc9b897aa7ba890fd133a03e6798f08d15fed2b9c888a4b6ad41753bb2",
       "size": 3023,
       "acceptedSha256": [
@@ -134,7 +142,7 @@
     },
     {
       "path": "cavebot/buy_supplies.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/buy_supplies.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/buy_supplies.lua",
       "sha256": "6a70819b57e9e614c0694942578ce253b4eed9e71192ca924ec487e4142a4f94",
       "size": 39941,
       "acceptedSha256": [
@@ -168,7 +176,7 @@
     },
     {
       "path": "cavebot/cavebot.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/cavebot.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/cavebot.lua",
       "sha256": "4809e1f8260799cf2414df5f8d6ac2d6af2cd6503e663b3d067a723a028bec1f",
       "size": 16491,
       "acceptedSha256": [
@@ -209,9 +217,9 @@
     },
     {
       "path": "cavebot/cavebot.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/cavebot.otui",
-      "sha256": "62849509506f11cefc4a147f5d3f5825e9c0e38d1ff668d6829dfa0c823e1aa6",
-      "size": 3459,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/cavebot.otui",
+      "sha256": "cdca1d2ff2ceb7fa8e7e3294ae55c7d8b299b3e052cdf470173dc103d901c7ea",
+      "size": 3463,
       "acceptedSha256": [
         "224252cb523685246948d0de23c78d614f49e2ec291fb68a45bac8e62ae6c93f",
         "29df5ae565df3b75f68325cfcc3c23bab657facb72ed3eb87785285658195b4c",
@@ -224,6 +232,7 @@
         "5e70f2179d14fbcd5c7697045c1435ab0a7b81808d3ce13690a3be736804050d",
         "5e9bc6f54df735d42b49c91288c3c387ac51c18eff708e4a6b1dbb855b224ece",
         "610ec16d63936fabc826c88e69d2197fc862812bc97cf165f78f554dbf8b9b52",
+        "62849509506f11cefc4a147f5d3f5825e9c0e38d1ff668d6829dfa0c823e1aa6",
         "64102868ec1eec47bd71eb317af11de05383d4927b989819740e43ebf830d96f",
         "79e9121bc6aff53148b44591a5e0cef5f5627b29c474ab8ffa4eba2992773c23",
         "7aa51704203fd088e254f13d7ab39830bba8768ee92c3b03f6670ebf398392f5",
@@ -231,6 +240,7 @@
         "8f49412a42ea9867b20e8b82a7b7f9c010ff0394475784e0e4ea3eb00e95c4bf",
         "b12438cd8debab3759c34f7dc99fcb6aa08aa473b863e5d2917c414a1e266156",
         "b19daaa70ff18e25d0d8ef8e7494fae38ccfa21d9de35b25f2c4924aeeb65c6d",
+        "b5255ac278f02a846c29b4967a0d8ed6ac645e8fb628b12401c2bfb8a177be00",
         "b85adcd2114778aac49c5ae214a5c77736b72024e7695b496872035f0fb65b8c",
         "bde6c936b9919988f64dad1341aaeeb482d17d967ab8b08c4ba6028176f89859",
         "be9564fa06b1ddc97f99549618b126a8921d43642a996e2b7b792bbcee1fb333",
@@ -243,7 +253,7 @@
     },
     {
       "path": "cavebot/clear_tile.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/clear_tile.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/clear_tile.lua",
       "sha256": "84c5a00341d777ec3a50b4afb881efae9cbd564758d0d1a80bd134f97991b22c",
       "size": 4649,
       "acceptedSha256": [
@@ -275,9 +285,9 @@
     },
     {
       "path": "cavebot/config.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/config.lua",
-      "sha256": "d243484762cc9aea146f29a6bf8e033457aea99fbed9f32efa4190da25dcace4",
-      "size": 24299,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/config.lua",
+      "sha256": "81cf00b28c2b9e6ce4c0a533a0aa717ac0a6c47527ee6642bb108c969da4bde0",
+      "size": 24700,
       "acceptedSha256": [
         "09617dbb4fd4118fab69f07cb82fe7c06f117b69612d9acdbff41919b5cceab9",
         "171e161eb2f05f079fb43579b2dd0767af45edc3f60e11b33e65a536f6c5a2c6",
@@ -300,6 +310,7 @@
         "b96f5add49668919abdd9dea470f28436b18057bc253aad975ec1c5f51b4e3b4",
         "c3fdefab9ef9645ef5aff9651c76f7884e9fa600307dd6192c6d6797b9c6ba74",
         "cf0f7111b7f37ff6df36112286b12fb8acafdf62b3f7c1c16f7b57769f0b53bc",
+        "d243484762cc9aea146f29a6bf8e033457aea99fbed9f32efa4190da25dcace4",
         "d865895badfa3a784b74595ed10616db1fadda723112dfc55abcf667a6002d9f",
         "dd8e613cb169c763e2babddde1c57f1f72c49d7424335af2caf2e47113944e74",
         "df5b7396be1a475746f303fdcd741d81d1ed6639caf5c35348d22bccd4ae4af0",
@@ -310,7 +321,7 @@
     },
     {
       "path": "cavebot/config.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/config.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/config.otui",
       "sha256": "8b183a4da5ab3ad33b240c2bca703dc67177573dcfefe11282440f86cc9e9d2f",
       "size": 12177,
       "acceptedSha256": [
@@ -352,7 +363,7 @@
     },
     {
       "path": "cavebot/d_withdraw.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/d_withdraw.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/d_withdraw.lua",
       "sha256": "873ef4cbe6e8b0927ba0b3e4bf85151ab341d0bd4f3302904617f2ac752c66b6",
       "size": 2834,
       "acceptedSha256": [
@@ -383,14 +394,14 @@
     },
     {
       "path": "cavebot/deaths.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/deaths.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/deaths.lua",
       "sha256": "0984b7e04a51d1de12aeaa7db0fafa385a6f45e1aa8b035e176f6720585f24d8",
       "size": 4687,
       "acceptedSha256": []
     },
     {
       "path": "cavebot/depositor.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/depositor.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/depositor.lua",
       "sha256": "0cb8a10a0e7e3d328d9f42371881c5a0341f5156ce2e3d34bd6e9d55206c3d2b",
       "size": 3869,
       "acceptedSha256": [
@@ -421,14 +432,14 @@
     },
     {
       "path": "cavebot/depot_manager.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/depot_manager.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/depot_manager.lua",
       "sha256": "0da77fda01da71cae3af6446a45451d1978c7746c584bb419f86a76e95a4ed68",
       "size": 47170,
       "acceptedSha256": []
     },
     {
       "path": "cavebot/doors.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/doors.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/doors.lua",
       "sha256": "0cf94a715e266bef867930f7014e058a799c8de7f02a6e7886305616958e0027",
       "size": 1642,
       "acceptedSha256": [
@@ -459,7 +470,7 @@
     },
     {
       "path": "cavebot/editor.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/editor.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/editor.lua",
       "sha256": "d821b3d6f545bbda9ad3bf92e0604b4dceeab550770105deedb51338b5650de5",
       "size": 16531,
       "acceptedSha256": [
@@ -497,7 +508,7 @@
     },
     {
       "path": "cavebot/editor.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/editor.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/editor.otui",
       "sha256": "023a76a309f766eb81622c66beea435049c1c1b28ac418aaa7af6a272be86fb6",
       "size": 9774,
       "acceptedSha256": [
@@ -534,7 +545,7 @@
     },
     {
       "path": "cavebot/example_functions.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/example_functions.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/example_functions.lua",
       "sha256": "c0dd03b965432ea38fbd381d9ef48b1bcf0f64f7ed5fdcb767194e65f0897949",
       "size": 3715,
       "acceptedSha256": [
@@ -566,7 +577,7 @@
     },
     {
       "path": "cavebot/extension_template.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/extension_template.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/extension_template.lua",
       "sha256": "76c2eb50b385acd625bba4660fe1af38390c539a69d94d7206a49c2cc8635063",
       "size": 1929,
       "acceptedSha256": [
@@ -597,7 +608,7 @@
     },
     {
       "path": "cavebot/flee_tools.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/flee_tools.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/flee_tools.lua",
       "sha256": "4dab7149933062a9c03f9e84b20e0b1001b177f82b951955314bc5e2913178b6",
       "size": 17746,
       "acceptedSha256": [
@@ -610,7 +621,7 @@
     },
     {
       "path": "cavebot/imbuing.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/imbuing.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/imbuing.lua",
       "sha256": "b25343b88da41f4ed0e4b16e24dfcc4373fa94761afcadfe2f8ec29ce91a96cd",
       "size": 3039,
       "acceptedSha256": [
@@ -641,7 +652,7 @@
     },
     {
       "path": "cavebot/inbox_withdraw.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/inbox_withdraw.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/inbox_withdraw.lua",
       "sha256": "84ff63ec70d826c620a5181aac79ea086ee3d25402cbb9f04a94b3dfc88102c2",
       "size": 2631,
       "acceptedSha256": [
@@ -672,7 +683,7 @@
     },
     {
       "path": "cavebot/lure.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/lure.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/lure.lua",
       "sha256": "133af89967b19d8fee9c531780ee573f5803fedeea7084b8877491ca55cacaf8",
       "size": 703,
       "acceptedSha256": [
@@ -691,7 +702,7 @@
     },
     {
       "path": "cavebot/minimap.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/minimap.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/minimap.lua",
       "sha256": "0a7937625b9c3d8424292e8df719e7b768e3c85a3746d5ce4ef3ab45a24b8e2b",
       "size": 1257,
       "acceptedSha256": [
@@ -723,7 +734,7 @@
     },
     {
       "path": "cavebot/pos_check.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/pos_check.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/pos_check.lua",
       "sha256": "66349fc2655d914210430e945fe273d55b49502a15ef8224d064343c41b7b137",
       "size": 1687,
       "acceptedSha256": [
@@ -754,7 +765,7 @@
     },
     {
       "path": "cavebot/pvp_flee.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/pvp_flee.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/pvp_flee.lua",
       "sha256": "ef5ca10aa1727e2400aa42314868af703f2967ae91634f4dbe9f940f1c46d16c",
       "size": 56857,
       "acceptedSha256": [
@@ -779,7 +790,7 @@
     },
     {
       "path": "cavebot/recorder.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/recorder.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/recorder.lua",
       "sha256": "1c84e5c87d84789e1a5ac4850122a1357b5bbfbe6df21e694ae9b1b998f58885",
       "size": 4581,
       "acceptedSha256": [
@@ -812,7 +823,7 @@
     },
     {
       "path": "cavebot/sell_all.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/sell_all.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/sell_all.lua",
       "sha256": "84cc4fb50a25177f3703b30ddf82a031b774d4bebebb9661620ced97cca5377c",
       "size": 1831,
       "acceptedSha256": [
@@ -844,7 +855,7 @@
     },
     {
       "path": "cavebot/stand_lure.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/stand_lure.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/stand_lure.lua",
       "sha256": "6aabb77ac1002e54f9e3b0c874a0bf74b8c4f8d32a8bc82edc909ad4e397c499",
       "size": 6203,
       "acceptedSha256": [
@@ -876,7 +887,7 @@
     },
     {
       "path": "cavebot/supply_check.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/supply_check.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/supply_check.lua",
       "sha256": "237f04de28164b6eeb87ba9a3807540bcbc9783c15af91d7e05aa4656134ba2d",
       "size": 5996,
       "acceptedSha256": [
@@ -908,7 +919,7 @@
     },
     {
       "path": "cavebot/tasker.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/tasker.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/tasker.lua",
       "sha256": "0ff843a25cae07dd8e1debc69cf3e3ba1b4f6b827d1351f205f66ca030131ece",
       "size": 5556,
       "acceptedSha256": [
@@ -940,7 +951,7 @@
     },
     {
       "path": "cavebot/travel.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/travel.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/travel.lua",
       "sha256": "10dcf067bce9edc932ca458e9365eeb1360e7f350bf4fc6be8d79d691f2b4a80",
       "size": 1008,
       "acceptedSha256": [
@@ -971,9 +982,9 @@
     },
     {
       "path": "cavebot/walking.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/walking.lua",
-      "sha256": "94e2440210a63314d69aec5f054c32e427309a28f0d3c9cef73213e3adcc325d",
-      "size": 4500,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/walking.lua",
+      "sha256": "f4d74c806aec36c67e1ba2bdbf313f8b4f70237f2d96a1243cb70f585ef85ce2",
+      "size": 4672,
       "acceptedSha256": [
         "01590d5010decd937bcf716e0f921ee49b05c773b4a3973263ad56ef9f93bd38",
         "0deba0430fd3d2109f24de5ba047174d6fa42616869dcd68c0c20d8be7a64e00",
@@ -989,6 +1000,7 @@
         "6a995c5ba603c4997db6e75c6ee48e4ebc4e12e6f94a1fcfa7b4765b53f7b830",
         "7ef191e283559c810be0cb33dd37e8334584b362f59026dedf8475bf1401ab1b",
         "9480095a54926c1507e2e168432adb656eacc1188a10e8262c56d6daff2493be",
+        "94e2440210a63314d69aec5f054c32e427309a28f0d3c9cef73213e3adcc325d",
         "a5aeb8453e0b5f37db936aa1965c7d5ff91c6aa3a0459f9aac9ac02afd267eba",
         "a74b601515abbb9630237c6c8e703e145f06fc920664898ac610a1dbed0dc8e8",
         "addd02b699fcd2f9ca70408cd228cc868994783783d4955a9c7bf5c1be9c9135",
@@ -1005,7 +1017,7 @@
     },
     {
       "path": "cavebot/waypoints.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/waypoints.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/waypoints.lua",
       "sha256": "301f257fe715694b8e2ecfae6f5602a3a4934876116f55a79f1555eafbac9176",
       "size": 7845,
       "acceptedSha256": [
@@ -1015,7 +1027,7 @@
     },
     {
       "path": "cavebot/withdraw.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/cavebot/withdraw.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/cavebot/withdraw.lua",
       "sha256": "439a886483dbebbbd95cbd5096e8b8032a87643a2d0583431e814f2664b72eca",
       "size": 1575,
       "acceptedSha256": [
@@ -1046,35 +1058,40 @@
     },
     {
       "path": "dummy.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/dummy.lua",
-      "sha256": "0b497fc6789fdd9951a6d8c5f8da71bde319eb0a0d7b680e521903743e858b5e",
-      "size": 16967,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/dummy.lua",
+      "sha256": "d1fc2ae4274d256b745e583f5378aec0a669f6447cbfa2eab71c706b1c404c51",
+      "size": 23601,
       "acceptedSha256": [
+        "0b497fc6789fdd9951a6d8c5f8da71bde319eb0a0d7b680e521903743e858b5e",
         "4b9be93f8f476991999c07e1aafe7234b2746fb2e2f73d4161b19e8e9db13b0f",
         "64fe93005b138fc119ba32db44f5e8d2a2b23d5c620ad6b5dd6d808b05ad8aa3",
         "7514660ae103ca9ac9a3999c0361dad26cea4fd537151bc6ebacbfaf16916eb6",
+        "793d6fbe102208891122a36514088897f5b88afce9615edbecfc45d63e352154",
         "867752b157e0a19815b52a9f1746fa338a6b79ab465b5f5fcdb2afc2d96e328d",
         "d85d227e24b617cd079a88b481bbeff5d980f4e4589dccbc1c21899ae09400ff"
       ]
     },
     {
       "path": "targetbot/antitrap.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/targetbot/antitrap.lua",
-      "sha256": "ed906f7f2db5982f9853d88569270fd5ce0e9147641389ce56eb3d57af26e974",
-      "size": 17705,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/targetbot/antitrap.lua",
+      "sha256": "ccfe659a784480c195c7bb6a72bdce1e56c193d9b2da158cadbb2874e9803155",
+      "size": 19475,
       "acceptedSha256": [
-        "b977886738d516055b5887ea4bb803c3f6218f0d9c96b35e5ba091fa576c4e05"
+        "b977886738d516055b5887ea4bb803c3f6218f0d9c96b35e5ba091fa576c4e05",
+        "d66c91b17f42b583950766e570eb849fe6998e3eb09ec0a03c1fa494f14c6243",
+        "ed906f7f2db5982f9853d88569270fd5ce0e9147641389ce56eb3d57af26e974"
       ]
     },
     {
       "path": "targetbot/creature.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/targetbot/creature.lua",
-      "sha256": "24bd7784b3c3b92824b98ea8b028bc64d975c4f66e9551554287f053ba5b9586",
-      "size": 8916,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/targetbot/creature.lua",
+      "sha256": "590fb2921de5a367aef3163b4f740c9db0c7cba5fa77963497bb53777aed8207",
+      "size": 9002,
       "acceptedSha256": [
         "1ba029a9bbca084912d178144e9e27b76720a13c0d48d3c6f283bffb923dc650",
         "1c65a838077275c992e11765f01a95be65c92c8acce28770f6f2bc59052f5283",
         "24824a35258f0d4d096c47acd243ca8aee259131b35dad3ad4a695005dc2778a",
+        "24bd7784b3c3b92824b98ea8b028bc64d975c4f66e9551554287f053ba5b9586",
         "35701dd2d1ad1f210dbf0b8a8f5ba555ad6ebb4fc9589c69a99884adf19bf184",
         "3ea0265c783321429066a93e935aa1b8e9f5a1dee6eeac6ac4cdc8ebf45071dd",
         "534560b39437357f44744d28f870cdc7d59b1c45f66c6627d485c4538527d144",
@@ -1100,18 +1117,21 @@
     },
     {
       "path": "targetbot/creature_attack.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/targetbot/creature_attack.lua",
-      "sha256": "c8b761eddd9d14d2e963bc02cc86124f1f74d9d1d98fa22d66dec837a202bd8c",
-      "size": 23600,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/targetbot/creature_attack.lua",
+      "sha256": "8e8621c6a7839d9c9d027d268dc830628fe203dd93fe76dac9fbd072a3305154",
+      "size": 24054,
       "acceptedSha256": [
         "00e06eee0fd9e176a382e9d6d32b7838223609ad12bd260ea5bfd81025cd26f7",
         "028f76ae601ff50a13998f6a1ff8f263c7b411b99c2dc4d9ffa10832c1da6972",
+        "02b41f4098bc2998c7625e7a0629aaedee909ac3eec9e57c9d7e127b61a771a0",
+        "042797950fc03f08ce44dd05a52b98bb336646406c35737315c80a9e93580a83",
         "06d0c4a3ce3180a763747d0eaeb3856beae5bb708e1f816be9c0a87725907d0f",
         "17d304531cfb4cea997940117d34755e41704705cb7e09ea79301b92f9830b97",
         "1cc660402d0a10a3f3768f4922ac4d7db3d41ae4f6cfda845d329b2535160ca0",
         "1fec9099f83b52ea8b1743b8f07750b883f7421e27bf3ad54a71f311c97cd393",
         "224305832d94016ba5fda6b26f3be7fe22f187bb3bfbe82f9af9a9825ad34ad9",
         "347b9a2c89156360a2d5fb3689eb2b1b75226eb2070044478c35ae15a97ddb12",
+        "392c77c63c6150e25eac93c066ef0a461e34ea22325ca02deed9432fa5fa332d",
         "50273aaa44bb3812b77b253a2dc7ac0f174ef2d4788e6dc2b8d6432bde835280",
         "52c5a5a9aadb0797baf36e63c3bca05626ec6c9dae175e337aefc76f4cf85554",
         "594542d00c884dec6a17a3f225672f0e7c4b91c6b9e7d64d5eb740c2491fc48b",
@@ -1122,11 +1142,13 @@
         "84b793fef5f5e51ed65c750b87514053cc0ff8e3859ec5a5649fcd15a00c771e",
         "8777de20ef1d19034d9160025868033d97c0219fcfd38bf943bd143181b34b72",
         "9027de2f357e368eb0186a75fe418b72512161d62c8c45bc9e0f9e0ad758e8de",
+        "90a94cd336159c12cd14b4ef6854edfded0f8e0723f54b74389fbbd6dc2510ca",
         "9c7df852da77bc63f5f918d5b03f22b43f423036e98fc9ddbae9f8feab5553eb",
         "9e0ebd8b2bbf5241219faada190ee3b291e8d52d24abc30dd6a9b208a38316fb",
         "a03bb60f68ba9cfe98464ea6b4f45b64b8e305427aacdfcc7ec9978201cdd41f",
         "abdfdf99eba72600aec6a3e2f44d68c038299f1c1e2c18073aff4d1eb336f24b",
         "c82bc70e618a8b843fc9071519227ac2e8699f46aeb09fa7373f85b6a527ca9e",
+        "c8b761eddd9d14d2e963bc02cc86124f1f74d9d1d98fa22d66dec837a202bd8c",
         "d32226c05f6c3fb878ecbc0ab3fd7f5413d61e8ca5fbdb5bd691f97a761d4601",
         "efe19ffd89fa36612f64d80c03f745f5ea6889f1aca92277bb1d1bd19aa39b19",
         "fe01d7399eadd61667225996fb70c3d353b3def23c1007af0298cc09c97bad44"
@@ -1134,12 +1156,13 @@
     },
     {
       "path": "targetbot/creature_editor.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/targetbot/creature_editor.lua",
-      "sha256": "29c3e71d03e3ed6feb7a58404b0c50e7fa697cd9559f706fa3ce3e0baf750924",
-      "size": 12083,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/targetbot/creature_editor.lua",
+      "sha256": "421fe2457e4497842b5c9ca23b6391c952b33a803d0965f5ec6877887283a6c6",
+      "size": 11904,
       "acceptedSha256": [
         "1ca024e458fc651a1100b85e89d891a50664f07c488a2db93ffcf42afede02cf",
         "272a203e2bbf32ea10b5cad0236749016571f564226d2e6cd401e2c67b9ba96c",
+        "29c3e71d03e3ed6feb7a58404b0c50e7fa697cd9559f706fa3ce3e0baf750924",
         "3187cbd576b5ffc425e0e407bb60e1043bc41defb8e1c32ebf7f507c284545e0",
         "346b9a703507a67eef4f1b670120276e7efe3a026441d43000b49aeaa8f38f17",
         "39f9f8ee2b4df5cdf63235caae06689f42311375162447cec516253539769a66",
@@ -1166,7 +1189,7 @@
     },
     {
       "path": "targetbot/creature_editor.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/targetbot/creature_editor.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/targetbot/creature_editor.otui",
       "sha256": "2e3931443c7df5c3ab89dfd7c8cf98a57cde52c8015799b26caedd9e96014b2a",
       "size": 7394,
       "acceptedSha256": [
@@ -1199,7 +1222,7 @@
     },
     {
       "path": "targetbot/creature_priority.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/targetbot/creature_priority.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/targetbot/creature_priority.lua",
       "sha256": "8d5632023ca2c2132d99f0e38f32011e1a44c15caef9cfc0ec438d7cc4e416e1",
       "size": 8663,
       "acceptedSha256": [
@@ -1231,49 +1254,49 @@
     },
     {
       "path": "targetbot/editor_assets/combat.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/targetbot/editor_assets/combat.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/targetbot/editor_assets/combat.png",
       "sha256": "701816ffae508aed7512007332665a8e3cf0481aa9f27a39c8c9f767f2a7d75a",
       "size": 1215,
       "acceptedSha256": []
     },
     {
       "path": "targetbot/editor_assets/lure.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/targetbot/editor_assets/lure.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/targetbot/editor_assets/lure.png",
       "sha256": "234562bfc21e5ae3b0a44fd85dd3de4b316d43e08e350067bdafb9e3b7e50eac",
       "size": 840,
       "acceptedSha256": []
     },
     {
       "path": "targetbot/editor_assets/movement.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/targetbot/editor_assets/movement.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/targetbot/editor_assets/movement.png",
       "sha256": "3d6aa2780e2f102461253d37bbed302b5e26313359cc529f706c1e3673bb9cde",
       "size": 1056,
       "acceptedSha256": []
     },
     {
       "path": "targetbot/editor_assets/summary.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/targetbot/editor_assets/summary.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/targetbot/editor_assets/summary.png",
       "sha256": "ea51d8ec87102e15a1d57529e2fc859979971365e2958c83450b8b149bf3e133",
       "size": 603,
       "acceptedSha256": []
     },
     {
       "path": "targetbot/editor_assets/switch-off.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/targetbot/editor_assets/switch-off.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/targetbot/editor_assets/switch-off.png",
       "sha256": "e0bc70b94e023c6301452ed963e2f60d0b3e2fbdb6e3f0af781f3616e8452bae",
       "size": 1033,
       "acceptedSha256": []
     },
     {
       "path": "targetbot/editor_assets/switch-on.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/targetbot/editor_assets/switch-on.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/targetbot/editor_assets/switch-on.png",
       "sha256": "120067e0782d74e198992b12d83b061bedb61788cf36b16a5e7cd2f3478b7ef2",
       "size": 1039,
       "acceptedSha256": []
     },
     {
       "path": "targetbot/looting.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/targetbot/looting.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/targetbot/looting.lua",
       "sha256": "13a3be74245c06b0e1d26e68746aa4dc03e33162be1c8995e756192597ed1947",
       "size": 19938,
       "acceptedSha256": [
@@ -1307,7 +1330,7 @@
     },
     {
       "path": "targetbot/looting.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/targetbot/looting.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/targetbot/looting.otui",
       "sha256": "09b2c440164e56c0383787ae4a19fb8edddabf6b1118a205ed9dba6f65ab8074",
       "size": 4074,
       "acceptedSha256": [
@@ -1341,16 +1364,16 @@
     },
     {
       "path": "targetbot/shot_lock.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/targetbot/shot_lock.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/targetbot/shot_lock.lua",
       "sha256": "3a62f843dd935d3a7abdef3bb8f182a6d6b55923597d2693a229f611aae2c75c",
       "size": 3639,
       "acceptedSha256": []
     },
     {
       "path": "targetbot/target.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/targetbot/target.lua",
-      "sha256": "9cff5542d56bea22e5b2ba45592adcfda5ee5da7340fd67096ad23518963bb43",
-      "size": 23466,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/targetbot/target.lua",
+      "sha256": "1c871c33f143bde72cb15d74b33bbb2e7ef3b6e123bc14c41f9a73dc711c038c",
+      "size": 23343,
       "acceptedSha256": [
         "0d9889fbf88b7ac6d9923bbd13c4aab30d96715abd023959a579b096c2fd04f2",
         "101420cdc89dba84eb4e98c341e040f3535f5226849aa8eba4e8b587ae153e64",
@@ -1367,7 +1390,10 @@
         "8e110869e52b9924b34ddec029483540957b91f1de9365520af719feb6533f11",
         "8e5440e8d8359c658313360bba436af4f52cfb985b6406e0d64bfc35142e702b",
         "957061cbdc9017594fb26ed3647f4004a38efa6e28cce0c1ca5386dfb525022d",
+        "99eaa10ebf001dc45548b0463f8ce94042e5b71b5ceec6160fcd555c8754b3c0",
+        "9cff5542d56bea22e5b2ba45592adcfda5ee5da7340fd67096ad23518963bb43",
         "a928c30773d801d2d7f419e7b82e620373401a100767b2500e8f99b4bf44cb86",
+        "ab0125f09c80fc5e6d02a24306c000b2208fdab9e1c11f0cde20ad54c75d1580",
         "ab75f954317ec8269d2f28fe086e5a16392ee87344d956acf9c2eb39ac880c42",
         "abaa47fbec4a7e08bcde9b3dcaaf3b906f635613f1a4d33edab0f40f672c077c",
         "afcc59774750c79e50fd89af6d416b4982173e7c81f6e3cd200ef2c7ee10b8dc",
@@ -1385,7 +1411,7 @@
     },
     {
       "path": "targetbot/target.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/targetbot/target.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/targetbot/target.otui",
       "sha256": "e4fbbd691ca4e64b3dba0807d917f1a73f25a85269ef8ea93cfbe97d31448e1c",
       "size": 19364,
       "acceptedSha256": [
@@ -1419,23 +1445,26 @@
     },
     {
       "path": "targetbot/unified.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/targetbot/unified.lua",
-      "sha256": "b61ef8d6e3e1027c80d5e07f14c4fd355c0fb6b507834aeb97862a2c5fb8e737",
-      "size": 19735,
-      "acceptedSha256": []
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/targetbot/unified.lua",
+      "sha256": "dfc5d3d9edf1eb1e906be2920f5fda9c1919fa9ace0de4eee0ba0e808a5f0fed",
+      "size": 19771,
+      "acceptedSha256": [
+        "33ac8ea3cc594e78e3e4e4419d50dbd9d5924c56d1065285d1ab91f92338de88",
+        "b61ef8d6e3e1027c80d5e07f14c4fd355c0fb6b507834aeb97862a2c5fb8e737"
+      ]
     },
     {
       "path": "targetbot/unified_theme.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/targetbot/unified_theme.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/targetbot/unified_theme.lua",
       "sha256": "453c5f1bd4fc681ddca9033f81ff2abbaa8dde6edcf091c29a90a7535b60e919",
       "size": 31712,
       "acceptedSha256": []
     },
     {
       "path": "targetbot/walking.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/targetbot/walking.lua",
-      "sha256": "847611aff09980a4fdde8603825f86993b14877bcc8e1d384ec7b78219d34570",
-      "size": 8266,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/targetbot/walking.lua",
+      "sha256": "d6d70b314fcf84eba7db205084d875f1c40df91a437ec444d5ea5ab30c9bb079",
+      "size": 21642,
       "acceptedSha256": [
         "0e4df1e71c11f0c67402b1b271b81727b53bbec126e1cb06d158646635d8a3dc",
         "223e0de5b228b25c49970258379d62a83e42d47e6128929c5e469df0008a3eb8",
@@ -1449,25 +1478,29 @@
         "64c8d2257777e1c4c18b41f20018e0b1d2fe71a7721cd0084eea83c9cc2789e6",
         "688587bc74e52f9f6376853480d2a337eed1ef5a2a0151d67c85991ca5df58e4",
         "76561f7459c83f8f280a16a6de311f84b4dc6a2d88eb94acfec8ab4609d55f0d",
+        "847611aff09980a4fdde8603825f86993b14877bcc8e1d384ec7b78219d34570",
         "8a59a0ce748162e562caad93f6aac29e3b25087bef3aed0af7241137e2d65a6d",
         "8c3825b2bec039a7bb7c65b5d0440396d81a987eba6cffb4bd64f5ebf81d9d4c",
         "98b9555b3a5460d76649a304c4ab848fa18445d165b9c35584b4c989ab8f09d4",
         "9ca91d135385228e7c613a2dc457a32a51fc7fd49528e912d4b120a1f261cee3",
+        "b16ac3d89e583ad81021396a2017bf404d43eec098d8aa91bb709e70ea9620a9",
         "b20178f3ca39fac4a05f35a523810ff2bc62173d89f317874863c1415b34e2c9",
         "b41a0a530b96de5e0824a97bd64514ae5b6d8e63a3f5e30de69a03765b8bbe3a",
         "b9e06e7f7f123498859c50bb0433efe0bdc520e14bae033b33c173434d0da81f",
         "bf95b981715fc73f4360a3d92a89926379b4ce5fede62e5355c71eb1734af4a8",
         "c47eb7af95e8dc639ec1e0c201f8d5788f79f97c19390e4438071f55b6cc518d",
         "c71a004e45a297d388b91ecb712a52a0abaa90bee5cba6e6d37612fae8a8c32c",
+        "cd12730a5a8cfba64aa6fb26b5aa690b2c1a889cba2d9dd67155b89f397d911a",
         "d8840321d1c8cfe2bb0d6262c63597caeb2326a04af7f5f96a865cca4466bf95",
         "db0e10e1623a7223fc0fa78d9d2ee1f9dea6cf77630fe2cfc9ca55238a27cb7f",
         "e6029d893a78f676c3a2c94ecfa6b4bd5353d48323ebcab46ca38fa0eeda87e7",
+        "f1d4333f421f9857da7b6d4b64b48695ffc414602981e0e401b042a422505df9",
         "f8e4b86dffa28bb377dbadd63df4e57e03f3cd1adc940f0823dbb516b5668e57"
       ]
     },
     {
       "path": "vBot/Antipush1.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/Antipush1.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/Antipush1.lua",
       "sha256": "bb892907d9a56697f5407fe0f0441caba08a74b13e57017a98587e299fcf74be",
       "size": 22074,
       "acceptedSha256": [
@@ -1482,9 +1515,9 @@
     },
     {
       "path": "vBot/AttackBot.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/AttackBot.lua",
-      "sha256": "3253ab7645b707440a1b54b4363e4f4389b6a2846376b18505536ff56d700119",
-      "size": 92269,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/AttackBot.lua",
+      "sha256": "2c0ccce451928f361fea512b92dedd30d65381bb65afbc201e2a773f1cf0e26a",
+      "size": 94154,
       "acceptedSha256": [
         "0b6b3c732ec795b1246117ea2328bc1c310d31af5a5ee82b85d39057e8eae344",
         "1d77aa02535431354ce969f622494a7ede878f15e5d860c7f7ce87e30f4fe28f",
@@ -1494,13 +1527,16 @@
         "27a222711b2446807cc3a6374e4112001a652ccd86bd09a4e95b8268c531b78b",
         "2bb2d92080680014436aee71e938a503eaa76473a1138aa6ba09d8222de703aa",
         "2f8f4e6e93d7ed2b341708c5a81b50f3c938e157934b7cecffdfb7eeb0b151c3",
+        "3253ab7645b707440a1b54b4363e4f4389b6a2846376b18505536ff56d700119",
         "335b285b3a3462ee87c7f9a2ee9ed43e5191fb274f2b3735ca08cfb1b4410f1c",
         "34ab521146c3e99997f267a1fbf1c0898c0cbeaa0cd67a092bf9fd305a51b9df",
         "34b05dd8276c6990de022708cf5001e09f151699abd80730000bf3481b0a8bf2",
         "35282c4fb678cf7176c1061c95311c381f7a265c6d388502f2fa381b844509db",
         "3dd535c1c1c49ce1fb13b1bf400a4ae6ad00cb6a185211198746cf9352fd6c3c",
+        "4861ba0487d6603ebfa39833fbb11b3ad05c9513b58761b4d39d09ed327f2c24",
         "48c7d5bbaae30d0680c06a024293e9325188797ce6366d461eab53fc24d743f7",
         "4a879872bb7f1d68defa95f36153362c808f8a447045f84466ca59e5ca333c65",
+        "4ef55469db69ac47a42aad73e44d83538da4be261cae51f2ac4087ef310ba009",
         "4f582e82cfa0fa14b3b55259ce6e34372395c8d8d20694872fec4f7ab5d9e227",
         "66ac768e20c49853e18b2e8370ed2412f60e813a0a5e5c0f2fa1a40003945688",
         "793d9b243785b71e64b4d92278868c396ba37a3613407450493959ec7885dcff",
@@ -1510,6 +1546,7 @@
         "964fddfd2b3ad04fb8b1f263996219fb7682e8b49a9ce62cc37d6ea68c997271",
         "9ed3852e98767dc5161edcc9f9cccb2dc54c775e2b534fac283c525aa9afea17",
         "a89a99113115e8e901278c5b6b774410d8055ac78bf33ffe79bf0d4dfe04f811",
+        "af49b077926af7ccf0aa1f2679cf9301b1960266e1b5be836baec005dcd53938",
         "b034df2f4af2ddfd3cc300117aae0b122b1b1796f10bf0eed88a42937fafc694",
         "b41a4410018baadda1639e85969cf7bcba166c444eb82bab146050e14bdb986a",
         "b83c3dc971c93929e04a6b854222888cdf9b4b1d30171b0f569f101a6961c3f6",
@@ -1523,9 +1560,9 @@
     },
     {
       "path": "vBot/AttackBot.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/AttackBot.otui",
-      "sha256": "5d480da7a21deca92059f1b689ca8fa8af3a0dcbd1f85e84a5ce369e242c4874",
-      "size": 18025,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/AttackBot.otui",
+      "sha256": "9749617a6efdfdf9dfd854daa4ed2caf0f094957a63cd70ba7d99dde9835e7a5",
+      "size": 18043,
       "acceptedSha256": [
         "07a6c0ecaf8117485c16a0d240e13f75fcbf939385dffabbbd945edfd8c9e518",
         "104b22441e3a32c5f16cdafab3a59063d8ab52f36c26764ed747dd635a5875b3",
@@ -1538,6 +1575,7 @@
         "43880a26b4d5e1b29c7b2795ce1b26b60b9849b88770bd9d4097e7ef39ca26bb",
         "4e6d8874af8fef61f6c56262d167d832d1f24517ec65b40d9b1a8b4f46efedef",
         "51541dc4d909bc991701862934e915f43b936a3bf35071587dbaf98aab28e3cf",
+        "5d480da7a21deca92059f1b689ca8fa8af3a0dcbd1f85e84a5ce369e242c4874",
         "64528382266d9671c9a42c990f575582ee76b210fb3060af40ad0b4ee53a3bbb",
         "69ef51bcb9e30150930f0055a52f5d6a601737c0535abb5f20a9d7379bec8d88",
         "76652d1d3c3bb2b952770ecf4a5df0eeb8c9df1b5dd7c4f418cd261aba4bf9f8",
@@ -1557,7 +1595,7 @@
     },
     {
       "path": "vBot/BotServer.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/BotServer.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/BotServer.lua",
       "sha256": "3881a7ff27e823dfde8f8f601c1bd34cae48bdded00dd8041aeb3a4484e181aa",
       "size": 44278,
       "acceptedSha256": [
@@ -1591,7 +1629,7 @@
     },
     {
       "path": "vBot/BotServer.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/BotServer.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/BotServer.otui",
       "sha256": "2103e9fb4d8196d3ea4353b3842d350a992ea5b067f662263af3942e28e80dd8",
       "size": 26847,
       "acceptedSha256": [
@@ -1624,7 +1662,7 @@
     },
     {
       "path": "vBot/BotServerDashboard.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/BotServerDashboard.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/BotServerDashboard.lua",
       "sha256": "3484c14bec1261200b95bd74a153bc4aea774904ce145eef37ff5343ba6f3eab",
       "size": 38363,
       "acceptedSha256": [
@@ -1633,7 +1671,7 @@
     },
     {
       "path": "vBot/BotSettings.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/BotSettings.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/BotSettings.lua",
       "sha256": "30cc1264c19e23c1e227a73820c5395f89a9695a65d7fa3271b0c0ea130e8cf6",
       "size": 1906,
       "acceptedSha256": [
@@ -1642,7 +1680,7 @@
     },
     {
       "path": "vBot/BotSettings.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/BotSettings.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/BotSettings.otui",
       "sha256": "6e0278f4d2a74e7b5728817026abe8dfd0ea2ef7b6de1495f6627b4e58e8f5cc",
       "size": 4337,
       "acceptedSha256": [
@@ -1651,7 +1689,7 @@
     },
     {
       "path": "vBot/Buffguild.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/Buffguild.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/Buffguild.lua",
       "sha256": "2dd850ebfd70634c3f984a1186542a0e0dc314f828962b23f556cc229ac528f2",
       "size": 13120,
       "acceptedSha256": [
@@ -1660,7 +1698,7 @@
     },
     {
       "path": "vBot/BugMapMouse.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/BugMapMouse.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/BugMapMouse.lua",
       "sha256": "2b3f4d2589396aa974017553de7dc71c48a8d70de9443bccd3373e74f04ee925",
       "size": 8732,
       "acceptedSha256": [
@@ -1670,7 +1708,7 @@
     },
     {
       "path": "vBot/BugMapMouse.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/BugMapMouse.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/BugMapMouse.otui",
       "sha256": "713a29760a6ddfba94d97ed2f7b8446aa8bb608947354fa54921c77b62cfcf2b",
       "size": 1024,
       "acceptedSha256": [
@@ -1679,7 +1717,7 @@
     },
     {
       "path": "vBot/Conditions.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/Conditions.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/Conditions.lua",
       "sha256": "80dafd84eb9bcb96ab92b08b5d0e82a3e840624ec0375636e815f935cb6731d9",
       "size": 27627,
       "acceptedSha256": [
@@ -1713,7 +1751,7 @@
     },
     {
       "path": "vBot/Conditions.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/Conditions.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/Conditions.otui",
       "sha256": "08b2d0bde42a1093fbe5deef5380852ae4bf222fa0560dd9242dfa613cf4ff59",
       "size": 12094,
       "acceptedSha256": [
@@ -1746,7 +1784,7 @@
     },
     {
       "path": "vBot/ContainerManager.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/ContainerManager.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/ContainerManager.lua",
       "sha256": "549a0c1b4f7a6f096f1d0416ad7f891170f2ce8520a13a58a5d6809cd5477ef7",
       "size": 72439,
       "acceptedSha256": [
@@ -1767,17 +1805,19 @@
     },
     {
       "path": "vBot/DummySmart.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/DummySmart.otui",
-      "sha256": "ad8aa2fd6f7571ca3e2d82e5371d8ea45d1a4e57e8fc3c00288e1fffeec802c3",
-      "size": 5465,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/DummySmart.otui",
+      "sha256": "56b38a8065f7cf984be78efbc94a8f8720805cbfe4011557f9db8125f3fc7fe2",
+      "size": 5796,
       "acceptedSha256": [
         "10845daa738215da2b38e56b565151dc7611510aaed5b2b80f7ba0bf0e4cef3c",
-        "569d51b6682b84e5f1e91ade54b542d95ea80345bdbdb6907dcde6bb9c8acdf0"
+        "21f112cc441b814eabf91f38145b67537c1350b3b7880be51c0c391ad25a4e92",
+        "569d51b6682b84e5f1e91ade54b542d95ea80345bdbdb6907dcde6bb9c8acdf0",
+        "ad8aa2fd6f7571ca3e2d82e5371d8ea45d1a4e57e8fc3c00288e1fffeec802c3"
       ]
     },
     {
       "path": "vBot/Equipper.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/Equipper.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/Equipper.lua",
       "sha256": "5e77a898d5d25bd6034752739729f76d0e9a974a245f313fb5366f61d3baa33a",
       "size": 34544,
       "acceptedSha256": [
@@ -1810,7 +1850,7 @@
     },
     {
       "path": "vBot/Ering.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/Ering.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/Ering.lua",
       "sha256": "28948c15403da66d3185574d503bafe91d9ae9ebd171ff9670d88a85974fb5d1",
       "size": 6404,
       "acceptedSha256": [
@@ -1819,7 +1859,7 @@
     },
     {
       "path": "vBot/Ering.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/Ering.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/Ering.otui",
       "sha256": "7023b72ab24c49cbcdc6d162ba958e14a76a04f94d6eb5879050fc8536c3387b",
       "size": 9760,
       "acceptedSha256": [
@@ -1828,7 +1868,7 @@
     },
     {
       "path": "vBot/FireBomb.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/FireBomb.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/FireBomb.lua",
       "sha256": "d5100c8f3f67cf45119f410f3d26f2bf07328f8f7b06b7e09f9a7d84426087d3",
       "size": 7558,
       "acceptedSha256": [
@@ -1838,7 +1878,7 @@
     },
     {
       "path": "vBot/GameBotServerTransport.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/GameBotServerTransport.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/GameBotServerTransport.lua",
       "sha256": "3d68e230a70c77e68ac7437852e8fa3f1b0658c5aab5f31ef26c29b156080ef6",
       "size": 32579,
       "acceptedSha256": [
@@ -1847,9 +1887,9 @@
     },
     {
       "path": "vBot/HealBot.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/HealBot.lua",
-      "sha256": "622a541b9cbe05a6647c2182af4de0cd6b1fd6895a4267255c0f71dabbfcbd60",
-      "size": 44619,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/HealBot.lua",
+      "sha256": "616e2042b3fb2b1fbc573a1270aa26c346673c4246cee57a2fc6814108bf9677",
+      "size": 65099,
       "acceptedSha256": [
         "0b0e59fcc7a8eefe5afd35223c5480867d16b869f706b0ad43c1e64134af5afd",
         "0c665ceedc5a7289df6c5d8f11602d9db35480babbea3a01f99548c5703339f7",
@@ -1863,9 +1903,12 @@
         "35461cebd9f4b643e10a79832fa86a281ce47bb32104fb5c9daa108f22227fed",
         "37a9948de32324d7005abba55eef6438e93d61cf0565a9184ce9b8844d274eb1",
         "37f0f2fe8d38cc27ad6bc20bae18f3d94eec69ac6e2e74267c410e9242469398",
+        "380939d4aebf0c8fb4367b7e4cb8f5f2354ccdf7a1ad27147beb4d3dc9844287",
         "3c69481d2517314c678cb70d7d933a21a7b6abc37103a9cb4c7adb4a30fca77f",
         "59c86e4b37f935f5f8f43586799f8662115f4fb87e58664e24e5c8e96ab75774",
         "59ffa8b59243fcec85d5643462d0cdf814b41d4e5636e0fc80f474db07ede9c2",
+        "607181fed5a494ae4bca52fa19dc7158dc2fc0bd107f05ef0cebb85e91cb8ba5",
+        "622a541b9cbe05a6647c2182af4de0cd6b1fd6895a4267255c0f71dabbfcbd60",
         "64bfae32e4919f1ed280b5bb8e5882bb770b6543e8334ef4e06bf608fbb83777",
         "699f3ead3ce0a43d99044a5ac64012e20dadd6e7057c9f817320266abf45b528",
         "6b32211323fd219a8df291642a183fc1fc960652964cd5b3c523154d1f5508b4",
@@ -1881,18 +1924,21 @@
         "c7f6d4f39b85e24f3025ca4c377266dddcbb8be0f67a39f6cbbe13dfc9ac8a5e",
         "dcb70e57eaa806faf3a25519b412af2c3729a338124c5d77f0c6eac6dca7ff92",
         "e5c25363aa7095a56b28b4023b1ee5bf190cd48320b2b32f8e5720e43c4a23c4",
+        "ef314244b071d8b078bcf2c39eaba3e44981362942b3e7db65354827f8130370",
+        "f16bceb2e39ec6540a33c20273a217f3a122bf4c6f342e565d15091355f656d0",
         "f4d19f0d39811f20a49d3e894ec680b2e28f17dd7ec7efd8be15e23683cc758c"
       ]
     },
     {
       "path": "vBot/HealBot.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/HealBot.otui",
-      "sha256": "37fbdd58d02e7c05937de69e79fe91aa30052c129ef649024b97341b7b5da661",
-      "size": 16970,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/HealBot.otui",
+      "sha256": "27670f2a1221548cabdbff5d711a6ae22633c869c441e9cd2f5864a6c39c3217",
+      "size": 17061,
       "acceptedSha256": [
         "150b63a737a7cc5c4c0cfe00e1a2de4b3b0e8881527629244c18e8355b77cda6",
         "225bcafaa5b569058946d1627cad0cee3367be9ecfa6ac46b028ef41fd660239",
         "2df298200b7fa89e9086aa39fb9b23eaebcac6d79fe55ccb6faeb6981cb36f5b",
+        "37fbdd58d02e7c05937de69e79fe91aa30052c129ef649024b97341b7b5da661",
         "3f01b37e68ebb8c326bbfe5be33f6e0c7de71e05297b2a5a8b59bde578e67d93",
         "45418db295f4274e6b0efb2f51b54f77aeee6b1bd80f821ea950c082eb63ea77",
         "4cc68ce20ce5220f6df4997fffa06aeda2b405974f5b6b8f0bdf5eb72d8eed8a",
@@ -1910,6 +1956,7 @@
         "bb4b853eb881fcd3db13bcdbd2507a9fa17da6bd1ccee0f640e88e82ea9938e0",
         "c3699e64b82a8544fd3cb21790fc932997ee060a9ca10b8aaa297b57e9e81b4b",
         "cd6a11a05060d952b80d666f35e5ba78e577eb15075ae8d11c028358ca3f950a",
+        "ce8ed3e7c796214d1a9aee3397519cb5a2d7703c2a51c0b53a36a50efe3810f0",
         "d0ea6297ddf3bb5dbe91cf386ee5d6b4cedfee4ad269b7098951cfa71668166b",
         "dcfa3c91a4e792296a0f92dcb81404a4b26038bb08c2b503055a0fd659c6d67c",
         "ded85bab49024cac5219a99012fd9756143ed3ac4fcd1bd83d929d4d76dff58f",
@@ -1920,9 +1967,9 @@
     },
     {
       "path": "vBot/Helper.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/Helper.lua",
-      "sha256": "60f7b07ef9ee98d8a2a610387cef53e0b3c5b923c418187112c7c54c03d04f6d",
-      "size": 79188,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/Helper.lua",
+      "sha256": "6abdb62d30a7632ebac015e8e7f77759cf7c36ceb48226d77a98b3312723f38e",
+      "size": 79344,
       "acceptedSha256": [
         "05d1dc734ef40388ac993ccc062574813f4076500ddc0a1debcade29ac85d63d",
         "19a8d8caa02c7f8dd8d0c508a8acc58e4f9c9584d2038a2fa4f48ed1b0db6b5c",
@@ -1933,21 +1980,24 @@
         "51beb9e108f2bbd2f5be613671810cff441520f0b1dd7ebe588222d70dcb8ff8",
         "526f86050a02793e8e6f72d163c698a9b2bdca998bae7d22988066db33973d22",
         "5d6d77a32fb2d20b04e1a4a6c70ad243845608efa6106a6a6439b09fb460b2ed",
+        "60f7b07ef9ee98d8a2a610387cef53e0b3c5b923c418187112c7c54c03d04f6d",
         "a70b651c9e07183da205e4f7afd59c11307caef5664d4a40ce91839cbd1e408d",
         "ab11dbf719ccf08ba8f51e3d545e632890ca58c5c515c3b9c8b7d23c95063a82",
         "b5483853cff5eaaa8b82b58fc72aa0ddc0ab71d61696b09f35021ec6d34ec468",
         "bb5a5af4bb411252616d5d9a9f12cccd0b24036d74f73d8e2dad6aaf35b7d24f",
         "c8dd959fcc81442e8d463345a86cd18d5b6dbc8bea0c8329e09199ff09c623cf",
         "c9027eb6a01cf36c72d9f82a47e867f5fb92d7e125c623e2663331969160f60a",
-        "dd2f04de0f0401ade694effb4ed390fd07a2c3d14ff4dba4e421189bc7c79cf9"
+        "dd2f04de0f0401ade694effb4ed390fd07a2c3d14ff4dba4e421189bc7c79cf9",
+        "fa6dbb2d6f42646e3fb04a134d93ee0df5cd681dce98b98ac19e90a9880d3052"
       ]
     },
     {
       "path": "vBot/Helper.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/Helper.otui",
-      "sha256": "0aa354cb11eb0831a742cc30484ef8f7bf53e22e2d0fe15736c5f81b6667d25a",
-      "size": 31976,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/Helper.otui",
+      "sha256": "86a932a32e86f583f93b51d40ac8b2403d0a7df2152bec729c23848aa74733c8",
+      "size": 31985,
       "acceptedSha256": [
+        "0aa354cb11eb0831a742cc30484ef8f7bf53e22e2d0fe15736c5f81b6667d25a",
         "2e2f6f94b2790823fd0c97d70ffabf80072a00990a10991a134619500cf25898",
         "70c9814329346dcc3c4e6d35aa660afec3c0b95cff12a0c9f23059bed499788c",
         "880ad7a99651ba3dfb7cd298be43836140bd454f4db97ca69245a012c8c41982",
@@ -1957,7 +2007,7 @@
     },
     {
       "path": "vBot/HelperAppearance.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/HelperAppearance.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/HelperAppearance.lua",
       "sha256": "17959d5e80cbe7712aa7a3ba07f49a94b1b6f0ccc2e076bf443ba11e984ed26d",
       "size": 976561,
       "acceptedSha256": [
@@ -1992,21 +2042,21 @@
     },
     {
       "path": "vBot/HelperPause.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/HelperPause.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/HelperPause.lua",
       "sha256": "6979cce0dcb55b5348ea12eb2e3d30cc3fd7cd6c28ac05d40bce7aa8e8d6b6b0",
       "size": 2499,
       "acceptedSha256": []
     },
     {
       "path": "vBot/HelperProfileCatalogs.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/HelperProfileCatalogs.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/HelperProfileCatalogs.lua",
       "sha256": "93d6dce4876ee7b4eb67208f1c4112a8431f123dbcce26b6f93efd4c6865060d",
       "size": 9938,
       "acceptedSha256": []
     },
     {
       "path": "vBot/HelperProfileDefaults.json",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/HelperProfileDefaults.json",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/HelperProfileDefaults.json",
       "sha256": "741d4e9abb3d024f3194c5b7ab527108a88107564c89b0226f2d776f79d39711",
       "size": 16951,
       "acceptedSha256": [
@@ -2015,7 +2065,7 @@
     },
     {
       "path": "vBot/HelperProfiles.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/HelperProfiles.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/HelperProfiles.lua",
       "sha256": "54f006d49f79d4020c1c867d7dbb34a939db865d76a09c2297fc284ba22ab65a",
       "size": 20845,
       "acceptedSha256": [
@@ -2027,7 +2077,7 @@
     },
     {
       "path": "vBot/HelperRegistry.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/HelperRegistry.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/HelperRegistry.lua",
       "sha256": "a71e316d132224cb2d7cb6dfd8b86e70875284ef29bd9a5ff659d01c434acc91",
       "size": 16668,
       "acceptedSha256": [
@@ -2043,7 +2093,7 @@
     },
     {
       "path": "vBot/HelperTheme.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/HelperTheme.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/HelperTheme.lua",
       "sha256": "0e2e5229409d7ac3f2822b43fb672ddb02f7ff8505233518097d45213c399313",
       "size": 6120,
       "acceptedSha256": [
@@ -2052,7 +2102,7 @@
     },
     {
       "path": "vBot/HelperTheme.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/HelperTheme.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/HelperTheme.otui",
       "sha256": "bf6d04bf106eb9e4b109fa894213c0c749dc480a1e453858f74a5de8e1e1558f",
       "size": 20626,
       "acceptedSha256": [
@@ -2061,34 +2111,48 @@
     },
     {
       "path": "vBot/IconEditor.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/IconEditor.otui",
-      "sha256": "d6d5f2efb71482a13a3348de91f3a7df9a099120289868141b6bca2cf5a99003",
-      "size": 21673,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/IconEditor.otui",
+      "sha256": "2083ea910b36e1a089c8f160a7998553201095ee05cf017320147800aa54c054",
+      "size": 12972,
       "acceptedSha256": [
-        "460263252f07c4f2203387ccb0c4a3fcd3b38166a81f9b57af3179c0dca5a2cf"
+        "3ab3769374223b32f836c8c6b294391d40e083f1c451bd7d465980591476ab79",
+        "460263252f07c4f2203387ccb0c4a3fcd3b38166a81f9b57af3179c0dca5a2cf",
+        "b3f63a3c24eb26630391d83255f3d71be03ea2afe4354dba578f9d6dea69deb1",
+        "b77c86cb40031306a162fb54df5848f10ae64650356fa62fe0c1dfc85a0f4a1b",
+        "d6d5f2efb71482a13a3348de91f3a7df9a099120289868141b6bca2cf5a99003"
       ]
     },
     {
       "path": "vBot/ImbuementScrolls.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/ImbuementScrolls.lua",
-      "sha256": "32d0d6a95de191c646b0df754415a1abb27c684f8db4f833a330045834bf9668",
-      "size": 42498,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/ImbuementScrolls.lua",
+      "sha256": "4676cad956845e6954d0c7f5dd1d930a341e0087d161fe059c6ed9f73da93f7e",
+      "size": 47152,
       "acceptedSha256": [
+        "32d0d6a95de191c646b0df754415a1abb27c684f8db4f833a330045834bf9668",
+        "3c8c823cf5c982c8c5bf710c32d83ba2fc0f3be13ef1fa7c4aa7b2a737e8434b",
+        "5484104a65f2f8f2bb9d425639b7519d4d95eea4172fdda6b66e53195f9eb7fb",
+        "7b526967cee88aaf588f6c8d8d548ad2127185339d17aeb45f6ae66555be1927",
+        "b4bdfc86844e2d399a009827eb39302e24d75b8235d193164a06d0232ac57955",
         "dd8c9244cdd0b8a0fb5daf48e9f4ab07bf5ca777da821c549c474b25ae4555c0"
       ]
     },
     {
       "path": "vBot/ImbuementScrolls.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/ImbuementScrolls.otui",
-      "sha256": "1f86d935e9ca866d8bb419d4632539e4c91c88ce715fd0ac12681541d743f8e7",
-      "size": 8399,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/ImbuementScrolls.otui",
+      "sha256": "01ea26064aa9c50d091e17d17b7c1f201e5de58df27cd54b226ebc00499f3a59",
+      "size": 9395,
       "acceptedSha256": [
-        "2fbe467772237e486b3217f0dbe32dd998221e9381aeac225027e475d188bf2c"
+        "1f86d935e9ca866d8bb419d4632539e4c91c88ce715fd0ac12681541d743f8e7",
+        "2fbe467772237e486b3217f0dbe32dd998221e9381aeac225027e475d188bf2c",
+        "5988e029ff3cb3e533d31b8b18242883dc517703415125d5e63709df4fa4aaf4",
+        "777cadf0d3abc60f7dc1d7ce4466c848aaf0856bc7c52d5c5e38d4018075c093",
+        "83bfbd546ab08eca0261ae1480451819ee309fd43fcd625d3ef6c9398f5e8dee",
+        "b7e829fe9bb8f3e725e07a135047d43786d3b6889cde3ab8775ddaa0445c5605"
       ]
     },
     {
       "path": "vBot/Inmortal.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/Inmortal.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/Inmortal.lua",
       "sha256": "bb5eba21d35c0049117df76f73afb45aedbfe11068acbcf811a4a2ce39f1520d",
       "size": 63211,
       "acceptedSha256": [
@@ -2106,7 +2170,7 @@
     },
     {
       "path": "vBot/Inmortal.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/Inmortal.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/Inmortal.otui",
       "sha256": "6cf9d70cc076a0b8273ccccae9b481b7f65d499870a0ef9a08ff8f5528b960aa",
       "size": 12415,
       "acceptedSha256": [
@@ -2115,7 +2179,7 @@
     },
     {
       "path": "vBot/ItemCounter.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/ItemCounter.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/ItemCounter.lua",
       "sha256": "180c4801f38268862face9f5cdb402467fc4aef08416541ce201dcdfc3255723",
       "size": 6426,
       "acceptedSha256": [
@@ -2124,7 +2188,7 @@
     },
     {
       "path": "vBot/ItemCounter.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/ItemCounter.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/ItemCounter.otui",
       "sha256": "861360845378a319b789c3879ad5d5bb809f05fc84aea83a2af4b30983c6c66c",
       "size": 2318,
       "acceptedSha256": [
@@ -2133,7 +2197,7 @@
     },
     {
       "path": "vBot/ManaTrainer.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/ManaTrainer.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/ManaTrainer.lua",
       "sha256": "78dac9db402dc97ea36a4eca48091fd65dae0dff03dde78326c7c7bd9a94964a",
       "size": 12842,
       "acceptedSha256": [
@@ -2143,7 +2207,7 @@
     },
     {
       "path": "vBot/ManaTrainer.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/ManaTrainer.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/ManaTrainer.otui",
       "sha256": "a2b036dab165ea77a2ce20770a74fa1d2c9696841b8d59d4e2f6061be8e97a0a",
       "size": 5344,
       "acceptedSha256": [
@@ -2153,14 +2217,14 @@
     },
     {
       "path": "vBot/Pullitems.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/Pullitems.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/Pullitems.lua",
       "sha256": "a952e966f66629d11ad41d5a81a50846653b8b371c99956a5bb8b16b2e4855df",
       "size": 2147,
       "acceptedSha256": []
     },
     {
       "path": "vBot/Recoge.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/Recoge.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/Recoge.lua",
       "sha256": "d87bff977b8f7e89628803f4034df7ebe9f447497e2b16ccf9a83c1b66523d01",
       "size": 3127,
       "acceptedSha256": [
@@ -2169,7 +2233,7 @@
     },
     {
       "path": "vBot/RinoConsole.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/RinoConsole.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/RinoConsole.lua",
       "sha256": "880fdb7f67c38aaa80dc95f7d33de3943b158990d14137c33c0f631608c8cc08",
       "size": 7262,
       "acceptedSha256": [
@@ -2178,14 +2242,14 @@
     },
     {
       "path": "vBot/RinoConsole.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/RinoConsole.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/RinoConsole.otui",
       "sha256": "492408ec97167728fdc8bfa4ec3e3ae45b76ef3683878df2718a017a1caff177",
       "size": 2122,
       "acceptedSha256": []
     },
     {
       "path": "vBot/RinoSession.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/RinoSession.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/RinoSession.lua",
       "sha256": "4228eac5c33cd9e288af1cb293e1ddfa06b36857b3a6e60e4d88b628cbcf9f49",
       "size": 2815,
       "acceptedSha256": [
@@ -2194,7 +2258,7 @@
     },
     {
       "path": "vBot/RinoSkin.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/RinoSkin.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/RinoSkin.lua",
       "sha256": "d7dcb7cbb86ef45babf676e66a64fdc432266ec829b19e879546ec21058b3875",
       "size": 13227,
       "acceptedSha256": [
@@ -2203,10 +2267,11 @@
     },
     {
       "path": "vBot/SabuezoChangelog.fallback.txt",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/SabuezoChangelog.fallback.txt",
-      "sha256": "00e02a9c3f7f72f3348dce22e51fe4d354d26ff69136e2aed7e45cf2c2a1aa4b",
-      "size": 5760,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/SabuezoChangelog.fallback.txt",
+      "sha256": "f9d6cef0a11f8a89846d5a3d8903c2ab1887298c34198b6d5d1d3a3158b5cfa0",
+      "size": 6668,
       "acceptedSha256": [
+        "00e02a9c3f7f72f3348dce22e51fe4d354d26ff69136e2aed7e45cf2c2a1aa4b",
         "0a2bfb02c7864962b7ca62b283cbf77c079eaf485e555d83474817ce5de08da4",
         "4aeae2b9372230b8267babf5c114076688d2fd599c85dc17dfc6e36a166afa72",
         "539642a42d99238b933d7f5799ad7f4c0ec8e115799076c5d664bec015f0fb37",
@@ -2216,7 +2281,7 @@
     },
     {
       "path": "vBot/SuperHealth.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/SuperHealth.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/SuperHealth.lua",
       "sha256": "4cd2b97d93cab4bae6b1e6f09d968ae5753e9db31db041facf155f4ef584a945",
       "size": 14848,
       "acceptedSha256": [
@@ -2226,7 +2291,7 @@
     },
     {
       "path": "vBot/TimerExecutor.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/TimerExecutor.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/TimerExecutor.lua",
       "sha256": "9a95d1d9364b4b3e3ff0c78f6d94765522afc20038960f8a6cde0a2e62f007c0",
       "size": 24890,
       "acceptedSha256": [
@@ -2239,7 +2304,7 @@
     },
     {
       "path": "vBot/TimerExecutor.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/TimerExecutor.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/TimerExecutor.otui",
       "sha256": "2e266a4f2f3a71569c7cbc85ace9adcb0a6cd6539ed91973de2c2506d64a36df",
       "size": 12389,
       "acceptedSha256": [
@@ -2251,7 +2316,7 @@
     },
     {
       "path": "vBot/Updater.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/Updater.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/Updater.lua",
       "sha256": "662172aaf4522866bbc0117ed17d4a05938d0c715ec7f8870e7ed3a8716090e2",
       "size": 79717,
       "acceptedSha256": [
@@ -2266,7 +2331,7 @@
     },
     {
       "path": "vBot/Updater.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/Updater.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/Updater.otui",
       "sha256": "ce6fbcd3f74ea43880b8d43b68f568c71bb5596b843b1d36119f62d449674f81",
       "size": 11597,
       "acceptedSha256": [
@@ -2276,7 +2341,7 @@
     },
     {
       "path": "vBot/alarms.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/alarms.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/alarms.lua",
       "sha256": "7e7e76f07d7c3c39aa766206cba8b2394be7c2f25dc8500f7a4efcc12376e82b",
       "size": 9621,
       "acceptedSha256": [
@@ -2309,7 +2374,7 @@
     },
     {
       "path": "vBot/alarms.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/alarms.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/alarms.otui",
       "sha256": "1febf984fe919975ec30ee2bbfd3e2229a04e1b23ccca0203a390b83b3beadcc",
       "size": 2745,
       "acceptedSha256": [
@@ -2342,7 +2407,7 @@
     },
     {
       "path": "vBot/analyzer.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/analyzer.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/analyzer.lua",
       "sha256": "d585838d3e8a4d6c15ba25ead4a83038ec2c06547650c56395da1970c81269fa",
       "size": 37828,
       "acceptedSha256": [
@@ -2374,7 +2439,7 @@
     },
     {
       "path": "vBot/analyzer.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/analyzer.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/analyzer.otui",
       "sha256": "e28d35cd3d9dec82854eee5c9b7498d01aa3bc1568b98d28f13601613519177b",
       "size": 5349,
       "acceptedSha256": [
@@ -2407,22 +2472,27 @@
     },
     {
       "path": "vBot/attack_alignment.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/attack_alignment.lua",
-      "sha256": "2bf7f823a248edc5f52eb19ae8efefeed8a47a166fa9280445f3f7f279fe6d31",
-      "size": 16894,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/attack_alignment.lua",
+      "sha256": "d20f052ec79fcabac7bc4e8cccf90d726b8758e1e4e5c3d32d378f80aa1cad28",
+      "size": 20330,
       "acceptedSha256": [
+        "2bf7f823a248edc5f52eb19ae8efefeed8a47a166fa9280445f3f7f279fe6d31",
         "62ae97dbb05866f69fb854a40d878f80e4ad49807955f25e44cefb00e22ad18f",
-        "b54bd3ad1c8dfeb7e2013b404ef6eb4adf7c72b73eaece3b0193281b93b9dad5"
+        "9de7c331e759861e932e2412a26696e2f5fb90de2ab00ccb54cb93dfa4533464",
+        "b54bd3ad1c8dfeb7e2013b404ef6eb4adf7c72b73eaece3b0193281b93b9dad5",
+        "e5e9e49e3a79b2f3db30344b966c123078910860492ec5480caaa98e2ac3b806",
+        "fbcf685869ea88e56cdb98c9e640fd144ef641d91c67377f46d3552701df3fff"
       ]
     },
     {
       "path": "vBot/attack_editor.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/attack_editor.lua",
-      "sha256": "8e0884e7f80e750adf7fe38c6789a3c3f238cc54bd40804aa7cb3011a1ccfc86",
-      "size": 42525,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/attack_editor.lua",
+      "sha256": "cb24e12f972065be83de9a0dee7be782b8dd8f54a6f68d6a3ddbdeb09bff0d94",
+      "size": 42251,
       "acceptedSha256": [
         "09cb6df8ca197bdb5f5012752dc2a8e69c64951408d7e61edf90c351d0d27c90",
         "16590b220bc8da5eb92faee1bb46f758a74e7259f5ec3feacc8560e05d573e59",
+        "8e0884e7f80e750adf7fe38c6789a3c3f238cc54bd40804aa7cb3011a1ccfc86",
         "977f3e79e8d8b39f37eea99df476409e8d211b51311fe64bdbafc051ca20523a",
         "ddf2332542f99b7817a816fa5306cf71a51a32ad96fda960dac66b993f23525c",
         "e79214e37e6b7f5a3eb14412eba7b96afbb997d157f069bfcc93adcf91dac3da",
@@ -2431,10 +2501,11 @@
     },
     {
       "path": "vBot/attack_editor.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/attack_editor.otui",
-      "sha256": "4658a9040ddebb2e0cebf7c744f298a8f70020cc63456e60fd5419f9754bd69e",
-      "size": 40514,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/attack_editor.otui",
+      "sha256": "ad4d9e43e1ac1815d7d3a886ccfc26ceea92305c721dd2909c1c5fe5742aa7a0",
+      "size": 40680,
       "acceptedSha256": [
+        "4658a9040ddebb2e0cebf7c744f298a8f70020cc63456e60fd5419f9754bd69e",
         "82e432855f221781eb511e2d0cb4038b75a52c29169a7c7ed40c0cf051484ee0",
         "ac2848bd2405bc0d9d118dc867f5615e8129b4f1be2288d4297e5850d761593f",
         "bb1f58def8ee5309b26d1b901651e48389bc911c97a3e9dffbb54444da0908aa",
@@ -2443,385 +2514,388 @@
     },
     {
       "path": "vBot/attack_profile.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/attack_profile.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/attack_profile.lua",
       "sha256": "f2380ed33ab829d2f49db36aaf47361a38eb3137d7fc57aa120777f52fc4017f",
       "size": 4172,
       "acceptedSha256": []
     },
     {
       "path": "vBot/attack_rotation.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/attack_rotation.lua",
-      "sha256": "a2b4b146b5822ff7ec9659ec2cecc886a655e7808dc04280d83ea4d0b93e267c",
-      "size": 34953,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/attack_rotation.lua",
+      "sha256": "4c4087fd21823106e6707768bd81f013597915d002177c582698c5f300f956b9",
+      "size": 35252,
       "acceptedSha256": [
         "4116cefcff6d2cb0c3b6d33216ed8d8e5e08e595dcf30b4c59f1be91b26286eb",
         "98ce5da120c1a5a63ff58e613d36e5969d46ba7c85227f32e497f6875e8d742d",
+        "a2b4b146b5822ff7ec9659ec2cecc886a655e7808dc04280d83ea4d0b93e267c",
+        "c73d0951f20001749c698acb15438f6329876c47d988faca26bb24fd9900d038",
         "e10a83c21e05c41677633922ff0e0275f5ca1ed7fe6295a7db2a80171a71c4c4",
         "f90ced56222282e18124871ec0c28eb01848f00717d7fe93b413b2dc41e7c15c"
       ]
     },
     {
       "path": "vBot/attack_spell_catalog.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/attack_spell_catalog.lua",
-      "sha256": "ff9de9e4dd22c62a32d67c6f87f35f0ecf096fdf0d344f391eccfa70fdf59eb7",
-      "size": 31024,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/attack_spell_catalog.lua",
+      "sha256": "138344f5493211e84ed1beeb625b865de3403aa3f82552deb26b64e6bd44b807",
+      "size": 32351,
       "acceptedSha256": [
-        "be2b5c682a9532df10954516dfb50297759a4121e4387805b6fccb4e47aabf2f"
+        "be2b5c682a9532df10954516dfb50297759a4121e4387805b6fccb4e47aabf2f",
+        "ff9de9e4dd22c62a32d67c6f87f35f0ecf096fdf0d344f391eccfa70fdf59eb7"
       ]
     },
     {
       "path": "vBot/attack_spell_icons/deathecho.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/attack_spell_icons/deathecho.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/attack_spell_icons/deathecho.png",
       "sha256": "6b041bd20f0c7e822f4c7c792b2a2c92a17cd3aa34d314f3310b5d39e1177ceb",
       "size": 2767,
       "acceptedSha256": []
     },
     {
       "path": "vBot/attack_spell_icons/divinebarrage.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/attack_spell_icons/divinebarrage.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/attack_spell_icons/divinebarrage.png",
       "sha256": "822552f6d60e7239fc806248942c54cc1869a186d45a7c7bcf4099f0172119c8",
       "size": 2807,
       "acceptedSha256": []
     },
     {
       "path": "vBot/attack_spell_icons/etherealbarrage.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/attack_spell_icons/etherealbarrage.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/attack_spell_icons/etherealbarrage.png",
       "sha256": "610520923888cffc5e75052ec98ac841b6b1209a4ff3b53a906e69c94cb3d747",
       "size": 2830,
       "acceptedSha256": []
     },
     {
       "path": "vBot/attack_spell_icons/forkedglacier.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/attack_spell_icons/forkedglacier.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/attack_spell_icons/forkedglacier.png",
       "sha256": "3f801f22679b40785fc922c21669c2bd2367a1006caf5402d0f458d82204ff73",
       "size": 3355,
       "acceptedSha256": []
     },
     {
       "path": "vBot/attack_spell_icons/forkedthorns.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/attack_spell_icons/forkedthorns.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/attack_spell_icons/forkedthorns.png",
       "sha256": "e4beb115230cef558fa058f54b1ebc8244677ee7750cb58865095174d15a168b",
       "size": 3282,
       "acceptedSha256": []
     },
     {
       "path": "vBot/attack_spell_icons/lesseretherealspear.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/attack_spell_icons/lesseretherealspear.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/attack_spell_icons/lesseretherealspear.png",
       "sha256": "41781d1cf9fc0e0bb8c6ae1902fa4c01417a6a2cb6413925d3ce899b9cc4d6d1",
       "size": 3311,
       "acceptedSha256": []
     },
     {
       "path": "vBot/attack_spell_icons/lesserfrontsweep.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/attack_spell_icons/lesserfrontsweep.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/attack_spell_icons/lesserfrontsweep.png",
       "sha256": "f62e3609288ad3d27648764038e2ee0e1e8b3126513be4ff328a0044eedf3367",
       "size": 3322,
       "acceptedSha256": []
     },
     {
       "path": "vBot/attack_spell_icons/lessermysticrepulse.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/attack_spell_icons/lessermysticrepulse.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/attack_spell_icons/lessermysticrepulse.png",
       "sha256": "097753797f318016891f581e2146208f32967bf4c46acf0777698e009d6a891e",
       "size": 3091,
       "acceptedSha256": []
     },
     {
       "path": "vBot/attack_spell_icons/shieldbash.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/attack_spell_icons/shieldbash.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/attack_spell_icons/shieldbash.png",
       "sha256": "7b5212dc00d758ddf68663942b531c20c6577f46753dbf15d3576c5fb3f2370e",
       "size": 2691,
       "acceptedSha256": []
     },
     {
       "path": "vBot/attack_spell_icons/shieldslam.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/attack_spell_icons/shieldslam.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/attack_spell_icons/shieldslam.png",
       "sha256": "895d2831a1271aef2230c140efdf4191a4f6bc117e8c3013e0deb346ed6d2a28",
       "size": 2838,
       "acceptedSha256": []
     },
     {
       "path": "vBot/attack_spell_icons/thousandfistblow.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/attack_spell_icons/thousandfistblow.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/attack_spell_icons/thousandfistblow.png",
       "sha256": "780009dc897fc1adf256be3ddd11b6bc3858836337963b1e3028ac31ea493525",
       "size": 3105,
       "acceptedSha256": []
     },
     {
       "path": "vBot/attack_spell_preview.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/attack_spell_preview.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/attack_spell_preview.lua",
       "sha256": "aa096a8339f8a19da3517ba6d0fc61ecf3ca1edb100875c4a1e2628256589ae9",
       "size": 5477,
       "acceptedSha256": []
     },
     {
       "path": "vBot/attack_spell_vocations.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/attack_spell_vocations.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/attack_spell_vocations.lua",
       "sha256": "d2bd3669881b4cd600cab1c8bf9e7fef3a38e63120c0c18e16a6c1cfebec8a87",
       "size": 7045,
       "acceptedSha256": []
     },
     {
       "path": "vBot/bot_tabs.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/bot_tabs.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/bot_tabs.lua",
       "sha256": "229aa318497d402a5a342e7f71b4593f72e63e312c2f0ef7ee9cc463d0b6997a",
       "size": 2453,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/bar.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/bar.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/bar.png",
       "sha256": "2a38adb7b2debe4385d7c8451a2889575c249296dca51d647450605add7e6878",
       "size": 244,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/button-hover.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/button-hover.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/button-hover.png",
       "sha256": "8d269c13dc760ca04e2b55b0343f592f43592fe5cbe3533b4f7fec0bacb126ac",
       "size": 325,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/button-pressed.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/button-pressed.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/button-pressed.png",
       "sha256": "106b48499a13606276a95e76b47f8bbea90b6c40c5adf15ea12912c43d295072",
       "size": 335,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/button.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/button.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/button.png",
       "sha256": "2677ec68222782cf9da155821afe6d8fbf42b34c9f096c772bcf9586694f86e5",
       "size": 325,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/card.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/card.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/card.png",
       "sha256": "205fb6401a17c9017733a27811c863e548f46269557e7909343395d69e718fd6",
       "size": 886,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/chevron-down.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/chevron-down.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/chevron-down.png",
       "sha256": "90a65d86fac20f8b401c88cc982e793461561231932638b9bf0e2f77fd1e197c",
       "size": 530,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/chevron-right.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/chevron-right.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/chevron-right.png",
       "sha256": "e1c235b1334951f100ea051aca8a422149f2cada0ca29780b55a3f06be6d80cc",
       "size": 526,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/crosshair.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/crosshair.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/crosshair.png",
       "sha256": "1c989daf776d3b00ac2887da9604ca035bcae84d8699fc6f08e95744de10d30c",
       "size": 1049,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/crown.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/crown.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/crown.png",
       "sha256": "dfec72f3f2f3150c07d177efd07a4c0011980b7c3fd621ed0e942e0238fd8c0b",
       "size": 1101,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/danger.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/danger.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/danger.png",
       "sha256": "b38e1db74f02f15effff7025a36b5eac03618c089435d54fcb6a3adfd778c9cf",
       "size": 327,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/heading.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/heading.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/heading.png",
       "sha256": "4690e48a02a7d782f3730e13ec48bc6ac5df6b90f7239afc9df80c381a7710b4",
       "size": 247,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/helper-sabuezo-cyan-suave-46.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/helper-sabuezo-cyan-suave-46.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/helper-sabuezo-cyan-suave-46.png",
       "sha256": "aea2fd8543247580b141c6caedc34c21bc9d15db7fdd19f1763368bf9e5b5638",
       "size": 4401,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/helper-sabuezo-cyan.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/helper-sabuezo-cyan.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/helper-sabuezo-cyan.png",
       "sha256": "f91da7183df1c0adf6088f2fb20257fdf7839f68710cbd2de0e407b3122214be",
       "size": 715588,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/hp-fill.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/hp-fill.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/hp-fill.png",
       "sha256": "ea0d07e955143466f15e0bb36d57f8cf6cf4368e30f3de0e42c1e370806f6f73",
       "size": 141,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/input.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/input.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/input.png",
       "sha256": "8e38bea7c9f8177f12d497e9afebdafb388fd67e7409261b084ae50758c4c138",
       "size": 251,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/layers.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/layers.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/layers.png",
       "sha256": "7ff251ca4a94f9a5bebd00b8a6d1048a1d39daaea04205e9126f8b4faecbff3d",
       "size": 1166,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/mana-fill.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/mana-fill.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/mana-fill.png",
       "sha256": "ecd33adacd08274cf7aac65a2631e0094f104f6788cb029d2945a044ea0bc77d",
       "size": 141,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/members.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/members.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/members.png",
       "sha256": "dc17595b196a32e37b79dfd6cb352d7b8232efe35cf256f11b2a010cffa1f578",
       "size": 1132,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/pin.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/pin.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/pin.png",
       "sha256": "ec5fae10ecb14c8d91a023af3dd21db4bfcd272ad6ef3fbc2ded98f6a1e44875",
       "size": 1172,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/power-on.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/power-on.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/power-on.png",
       "sha256": "75c265293124d8604eb79e90d6996c2458b40a95bd41777e3126a3610ce5abf8",
       "size": 353,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/rinobot-title-20.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/rinobot-title-20.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/rinobot-title-20.png",
       "sha256": "a102eef3c5abbb698367374a7735fd5f81ca72be89651a0ea71854ad1833f570",
       "size": 26614,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/rinobot-title.otfont",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/rinobot-title.otfont",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/rinobot-title.otfont",
       "sha256": "bb92052664557c76f1c1784ce532ac74a4ad00a552b76a107bc7f4ccc151e5b7",
       "size": 149,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/row-hover.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/row-hover.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/row-hover.png",
       "sha256": "8d8b79c17fb66481619b89863d123f7a4df0c736e26e26d906514d532fb0382f",
       "size": 261,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/row-selected.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/row-selected.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/row-selected.png",
       "sha256": "b4d045476bbc07a98c7eea78a4f97819555e5ef38d6c4f9c0ec9652d8394e72b",
       "size": 270,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/row.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/row.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/row.png",
       "sha256": "ce04dc08d4f799d04fe22def6636ef2e01aa865ced97da8000ed347199be23f8",
       "size": 256,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/search.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/search.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/search.png",
       "sha256": "a2d3bb500d493886b25084262ebbc7bfc6091b19fb2cc353dda9cf719bcba4c5",
       "size": 931,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/star-filled.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/star-filled.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/star-filled.png",
       "sha256": "e8d108845bb70f30ce548e5c99ae88ce96458c091006376899e3bf4ff18e028f",
       "size": 1091,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/star-outline.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/star-outline.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/star-outline.png",
       "sha256": "fd6796d3198e5561b522f9e585d0368d527f05874856aebf361db9bf2c0887f6",
       "size": 1047,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/status-gray.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/status-gray.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/status-gray.png",
       "sha256": "89ebcd7cc390a858ccaeb01ea71bfe11e8e5dd44b4a199f57891b6d411847a1c",
       "size": 1210,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/status-green.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/status-green.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/status-green.png",
       "sha256": "cb257f3b3a4ef3df8499fd2a99fe9d5daf4da121bb6476f252abb5182778fc06",
       "size": 1233,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/status-red.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/status-red.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/status-red.png",
       "sha256": "9c37aeda4f34b065c324551ca1b21352fcfd0dd69538a30cbdbb3778a9195bd9",
       "size": 1225,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/status-yellow.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/status-yellow.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/status-yellow.png",
       "sha256": "eb4ed8e0f07144447615e2ac651121cfe92ba8052909ab9c744af2464030a544",
       "size": 1213,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/switch-off.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/switch-off.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/switch-off.png",
       "sha256": "80e801a47af9280d74e585ba2c1bdf1d3bfa333d14abc593211130eca234d006",
       "size": 324,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/switch-on.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/switch-on.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/switch-on.png",
       "sha256": "f4e2b0e06cb5a3a88dede8ae9b00f3af26112a81e5caf8d7361b99ba0fa0dbce",
       "size": 331,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/tab-active.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/tab-active.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/tab-active.png",
       "sha256": "837a305a42ff303e95b18b2202d6d509c4ce56a4e6acd968516fc091321b5767",
       "size": 348,
       "acceptedSha256": []
     },
     {
       "path": "vBot/botserver_assets/window.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/botserver_assets/window.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/botserver_assets/window.png",
       "sha256": "9c1dbfd3df56d3467de23707a2ac456c1d2da392711418e324423ec59266a495",
       "size": 3946,
       "acceptedSha256": []
     },
     {
       "path": "vBot/cave_target_settings.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/cave_target_settings.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/cave_target_settings.lua",
       "sha256": "268c980008a5a2818d921ea881c51980973fc310db2d3748a15c76531f14ef34",
       "size": 8036,
       "acceptedSha256": [
@@ -2830,7 +2904,7 @@
     },
     {
       "path": "vBot/cave_target_settings.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/cave_target_settings.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/cave_target_settings.otui",
       "sha256": "874387ee3a749a4360e7ccb1e354a51715dd1ebf3ddffda3341af82267092b54",
       "size": 3338,
       "acceptedSha256": [
@@ -2839,7 +2913,7 @@
     },
     {
       "path": "vBot/cavebot.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/cavebot.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/cavebot.lua",
       "sha256": "2e1f63db37dedb0e746161b5a36302442d2bd45cb39605c5a4fa4b16a025efc4",
       "size": 2637,
       "acceptedSha256": [
@@ -2861,7 +2935,7 @@
     },
     {
       "path": "vBot/cavebot_control_panel.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/cavebot_control_panel.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/cavebot_control_panel.lua",
       "sha256": "5d52f53bb21b31b0641ce43d551d998a64e6396af0f6b16aa556d2f2d98188f2",
       "size": 1945,
       "acceptedSha256": [
@@ -2894,14 +2968,14 @@
     },
     {
       "path": "vBot/client_compat.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/client_compat.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/client_compat.lua",
       "sha256": "c5c958817f18a21b156355da75f9db2bca422724d3e4266b464aa9fc7f144760",
       "size": 3608,
       "acceptedSha256": []
     },
     {
       "path": "vBot/combo_plus.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/combo_plus.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/combo_plus.lua",
       "sha256": "bdda88a7922bf833fe2a65cd2f775567363acc1379941f46112e4d3385197141",
       "size": 83127,
       "acceptedSha256": [
@@ -2922,7 +2996,7 @@
     },
     {
       "path": "vBot/combo_plus.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/combo_plus.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/combo_plus.otui",
       "sha256": "4f69d49c1cff6eea13d78b1ec66dce2c444dd96d49ba9be2e472ad503f6b3650",
       "size": 6999,
       "acceptedSha256": [
@@ -2939,7 +3013,7 @@
     },
     {
       "path": "vBot/configs.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/configs.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/configs.lua",
       "sha256": "38ae0776334d8de6f6d69e8bec527159b8f0e2241bc491d10840032853978af3",
       "size": 3406,
       "acceptedSha256": [
@@ -2971,35 +3045,35 @@
     },
     {
       "path": "vBot/console_ui.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/console_ui.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/console_ui.lua",
       "sha256": "2637970899247275239e8aaadbd40b40796bb7770897cbbe933098f383a0e592",
       "size": 3239,
       "acceptedSha256": []
     },
     {
       "path": "vBot/container_layout.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/container_layout.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/container_layout.lua",
       "sha256": "6af9164f16a71ad0c61acdd83486a217da6c07f4c71044fab8940197ecc5cdb6",
       "size": 16312,
       "acceptedSha256": []
     },
     {
       "path": "vBot/cosmetic_visibility.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/cosmetic_visibility.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/cosmetic_visibility.lua",
       "sha256": "ea9f697140c40c317316662d4e6f0d25325da12f5ca73ab12e1c4cc581af1902",
       "size": 7241,
       "acceptedSha256": []
     },
     {
       "path": "vBot/dash.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/dash.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/dash.lua",
       "sha256": "1facb3f29e4094275c5893d4d1631633456652ef0652b7c0b45e7cf24ca4c5b8",
       "size": 3122,
       "acceptedSha256": []
     },
     {
       "path": "vBot/depositer_config.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/depositer_config.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/depositer_config.lua",
       "sha256": "f5af7707086a586744333b4207ef8202d7c888514ddb596f365cadc978acb89a",
       "size": 14537,
       "acceptedSha256": [
@@ -3033,7 +3107,7 @@
     },
     {
       "path": "vBot/depositer_config.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/depositer_config.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/depositer_config.otui",
       "sha256": "399105ae3c93030186df5677f1745b888fe0819ab46dfa4fdf8e59a5a1258630",
       "size": 6871,
       "acceptedSha256": [
@@ -3054,7 +3128,7 @@
     },
     {
       "path": "vBot/eat_food.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/eat_food.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/eat_food.lua",
       "sha256": "777d3cb8eaf6329a788bc81ffdf05f472767619b9d41bccc0c7d0e6a2463ed20",
       "size": 2753,
       "acceptedSha256": [
@@ -3088,7 +3162,7 @@
     },
     {
       "path": "vBot/equip.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/equip.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/equip.lua",
       "sha256": "15fe160b72c822c45bfd2249c3733c8c2b521bcce874290a264f09c7540251d4",
       "size": 1393,
       "acceptedSha256": [
@@ -3120,7 +3194,7 @@
     },
     {
       "path": "vBot/equipper.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/equipper.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/equipper.otui",
       "sha256": "72fde2979af1842f9aa73f34cc5460589433f1e4ae69e7aadaba6d0747af2ee8",
       "size": 12344,
       "acceptedSha256": [
@@ -3153,7 +3227,7 @@
     },
     {
       "path": "vBot/exeta.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/exeta.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/exeta.lua",
       "sha256": "efaa9261ccf35d4b2344bcf21e2bb7c2bf160f90a85259c6d832d42726ecf2d0",
       "size": 964,
       "acceptedSha256": [
@@ -3185,7 +3259,7 @@
     },
     {
       "path": "vBot/exiva_calibrator.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/exiva_calibrator.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/exiva_calibrator.lua",
       "sha256": "f9bfedd35206081abc9299d62c243ec04006e1974be1e80bcbd703f4360aa7a4",
       "size": 23272,
       "acceptedSha256": [
@@ -3194,7 +3268,7 @@
     },
     {
       "path": "vBot/exiva_tracker.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/exiva_tracker.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/exiva_tracker.lua",
       "sha256": "01432bce388b1f61f180b5335e1e756d27616b014d0a18240e1177b83b32c7fb",
       "size": 96182,
       "acceptedSha256": [
@@ -3203,7 +3277,7 @@
     },
     {
       "path": "vBot/extras.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/extras.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/extras.lua",
       "sha256": "2f71988593bc4a03b9896b4d2e7b49824e0f0633ef298bbc01fff7ba9cd80fc2",
       "size": 32250,
       "acceptedSha256": [
@@ -3236,7 +3310,7 @@
     },
     {
       "path": "vBot/extras.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/extras.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/extras.otui",
       "sha256": "12e10f8425113c26a5322372999b8bff41047db65a0f2b553fbf1e43815c937b",
       "size": 3309,
       "acceptedSha256": [
@@ -3269,16 +3343,23 @@
     },
     {
       "path": "vBot/extrasPvp.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/extrasPvp.lua",
-      "sha256": "fb3babf798e28191418718446592c6d4eced279b6fdb640f1fddba6499fd8e7e",
-      "size": 16766,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/extrasPvp.lua",
+      "sha256": "43030b1972f8bae138079fcfcf75ac51946fb5af8a44f9e0d262eb917a593f99",
+      "size": 32974,
       "acceptedSha256": [
-        "708302a11fb0352bec23a5ff82c3a8911cffd6e436d839400afa313d554c6f1a"
+        "56aacb2cb1e3195ef36c64bcbef7ef8867b42194e89c2100c60ccc6e76a51823",
+        "6980491bfc68928b08a00626100f435f159c77ba31718fbf72951479097dcbaa",
+        "708302a11fb0352bec23a5ff82c3a8911cffd6e436d839400afa313d554c6f1a",
+        "73deedb02015dcb4cf4a86a9378f1b1983f98fe4b4c354c8bc910e43d5a2c2b9",
+        "998bddbc0b9a03f65a80472be58d8b266447d698b14d3acb14a937d6a31a074d",
+        "a51685a12eeaa43ba9f584efcd7b626adcc0b608b623ad0c3ebb28a67afda27b",
+        "d80598cf82b985c6d1831e3acb3cb63d764658b512706db5c527ef1112cee0af",
+        "fb3babf798e28191418718446592c6d4eced279b6fdb640f1fddba6499fd8e7e"
       ]
     },
     {
       "path": "vBot/extrasPvp.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/extrasPvp.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/extrasPvp.otui",
       "sha256": "f8397395ebe980ab817a54523724dfd3ac11eda366d55ae1121a956eaed54218",
       "size": 3321,
       "acceptedSha256": [
@@ -3287,7 +3368,7 @@
     },
     {
       "path": "vBot/friend_healer.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/friend_healer.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/friend_healer.lua",
       "sha256": "792be471161b29edcf165b1f037497379142ae14af7ca12eb2987a512f1b4e8b",
       "size": 31589,
       "acceptedSha256": [
@@ -3299,7 +3380,7 @@
     },
     {
       "path": "vBot/friend_healer.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/friend_healer.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/friend_healer.otui",
       "sha256": "fc6a3638bfd929f75198bf1affdcd2b7a4b0bbcc40a3f96f7c55408d303a936e",
       "size": 9833,
       "acceptedSha256": [
@@ -3308,7 +3389,7 @@
     },
     {
       "path": "vBot/helper_home.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/helper_home.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/helper_home.lua",
       "sha256": "6892abfc29f51312b96ef9c912dcf7caf03494790cc10a6d63bf5d46979fc743",
       "size": 12918,
       "acceptedSha256": [
@@ -3316,13 +3397,22 @@
       ]
     },
     {
+      "path": "vBot/icon_sources.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/icon_sources.lua",
+      "sha256": "f7faf53216d75dd35a64a5f2d384e42a755a9541f23a837035fee8d910609616",
+      "size": 7538,
+      "acceptedSha256": []
+    },
+    {
       "path": "vBot/iconos.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/iconos.lua",
-      "sha256": "0278f381f9e791403bcdad8f11ce147f8c8a515c12cd451427f5920c8d6b9165",
-      "size": 58449,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/iconos.lua",
+      "sha256": "c0aa45d50358e2e7b523e93a9331b9e2c0c358c923011a15c2ef07b489828a7e",
+      "size": 45596,
       "acceptedSha256": [
+        "0278f381f9e791403bcdad8f11ce147f8c8a515c12cd451427f5920c8d6b9165",
         "0911fdba6b11d3e5387c31bced24f75e28cdf75b132c9d16b89bd55bbe3f010f",
         "5f280b536193b0e5a8b8a9db8582729393209ca43b67760bb5e62415280f1704",
+        "6a0a900bdbb75c0df8fab566e0a6e08a09dd7f15471dc07e826d11138035429e",
         "8e0f247f2d5e104d7bfdabe39c7259cb4898ab91cb0299305210a3bef8206c8e",
         "c202fe56655b362865bfa50dd853606cabc9f44d5f1fe4c10241b5ce4ceb13e1",
         "e9a3b206b6f6d320ba49447ba75c63c6efe38621b14d8f19fdd3d61e03a540a6"
@@ -3330,595 +3420,597 @@
     },
     {
       "path": "vBot/imbuement_icons/0.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/0.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/0.png",
       "sha256": "7ff1d2c26d1b28a599428f086ccf35dd0b14a24bb89c6af548012567b2760a0e",
       "size": 1464,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/1.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/1.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/1.png",
       "sha256": "4727bc4f603aa2718c596bef67ef49c74356b29f883c140199762ff4f0b9796e",
       "size": 1533,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/10.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/10.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/10.png",
       "sha256": "9e957243560e0773838e180cd3a05d7a1fd0b905ed5f6ce2668e70251df4f908",
       "size": 1551,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/11.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/11.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/11.png",
       "sha256": "3343340623a4a4c83c2396992c72f3bcb92040e21682dbdcde8c2ed92b8e76f3",
       "size": 1556,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/12.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/12.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/12.png",
       "sha256": "f7471491b3cb952fc2453e696fe403ba791158b24f97ad46ec42dcfc434128db",
       "size": 1562,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/13.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/13.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/13.png",
       "sha256": "5b35c1aa1f492da830b838200bc37f75c48cd6519d64cf5180803d937915d6df",
       "size": 1551,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/14.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/14.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/14.png",
       "sha256": "ebe87cbad2899c2badd9210cb9816e446e63dcb66da489663d2c5306cf500eff",
       "size": 1556,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/15.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/15.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/15.png",
       "sha256": "c53d990931a46d226ca2bdbc896235074a684a7b3e14b7f4fe03ea9ca152b5a3",
       "size": 1562,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/16.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/16.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/16.png",
       "sha256": "40402590f94a3ecf5f42996baece670707cdd14331695c9d487ca960d2565132",
       "size": 1551,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/17.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/17.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/17.png",
       "sha256": "e6f621840d846a503db137f0ee492654082598787d2dae4042fda3f3c7a1e1ef",
       "size": 1556,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/18.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/18.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/18.png",
       "sha256": "175bf213a7ff379b0f3635a86659bf6026c5438b8b4a04753130d21910c01b90",
       "size": 1562,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/19.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/19.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/19.png",
       "sha256": "6c0c0a826083cf8ce5408821a249da2e69deb32086353b4944dcde5d9cbc0592",
       "size": 1551,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/2.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/2.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/2.png",
       "sha256": "65d612c5dae11f045c9d280f6eb2a0b329e7257969bed63ea448700fb7dc8ae3",
       "size": 1551,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/20.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/20.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/20.png",
       "sha256": "976fb49c4f74478cf6797502c42f5e36d1bc4d57fd8be243de31633bc51dac10",
       "size": 1556,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/21.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/21.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/21.png",
       "sha256": "120c624f829e838796b16bdd63cd6cb200ca3b61f0268466ed27ed0c292d10c7",
       "size": 1562,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/22.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/22.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/22.png",
       "sha256": "5b391309685bdfa6cc9aaf6d157788202279e9020b3cd6f57046839baa51f30f",
       "size": 1551,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/23.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/23.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/23.png",
       "sha256": "63031c6a43a0f6b25b1ebd89be3593840d76db68a0cddc08d34efa0587749096",
       "size": 1556,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/24.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/24.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/24.png",
       "sha256": "8840b1c358799def02b0c111aa257766dc8bbc0cf754f0699a4b6c583ed1bf9c",
       "size": 1562,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/25.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/25.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/25.png",
       "sha256": "1b13a68e75d16eb86325baa4a337e1e6e7649564a2f5dd672553e9e9673c6ad7",
       "size": 1353,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/26.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/26.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/26.png",
       "sha256": "c8ce9b2a2b545968f44f7738f247840441552846cb342e71291aa14f8bf3a30f",
       "size": 1362,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/27.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/27.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/27.png",
       "sha256": "ee9fc968278b2154d968e83f8b0ee6910f1fe77b18f472da2bb3aaeb729f8026",
       "size": 1374,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/28.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/28.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/28.png",
       "sha256": "b1383ce16ea5b6b712024b667010413333125d35e1cc3aa7c2667637a9f8969d",
       "size": 1353,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/29.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/29.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/29.png",
       "sha256": "308b54e8d84450d446374bfd31a703bf2ad2bd1a4e6887ec66e84e38ec2cd6f3",
       "size": 1362,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/3.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/3.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/3.png",
       "sha256": "07eff191338951516227371f7c6fb6ed665b435dedac4b813f0ef37f277d4ae4",
       "size": 1551,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/30.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/30.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/30.png",
       "sha256": "90e3bc33601907ce9de123d852f31d8d4fd0832b703ceda9a8e29747500d6fda",
       "size": 1374,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/31.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/31.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/31.png",
       "sha256": "3dfab72f783ae17718ff1405be2e1e047f58146e188a50be7b3ccc0415e3c103",
       "size": 1353,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/32.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/32.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/32.png",
       "sha256": "ae69f408458492cba8a273326bbe78f4fe80a589cf928e1ab83e8ef30cbd449a",
       "size": 1362,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/33.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/33.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/33.png",
       "sha256": "12f11eb56280d1d9f87ee79bd736f7ab372cc52a2ebe983704a60f9733a319b0",
       "size": 1374,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/34.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/34.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/34.png",
       "sha256": "d95f2fed006be65dd3f1824ca26a7b9a45318baf6689d53137328bde3234f00b",
       "size": 1353,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/35.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/35.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/35.png",
       "sha256": "6ae51e28e39f5d059f0e84ba419e902ced9ac1bf588c32fcb4ce47cbb39a9761",
       "size": 1362,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/36.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/36.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/36.png",
       "sha256": "d78c2f004d9c83dbaa4ef277f3cba529d3e568e9c89d1a8ffd8837c6083400f9",
       "size": 1374,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/37.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/37.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/37.png",
       "sha256": "99c78563b9ebe1d93f1f443dcdd7e47491934a2ee3e4f6b6f63ba26787e13916",
       "size": 1353,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/38.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/38.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/38.png",
       "sha256": "4500bf2a41ad50a1aac78cd885807f6d90fbd6ad917ad868e326a8df349c73b4",
       "size": 1362,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/39.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/39.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/39.png",
       "sha256": "924839928628aea3f5a075414961c7f4ff3513b8da152c42d4679dd74869fc91",
       "size": 1374,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/4.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/4.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/4.png",
       "sha256": "131d13b8c5211ba00da3d46884e2409fe8b394bca1d8f906d807bb0bb08eeba9",
       "size": 1551,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/40.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/40.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/40.png",
       "sha256": "cb0c971acbeae38e3a9a70b6a694e8cb9849f5576de9eb2f99dc07b1ab469c65",
       "size": 1353,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/41.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/41.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/41.png",
       "sha256": "7097382d3594cdc5d149041a5f2133d2de3f19d2885a15d57b036fd4e7fa199a",
       "size": 1362,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/42.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/42.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/42.png",
       "sha256": "bcbcfeabd33f076af516aabaa2fbf6c3fd395a1ff8327c63795971d01a87d57f",
       "size": 1374,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/43.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/43.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/43.png",
       "sha256": "f6fdf740701d730b5c028f3fdb9745e82d2dec72871f49c8ffe0938960c17abc",
       "size": 1353,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/44.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/44.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/44.png",
       "sha256": "e078bda06031097dcf20af456313a4c1f20597136f50ccbdc48ba6bf56823c5a",
       "size": 1362,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/45.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/45.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/45.png",
       "sha256": "9249b54e64a1ebc4e1650456b835c8b6fc999d0312fc5630278b583cf7c065b7",
       "size": 1374,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/46.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/46.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/46.png",
       "sha256": "45311a48d95a46267ef448362fcf81f242b511a3cc6f67ba2ef23a56d8211c83",
       "size": 1638,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/47.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/47.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/47.png",
       "sha256": "b4dba8bd71acb6e8375012c5e2df73d7cd7780029bd5354ea49cbcd304b8c939",
       "size": 1652,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/48.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/48.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/48.png",
       "sha256": "02e78cea2f220a1e6e230028caf6333ea2712c0a53cf8358a89e9c882eaad477",
       "size": 1655,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/49.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/49.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/49.png",
       "sha256": "98f2c574ffe9eca395859e31b51b573fd04fc9a3c96838f0078739b565ae8164",
       "size": 1638,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/5.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/5.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/5.png",
       "sha256": "9ff4432bb28d230afcfbb2083e8f532555a6d512e55bab547fbf66cb57a259e3",
       "size": 1556,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/50.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/50.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/50.png",
       "sha256": "f588f1ecc570c02f4b1f33bd19d21bd4719929dfa31e8d95e1d7c9ea706e83e4",
       "size": 1652,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/51.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/51.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/51.png",
       "sha256": "c2fc3ee168ec04e39e0445a00c432a17ee9d41084ac8c0d218903cef2c6e1f8b",
       "size": 1655,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/52.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/52.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/52.png",
       "sha256": "104cc7891ebe362363d55273758f73af114a13bb071fae2c8cf039af3b2056bf",
       "size": 1437,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/53.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/53.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/53.png",
       "sha256": "0b3292209257172f0acf841c92ed8c3f0d00b4e6b246689f091831b08d77dde4",
       "size": 1452,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/54.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/54.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/54.png",
       "sha256": "1dfa5f032b3d9e1c52cb27dba139636c5509ace26913f323ff43015689d9089d",
       "size": 1454,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/55.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/55.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/55.png",
       "sha256": "20b7746240ec0c9f9c1a862579d7781b00580fdb72503d0bcd4b1b95cd748f67",
       "size": 1529,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/56.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/56.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/56.png",
       "sha256": "8476e1fbead78bde8a076e7df98d2a851c006a3315130b61c3eed6e8e1b2c3ef",
       "size": 1546,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/57.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/57.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/57.png",
       "sha256": "cd7e8446a458a82fa5733dd9b6b00a1a68c07a1579355c21815b21d743bd41bc",
       "size": 1551,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/58.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/58.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/58.png",
       "sha256": "04084414566c022943314c2076ceca4c1a917759df22b93722327363298a0cc8",
       "size": 1573,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/59.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/59.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/59.png",
       "sha256": "3e27cd336b7ceb3fb46ef4d85af09f6a4faf7b2fb86264fb0792cb36adaef7cc",
       "size": 1590,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/6.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/6.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/6.png",
       "sha256": "5c4b86ff3ba707e6e183589eb6babc5f9ef991a0bb3c67ed28321f8e693abbf1",
       "size": 1562,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/60.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/60.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/60.png",
       "sha256": "c34d9638ef87ccf460f9f18e2dbba78fd33f37933f19f28cc92c48735e75ab69",
       "size": 1590,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/61.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/61.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/61.png",
       "sha256": "690a8ccb8e7166f6b777528f592dec5fd32e0f58101c54cefa684fecc6256a5e",
       "size": 1512,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/62.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/62.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/62.png",
       "sha256": "13817d1f4158c64c5dbe930c7a591e1b07df532f5eeec962c5fe805c3d01c069",
       "size": 1524,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/63.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/63.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/63.png",
       "sha256": "b65fb0680d6a586b2ef1c2e8541c00734187bbe3d6fc432570095bd810a82ff7",
       "size": 1528,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/64.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/64.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/64.png",
       "sha256": "b81d686668e3b2660509909219710bb5b60350e158d724546bf678fd84a7851a",
       "size": 1524,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/65.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/65.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/65.png",
       "sha256": "454e137192744cb98634599bb64164cfdc1be8af71a3d3be0667bab2cae4af84",
       "size": 1542,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/66.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/66.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/66.png",
       "sha256": "ca04b257280d1291bcd38ab3fe6027d0704e51ccc6e34ca632a5e11b2445bdc5",
       "size": 1545,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/67.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/67.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/67.png",
       "sha256": "db3deb4648488da383d9d0c9855680e34009be37db7a9e5f55caad998cc3c24e",
       "size": 1486,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/68.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/68.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/68.png",
       "sha256": "482815a3c8aab18c6c6a904b31f9f588820ddcc8903bf103d9cba70dba01ce7d",
       "size": 1500,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/69.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/69.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/69.png",
       "sha256": "9ab69c78f50917d96d716ad7a970759f05925f1e72e627f93143b83d848b914d",
       "size": 1504,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/7.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/7.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/7.png",
       "sha256": "c15c0c617b4cbdc800d66e13c08eb73de3f70213fb7771efa1f6ae63cdf6c4f8",
       "size": 1551,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/70.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/70.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/70.png",
       "sha256": "2346feef92af1fad791669cdefaaf38221ce78451848c1e34442a5c8e2c85f48",
       "size": 1469,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/71.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/71.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/71.png",
       "sha256": "ab6fac341b7b0d3decd8867a9814d4f648633b2f62802180b8da6e6234045844",
       "size": 1485,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/72.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/72.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/72.png",
       "sha256": "d68569d8750b05aec7248a2f155ddb46baf47815918df39f6ded343265f64fe5",
       "size": 1489,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/73.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/73.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/73.png",
       "sha256": "ec98fb3ac73e41ac6ea1ae7a5a1a58ef0a6a18f439fda24f9faacc3127bba0e5",
       "size": 1532,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/74.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/74.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/74.png",
       "sha256": "316012d71a6e562e3fd98532e95114fec057a2a7253aa1fc1cd0b48b8c2b8bfa",
       "size": 1546,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/75.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/75.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/75.png",
       "sha256": "a36bec536fb8c4a6e8f3bec44c1a2a8a92c4f35d13f4eda9c21c5724eea0054e",
       "size": 1552,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/76.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/76.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/76.png",
       "sha256": "54ef4fb7ca70d477fc485d06c37dd60d564b26b9dc52847b0c43c5d48581e885",
       "size": 1543,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/77.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/77.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/77.png",
       "sha256": "d236b3ee7c5e78f082d0557d58afc96c74d2b6c100351b43a482e4705118b57c",
       "size": 1558,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/78.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/78.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/78.png",
       "sha256": "479e8b6dad1d391782496a0e396c6fe935250f3f5ff6140e4dd8634800edca26",
       "size": 1560,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/79.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/79.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/79.png",
       "sha256": "07d8a53139948fb9301b0429f71b9ad1b17ad8cdd816929625eddaadc82d5ad6",
       "size": 1717,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/8.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/8.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/8.png",
       "sha256": "98aa6573f43425f738bdcf6f4ee880f06e550a33f61fb854325cabcd4f7e1bce",
       "size": 1556,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/80.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/80.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/80.png",
       "sha256": "c75c777910c6b9ee20a6b5cc1a4466c87bfd03265be84f53659fcd0278bd80ca",
       "size": 1733,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/81.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/81.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/81.png",
       "sha256": "8f0ee294a7d767d7b1eca2233a8a717c790d4d2019170103bf05b7f624f66344",
       "size": 1734,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/9.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/9.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/9.png",
       "sha256": "4ab381ad6b1b9236536ee2ab0d677cd035a3faf26491ff125574afe68ee10aa6",
       "size": 1562,
       "acceptedSha256": []
     },
     {
       "path": "vBot/imbuement_icons/LICENSE.txt",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/imbuement_icons/LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/imbuement_icons/LICENSE.txt",
       "sha256": "9dfe774a4fa5347bf63abece99c242f0b6166a206c83bcf27d4ecc0dae73a0ab",
       "size": 1145,
       "acceptedSha256": []
     },
     {
       "path": "vBot/ingame_editor.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/ingame_editor.lua",
-      "sha256": "21d7ad588d18967c99efe5239fae60db9628ac0ab0326dd2ec8abdcfa41678aa",
-      "size": 34498,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/ingame_editor.lua",
+      "sha256": "bc4c9cb4dd6f6007c87f8c2eb8e1fabb6cfaf3aa20c9e0a5c2b68b4c46d2af23",
+      "size": 44689,
       "acceptedSha256": [
+        "08188afe815ffa3e09a6bbd2eed2acb3e99a28e01e288d25774b22fe0288547a",
         "162ad657005d8ca09c122b37ed56ccdf9140fe351d5fa7a914a28b65f0146810",
         "1b12696850e5254a803a0fea648b481c3b9d7a15cb549ed59bfe7c33bccc8e39",
         "1b759f0056d767d2715e586b9266408b5be29217e99e5db005583a87e4dcca64",
         "1df36b9b7449cf982190d99748617a0ee8f62bb805674ba2e776847f911e755d",
+        "21d7ad588d18967c99efe5239fae60db9628ac0ab0326dd2ec8abdcfa41678aa",
         "25940fa585b862a3084d30779c1ce08c06960e507473b6c125b24c4e04698197",
         "2afdc0007f57a7431e8d3b7bf65c8f88d0e952ae76eb161f684264a068ec1882",
         "2cf13736e5c57b4db284fa6dc7210e92c5bff69f34872eac25a81473f0365438",
@@ -3928,11 +4020,13 @@
         "50c3398118a1efd7e4247a1e7927ea55946b45f0930e58d6cd2b28eb24832c65",
         "517c7b18acc67252be1346cdb389817e414119c1481a4d3e871eb9af203233db",
         "56b2d4063cbcda5fe38921f794dc18eace5c46dc4d491561126b45af54433946",
+        "5a204732e5a181feb86280920d45a1c8c1e7400127545ff2fb785eb080dcf79c",
         "5bb7e46c399a98e2237a97acde85c20a5d02e413a931f1e99e05bdb71c39f7f5",
         "643de9000fb8894934bc18adcd15a818532c5602efd9dfc41aba9697e4913448",
         "6861a159a2a28e352f68419fcf52e0de9cbd5ee9689cdc074adc567f708d2652",
         "834285314c5052c49b9bcbae68feae9abb690dc1e10198de65e77cb4c584814e",
         "947402c634858788a0706d47b37eb68a11d5057c6a0c8a7827458aaddc1b176d",
+        "9cde730fff5e106528d99e0e17b47cf3dca12d5053cf6de75152f60760bfa5c9",
         "a3e5a6881669ae9e05f370b4515a94bc87456f17c243f736b3cef041164a22b7",
         "a72b550ba9ad08a4e43fe1af153a4c2d8c929d4ef5a4a21569b9f967a29c590c",
         "b19188a102a1b8a3b61dcaa54d8bec5d63df528b69178966a04a08a041fe2095",
@@ -3940,6 +4034,7 @@
         "b91db64720f93ee36336cbf55d81463fb681ba2715ab5097a09b1fa2c137a228",
         "ba61f345807f2a10638f96da37962d099f9b9d797104fce669e41ac7c17aade8",
         "d18f519944a319e481c5ff210b342a0d02e0b75741455ddf93dbebc613c3b1fd",
+        "d285a71247a9d7a0bed30c58eebac11f1cf5ee849bb518e94139bf661925fae5",
         "dd7bc6ed987cce466b9079134bf518abbefcbd3f5bcb4f4c59535519815159b7",
         "eadbc7e6293141a3e2a9d85ddbf6b4a061888ec240418e0b81edb27eec2326da",
         "fc7b0048ced7bd3db430432bd369398741d02a436154b90508aed55ccd1bb249"
@@ -3947,17 +4042,21 @@
     },
     {
       "path": "vBot/ingame_editor.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/ingame_editor.otui",
-      "sha256": "9a607ab033df8ba93441f4a282140838beb806a107024fecb25539525d60b8ee",
-      "size": 7205,
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/ingame_editor.otui",
+      "sha256": "1052d91b39679d241c3949a4d6d67abc9109beb520bdfb55e41adfa305f9a925",
+      "size": 6819,
       "acceptedSha256": [
+        "16ba4d08c489e93bccfc623f008ade9fc480ff8be49b24f88158470f9aefc989",
+        "23cad63baa243815d2effe44d7c0284f03d0abb5365e1626d894d92bd8850cfb",
         "514faac660ac8414b0fb031d8252f4b187672b3316094aa89808699fac2b223b",
-        "ab22de84145ffe2ce9aa3bf4eab046e13b5ada88314ce40d568c8bf53121dace"
+        "9a607ab033df8ba93441f4a282140838beb806a107024fecb25539525d60b8ee",
+        "ab22de84145ffe2ce9aa3bf4eab046e13b5ada88314ce40d568c8bf53121dace",
+        "fc55c7d71fa884cef8979022cd5016ed013afbdf1f122d5e259fe0701640d716"
       ]
     },
     {
       "path": "vBot/items.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/items.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/items.lua",
       "sha256": "3ba82e69853cfd5d2638361e3cc4b812af93e915ea31cef70d96d63fd5b536ea",
       "size": 42496,
       "acceptedSha256": [
@@ -3976,7 +4075,7 @@
     },
     {
       "path": "vBot/keepwall.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/keepwall.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/keepwall.lua",
       "sha256": "51a2d6f7b4a5e83cec9ac95b9d680b762dce2e73659c8d96c9a3c61f8eda87cb",
       "size": 21209,
       "acceptedSha256": [
@@ -3987,7 +4086,7 @@
     },
     {
       "path": "vBot/keepwall.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/keepwall.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/keepwall.otui",
       "sha256": "ab7bb2ca6cf9f344587f360981c58f5ba7d5ea5918f2c5b263904f962463f117",
       "size": 1523,
       "acceptedSha256": [
@@ -3996,14 +4095,14 @@
     },
     {
       "path": "vBot/layout_persistence.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/layout_persistence.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/layout_persistence.lua",
       "sha256": "58ac8d5c3ede3d29896839eb2675909557b72a69c3d3f2587c9aec0a6b19ec52",
       "size": 13416,
       "acceptedSha256": []
     },
     {
       "path": "vBot/magicbag.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/magicbag.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/magicbag.lua",
       "sha256": "39737c26fa4ca99ed27c492b952ee41f582f1420596a9014ffa38abd41991b3e",
       "size": 1256,
       "acceptedSha256": [
@@ -4012,7 +4111,7 @@
     },
     {
       "path": "vBot/main.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/main.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/main.lua",
       "sha256": "0e0c0b0c4d8e561e274fa2fe71ccee1f036f97d6700b2727d7b8ed684c0fa68a",
       "size": 2989,
       "acceptedSha256": [
@@ -4045,42 +4144,42 @@
     },
     {
       "path": "vBot/map_markers/exiva-guide-arrows.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/map_markers/exiva-guide-arrows.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/map_markers/exiva-guide-arrows.png",
       "sha256": "57a42400d1dbed035e0599c8d187ad678d9f88d4181bc04b969a5b4dfa15e16f",
       "size": 923,
       "acceptedSha256": []
     },
     {
       "path": "vBot/map_markers/exiva-guide-dot.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/map_markers/exiva-guide-dot.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/map_markers/exiva-guide-dot.png",
       "sha256": "a91d23e4ff21e696e0894567384b24e419ad0e449fd05634787648658335809a",
       "size": 107,
       "acceptedSha256": []
     },
     {
       "path": "vBot/map_markers/exiva-target.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/map_markers/exiva-target.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/map_markers/exiva-target.png",
       "sha256": "f077ce1411bffa9e5181e2247ed8678276b04f9960db2fe9522a54339869d7b3",
       "size": 220,
       "acceptedSha256": []
     },
     {
       "path": "vBot/map_markers/member-diamond.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/map_markers/member-diamond.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/map_markers/member-diamond.png",
       "sha256": "c0033cd2030789a4cbd61501ece6b375d867d8ab93270932ca8b936f446e6f6c",
       "size": 173,
       "acceptedSha256": []
     },
     {
       "path": "vBot/minimap_drag.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/minimap_drag.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/minimap_drag.lua",
       "sha256": "b041ca7644c64489c1c1c8136d1b90ae488845bfc10b7164ae6da78a9a195878",
       "size": 10579,
       "acceptedSha256": []
     },
     {
       "path": "vBot/new_cavebot_lib.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/new_cavebot_lib.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/new_cavebot_lib.lua",
       "sha256": "a36459e6864a2e0dbcbf587e3ba8cffb270ea65460031bb442fba447fb2ab52c",
       "size": 21469,
       "acceptedSha256": [
@@ -4114,7 +4213,7 @@
     },
     {
       "path": "vBot/npc_talk.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/npc_talk.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/npc_talk.lua",
       "sha256": "c811add626d52e2a9cbd8ac980a9a1fd18ec11cafbc691a83b0f5e3e6eba19e8",
       "size": 208,
       "acceptedSha256": [
@@ -4133,14 +4232,14 @@
     },
     {
       "path": "vBot/paladin_rotation_20261001.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/paladin_rotation_20261001.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/paladin_rotation_20261001.lua",
       "sha256": "f3f967880291a3c0dd31009a25021bba8ca5c86054a894b6ea12defdc9a7b5bd",
       "size": 4061,
       "acceptedSha256": []
     },
     {
       "path": "vBot/playerlist.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/playerlist.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/playerlist.lua",
       "sha256": "352ddddb2f773fedf33b7536654fecda4b7d1cfc91b0b0802b713f507cd55f4b",
       "size": 26904,
       "acceptedSha256": [
@@ -4172,7 +4271,7 @@
     },
     {
       "path": "vBot/playerlist.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/playerlist.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/playerlist.otui",
       "sha256": "b924815c7fc9191d0718759b4f4df23b182cdd15004459e275f059ab9824a4cd",
       "size": 4149,
       "acceptedSha256": [
@@ -4193,7 +4292,7 @@
     },
     {
       "path": "vBot/pushmax.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/pushmax.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/pushmax.lua",
       "sha256": "b1b3d1b392751d8155a00dd9342f74447327bb9e577da9d34805f21dcffab678",
       "size": 64425,
       "acceptedSha256": [
@@ -4244,7 +4343,7 @@
     },
     {
       "path": "vBot/pushmax.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/pushmax.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/pushmax.otui",
       "sha256": "71efc78ee917a67275398bf25f70d379e07e010e804d8d40b54b50226972c5f3",
       "size": 3617,
       "acceptedSha256": [
@@ -4278,7 +4377,7 @@
     },
     {
       "path": "vBot/pushmax_engine.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/pushmax_engine.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/pushmax_engine.lua",
       "sha256": "607826d8dcd613563dc54d38f5aaf595799a0a9aff3baafee5ef08a9a415dd0d",
       "size": 38995,
       "acceptedSha256": [
@@ -4295,7 +4394,7 @@
     },
     {
       "path": "vBot/pvp_support.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/pvp_support.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/pvp_support.lua",
       "sha256": "30be45b93eae29c88a1731571e240ee190838de49b1dec62fd936812f3e0525e",
       "size": 7642,
       "acceptedSha256": [
@@ -4304,133 +4403,135 @@
     },
     {
       "path": "vBot/rpg_assets/button.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/rpg_assets/button.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/rpg_assets/button.png",
       "sha256": "719e026c2bd1ad90ebe2a28844c40e193777b32d13c8fd5fa9266e390ca36d4b",
       "size": 341,
       "acceptedSha256": []
     },
     {
       "path": "vBot/rpg_assets/chrome-chevron.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/rpg_assets/chrome-chevron.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/rpg_assets/chrome-chevron.png",
       "sha256": "1a9d9fb29d6e0d61ff37fef90b68158b3737036e61d4ea99f880a1eb47fcd02e",
       "size": 224,
       "acceptedSha256": []
     },
     {
       "path": "vBot/rpg_assets/chrome-close.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/rpg_assets/chrome-close.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/rpg_assets/chrome-close.png",
       "sha256": "69622d3eef53ed5e6e0d6fa0c62cef24e63eed14e5b0fdd59b61a6605daae9ce",
       "size": 275,
       "acceptedSha256": []
     },
     {
       "path": "vBot/rpg_assets/chrome-collapse.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/rpg_assets/chrome-collapse.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/rpg_assets/chrome-collapse.png",
       "sha256": "a6e34c13fa2c996b2c97bb10e1b621704e20c4d749faef16f1e9f59f80da5e9e",
       "size": 413,
       "acceptedSha256": []
     },
     {
       "path": "vBot/rpg_assets/chrome-desktop.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/rpg_assets/chrome-desktop.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/rpg_assets/chrome-desktop.png",
       "sha256": "cbdf54cd1188f82a58d55a0e22a24fdd037dc3ede0f8c6e9e3aecc0bbb754fca",
       "size": 362,
       "acceptedSha256": []
     },
     {
       "path": "vBot/rpg_assets/chrome-expand.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/rpg_assets/chrome-expand.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/rpg_assets/chrome-expand.png",
       "sha256": "5b64375c50d291c6b651bb4c59572e377378992f71b45f0843ea9b4b74349f0e",
       "size": 300,
       "acceptedSha256": []
     },
     {
       "path": "vBot/rpg_assets/chrome-minimize.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/rpg_assets/chrome-minimize.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/rpg_assets/chrome-minimize.png",
       "sha256": "6384c3b2a5b993e68a55dc2514beef6f672f936dbe3bbe8f209f39650ce11384",
       "size": 162,
       "acceptedSha256": []
     },
     {
       "path": "vBot/rpg_assets/chrome-pause.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/rpg_assets/chrome-pause.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/rpg_assets/chrome-pause.png",
       "sha256": "1fd2de3c3c8e7377f07e78422633b1cbf67f2f197d3fd25daf14df1516f65712",
       "size": 257,
       "acceptedSha256": []
     },
     {
       "path": "vBot/rpg_assets/chrome-play.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/rpg_assets/chrome-play.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/rpg_assets/chrome-play.png",
       "sha256": "692f9dfd332bcc3f9a271f282df79c38396592d3a0b07541bd5a594e9224e9d6",
       "size": 264,
       "acceptedSha256": []
     },
     {
       "path": "vBot/rpg_assets/chrome-reload.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/rpg_assets/chrome-reload.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/rpg_assets/chrome-reload.png",
       "sha256": "ef21d0d6eeb0cbf2d43656fb497496adb68fb856452b4179ab9f6b8f6e68516c",
       "size": 366,
       "acceptedSha256": []
     },
     {
       "path": "vBot/rpg_assets/chrome-search.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/rpg_assets/chrome-search.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/rpg_assets/chrome-search.png",
       "sha256": "74db24c32048ef026f422b81fa951da9b8d7bc52f5e325ed9678c91af53caf85",
       "size": 340,
       "acceptedSha256": []
     },
     {
       "path": "vBot/rpg_assets/icons.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/rpg_assets/icons.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/rpg_assets/icons.png",
       "sha256": "1e9d66d92f74ace6214e18ca3df47d48d9d1b92fe17574e38e0535451fc9075b",
       "size": 1455684,
       "acceptedSha256": []
     },
     {
       "path": "vBot/rpg_assets/knob.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/rpg_assets/knob.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/rpg_assets/knob.png",
       "sha256": "79905a2e22f814ce5275f62b2c4b00dce10616d2b961b71e8cb791145146ea99",
       "size": 509,
       "acceptedSha256": []
     },
     {
       "path": "vBot/rpg_assets/pill.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/rpg_assets/pill.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/rpg_assets/pill.png",
       "sha256": "4dbe93f49e6cc718a0af448e80cccade635adbd13d1ff5eeaf68fa2e7a779bf7",
       "size": 515,
       "acceptedSha256": []
     },
     {
       "path": "vBot/rpg_assets/surface.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/rpg_assets/surface.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/rpg_assets/surface.png",
       "sha256": "c25c0050dfc5fa116a944317cd1e6a9e6ac91d3ff3ce9777e0fbe5087ad0aff7",
       "size": 381,
       "acceptedSha256": []
     },
     {
       "path": "vBot/rpg_styles.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/rpg_styles.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/rpg_styles.lua",
       "sha256": "3cff3bf4c84673b5f5d1919433e9c3dcab133057298e45e99e79d69a5decf7b4",
       "size": 90243,
       "acceptedSha256": []
     },
     {
       "path": "vBot/script_controls.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/script_controls.lua",
-      "sha256": "9b781e13f0a3b5d6dfed3887bb7326b15187fd0466631d00d9229838c0f13812",
-      "size": 2984,
-      "acceptedSha256": []
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/script_controls.lua",
+      "sha256": "3f68c99e2bc24a132c6b260f81756ac909f6311009b50b348831ec73e45d5410",
+      "size": 4141,
+      "acceptedSha256": [
+        "9b781e13f0a3b5d6dfed3887bb7326b15187fd0466631d00d9229838c0f13812"
+      ]
     },
     {
       "path": "vBot/sorcerer_rotation.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/sorcerer_rotation.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/sorcerer_rotation.lua",
       "sha256": "51eb1c7021fa136a6cfc38c9a86a818c6645c8cf084f052afc1f4ac97cb9b981",
       "size": 15487,
       "acceptedSha256": []
     },
     {
       "path": "vBot/spy_level.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/spy_level.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/spy_level.lua",
       "sha256": "3845e2a44ffe308e2a2e7c23fb3567fd5498b80a2d51fe055c5de24f396b91de",
       "size": 1957,
       "acceptedSha256": [
@@ -4452,7 +4553,7 @@
     },
     {
       "path": "vBot/supplies.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/supplies.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/supplies.lua",
       "sha256": "bd51de7f4b2ed3fb1b5e24d4ff3d0f00e8a57f4dd55850efba7ae1b06e1697e8",
       "size": 19523,
       "acceptedSha256": [
@@ -4474,7 +4575,7 @@
     },
     {
       "path": "vBot/supplies.otui",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/supplies.otui",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/supplies.otui",
       "sha256": "f51299d33b6190e215a247da851913bd1d197452e1eb0f13fb57d702013a5668",
       "size": 7893,
       "acceptedSha256": [
@@ -4508,14 +4609,14 @@
     },
     {
       "path": "vBot/timer_conditions.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/timer_conditions.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/timer_conditions.lua",
       "sha256": "cea630130b5b64c5902cad4491cc867e65783c93036d9c5a49f19c9856f9d428",
       "size": 7288,
       "acceptedSha256": []
     },
     {
       "path": "vBot/tools.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/tools.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/tools.lua",
       "sha256": "5a158df5a6263fced55c80d6935b2636d6cdb1db06178af79c9a47236d0cc25f",
       "size": 2056,
       "acceptedSha256": [
@@ -4549,28 +4650,28 @@
     },
     {
       "path": "vBot/updater_assets/download.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/updater_assets/download.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/updater_assets/download.png",
       "sha256": "fce84a06468c4c21eb6382245e8fcb11890bd7c6f593b098a7e7974797ff34e0",
       "size": 811,
       "acceptedSha256": []
     },
     {
       "path": "vBot/updater_assets/progress.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/updater_assets/progress.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/updater_assets/progress.png",
       "sha256": "bf49231c6328a8e82a93a36219bde06e750477230bb9ff025ed34568ce81c86a",
       "size": 133,
       "acceptedSha256": []
     },
     {
       "path": "vBot/updater_assets/refresh.png",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/updater_assets/refresh.png",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/updater_assets/refresh.png",
       "sha256": "4abd35f19446f8e6116c4763a90fd081964169136264ed6435d64f4fadf5890e",
       "size": 1080,
       "acceptedSha256": []
     },
     {
       "path": "vBot/vlib.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/vlib.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/vlib.lua",
       "sha256": "ed7a803909453de9a043bc8a6b47fef76e726c6ae7be054fc692799465a2c62d",
       "size": 59953,
       "acceptedSha256": [
@@ -4602,7 +4703,7 @@
     },
     {
       "path": "vBot/xeno_menu.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/vBot/xeno_menu.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/vBot/xeno_menu.lua",
       "sha256": "0bca8ab864e92fabb92526910626c51a836f61568382bc766ae0a0f80651491d",
       "size": 1185,
       "acceptedSha256": [
@@ -4633,7 +4734,7 @@
     },
     {
       "path": "zFreeScripts/CaveBotHUD.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/zFreeScripts/CaveBotHUD.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/zFreeScripts/CaveBotHUD.lua",
       "sha256": "7ae17d7205009d21f12d32e051fe0a8e1be4423b1af3fa65df2288dbae7059f2",
       "size": 10723,
       "acceptedSha256": [
@@ -4642,7 +4743,7 @@
     },
     {
       "path": "zFreeScripts/SkillsHUD.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/zFreeScripts/SkillsHUD.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/zFreeScripts/SkillsHUD.lua",
       "sha256": "dbce64ac36a5aeeff1dd85d188ea0560c58f3edf31ae395e3baaa8c09c84420b",
       "size": 5167,
       "acceptedSha256": [
@@ -4651,7 +4752,7 @@
     },
     {
       "path": "zFreeScripts/zAutoBuff.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/zFreeScripts/zAutoBuff.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/zFreeScripts/zAutoBuff.lua",
       "sha256": "116caa2bdef978f756641181724a9876b4a2fee76dca19e36539624f8c67a212",
       "size": 11676,
       "acceptedSha256": [
@@ -4661,7 +4762,7 @@
     },
     {
       "path": "zFreeScripts/z_Auto-Party.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/zFreeScripts/z_Auto-Party.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/zFreeScripts/z_Auto-Party.lua",
       "sha256": "b650ffd80a8b714c9602c56592dac4dd3818c8c6c36b9c48501594010a915f94",
       "size": 18919,
       "acceptedSha256": [
@@ -4670,13 +4771,66 @@
     },
     {
       "path": "zPaidScripts/zMacroAvoidTraps0614.lua",
-      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.10/zPaidScripts/zMacroAvoidTraps0614.lua",
+      "url": "https://raw.githubusercontent.com/Sabuezo12/sabuezo-bot-updates/main/releases/3.1.11/zPaidScripts/zMacroAvoidTraps0614.lua",
       "sha256": "4c1dedb003a47626f698d28acc85fcd8d6ff8457d3701c8575f05d0ef8533791",
       "size": 11468,
       "acceptedSha256": []
     }
   ],
   "history": [
+    {
+      "version": "3.1.11",
+      "title": "Caza fluida, curacion, iconos, scripts y Hold MW",
+      "changes": [
+        "Iconos con editor unico compacto, paleta de colores y funciones de scripts propios.",
+        "Scripts en dos columnas ampliables: cargar el archivo y encender/apagar su funcion por separado.",
+        "Imbuements compacto, cantidades de scrolls y opcion de quitar efectos individuales.",
+        "Dummy Smart usa items del purse visible y permite leer el ID de estatuas bajo el cursor.",
+        "HealBot prioriza cooldowns nativos por defecto, tambien en objetos compatibles; textos sin acentos.",
+        "AttackBot recupera ataques con un monstruo y controla waves/beams, giro y reposicionamiento de caza.",
+        "Auto Explorer de caza: rutas por pasillos, tramos largos, radio visible y control del piso.",
+        "TargetBot agiliza el seguimiento y cruza fields transitables; CaveBot y grabacion ignoran fields.",
+        "Hold MW con intervalo fijo de 2000 ms y reaccion mas rapida al desaparecer una pared."
+      ],
+      "files": [
+        "_Loader.lua",
+        "cavebot/actions.lua",
+        "cavebot/auto_explorer.lua",
+        "cavebot/cavebot.otui",
+        "cavebot/config.lua",
+        "cavebot/walking.lua",
+        "dummy.lua",
+        "targetbot/antitrap.lua",
+        "targetbot/creature.lua",
+        "targetbot/creature_attack.lua",
+        "targetbot/creature_editor.lua",
+        "targetbot/target.lua",
+        "targetbot/unified.lua",
+        "targetbot/walking.lua",
+        "vBot/AttackBot.lua",
+        "vBot/AttackBot.otui",
+        "vBot/DummySmart.otui",
+        "vBot/HealBot.lua",
+        "vBot/HealBot.otui",
+        "vBot/Helper.lua",
+        "vBot/Helper.otui",
+        "vBot/IconEditor.otui",
+        "vBot/ImbuementScrolls.lua",
+        "vBot/ImbuementScrolls.otui",
+        "vBot/SabuezoChangelog.fallback.txt",
+        "vBot/attack_alignment.lua",
+        "vBot/attack_editor.lua",
+        "vBot/attack_editor.otui",
+        "vBot/attack_rotation.lua",
+        "vBot/attack_spell_catalog.lua",
+        "vBot/extrasPvp.lua",
+        "vBot/icon_sources.lua",
+        "vBot/iconos.lua",
+        "vBot/ingame_editor.lua",
+        "vBot/ingame_editor.otui",
+        "vBot/script_controls.lua"
+      ]
+    },
     {
       "version": "3.1.10",
       "title": "Combo cooperativo, favoritos y correcciones acumuladas",

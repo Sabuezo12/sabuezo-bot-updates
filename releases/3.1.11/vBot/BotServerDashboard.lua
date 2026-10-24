@@ -1,0 +1,813 @@
+-- Navi UI: shared positions, independent exiva tracking and local traffic estimates.
+local config = storage.BOTserver
+if type(config) ~= 'table' then return end
+local generation = BotServer._rodMasterMainGeneration
+local settings = config.dashboard
+if type(settings) ~= 'table' then settings = {}; config.dashboard = settings end
+if type(settings.favorites) ~= 'table' then settings.favorites = {} end
+settings.preview = settings.preview == true
+settings.favoritesOnly = settings.favoritesOnly == true
+settings.sameFloor = settings.sameFloor == true
+settings.sort = 'name'
+local FRESH_MS, POSITION_MS = 90000, 90000
+local LEADERS = {['rod master'] = true, sabuezo = true, ['aeron knight'] = true}
+local rows, cache = {}, {}
+local selected, query, currentPage = nil, '', 'companions'
+local orderedNames, previewPosition = {}, nil
+local previewExiva, activeExiva = nil, nil
+local previewMarkers, previewDots = {}, {}
+local previewOrder, previewArrow = nil, nil
+local MAX_PREVIEW_MARKERS, MAX_GUIDE_DOTS = 64, 18
+local markerRoot = (configDir or '/bot/pruebas') .. '/vBot/map_markers/'
+local BASE_HEIGHT, MAP_EXPANSION = 460, 248
+local previewZoom = 1
+local assetRoot = (configDir or '/bot/pruebas') .. '/vBot/botserver_assets/'
+local dashboard = {}
+
+local function active()
+  return generation == BotServer._rodMasterMainGeneration
+end
+
+local function clock()
+  return tonumber(now) or (g_clock and g_clock.millis and g_clock.millis()) or 0
+end
+
+local function exivaClock()
+  return (g_clock and g_clock.millis and g_clock.millis()) or clock()
+end
+
+local function key(name)
+  return tostring(name or ''):lower():gsub('^%s+', ''):gsub('%s+$', '')
+end
+
+local function selfName()
+  return name()
+end
+
+local function connected()
+  if config.enabled ~= true or BotServer._websocket == nil then return false end
+  if GameBotServerTransport and type(GameBotServerTransport.getStatus) == 'function' then
+    local _, level = GameBotServerTransport.getStatus()
+    return level == 'connected'
+  end
+  return true
+end
+
+local function position(value)
+  if type(value) ~= 'table' then return nil end
+  local x, y, z = tonumber(value.x), tonumber(value.y), tonumber(value.z)
+  if not x or not y or not z or x ~= x or y ~= y or z ~= z or
+    x < 0 or x > 65535 or y < 0 or y > 65535 or z < 0 or z > 15 then return nil end
+  return {x = math.floor(x), y = math.floor(y), z = math.floor(z)}
+end
+
+local function positionText(pos)
+  return pos and (pos.x .. ', ' .. pos.y .. ', ' .. pos.z) or '-'
+end
+
+local function age(at)
+  if type(at) ~= 'number' then return nil end
+  return math.max(0, clock() - at)
+end
+
+local function fresh(at, limit)
+  local elapsed = age(at)
+  return connected() and elapsed ~= nil and elapsed <= (limit or FRESH_MS)
+end
+
+local function recentPosition(info)
+  if info and fresh(info.positionSeenAt or info.lastSeen, POSITION_MS) then
+    return position(info.pos)
+  end
+end
+
+local function memberPosition(all, who)
+  local info = all[who]
+  if info then return recentPosition(info), who end
+  for memberName, entry in pairs(all) do
+    if key(memberName) == key(who) then return recentPosition(entry), memberName end
+  end
+  return nil, who
+end
+
+local function snapshot()
+  if type(BotServer.getMemberSnapshot) ~= 'function' then return {} end
+  return BotServer.getMemberSnapshot()
+end
+
+local function set(widget, method, value)
+  if not widget then return end
+  local values = cache[widget]
+  if not values then values = {}; cache[widget] = values end
+  if values[method] ~= value then
+    widget[method](widget, value)
+    values[method] = value
+  end
+end
+
+local function visible()
+  return botServerWindow and botServerWindow:isVisible()
+end
+
+local function shortName(who, length)
+  who = tostring(who or '')
+  length = length or 28
+  return #who > length and who:sub(1, length - 3) .. '...' or who
+end
+
+local function clearCache(widget)
+  if not widget then return end
+  for _, child in ipairs(widget:getChildren()) do clearCache(child) end
+  cache[widget] = nil
+end
+
+local function model(all)
+  local result = {}
+  local own = all[selfName()]
+  local ownPos = own and position(own.pos)
+  for who, info in pairs(all) do
+    local favorite = settings.favorites[key(who)] == true
+    local pos = recentPosition(info)
+    if (query == '' or key(who):find(query, 1, true)) and
+      (not settings.favoritesOnly or favorite) and
+      (not settings.sameFloor or (ownPos and pos and ownPos.z == pos.z)) then
+      result[#result + 1] = {name = who, info = info, favorite = favorite,
+        pos = pos, fresh = fresh(info.lastSeen)}
+    end
+  end
+  table.sort(result, function(a, b)
+    if a.fresh ~= b.fresh then return a.fresh end
+    if a.favorite ~= b.favorite then return a.favorite end
+    return key(a.name) < key(b.name)
+  end)
+  return result
+end
+
+local function openNaviMap()
+  if not active() or not botServerWindow or not connected() then return false end
+  settings.preview = true
+  previewPosition = nil
+  botServerWindow:show()
+  dashboard.showPage('companions')
+  return true
+end
+
+function dashboard.locateMember(who)
+  if not active() then return false end
+  local info = snapshot()[who]
+  local pos = recentPosition(info)
+  if not pos then return false end
+  selected, previewExiva = who, nil
+  return openNaviMap()
+end
+
+local function updateWindowLayout()
+  local window = botServerWindow
+  local extraMap = currentPage == 'companions' and settings.preview and MAP_EXPANSION or 0
+  -- Grow downwards without making the roster smaller. Keep the window on screen.
+  local ok, bounds = pcall(function() return g_ui.getRootWidget():getRect() end)
+  if window.helperEmbedded or not ok or type(bounds) ~= 'table' then bounds = nil end
+  local height = BASE_HEIGHT + extraMap
+  if bounds and tonumber(bounds.height) then
+    height = math.min(height, math.max(BASE_HEIGHT, bounds.height - 16))
+  end
+  local positionOk, at = pcall(function() return window:getPosition() end)
+  set(window, 'setHeight', height)
+  local mapHeight = extraMap > 0 and math.max(88, height - BASE_HEIGHT) or 0
+  set(window.MembersPage.Selected, 'setHeight', 60 + mapHeight)
+  if bounds and positionOk and type(at) == 'table' and tonumber(at.y) and tonumber(at.x) then
+    local top = (tonumber(bounds.y) or 0) + 8
+    local y = math.max(top, math.min(at.y, top + bounds.height - height - 16))
+    if y ~= at.y then window:setPosition({x = at.x, y = y}) end
+  end
+end
+
+local function hidePreviewMarkers()
+  previewOrder = nil
+  for _, marker in pairs(previewMarkers) do
+    set(marker.widget, 'setVisible', false)
+    set(marker.widget, 'setTooltip', '')
+  end
+  for _, dot in ipairs(previewDots) do set(dot.widget, 'setVisible', false) end
+  if previewArrow then set(previewArrow, 'setVisible', false); set(previewArrow, 'setTooltip', '') end
+end
+
+local function previewTarget(all, session, estimate, floor)
+  if not session then return end
+  local pos = memberPosition(all, session.target)
+  local kind = pos and 'exact' or estimate and estimate.locationType or 'approximate'
+  local uncertainFloor = false
+  if not pos and estimate then
+    if estimate.unbounded then
+      pos = position(estimate.approachPosition)
+      kind = 'approach'
+    else pos = position(estimate.position) end
+    -- Project an approximate XY point onto an allowed visible floor, just as the
+    -- client minimap does. Confirmed sightings always keep their actual floor.
+    if pos and kind ~= 'exact' and kind ~= 'lastSeen' and type(estimate.floors) == 'table' then
+      uncertainFloor = #estimate.floors > 1
+      for _, z in ipairs(estimate.floors) do
+        if tonumber(z) == tonumber(floor) then pos.z = tonumber(z); break end
+      end
+    end
+  end
+  if not pos then return end
+  local state = kind == 'approach' and 'Punto de acercamiento\nDistancia del objetivo sin confirmar' or
+    kind == 'exact' and 'Posicion exacta' or
+    kind == 'lastSeen' and 'Ultima posicion vista' or 'Posicion aproximada'
+  if uncertainFloor then state = state .. '\nPiso sin confirmar' end
+  if estimate and estimate.sessionId ~= session.id then state = state .. '\nEsperando nueva respuesta' end
+  return {name = session.target, pos = pos, kind = kind, state = state,
+    color = kind == 'exact' and '#ff8080' or kind == 'lastSeen' and '#ffbb66' or
+      kind == 'approach' and '#ffe38a' or '#ffffff'}
+end
+
+local function tileDistance(left, right)
+  return math.max(math.abs(left.x - right.x), math.abs(left.y - right.y))
+end
+
+local function renderPreviewMarkers(panel, all, reference, referenceName, session, estimate, camera)
+  local map = panel.Preview
+  local ok, width, height, scale = pcall(function()
+    local size = map:getSize()
+    return tonumber(size.width), tonumber(size.height), tonumber(map:getScale())
+  end)
+  if not ok or not width or not height or not scale or width <= 0 or height <= 0 or scale <= 0 then
+    hidePreviewMarkers(); return
+  end
+  local mapKey = positionText(camera) .. '|' .. scale .. '|' .. width .. '|' .. height
+  local target = previewTarget(all, session, estimate, camera.z)
+  local order = key(referenceName) .. '|' .. (target and key(target.name) or '')
+  local raiseMarkers = previewOrder ~= order
+  local points, names, available = {}, {}, {}
+  for who in pairs(all) do names[#names + 1] = who; available['member:' .. key(who)] = true end
+  table.sort(names, function(a, b) return key(a) < key(b) end)
+  for _, who in ipairs(names) do
+    local pos = recentPosition(all[who])
+    if pos and key(who) ~= key(referenceName) and (not target or key(who) ~= key(target.name)) and
+      #points < MAX_PREVIEW_MARKERS - 2 then
+      points[#points + 1] = {id = 'member:' .. key(who), name = who, pos = pos,
+        image = markerRoot .. 'member-diamond.png', size = 13, color = '#ffffff'}
+    end
+  end
+  if reference then
+    points[#points + 1] = {id = 'member:' .. key(referenceName), name = referenceName, pos = reference,
+      image = assetRoot .. 'status-green.png', size = 14, color = '#ffffff', reference = true}
+  end
+  if target then
+    points[#points + 1] = {id = 'exiva', name = target.name, pos = target.pos,
+      image = markerRoot .. 'exiva-target.png', size = 19, color = target.color, target = true}
+  end
+
+  -- Share the names at a tile, so stacked markers still identify every player.
+  local atTile = {}
+  for _, point in ipairs(points) do
+    local tile = positionText(point.pos)
+    local bucket = atTile[tile] or {}; atTile[tile] = bucket
+    local duplicate = false
+    for _, who in ipairs(bucket) do if key(who) == key(point.name) then duplicate = true; break end end
+    if not duplicate then bucket[#bucket + 1] = point.name end
+  end
+  local wanted = {}
+  for _, point in ipairs(points) do
+    local x = width / 2 + (point.pos.x - camera.x) * scale
+    local y = height / 2 + (point.pos.y - camera.y) * scale
+    local half = point.size / 2
+    if point.pos.z == camera.z and x >= half and x <= width - half and y >= half and y <= height - half then
+      local marker = previewMarkers[point.id]
+      if not marker then
+        local widget = UI.createWidget('BotServerPreviewMarker', map)
+        widget:setId('navi_' .. point.id:gsub('[^%w]', '_'))
+        widget.onMousePress = function() return true end
+        widget.onMouseRelease = function() return true end
+        marker = {widget = widget}; previewMarkers[point.id] = marker
+        raiseMarkers = true
+      end
+      wanted[point.id] = true
+      if marker.size ~= point.size then
+        marker.widget:setSize({width = point.size, height = point.size}); marker.size = point.size
+      end
+      set(marker.widget, 'setImageSource', point.image)
+      set(marker.widget, 'setImageColor', point.color)
+      local sameTile = {point.name}
+      for _, who in ipairs(atTile[positionText(point.pos)]) do
+        if key(who) ~= key(point.name) then sameTile[#sameTile + 1] = who end
+      end
+      local tooltip = table.concat(sameTile, '\n')
+      if point.reference then tooltip = tooltip .. '\nReferencia de la vista'
+      else
+        if point.target then tooltip = tooltip .. '\n' .. target.state end
+        local prefix = point.target and target.kind ~= 'exact' and 'Aprox. ' or ''
+        if reference then
+          tooltip = tooltip .. '\n' .. prefix .. tileDistance(reference, point.pos) .. ' casillas de ' .. referenceName
+        end
+      end
+      if point.target then tooltip = tooltip .. '\n' .. positionText(point.pos) end
+      set(marker.widget, 'setTooltip', tooltip)
+      local where = mapKey .. '|' .. positionText(point.pos)
+      if marker.where ~= where then map:centerInPosition(marker.widget, point.pos); marker.where = where end
+      set(marker.widget, 'setVisible', true)
+    end
+  end
+  for id, marker in pairs(previewMarkers) do
+    if not wanted[id] then
+      set(marker.widget, 'setVisible', false); set(marker.widget, 'setTooltip', '')
+      if id ~= 'exiva' and not available[id] then
+        clearCache(marker.widget); marker.widget:destroy(); previewMarkers[id] = nil
+      end
+    end
+  end
+
+  -- The bearing remains visible for an offscreen target or a direction-only
+  -- response. A direction without a distance never creates a false target point.
+  local used, arrowVisible = 0, false
+  local bearing = target and target.pos or session and estimate and position(estimate.position)
+  if bearing and reference and camera.z == reference.z then
+    local origin, destination = reference, bearing
+    if target and positionText(camera) == positionText(target.pos) then origin, destination = target.pos, reference end
+    local dx, dy = (destination.x - origin.x) * scale, (destination.y - origin.y) * scale
+    local length = math.sqrt(dx * dx + dy * dy)
+    if length > 0 then
+      local margin = math.max(12, 9 + scale)
+      local part = math.max(0, math.min(1,
+        dx ~= 0 and (width / 2 - margin) / math.abs(dx) or 1,
+        dy ~= 0 and (height / 2 - margin) / math.abs(dy) or 1))
+      local spacing = math.max(12, scale * 2)
+      used = math.min(MAX_GUIDE_DOTS, math.floor(length * part / spacing))
+      for i = 1, used do
+        local dot = previewDots[i]
+        if not dot then
+          local widget = UI.createWidget('BotServerPreviewGuideDot', map)
+          widget:setId('navi_guide_' .. i)
+          widget:setImageSource(markerRoot .. 'exiva-guide-dot.png')
+          map:moveChildToIndex(widget, 1)
+          dot = {widget = widget}; previewDots[i] = dot
+        end
+        local t = i * spacing / length
+        local pos = {x = math.floor(origin.x + (destination.x - origin.x) * t + 0.5),
+          y = math.floor(origin.y + (destination.y - origin.y) * t + 0.5), z = camera.z}
+        local where = mapKey .. '|' .. positionText(pos)
+        if dot.where ~= where then map:centerInPosition(dot.widget, pos); dot.where = where end
+        set(dot.widget, 'setVisible', true)
+      end
+      if part > 0 and not wanted.exiva then
+        if not previewArrow then
+          previewArrow = UI.createWidget('BotServerPreviewBearing', map)
+          previewArrow:setId('navi_bearing')
+          previewArrow:setImageSource(markerRoot .. 'exiva-guide-arrows.png')
+          previewArrow.onMousePress = function() return true end
+          previewArrow.onMouseRelease = function() return true end
+        end
+        local direction, best = 0, -math.huge
+        for index = 0, 15 do
+          local angle = index * 2 * math.pi / 16
+          local score = dx * math.cos(angle) + dy * math.sin(angle)
+          if score > best then direction, best = index, score end
+        end
+        local arrowCache = cache[previewArrow] or {}; cache[previewArrow] = arrowCache
+        if arrowCache.direction ~= direction then
+          previewArrow:setImageClip({x = direction * 17, y = 0, width = 17, height = 17})
+          arrowCache.direction = direction
+        end
+        local pos = {x = math.floor(origin.x + (destination.x - origin.x) * part + 0.5),
+          y = math.floor(origin.y + (destination.y - origin.y) * part + 0.5), z = camera.z}
+        local where = mapKey .. '|' .. positionText(pos)
+        if arrowCache.where ~= where then map:centerInPosition(previewArrow, pos); arrowCache.where = where end
+        set(previewArrow, 'setTooltip', session.target .. '\n' .. (target and target.state .. '\n' .. positionText(target.pos) or
+          'Rumbo aproximado; distancia sin confirmar'))
+        set(previewArrow, 'setVisible', true)
+        arrowVisible = true
+      end
+    end
+  end
+  for i = used + 1, #previewDots do set(previewDots[i].widget, 'setVisible', false) end
+  if previewArrow and not arrowVisible then set(previewArrow, 'setVisible', false); set(previewArrow, 'setTooltip', '') end
+
+  if raiseMarkers then
+    local referenceMarker = previewMarkers['member:' .. key(referenceName)]
+    if referenceMarker then referenceMarker.widget:raise() end
+    if wanted.exiva then previewMarkers.exiva.widget:raise() end
+    previewOrder = order
+  end
+
+  local message, tooltip = '', 'Vista de ' .. referenceName
+  if session then
+    if target then
+      local distance = not reference and ('piso ' .. target.pos.z) or
+        target.pos.z ~= reference.z and ('piso ' .. target.pos.z) or
+        ((target.kind ~= 'exact' and '~' or '') .. tileDistance(reference, target.pos) .. ' casillas')
+      message = shortName(target.name, 12) .. ': ' .. (target.kind == 'approach' and 'guia ' or '') .. distance
+      tooltip = tooltip .. '\n' .. target.name .. ': ' .. target.state .. '\n' .. distance
+    else
+      message = shortName(session.target, 12) .. ': ' .. (estimate and estimate.unbounded and 'rumbo aprox.' or 'sin posicion')
+      tooltip = tooltip .. '\n' .. message
+    end
+    tooltip = tooltip .. '\nIniciador: ' .. session.coordinator .. '\nLa guia muestra direccion, no un camino transitable.'
+  elseif reference then
+    local nearest, distance
+    for _, who in ipairs(names) do
+      local pos = recentPosition(all[who])
+      if pos and pos.z == reference.z and key(who) ~= key(referenceName) then
+        local d = tileDistance(reference, pos)
+        if not distance or d < distance then nearest, distance = who, d end
+      end
+    end
+    if nearest then message = shortName(nearest, 12) .. ': ' .. distance .. ' casillas'; tooltip = tooltip .. '\n' .. nearest .. ': ' .. distance .. ' casillas' end
+  end
+  set(panel.MapInfo, 'setText', message)
+  set(panel.MapInfo, 'setTooltip', tooltip)
+  set(panel.MapInfo, 'setColor', session and '#ffe38a' or '#a6b3bf')
+end
+
+local function updatePreview(panel, pos, all, referenceName, session, estimate, reference)
+  local show = settings.preview and pos ~= nil
+  -- UIMinimap uses color for its empty-map fill; keep the tiles' own colors.
+  set(panel.Preview, 'setColor', '#000000')
+  set(panel.Preview, 'setBackgroundColor', '#000000')
+  set(panel.Preview, 'setVisible', show)
+  set(panel.PreviewToggle, 'setOn', settings.preview)
+  set(panel.PreviewToggle, 'setText', settings.preview and 'Ocultar mapa' or 'Mini mapa')
+  set(panel.PreviewHint, 'setVisible', settings.preview and not show)
+  set(panel.ZoomIn, 'setVisible', settings.preview)
+  set(panel.ZoomOut, 'setVisible', settings.preview)
+  set(panel.ZoomIn, 'setEnabled', show and previewZoom < 4)
+  set(panel.ZoomOut, 'setEnabled', show and previewZoom > -2)
+  set(panel.MapInfo, 'setVisible', show)
+  if not show then previewPosition = nil; hidePreviewMarkers(); return end
+  set(panel.Preview, 'setZoom', previewZoom)
+  local id = positionText(pos)
+  if previewPosition ~= id then
+    -- This map belongs to this bot window and is never reparented or shared.
+    -- Its camera and all its children belong exclusively to Navi.
+    panel.Preview:setCameraPosition(pos)
+    previewPosition = id
+  end
+  renderPreviewMarkers(panel, all, reference, referenceName, session, estimate, pos)
+end
+
+local function newerSession(left, right)
+  return left and (not right or left.createdAt > right.createdAt or
+    (left.createdAt == right.createdAt and left.id > right.id))
+end
+
+local function previewSession()
+  if previewExiva then
+    local session, estimate = activeExiva(nil, nil, previewExiva.target)
+    if session then previewExiva.coordinator = session.coordinator end
+    -- Follow a new target searched by the viewed initiator. Other members'
+    -- independent searches must not take over this view.
+    local nextSession, nextEstimate = activeExiva(nil, previewExiva.coordinator)
+    if newerSession(nextSession, session or previewExiva) then session, estimate = nextSession, nextEstimate end
+    if session then
+      previewExiva.target, previewExiva.coordinator = session.target, session.coordinator
+      previewExiva.createdAt, previewExiva.id = session.createdAt, session.id
+    end
+    return session, estimate
+  end
+  local session, estimate = activeExiva(nil, selected or selfName())
+  if not session then return activeExiva() end
+  return session, estimate
+end
+
+function dashboard.locateExivaTarget()
+  if not active() then return false end
+  local session, estimate = previewSession()
+  local all = snapshot()
+  local reference = session and memberPosition(all, session.coordinator)
+  if not previewTarget(all, session, estimate, reference and reference.z) then return false end
+  selected, previewExiva = nil, {target = session.target, coordinator = session.coordinator, centerTarget = true,
+    createdAt = session.createdAt, id = session.id}
+  return openNaviMap()
+end
+
+local function renderSelected(all)
+  local panel = botServerWindow.MembersPage.Selected
+  local session, estimate = previewSession()
+  local referenceName = previewExiva and previewExiva.coordinator or selected or selfName()
+  local reference = memberPosition(all, referenceName)
+  local target = previewTarget(all, session, estimate, reference and reference.z)
+  local centerTarget = previewExiva and previewExiva.centerTarget and target ~= nil
+  local pos = centerTarget and target.pos or reference
+  local title = selected and shortName(selected, 32) or 'Selecciona un companero'
+  local tooltip = selected or 'Selecciona una fila de la lista'
+  if previewExiva then
+    -- Follow the current initiator of the target pinned in this view.
+    title, tooltip = 'Vista: ' .. shortName(referenceName, 24), referenceName .. '\nExiva: ' .. previewExiva.target
+    if centerTarget then
+      title = 'Exiva: ' .. shortName(target.name, 24)
+      tooltip = target.name .. '\n' .. target.state .. '\nIniciador: ' .. referenceName
+    end
+  end
+  set(panel.Name, 'setText', title)
+  set(panel.Name, 'setTooltip', tooltip)
+  local displayPos
+  if selected or previewExiva then displayPos = pos end
+  set(panel.Position, 'setText', (centerTarget and target.kind == 'approach' and 'Referencia: ' or 'Posicion: ') .. positionText(displayPos))
+  set(panel.Status, 'setText', pos and 'Posicion reciente compartida' or 'Sin posicion reciente')
+  set(panel.Locate, 'setEnabled', (selected ~= nil or previewExiva ~= nil) and reference ~= nil)
+  set(panel.TargetLocate, 'setEnabled', target ~= nil)
+  set(panel.TargetLocate, 'setOn', centerTarget and true or false)
+  set(panel.TargetLocate, 'setTooltip', target and
+    ('Ver ' .. target.name .. ' en Navi: ' .. target.state .. '\n' .. positionText(target.pos)) or
+    session and (estimate and estimate.unbounded and 'Solo hay rumbo; aun no hay un punto estimado' or
+      'Esperando la posicion del exiveado') or 'Sin exiva activo')
+  set(panel.PreviewHint, 'setText', 'Sin posicion reciente de ' .. referenceName)
+  updatePreview(panel, pos, all, referenceName, session, estimate, reference)
+end
+
+local function renderMembers(all)
+  local page = botServerWindow.MembersPage
+  local items, allowed = model(all), {}
+  for index, item in ipairs(items) do
+    local who = item.name
+    allowed[who] = true
+    local row = rows[who]
+    if not row then
+      row = UI.createWidget('BotServerMemberRow', page.List)
+      rows[who] = row
+      -- The Helper's cached palette metadata predates this new position label.
+      if HelperAppearance and type(HelperAppearance.track) == 'function' then
+        HelperAppearance.track(row.Position, 'BotServerDashboardLabel')
+      end
+      row.onClick = function() selected, previewExiva = who, nil; dashboard.refresh(true) end
+      row.Favorite.onClick = function()
+        settings.favorites[key(who)] = not settings.favorites[key(who)] or nil
+        dashboard.refresh(true)
+      end
+      row.Locate.onClick = function() dashboard.locateMember(who) end
+    end
+    set(row, 'setVisible', true)
+    if orderedNames[index] ~= who then page.List:moveChildToIndex(row, index) end
+    local leader = LEADERS[key(who)] == true
+    local label = shortName(who, 26)
+    set(row.Name, 'setText', label)
+    set(row.Name, 'setColor', item.fresh and '#e0eaea' or '#8d9797')
+    set(row.Name, 'setTooltip', who .. (leader and '\nLider autorizado para parar exivas' or ''))
+    set(row.Leader, 'setVisible', leader)
+    -- Measure only when the name changes, keeping the crown clear of the text.
+    local labelCache = cache[row.Name]
+    if leader and labelCache.crownFor ~= label then
+      local textSize = row.Name:getTextSize()
+      set(row.Leader, 'setMarginLeft', math.min(220, 32 + textSize.width))
+      labelCache.crownFor = label
+    end
+    set(row.Favorite, 'setImageSource', assetRoot .. (item.favorite and 'star-filled.png' or 'star-outline.png'))
+    set(row.Dot, 'setImageSource', assetRoot .. (item.fresh and 'status-green.png' or 'status-gray.png'))
+    set(row.Freshness, 'setText', not item.fresh and 'Sin senal' or
+      item.pos and ('Piso ' .. item.pos.z) or 'Sin posicion')
+    set(row.Position, 'setText', positionText(item.pos))
+    set(row.Position, 'setTooltip', item.pos and ('Posicion compartida de ' .. who) or 'Sin posicion reciente')
+    set(row.Locate, 'setEnabled', item.pos ~= nil)
+    set(row, 'setOn', who == selected)
+  end
+  orderedNames = {}
+  for _, item in ipairs(items) do orderedNames[#orderedNames + 1] = item.name end
+  for who, row in pairs(rows) do
+    if not all[who] then
+      clearCache(row); row:destroy(); rows[who] = nil
+    elseif not allowed[who] then set(row, 'setVisible', false) end
+  end
+  set(page.Empty, 'setVisible', #items == 0)
+  if selected and not all[selected] then selected = nil end
+  renderSelected(all)
+end
+
+activeExiva = function(wantedId, coordinator, target)
+  local tracker = vBot.ExivaTracker
+  if not connected() or not tracker or not BotServer.isExivaTrackerEnabled() or tracker.isPaused() then return end
+  local latest, current = nil, exivaClock()
+  local sessions = tracker.getSessions()
+  for _, session in pairs(sessions) do
+    if session.visualUntil and session.visualUntil > current and not session.castCancelled and
+      (not wantedId or session.id == wantedId) and (not coordinator or key(session.coordinator) == key(coordinator)) and
+      (not target or key(session.target) == key(target)) and
+      (not latest or session.createdAt > latest.createdAt or
+        (session.createdAt == latest.createdAt and session.id > latest.id)) then latest = session end
+  end
+  if not latest then return end
+  local estimate = tracker.getEstimates()[key(latest.target)]
+  if estimate and estimate.expiresAt <= current then estimate = nil end
+  if estimate and estimate.sessionId ~= latest.id then
+    local source = sessions[estimate.sessionId]
+    -- A fresh previous measurement of this same player bridges the next round.
+    -- Do not extend its lifetime or reuse a cancelled/expired/other target's data.
+    if not source or source.castCancelled or not source.visualUntil or source.visualUntil <= current or
+      key(source.target) ~= key(latest.target) then estimate = nil
+    elseif estimate.locationType == 'exact' then
+      local previous = {}; for k, v in pairs(estimate) do previous[k] = v end
+      previous.locationType = 'lastSeen'; estimate = previous
+    end
+  end
+  return latest, estimate
+end
+
+local function renderExiva(all)
+  local panel, tracker = botServerWindow.ExivaActivity, vBot.ExivaTracker
+  local control = tracker and tracker.getControlStatus and tracker.getControlStatus() or {}
+  set(panel.Leader, 'setVisible', control.canStop == true)
+  local session, estimate = activeExiva()
+  set(panel.CurrentTarget, 'setText', 'Objetivo: ' .. (session and session.target or '-'))
+  set(panel.CurrentInitiator, 'setText', 'Iniciador: ' .. (session and session.coordinator or '-'))
+  set(panel.CurrentInitiator, 'setPhantom', false)
+  local diagnostic = tracker and type(tracker.getDiagnostics) == 'function' and
+    tracker.getDiagnostics(session and session.id) or nil
+  local details = ''
+  if diagnostic then
+    details = 'Origen: ' .. (diagnostic.source or '-') ..
+      '\nSeleccionados: ' .. (#diagnostic.selected > 0 and table.concat(diagnostic.selected, ', ') or '-') ..
+      '\nRespondieron: ' .. (#diagnostic.answered > 0 and table.concat(diagnostic.answered, ', ') or '-') ..
+      '\nTu personaje: ' .. diagnostic.reason ..
+      '\nTus iconos: Target ' .. (diagnostic.exivaTarget and 'ON' or 'OFF') ..
+      ' | Last ' .. (diagnostic.exivaLast and 'ON' or 'OFF')
+  end
+  set(panel.CurrentInitiator, 'setTooltip', details)
+  local text = 'Posicion: sin busqueda activa'
+  if session then
+    if estimate then
+      local state = estimate.locationType == 'exact' and 'Exacta' or
+        estimate.locationType == 'lastSeen' and 'Ultima vista' or 'Aproximada'
+      text = 'Posicion: ' .. state .. ' | ' .. positionText(position(estimate.position))
+      if estimate.seenBy then text = text .. ' | visto por ' .. estimate.seenBy end
+      if estimate.unbounded then
+        local approach = position(estimate.approachPosition)
+        text = approach and ('Referencia: ' .. positionText(approach) .. ' | distancia sin confirmar') or
+          'Posicion: rumbo aproximado, sin distancia definida'
+      end
+    else text = 'Posicion: esperando respuesta' end
+  end
+  set(panel.CurrentPosition, 'setText', text)
+  set(panel.CurrentPosition, 'setTooltip', text)
+  local origin = session and memberPosition(all, session.coordinator)
+  set(panel.Locate, 'setEnabled', origin ~= nil)
+  set(panel.Locate, 'setTooltip', origin and ('Ver en Navi desde ' .. session.coordinator) or 'Sin posicion reciente del iniciador')
+  local history = tracker and tracker.getActivity() or {}
+  for index = 5, 8 do
+    local row, entry = panel['Row' .. index], history[index]
+    set(row.Time, 'setText', entry and entry.time or '-')
+    set(row.Initiator, 'setText', entry and shortName(entry.initiator, 38) or '-')
+    set(row.Target, 'setText', entry and shortName(entry.target, 38) or '-')
+  end
+end
+
+local function updateTransport()
+  local panel, mode = botServerWindow.Transport, config.transportMode
+  set(panel.GuildChannelId, 'setVisible', mode == 'guild')
+  set(panel.guildChannelLabel, 'setVisible', mode == 'guild')
+  set(panel.GameChannelId, 'setVisible', mode == 'party')
+  set(panel.gameChannelLabel, 'setVisible', mode == 'party')
+  set(panel.ExtendedOpcode, 'setVisible', mode == 'opcode')
+  set(panel.opcodeLabel, 'setVisible', mode == 'opcode')
+  local hints = {websocket = 'WebSocket | Render | El canal identifica a tu grupo.',
+    guild = 'Guild: canal de hermandad. Actualizaciones cada 3 s.',
+    party = 'Party: canal del grupo. Actualizaciones cada 3 s.',
+    opcode = 'Requiere relay compatible en el servidor.'}
+  set(panel.Hint, 'setText', hints[mode] or '')
+end
+
+function dashboard.showPage(page)
+  if not active() or not botServerWindow then return end
+  currentPage = page
+  local window = botServerWindow
+  set(window.MembersPage, 'setVisible', page == 'companions')
+  set(window.ExivaActivity, 'setVisible', page == 'exivas')
+  for _, widget in ipairs({window.Data, window.Transport, window.Features, window.ConnectionNote}) do
+    set(widget, 'setVisible', page == 'connection')
+  end
+  set(window.Tabs.Companions, 'setOn', page == 'companions')
+  set(window.Tabs.Exivas, 'setOn', page == 'exivas')
+  set(window.Tabs.Connection, 'setOn', page == 'connection')
+  dashboard.refresh(true)
+end
+
+function dashboard.refresh(force)
+  if not active() then return end
+  local all = snapshot()
+  local count = 0
+  if connected() then for _ in pairs(all) do count = count + 1 end end
+  local opener = vBot.BotServerOpener
+  local status, color = 'Desconectado', '#e3242b'
+  if connected() then status, color = 'Conectado', '#03ac13'
+  elseif config.enabled then status, color = 'Conectando', '#fff380' end
+  if opener then
+    set(opener.memberBadge, 'setText', tostring(count))
+    set(opener.connectionDot, 'setImageSource', assetRoot .. (connected() and 'status-green.png' or
+      config.enabled and 'status-yellow.png' or 'status-red.png'))
+    local names = {}
+    if connected() then for who in pairs(all) do names[#names + 1] = who end end
+    table.sort(names, function(a, b) return key(a) < key(b) end)
+    local tooltip = status .. ' | ' .. count .. ' jugadores'
+    if #names > 0 then tooltip = tooltip .. '\n' .. table.concat(names, '\n') end
+    set(opener, 'setTooltip', tooltip)
+  end
+  if not visible() then return end
+  local window = botServerWindow
+  updateWindowLayout()
+  set(window.Header.Status, 'setText', status)
+  set(window.Header.Status, 'setColor', color)
+  set(window.Header.Dot, 'setImageSource', assetRoot .. (connected() and 'status-green.png' or
+    config.enabled and 'status-yellow.png' or 'status-red.png'))
+  set(window.enabled.Dot, 'setImageSource', assetRoot .. (config.enabled and 'status-green.png' or 'status-gray.png'))
+  set(window.enabled.Caption, 'setText', config.enabled and 'Navi: ON' or 'Navi: OFF')
+  set(window.Header.Members, 'setText', count .. ' jugadores')
+  set(window.Header.Channel, 'setText', tostring(storage.BotServerChannel or ''))
+  set(window.Tabs.Companions, 'setText', 'Companeros (' .. count .. ')')
+  if currentPage == 'companions' then renderMembers(all)
+  elseif currentPage == 'exivas' then renderExiva(all)
+  else updateTransport() end
+  local traffic = GameBotServerTransport and GameBotServerTransport.getTrafficStats and
+    GameBotServerTransport.getTrafficStats()
+  local function units(value)
+    value = tonumber(value) or 0
+    if value >= 1024 * 1024 then return string.format('%.2f MB', value / (1024 * 1024)) end
+    return string.format('%.1f KB', value / 1024)
+  end
+  local panel = window.MembersPage.Traffic
+  set(panel.Data, 'setText', 'Enviado: ' .. units(traffic and traffic.sentBytes) ..
+    '  |  Recibido: ' .. units(traffic and traffic.receivedBytes))
+  local detail = {'Datos JSON aproximados de este cliente desde la recarga.',
+    'No incluye ping, TLS ni las copias que Render envia a otros companeros.'}
+  if traffic then
+    for _, entry in ipairs(traffic.topics) do
+      detail[#detail + 1] = entry.topic .. ': enviado ' .. units(entry.sentBytes) ..
+        ' | recibido ' .. units(entry.receivedBytes)
+    end
+  end
+  set(panel, 'setTooltip', table.concat(detail, '\n'))
+end
+
+function dashboard.getRows() return model(snapshot()) end
+function dashboard.getSelected() return selected end
+function dashboard.setSearch(text) query = key(text); dashboard.refresh(true) end
+function dashboard.getActiveExiva() return activeExiva() end
+
+vBot.BotServerDashboard = dashboard
+
+if botServerWindow and botServerWindow.MembersPage then
+  local window, page = botServerWindow, botServerWindow.MembersPage
+  if HelperAppearance and type(HelperAppearance.track) == 'function' then
+    HelperAppearance.track(page.Headings.Position, 'BotServerDashboardLabel')
+    HelperAppearance.track(page.Traffic, 'BotServerSkinCard')
+    HelperAppearance.track(page.Traffic.Caption, 'BotServerDashboardLabel')
+    HelperAppearance.track(page.Traffic.Data, 'BotServerDashboardLabel')
+    page.Traffic.Data:setColor('#a6b3bf')
+  end
+  window.Tabs.Companions.onClick = function() dashboard.showPage('companions') end
+  window.Tabs.Exivas.onClick = function() dashboard.showPage('exivas') end
+  window.Tabs.Connection.onClick = function() dashboard.showPage('connection') end
+  window.closeButton.onClick = function() if active() then window:hide() end end
+  local powerClick = window.enabled.onClick
+  window.enabled.onClick = function(widget)
+    if not active() then return end
+    powerClick(widget)
+    dashboard.refresh(true)
+  end
+  page.Search.onTextChange = function(_, text) dashboard.setSearch(text) end
+  page.Favorites:setOn(settings.favoritesOnly)
+  page.Favorites.onClick = function(widget)
+    settings.favoritesOnly = not settings.favoritesOnly; widget:setOn(settings.favoritesOnly); dashboard.refresh(true)
+  end
+  page.SameFloor:setOn(settings.sameFloor)
+  page.SameFloor.onClick = function(widget)
+    settings.sameFloor = not settings.sameFloor; widget:setOn(settings.sameFloor); dashboard.refresh(true)
+  end
+  page.Selected.Locate.onClick = function()
+    if selected then dashboard.locateMember(selected)
+    elseif previewExiva then previewExiva.centerTarget = nil; openNaviMap() end
+  end
+  page.Selected.TargetLocate.onClick = function() dashboard.locateExivaTarget() end
+  page.Selected.PreviewToggle.onClick = function()
+    settings.preview = not settings.preview; dashboard.refresh(true)
+  end
+  page.Selected.ZoomIn.onClick = function()
+    if not active() then return end
+    previewZoom = math.min(4, previewZoom + 1); dashboard.refresh(true)
+  end
+  page.Selected.ZoomOut.onClick = function()
+    if not active() then return end
+    previewZoom = math.max(-2, previewZoom - 1); dashboard.refresh(true)
+  end
+  local map = page.Selected.Preview
+  if type(map.disableAutoWalk) == 'function' then map:disableAutoWalk() end
+  map.onMousePress = function() return true end
+  map.onMouseRelease = function() return true end
+  map.onDragEnter = function() return false end
+  map.onDragMove = function() return false end
+  map.onMouseWheel = function(_, _, direction)
+    if not active() then return true end
+    if MouseWheelUp and direction == MouseWheelUp then previewZoom = math.min(4, previewZoom + 1)
+    elseif MouseWheelDown and direction == MouseWheelDown then previewZoom = math.max(-2, previewZoom - 1) end
+    dashboard.refresh(true)
+    return true
+  end
+  window.ExivaActivity.Locate.onClick = function()
+    if not active() then return end
+    local session, estimate = activeExiva()
+    if session then
+      selected, previewExiva = nil, {id = session.id, target = session.target, coordinator = session.coordinator, createdAt = session.createdAt}
+      openNaviMap()
+    end
+  end
+  dashboard.showPage('companions')
+end
+
+macro(500, function() dashboard.refresh(false) end)

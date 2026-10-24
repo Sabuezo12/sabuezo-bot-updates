@@ -1,3 +1,14 @@
+3.1.11 - Caza fluida, curacion, iconos, scripts y Hold MW
+- Iconos con editor unico compacto, paleta de colores y funciones de scripts propios.
+- Scripts en dos columnas ampliables: cargar el archivo y encender/apagar su funcion por separado.
+- Imbuements compacto, cantidades de scrolls y opcion de quitar efectos individuales.
+- Dummy Smart usa items del purse visible y permite leer el ID de estatuas bajo el cursor.
+- HealBot prioriza cooldowns nativos por defecto, tambien en objetos compatibles; textos sin acentos.
+- AttackBot recupera ataques con un monstruo y controla waves/beams, giro y reposicionamiento de caza.
+- Auto Explorer de caza: rutas por pasillos, tramos largos, radio visible y control del piso.
+- TargetBot agiliza el seguimiento y cruza fields transitables; CaveBot y grabacion ignoran fields.
+- Hold MW con intervalo fijo de 2000 ms y reaccion mas rapida al desaparecer una pared.
+
 3.1.10 - Combo cooperativo, favoritos y correcciones acumuladas
 - Combo compacto: lideres, objetivo, SD/UE y Magic Wall en un panel; Follow separado.
 - Navi copia el objetivo sin lanzar; SD responde con runa y UE con el spell configurado.

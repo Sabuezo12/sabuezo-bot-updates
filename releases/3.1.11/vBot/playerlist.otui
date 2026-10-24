@@ -1,0 +1,189 @@
+PlayerLabel < UIWidget
+  background-color: alpha
+  text-offset: 3 1
+  focusable: true
+  height: 16
+  font: verdana-11px-antialised
+  text-align: left
+
+  $focus:
+    background-color: #00000055
+
+  HelperThemeButton
+    id: remove
+    !text: tr('X')
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    width: 14
+    height: 14
+    margin-right: 15
+    text-align: center
+    text-offset: 0 1
+    tooltip: Remove profile from the list.
+
+SettingCheckBox < HelperThemeCheck
+  text-wrap: true
+  text-auto-resize: true
+  margin-top: 3
+  font: verdana-11px-antialised
+
+Settings < HelperThemeCard
+  padding: 6
+  layout:
+    type: verticalBox
+
+  HelperThemeLabel
+    text: Opciones de jugadores
+    text-align: center
+    font: verdana-11px-antialised
+
+  HelperThemeLabel
+    text: Player List
+    text-align: center
+    color: #50d7d4
+    font: verdana-11px-antialised
+
+  HelperThemeDivider
+  SettingCheckBox
+    id: Members
+    margin-top: 6
+    text: Miembros del grupo como amigos
+
+  SettingCheckBox
+    id: AutoGuildVoc
+    text: Agregar aliados y enemigos por guild
+    tooltip: On look, add your guild to Friends and other guilds to Enemies, with vocation tags. Ignore players without a guild. Manual friends are preserved.
+
+  SettingCheckBox
+    id: Outfit
+    text: Outfits de amigos y enemigos
+
+  SettingCheckBox
+    id: VocationOutfit
+    text: Outfit por vocacion de amigos
+    tooltip: Uses vocations stored in Player List or detected by look. Independent of outfit colors; disabled by default.
+
+  SettingCheckBox
+    id: NeutralsAreEnemy
+    text: No amigos cuentan como enemigos
+
+  SettingCheckBox
+    id: Highlight
+    text: Resaltar amigos y enemigos
+
+  SettingCheckBox
+    id: AutoAdd
+    text: Agregar bajas de CaveBot a BlackList
+
+  SettingCheckBox
+    id: AutoDetectGuild
+    text: Detectar mi guild al mirar
+
+  HelperThemeLabel
+    text: Mi guild
+    font: verdana-11px-antialised
+    margin-top: 4
+
+  HelperThemeInput
+    id: GuildName
+    height: 18
+    font: verdana-11px-antialised
+    tooltip: Guild name used to auto add looked players.
+
+  HelperThemeButton
+    id: ClearGuild
+    text: Limpiar guild
+    height: 20
+    margin-top: 3
+    font: verdana-11px-antialised
+
+tPanel < Panel
+  margin: 3
+  padding: 3
+
+  HelperThemeList
+    id: list
+    height: 200
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    vertical-scrollbar: listScrollBar
+
+  VerticalScrollBar
+    id: listScrollBar
+    anchors.top: list.top
+    anchors.bottom: list.bottom
+    anchors.right: list.right
+    step: 14
+    pixels-scroll: true
+
+  HelperThemeInput
+    id: name
+    anchors.top: list.bottom
+    margin-top: 3
+    anchors.left: parent.left
+    anchors.right: parent.right
+
+  HelperThemeButton
+    id: add
+    text: Agregar jugador
+    anchors.top: prev.bottom
+    margin-top: 3
+    anchors.left: parent.left
+    anchors.right: parent.right
+    font: verdana-11px-antialised
+
+PlayerListWindow < HelperThemeWindow
+  !text: tr('Player List')
+  size: 530 450
+  @onEscape: self:hide()
+
+  HelperThemeTabBar
+    id: tmpTabBar
+    anchors.top: parent.top
+    anchors.left: parent.left
+    width: 228
+
+  HelperThemeCard
+    id: tmpTabContent
+    anchors.top: tmpTabBar.bottom
+    anchors.left: parent.left
+    width: 228
+    anchors.bottom: separator.top
+    margin-bottom: 5
+
+  HelperThemeVerticalDivider
+    id: verticalSep
+    anchors.top: parent.top
+    anchors.bottom: separator.top
+    margin-bottom: 5
+    anchors.left: tmpTabContent.right
+    margin-left: 6
+
+  Settings
+    id: settings
+    anchors.left: prev.right
+    anchors.top: parent.top
+    anchors.right: parent.right
+    anchors.bottom: next.top
+    margin: 3
+    margin-left: 6
+    margin-bottom: 4
+
+  HelperThemeDivider
+    id: separator
+    anchors.right: parent.right
+    anchors.left: parent.left
+    anchors.bottom: closeButton.top
+    margin-bottom: 8
+
+  HelperThemeButton
+    id: closeButton
+    !text: tr('Close')
+    font: verdana-11px-antialised
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 45 21
+    margin-top: 15
+    margin-right: 5
+    @onClick: self:getParent():hide()
