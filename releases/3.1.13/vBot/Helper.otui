@@ -1,0 +1,1532 @@
+HelperButton < HelperThemeButton
+  height: 24
+
+HelperSwitch < HelperThemeSwitch
+  HelperThemeLabel
+    id: caption
+    anchors.fill: parent
+    text: OFF
+    text-align: center
+    phantom: true
+    focusable: false
+
+HelperFlatButton < Button
+  font: verdana-11px-antialised
+  color: #e4edf3
+  padding: 0
+  text-align: left
+  text-offset: 5 0
+  image-source:
+  image-clip: 0 0 32 32
+  image-border: 5
+  $hover !disabled:
+    image-source: botserver_assets/row-hover.png
+    image-clip: 0 0 32 32
+    image-border: 5
+    text-offset: 5 0
+  $pressed:
+    image-source: botserver_assets/row-selected.png
+    image-clip: 0 0 32 32
+    image-border: 5
+    text-offset: 5 0
+
+HelperRow < Panel
+  height: 36
+  margin-bottom: 2
+  image-source:
+  background-color: #212e37
+  border-width: 1
+  border-color: #3e515e
+
+  HelperThemeIcon
+    id: glyph
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 7
+    size: 20 20
+
+  HelperFlatButton
+    id: name
+    anchors.left: parent.left
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    anchors.right: favorite.left
+    margin: 3
+    margin-left: 32
+    margin-right: 54
+
+  HelperSwitch
+    id: power
+    anchors.verticalCenter: parent.verticalCenter
+    anchors.right: favorite.left
+    margin-right: 5
+
+  HelperButton
+    id: setup
+    anchors.verticalCenter: parent.verticalCenter
+    anchors.right: favorite.left
+    margin-right: 5
+    size: 64 24
+    text: Config
+    visible: false
+
+  HelperButton
+    id: favorite
+    anchors.verticalCenter: parent.verticalCenter
+    anchors.right: parent.right
+    margin-right: 4
+    size: 20 24
+    text: +
+
+HelperLabel < Label
+  height: 20
+  color: #c0cdd6
+  font: verdana-11px-antialised
+  text-wrap: false
+  phantom: true
+  focusable: false
+
+HelperQuickRow < Panel
+  size: 148 60
+  image-source:
+  background-color: #212e37
+  border-width: 1
+  border-color: #3e515e
+  HelperFlatButton
+    id: name
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin: 5
+    height: 24
+    text-align: left
+    text-offset: 4 0
+  HelperSwitch
+    id: power
+    anchors.bottom: parent.bottom
+    anchors.left: parent.left
+    margin-left: 9
+    margin-bottom: 7
+  HelperButton
+    id: setup
+    anchors.bottom: parent.bottom
+    anchors.left: parent.left
+    margin-left: 9
+    margin-bottom: 7
+    size: 64 24
+    text: Config
+    visible: false
+  HelperButton
+    id: favorite
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    margin-right: 8
+    margin-bottom: 7
+    size: 24 24
+    text: +
+
+HelperQuickGrid < Panel
+  layout:
+    type: grid
+    cell-size: 148 60
+    cell-spacing: 5
+    flow: true
+    fit-children: true
+
+HelperHeading < HelperLabel
+  height: 18
+  color: #50d7d4
+
+HelperHomePortrait < Panel
+  size: 78 74
+  background-color: #0f1920
+  border-width: 1
+  border-color: #58717e
+  phantom: true
+
+HelperHomeIdentity < HelperThemeCard
+  height: 116
+  padding: 0
+
+  HelperHomePortrait
+    id: frame
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 8
+    margin-top: 8
+
+  UICreature
+    id: outfit
+    anchors.fill: frame
+    margin: 2
+    old-scaling: true
+    phantom: true
+    focusable: false
+
+  Panel
+    id: levelBadge
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin: 8
+    size: 50 50
+    background-color: #1b2932
+    border-width: 1
+    border-color: #9c7e39
+
+    Label
+      id: caption
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.top: parent.top
+      margin-top: 3
+      height: 16
+      text: Nivel
+      font: verdana-9px
+      color: #e7bb5d
+      text-align: center
+      phantom: true
+
+    Label
+      id: value
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.bottom: parent.bottom
+      margin-bottom: 4
+      height: 25
+      font: sans-bold-16px
+      color: #f2c66b
+      text-align: center
+      phantom: true
+
+  HelperTitle
+    id: name
+    anchors.left: parent.left
+    anchors.right: levelBadge.left
+    anchors.top: parent.top
+    margin-left: 94
+    margin-right: 5
+    margin-top: 8
+    height: 22
+
+  HelperLabel
+    id: vocation
+    anchors.left: name.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-right: 8
+    margin-top: 31
+    height: 20
+
+  HelperThemeIcon
+    id: guildIcon
+    anchors.left: name.left
+    anchors.top: parent.top
+    margin-top: 56
+    size: 14 14
+
+  HelperLabel
+    id: guild
+    anchors.left: guildIcon.right
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-left: 5
+    margin-right: 8
+    margin-top: 52
+    height: 28
+    text-wrap: true
+
+  HelperThemeToggle
+    id: mount
+    anchors.left: parent.left
+    anchors.right: reconnect.left
+    anchors.top: parent.top
+    margin-left: 8
+    margin-right: 6
+    margin-top: 88
+    height: 22
+    text: Montura
+
+    HelperThemeLabel
+      id: helperCaption
+      font: verdana-9px
+      margin-left: 2
+      margin-right: 3
+
+  HelperThemeToggle
+    id: reconnect
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-top: 88
+    margin-right: 8
+    width: 126
+    height: 22
+    text: Reconect
+
+    HelperThemeLabel
+      id: helperCaption
+      font: verdana-9px
+      margin-left: 2
+      margin-right: 3
+
+  HelperLabel
+    id: mountStatus
+    visible: false
+    size: 200 18
+
+HelperHomeStat < HelperThemeCard
+  size: 88 48
+  padding: 0
+
+  HelperThemeIcon
+    id: glyph
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 7
+    size: 22 22
+
+  HelperLabel
+    id: caption
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-left: 34
+    margin-right: 3
+    margin-top: 4
+    height: 14
+    font: verdana-9px
+
+  HelperTitle
+    id: value
+    anchors.left: caption.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-right: 3
+    margin-top: 20
+    height: 22
+
+HelperHomeRoute < HelperThemeCard
+  height: 48
+  padding: 0
+
+  HelperThemeIcon
+    id: glyph
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 8
+    size: 22 22
+
+  HelperLabel
+    id: caption
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 38
+    margin-top: 2
+    size: 100 13
+    font: verdana-9px
+    text: Ruta actual
+
+  HelperHeading
+    id: status
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-right: 8
+    margin-top: 2
+    size: 70 13
+    text-align: right
+    font: verdana-9px
+
+  HelperThemeLabel
+    id: name
+    anchors.left: caption.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-right: 8
+    margin-top: 15
+    height: 18
+
+  HelperLabel
+    id: step
+    anchors.left: caption.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    margin-right: 8
+    margin-bottom: 2
+    height: 13
+    font: verdana-9px
+
+HelperHomeCard < Panel
+  height: 248
+  background-color: #00000000
+
+  HelperHomeIdentity
+    id: identity
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+
+  HelperHeading
+    id: sessionTitle
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-top: 122
+    height: 18
+    text: Esta sesion
+
+  Panel
+    id: stats
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-top: 144
+    height: 48
+    layout:
+      type: grid
+      cell-size: 88 48
+      cell-spacing: 6
+      flow: true
+
+    HelperHomeStat
+      id: time
+    HelperHomeStat
+      id: deaths
+    HelperHomeStat
+      id: xp
+
+  HelperHomeRoute
+    id: route
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-top: 200
+
+
+HelperGroup < Panel
+  image-source:
+  background-color: #00000000
+  padding: 0
+  layout:
+    type: verticalBox
+    fit-children: true
+    spacing: 3
+
+HelperFavorite < HelperThemeCard
+  size: 140 50
+  padding: 0
+
+  HelperThemeIcon
+    id: glyph
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 7
+    size: 20 20
+
+  HelperFlatButton
+    id: name
+    anchors.left: parent.left
+    anchors.right: power.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 32
+    margin-right: 4
+    height: 36
+    font: verdana-9px
+    text-align: left
+    text-offset: 0 0
+    text-wrap: true
+    $hover !disabled:
+      text-offset: 0 0
+    $pressed:
+      text-offset: 0 0
+
+  HelperSwitch
+    id: power
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 6
+
+  HelperButton
+    id: setup
+    anchors.fill: power
+    text: Abrir
+    visible: false
+
+HelperFavoriteGrid < Panel
+  layout:
+    type: grid
+    cell-size: 140 50
+    cell-spacing: 6
+    flow: true
+    fit-children: true
+
+HelperNavButton < HelperButton
+  height: 29
+  background-color: #00000000
+  border-width: 0
+  text-align: left
+  text-offset: 32 0
+  $hover !disabled:
+    background-color: #263640
+    text-offset: 32 0
+  $pressed:
+    text-offset: 32 0
+  $on:
+    text-offset: 32 0
+    background-color: #18434a
+    color: #dcffff
+
+  HelperThemeIcon
+    id: glyph
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 7
+    size: 18 18
+
+  Panel
+    id: rinoSelected
+    anchors.left: parent.left
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    width: 2
+    background-color: #50d7d4
+    phantom: true
+
+HelperSelector < HelperThemeCombo
+  text-align: left
+  text-offset: 6 0
+  padding-right: 22
+  HelperThemeLabel
+    id: helperComboArrow
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: -16
+    size: 12 18
+    text: v
+    text-align: center
+    color: #a9bbc6
+    phantom: true
+    focusable: false
+
+HelperInput < HelperThemeInput
+  height: 24
+  font: verdana-11px-antialised
+  color: #e4edf3
+  padding-left: 7
+  selection-color: #ffffff
+  selection-background-color: #396675
+
+HelperTitle < HelperLabel
+  height: 24
+  font: sans-bold-16px
+  color: #edf6fa
+
+HelperLauncher < HelperThemeButton
+  id: sabuezoHelperIcon
+  size: 54 72
+  draggable: true
+  focusable: false
+  padding: 0
+  image-source:
+  background-color: #00000000
+  border-width: 0
+  text:
+  text-offset: 0 0
+  $hover !disabled:
+    image-source:
+    background-color: #00000000
+    text-offset: 0 0
+  $pressed:
+    image-source:
+    background-color: #00000000
+    text-offset: 0 0
+
+  UIWidget
+    id: emblem
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 54
+    image-source: botserver_assets/helper-sabuezo-cyan-suave-46.png
+    image-clip: 0 0 46 46
+    image-fixed-ratio: true
+    image-repeated: false
+    image-auto-resize: false
+    image-color: #ffffff
+    image-smooth: true
+    phantom: true
+    focusable: false
+
+  Label
+    id: state
+    visible: true
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    height: 18
+    margin-left: 0
+    margin-right: 0
+    margin-bottom: 0
+    text: RBot
+    color: #50d7d4
+    background-color: #00000000
+    text-align: center
+    font: verdana-11px-rounded
+    phantom: true
+    focusable: false
+
+HelperWindow < MainWindow
+  id: sabuezoHelperWindow
+  text:
+  size: 460 500
+  image-source:
+  background-color: #172126
+  border-width: 1
+  border-color: #3e515e
+  padding: 10
+  padding-top: 8
+  padding-left: 10
+  padding-right: 10
+  padding-bottom: 10
+
+  HelperThemeIcon
+    id: brand
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 24 24
+
+  HelperTitle
+    id: title
+    anchors.top: parent.top
+    anchors.left: brand.right
+    anchors.right: reloadBot.left
+    margin-left: 6
+    margin-right: 6
+    height: 24
+    color: #edf6fa
+    text: RinoBot
+
+  HelperButton
+    id: fold
+    anchors.top: parent.top
+    anchors.right: parent.right
+    size: 22 22
+    text: X
+
+  HelperButton
+    id: expand
+    anchors.top: parent.top
+    anchors.right: fold.left
+    margin-right: 4
+    size: 26 22
+    text: [ ]
+
+  HelperButton
+    id: minimize
+    anchors.top: parent.top
+    anchors.right: expand.left
+    margin-right: 4
+    size: 22 22
+    text: -
+
+  HelperButton
+    id: reloadBot
+    anchors.top: parent.top
+    anchors.right: minimize.left
+    margin-right: 6
+    size: 108 22
+    padding-left: 0
+    padding-right: 3
+    text:
+
+    HelperThemeIcon
+      id: glyph
+      anchors.left: parent.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 6
+      size: 14 14
+
+    HelperThemeLabel
+      id: caption
+      anchors.left: glyph.right
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      margin-left: 5
+      text: Recargar bot
+      text-align: left
+      phantom: true
+      focusable: false
+
+  HelperLabel
+    id: character
+    anchors.top: title.bottom
+    anchors.left: parent.left
+    width: 128
+    margin-top: 3
+    height: 24
+    text: Helper
+
+  HelperSelector
+    id: profileList
+    anchors.top: character.top
+    anchors.left: character.right
+    anchors.right: newProfile.left
+    margin-left: 6
+    margin-right: 4
+    height: 22
+
+  HelperButton
+    id: newProfile
+    anchors.top: character.top
+    anchors.right: autoProfile.left
+    margin-right: 4
+    size: 26 22
+    text: +
+
+  HelperButton
+    id: autoProfile
+    anchors.top: character.top
+    anchors.right: parent.right
+    size: 44 22
+    text: Char
+
+  HelperInput
+    id: search
+    anchors.top: character.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 24
+    margin-top: 4
+    placeholder: Buscar funcion o ajuste...
+    padding-left: 26
+
+    HelperThemeIcon
+      id: glyph
+      anchors.left: parent.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: -21
+      size: 14 14
+
+  Panel
+    id: nav
+    anchors.top: search.bottom
+    anchors.bottom: footer.top
+    anchors.left: parent.left
+    width: 112
+    margin-top: 6
+    margin-bottom: 6
+    layout:
+      type: verticalBox
+      spacing: 2
+
+  HelperButton
+    id: back
+    anchors.top: search.bottom
+    anchors.left: nav.right
+    width: 48
+    margin-left: 6
+    margin-top: 6
+    text: Inicio
+
+  HelperSelector
+    id: selector
+    font: verdana-11px-antialised
+    color: #e4edf3
+    anchors.top: back.top
+    anchors.left: back.right
+    anchors.right: parent.right
+    margin-left: 6
+    height: 28
+
+  HelperThemeToggle
+    id: cavePower
+    anchors.fill: selector
+    text: CaveBot
+    visible: false
+
+  HelperThemeSectionTitle
+    id: sectionTitle
+    anchors.fill: selector
+    text: Navi
+    visible: false
+    phantom: true
+    focusable: false
+
+  VerticalScrollBar
+    id: vertical
+    anchors.top: selector.bottom
+    anchors.bottom: footer.top
+    anchors.right: parent.right
+    margin-top: 5
+    margin-bottom: 18
+    step: 38
+    pixels-scroll: true
+
+  HorizontalScrollBar
+    id: horizontal
+    anchors.left: back.left
+    anchors.right: vertical.left
+    anchors.bottom: footer.top
+    margin-bottom: 6
+    height: 10
+    step: 40
+    pixels-scroll: true
+
+  ScrollablePanel
+    id: viewport
+    clipping: true
+    image-source:
+    background-color: #172126
+    border-width: 0
+    padding: 0
+    anchors.top: vertical.top
+    anchors.bottom: horizontal.top
+    anchors.left: back.left
+    anchors.right: vertical.left
+    margin-right: 4
+    margin-bottom: 3
+    vertical-scrollbar: vertical
+    horizontal-scrollbar: horizontal
+
+    Panel
+      id: host
+      image-source:
+      background-color: #00000000
+      padding: 0
+      anchors.top: parent.top
+      anchors.left: parent.left
+      size: 310 430
+      layout:
+        type: verticalBox
+        fit-children: true
+        spacing: 5
+
+      HelperGroup
+        id: menu
+
+      HelperGroup
+        id: controls
+
+      HelperGroup
+        id: forms
+
+  Panel
+    id: footer
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    height: 52
+
+    HelperLabel
+      id: status
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.top: parent.top
+      height: 20
+      text: Estados reales
+
+    HelperButton
+      id: pause
+      anchors.left: parent.left
+      anchors.bottom: parent.bottom
+      width: 170
+      padding-left: 22
+      padding-right: 3
+      text: Pausar Cave + Target
+
+      HelperThemeIcon
+        id: glyph
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+        margin-left: -17
+        size: 14 14
+
+    HelperButton
+      id: updater
+      anchors.right: parent.right
+      anchors.bottom: parent.bottom
+      width: 125
+      padding-left: 22
+      padding-right: 3
+      text: Updater
+
+      HelperThemeIcon
+        id: glyph
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+        margin-left: -17
+        size: 14 14
+
+    HelperButton
+      id: classicMode
+      anchors.right: updater.left
+      anchors.bottom: parent.bottom
+      margin-right: 6
+      width: 112
+      padding-left: 22
+      padding-right: 3
+      text: Modo clasico
+
+      HelperThemeIcon
+        id: glyph
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+        margin-left: -17
+        size: 14 14
+
+HelperTextDialog < HelperThemeWindow
+  size: 620 430
+  text: Editor
+  padding: 12
+  padding-top: 30
+
+  HelperLabel
+    id: description
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 42
+    text-wrap: true
+
+  HelperThemeMultiline
+    id: editor
+    anchors.top: description.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: accept.top
+    margin-top: 6
+    margin-bottom: 8
+
+  HelperButton
+    id: cancel
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    width: 90
+    text: Cancelar
+
+  HelperButton
+    id: accept
+    anchors.right: cancel.left
+    anchors.bottom: parent.bottom
+    margin-right: 6
+    width: 110
+    text: Guardar
+
+HelperSinglelineDialog < HelperThemeWindow
+  size: 360 120
+  text: Editar
+  padding: 10
+  padding-top: 8
+
+  HelperLabel
+    id: description
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 18
+
+  HelperThemeInput
+    id: editor
+    anchors.top: description.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 4
+    height: 24
+
+  HelperLabel
+    id: feedback
+    anchors.top: editor.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 4
+    height: 28
+    text-wrap: true
+    color: #ffb873
+
+  HelperButton
+    id: cancel
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 90 22
+    text: Cancelar
+
+  HelperButton
+    id: accept
+    anchors.right: cancel.left
+    anchors.bottom: parent.bottom
+    margin-right: 6
+    size: 110 22
+    text: Guardar
+
+HelperCaveRouteConfig < Panel
+  size: 580 28
+
+  HelperThemeLabel
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    width: 34
+    text: Ruta
+
+  HelperSelector
+    id: list
+    anchors.left: parent.left
+    anchors.right: add.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 38
+    margin-right: 6
+    height: 24
+    &menuScroll: true
+    &menuHeight: 350
+    &menuScrollStep: 50
+    &parentWidth: true
+
+  HelperThemeButton
+    id: add
+    anchors.right: edit.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 4
+    size: 52 22
+    text: Nueva
+
+  HelperThemeButton
+    id: edit
+    anchors.right: remove.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 4
+    size: 58 22
+    text: Archivo
+    tooltip: Editar el archivo completo de la ruta.
+
+  HelperThemeButton
+    id: remove
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 0
+    size: 58 22
+    text: Borrar
+
+  HelperThemePower
+    id: switch
+    visible: false
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    size: 44 18
+    $on:
+      text: ON
+    $!on:
+      text: OFF
+
+HelperSupplyDepotTabs < Panel
+  size: 580 26
+  layout:
+    type: horizontalBox
+    spacing: 6
+
+  HelperThemeButton
+    id: supplies
+    text: Supplies
+    width: 110
+
+  HelperThemeButton
+    id: depot
+    text: Depot
+    width: 110
+
+HelperCaveLinks < Panel
+  size: 580 26
+  layout:
+    type: horizontalBox
+    spacing: 5
+
+  HelperThemeButton
+    id: supplies
+    width: 145
+    text: Supplies y Depot
+
+  HelperThemeButton
+    id: deposits
+    visible: false
+    width: 96
+    text: Depositos
+
+  HelperThemeButton
+    id: routeControls
+    visible: false
+    width: 128
+    text: Regreso y refill
+
+  HelperThemeButton
+    id: settings
+    visible: false
+    width: 118
+    text: Cave y Target
+
+HelperCaveBotPanel < Panel
+  size: 580 234
+
+  HelperThemeSectionTitle
+    anchors.left: parent.left
+    anchors.right: autoRecording.left
+    anchors.top: parent.top
+    margin-right: 8
+    text: Waypoints de la ruta
+
+  Panel
+    id: listPanel
+    anchors.left: parent.left
+    anchors.right: autoRecording.left
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    margin-top: 24
+    margin-right: 8
+
+    VerticalScrollBar
+      id: listScrollbar
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      anchors.right: parent.right
+      pixels-scroll: true
+      step: 20
+
+    HelperThemeList
+      id: list
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      anchors.left: parent.left
+      anchors.right: listScrollbar.left
+      margin-right: 3
+      vertical-scrollbar: listScrollbar
+      focusable: false
+      auto-focus: first
+
+  HelperThemeToggle
+    id: autoRecording
+    anchors.right: parent.right
+    anchors.top: parent.top
+    size: 216 22
+    text: Grabar ruta
+
+  HelperThemeToggle
+    id: showWaypoints
+    anchors.left: autoRecording.left
+    anchors.right: parent.right
+    anchors.top: autoRecording.bottom
+    margin-top: 6
+    height: 22
+    text: Ver waypoints
+
+  HelperThemeSection
+    id: autoExplorer
+    anchors.left: autoRecording.left
+    anchors.right: parent.right
+    anchors.top: showWaypoints.bottom
+    margin-top: 6
+    height: 140
+    padding: 5
+
+    HelperThemeToggle
+      id: enabled
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.top: parent.top
+      height: 22
+      text: Auto Explorer
+
+    Panel
+      id: statusRow
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.top: enabled.bottom
+      margin-top: 4
+      height: 20
+
+      HelperThemeInput
+        id: radiusEdit
+        anchors.right: parent.right
+        anchors.top: parent.top
+        size: 38 20
+
+      HelperThemeLabel
+        id: perimeterLabel
+        text: Radio
+        anchors.right: radiusEdit.left
+        anchors.verticalCenter: parent.verticalCenter
+        width: 34
+        margin-right: 4
+
+      HelperThemeLabel
+        id: statusLabel
+        text: Off
+        anchors.left: parent.left
+        anchors.right: perimeterLabel.left
+        anchors.verticalCenter: parent.verticalCenter
+        margin-right: 5
+
+    Panel
+      id: perimeterRow
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.top: statusRow.bottom
+      margin-top: 3
+      height: 16
+
+      HorizontalScrollBar
+        id: perimeterSlider
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        minimum: 20
+        maximum: 120
+        step: 1
+
+    Panel
+      id: optionsRow
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.top: perimeterRow.bottom
+      margin-top: 3
+      height: 50
+
+      HelperThemePower
+        id: previewSwitch
+        anchors.left: parent.left
+        anchors.top: parent.top
+        size: 104 22
+        $on:
+          text: Ver radio ON
+        $!on:
+          text: Ver radio OFF
+
+      HelperThemeButton
+        id: resetButton
+        anchors.left: previewSwitch.right
+        anchors.right: parent.right
+        anchors.top: parent.top
+        margin-left: 5
+        height: 22
+        text: Limpiar
+
+      HelperThemePower
+        id: floorSwitch
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: previewSwitch.bottom
+        margin-top: 5
+        height: 22
+        $on:
+          text: Mismo piso ON
+        $!on:
+          text: Mismo piso OFF
+
+  HelperThemePower
+    id: showEditor
+    anchors.left: autoRecording.left
+    anchors.top: autoExplorer.bottom
+    margin-top: 6
+    size: 105 22
+    visible: false
+    enabled: false
+
+  HelperThemeButton
+    id: showConfig
+    anchors.left: autoRecording.left
+    anchors.right: parent.right
+    anchors.top: autoExplorer.bottom
+    margin-top: 6
+    height: 22
+    text: Configuracion
+
+HelperCaveEditorPanel < HelperThemeSection
+  id: cavebotEditor
+  width: 580
+  visible: true
+  padding: 5
+  layout:
+    type: verticalBox
+    fit-children: true
+    spacing: 3
+
+  HelperThemeLabel
+    id: pos
+    height: 18
+    text: -
+    color: #50d7d4
+
+  Panel
+    id: buttons
+    layout:
+      type: grid
+      cell-size: 104 22
+      cell-spacing: 3
+      flow: true
+      fit-children: true
+
+  HelperThemeLabel
+    height: 16
+    text: Doble clic en un waypoint para editarlo.
+    color: #a9bbc6
+
+HelperFloatingPanel < MainWindow
+  text:
+  size: 620 470
+  image-source:
+  background-color: #172126
+  border-width: 1
+  border-color: #3e515e
+  padding: 8
+  padding-top: 8
+  padding-left: 8
+  padding-right: 8
+  padding-bottom: 8
+
+  HelperThemeIcon
+    id: glyph
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 22 22
+
+  HelperTitle
+    id: heading
+    anchors.top: parent.top
+    anchors.left: glyph.right
+    anchors.right: closeButton.left
+    margin-left: 6
+    margin-right: 8
+    height: 22
+
+  HelperButton
+    id: closeButton
+    anchors.top: parent.top
+    anchors.right: parent.right
+    size: 22 22
+    text: X
+
+  VerticalScrollBar
+    id: vertical
+    anchors.top: heading.bottom
+    anchors.bottom: parent.bottom
+    anchors.right: parent.right
+    margin-top: 8
+    margin-bottom: 18
+    step: 30
+    pixels-scroll: true
+
+  HorizontalScrollBar
+    id: horizontal
+    anchors.left: parent.left
+    anchors.right: vertical.left
+    anchors.bottom: parent.bottom
+    height: 10
+    margin-right: 4
+    step: 30
+    pixels-scroll: true
+
+  ScrollablePanel
+    id: viewport
+    clipping: true
+    anchors.top: vertical.top
+    anchors.bottom: horizontal.top
+    anchors.left: parent.left
+    anchors.right: vertical.left
+    margin-right: 4
+    margin-bottom: 4
+    image-source:
+    background-color: #172126
+    vertical-scrollbar: vertical
+    horizontal-scrollbar: horizontal
+    padding: 0
+
+    HelperGroup
+      id: host
+      anchors.top: parent.top
+      anchors.left: parent.left
+      width: 580
+
+HelperFoodSection < HelperGroup
+  width: 500
+  padding: 5
+  background-color: #25333d
+  border-width: 1
+  border-color: #58717e
+
+  Panel
+    id: header
+    height: 22
+
+    HelperHeading
+      id: heading
+      anchors.left: parent.left
+      anchors.right: conjure.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-right: 6
+      text: Comida
+
+    HelperThemeCheck
+      id: conjure
+      anchors.right: power.left
+      anchors.verticalCenter: parent.verticalCenter
+      margin-right: 12
+      size: 140 18
+      text: Conjurar comida
+      tooltip: Permite exevo pan solo si lo marcas y Comida esta ON. Inicialmente desactivado.
+
+    HelperSwitch
+      id: power
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      tooltip: Activar comer alimentos. Solo conjura si marcas Conjurar comida; OFF detiene ambas funciones.
+
+
+HelperPvPHeader < Panel
+  height: 28
+
+  HelperThemeIcon
+    id: glyph
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    size: 18 18
+
+  HelperLabel
+    id: name
+    anchors.left: glyph.right
+    anchors.right: power.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 6
+    margin-right: 8
+    height: 20
+
+  HelperSwitch
+    id: power
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+
+HelperPvPCard < Panel
+  background-color: #1b2932
+  border-width: 1
+  border-color: #3e515e
+  padding: 6
+
+  HelperPvPHeader
+    id: header
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+
+  Panel
+    id: body
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: header.bottom
+    anchors.bottom: parent.bottom
+    margin-top: 4
+
+HelperPvPExivaCard < Panel
+  background-color: #1b2932
+  border-width: 1
+  border-color: #3e515e
+  padding: 6
+
+  HelperPvPHeader
+    id: target
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+
+  HelperPvPHeader
+    id: last
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: target.bottom
+    margin-top: 2
+
+  HelperLabel
+    id: spellLabel
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: last.bottom
+    margin-top: 6
+    height: 18
+    text: Formula de exiva (compartida)
+
+  HelperInput
+    id: spell
+    anchors.left: parent.left
+    anchors.right: save.left
+    anchors.top: spellLabel.bottom
+    margin-top: 4
+    margin-right: 6
+    height: 22
+
+  HelperButton
+    id: save
+    anchors.right: parent.right
+    anchors.top: spellLabel.bottom
+    margin-top: 4
+    size: 72 22
+    text: Guardar
+
+  HelperLabel
+    id: hint
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: spell.bottom
+    margin-top: 6
+    height: 18
+    text: Buscar al objetivo actual o al ultimo jugador.
+
+HelperPvPDashboard < Panel
+  size: 696 524
+  fixed-size: true
+
+  HelperPvPCard
+    id: push
+    anchors.left: parent.left
+    anchors.top: parent.top
+    size: 340 236
+
+  HelperPvPCard
+    id: keep
+    anchors.left: parent.left
+    anchors.top: push.bottom
+    margin-top: 8
+    size: 340 144
+
+  HelperPvPCard
+    id: fire
+    anchors.left: push.right
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-left: 8
+    height: 84
+
+  HelperPvPCard
+    id: hold
+    anchors.left: fire.left
+    anchors.right: parent.right
+    anchors.top: fire.bottom
+    margin-top: 8
+    height: 64
+
+  HelperPvPCard
+    id: pull
+    anchors.left: fire.left
+    anchors.right: parent.right
+    anchors.top: hold.bottom
+    margin-top: 8
+    height: 64
+
+  HelperPvPExivaCard
+    id: exiva
+    anchors.left: fire.left
+    anchors.right: parent.right
+    anchors.top: pull.bottom
+    margin-top: 8
+    height: 152
+
+
+  HelperPvPCard
+    id: anti
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: keep.bottom
+    margin-top: 8
+    height: 128

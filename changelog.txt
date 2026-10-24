@@ -1,3 +1,11 @@
+3.1.13 - Reconect propio y Follow/Navi continuo
+- Reconect propio: reintentos de conexion con el mismo personaje y control junto a Montura.
+- Follow/Navi calcula por tramos acotados y recupera el avance cuando un paquete se queda detenido.
+- Escaleras intermedias para llegar a zonas separadas, incluso si ambos personajes comparten piso.
+- Rutas lejanas: mas capacidad y continuidad al caminar, cambiar coordenadas o volver a ver al lider.
+- Correccion del error next ausente en el sandbox; busqueda incremental compatible con pairs.
+- Conserva las mejoras anteriores, actualizaciones automaticas y configuraciones personales.
+
 3.1.12 - Follow persistente y waves/beams hasta 2 SQM
 - Follow tiene prioridad al caminar el leader; AttackBot se alinea al detenerse dentro de su limite.
 - Follow persistente: recupera seguimiento y busca posiciones recientes de Navi fuera de pantalla.

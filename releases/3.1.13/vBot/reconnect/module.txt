@@ -1,0 +1,11 @@
+Module
+  name: rinobot_reconnect
+  description: RinoBot own reconnect host R195
+  author: RinoBot
+  sandboxed: true
+  autoload: true
+  autoload-priority: 1001
+  dependencies: [ game_interface ]
+  scripts: [ core, host ]
+  @onLoad: RinoReconnectNativeInit()
+  @onUnload: RinoReconnectNativeTerminate()
