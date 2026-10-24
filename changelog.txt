@@ -1,3 +1,11 @@
+3.1.12 - Follow persistente y waves/beams hasta 2 SQM
+- Follow tiene prioridad al caminar el leader; AttackBot se alinea al detenerse dentro de su limite.
+- Follow persistente: recupera seguimiento y busca posiciones recientes de Navi fuera de pantalla.
+- Navi comparte un rastro de pisos a peticion; las coordenadas normales sirven como respaldo independiente.
+- Follow reconoce nombres sin distinguir mayusculas y muestra el estado real de Navi.
+- Waves y beams listos: recolocacion de hasta dos pasos y dos SQM, sin moverse durante su cooldown.
+- Conserva las mejoras anteriores y los perfiles, rutas, scripts y ajustes propios de cada jugador.
+
 3.1.11 - Caza fluida, curacion, iconos, scripts y Hold MW
 - Iconos con editor unico compacto, paleta de colores y funciones de scripts propios.
 - Scripts en dos columnas ampliables: cargar el archivo y encender/apagar su funcion por separado.

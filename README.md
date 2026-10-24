@@ -1,12 +1,22 @@
 # RinoBot - MythicOT
 
-Versión estable: **3.1.11**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.11). Puente clásico: **3.0.31**.
+Versión estable: **3.1.12**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.12). Puente clásico: **3.0.31**.
 
 ## Actualización
 
 Recarga el bot o espera su comprobación automática cada cinco minutos. Conserva perfiles, rutas, scripts, heals y supplies; después de instalar y verificar vuelve a Helper. Puedes elegir clásico manualmente hasta la siguiente actualización. Se respetan development.lock, recuperación de versiones fallidas y protección contra downgrades.
 
 Versiones antiguas con Auto OFF necesitan adoptar el nuevo updater una primera vez desde su panel. Si no hay Updater, usa la instalación inicial.
+
+## Cambios de 3.1.12
+
+- Follow tiene prioridad mientras el leader camina; AttackBot puede alinearse cuando se detiene.
+- Follow persistente recupera posiciones recientes mediante Navi y solicita un rastro de cambios de piso entre clientes actualizados.
+- Respaldo de posiciones independiente, eventos opcionales aislados y nombres sin distinguir mayusculas.
+- Waves y beams disponibles pueden recolocarse hasta dos pasos/dos SQM, sin caminar durante cooldown.
+- Incluye las mejoras anteriores y conserva configuraciones personales.
+
+336 archivos oficiales, 137 Lua compilados y 46 grupos de validacion, con 12.745 comprobaciones de migracion desde 18 origenes. Pruebas con APIs simuladas; confirmacion del arreglo de Follow en el cliente pendiente. [Notas completas](rinobot/3.1.12-notas.md) e [informe de validacion](rinobot/3.1.12-validacion.json).
 
 ## Cambios de 3.1.11
 
