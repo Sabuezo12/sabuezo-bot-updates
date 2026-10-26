@@ -1,0 +1,418 @@
+{
+  "version": "3.1.15",
+  "compiledLuaFiles": 138,
+  "tests": [
+    {
+      "name": "attack-boot",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 190,
+      "lastLine": "PASS 190 full AttackBot boot/dispatch checks across five vocations and fresh/legacy configs"
+    },
+    {
+      "name": "attack-commit",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 68,
+      "lastLine": "PASS 68 committed-cast assertions; full AttackBot/Target modules with simulated native confirmations."
+    },
+    {
+      "name": "attack-editor",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 50,
+      "lastLine": "PASS: 50 actual Attack Studio controller assertions; native catalog/rotation data; simulated UI; inline drafts, validation, switching, Apply/Discard, custom spells and unchanged macro count."
+    },
+    {
+      "name": "attack-movement",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 118,
+      "lastLine": "PASS 118 full AttackBot/Target movement and editor assertions; automatic interruption, real native-style confirmations, Cave OFF/manual safety, policy and counts; game/UI APIs simulated."
+    },
+    {
+      "name": "attack-single",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 91,
+      "lastLine": "PASS 91 full AttackBot and editor assertions: reload repair, exact count, genuine filters, drafts and safety gates; simulated game/UI."
+    },
+    {
+      "name": "attack-timing",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 156,
+      "lastLine": "PASS 156 full-module packet/clock/expiry/reset/coalescing/native safety checks"
+    },
+    {
+      "name": "chase-fields",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 42,
+      "lastLine": "PASS 42 legacy/default field policy, real route walker, recorder and Auto Explorer assertions; game/UI APIs simulated."
+    },
+    {
+      "name": "chase-follow",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 49,
+      "lastLine": "PASS 49 fast pursuit cadence, native handoff, target changes, safety and fallback assertions; game APIs simulated."
+    },
+    {
+      "name": "chase-keyboard",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 179,
+      "lastLine": "PASS 179 actual Target movement/keyboard/facing/antitrap/planner checks; game APIs simulated only"
+    },
+    {
+      "name": "combo-combo",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 187,
+      "lastLine": "PASS 187 exclusive SD/UE, target-only Navi, lifecycle, guards, MW and unified-panel assertions"
+    },
+    {
+      "name": "combo-cooperation",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 100,
+      "lastLine": "PASS 100 automatic frontier, race recovery, bounded retries and multi-client Navi assertions"
+    },
+    {
+      "name": "combo-walls",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 147,
+      "lastLine": "PASS 147 wall-variant attribution, placement, parsing, migration and saved-list assertions"
+    },
+    {
+      "name": "compile",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 0,
+      "lastLine": "PASS: 138 official Lua files compile"
+    },
+    {
+      "name": "explorer-chunks",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 128,
+      "lastLine": "PASS 128 native twelve-step chunk assertions; 3 initial-scenario movement packets; client and server execution simulated."
+    },
+    {
+      "name": "explorer-hunt",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 424,
+      "lastLine": "PASS 424 automatic-hunt assertions; 31 steps / 8 path checks in 3000ms at simulated 100ms native cadence; no game actions."
+    },
+    {
+      "name": "explorer-view-flow-floor",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 151,
+      "lastLine": "PASS 151 minimap, native continuity and exact-access floor assertions; client/game/UI APIs simulated."
+    },
+    {
+      "name": "favorites",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 38,
+      "lastLine": "PASS 38 new/update defaults, user removals and actual shared-profile save/load assertions"
+    },
+    {
+      "name": "field-alignment",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 8,
+      "lastLine": "PASS 8 actual AttackAlignment and committed AttackBot beam assertions on field tiles; native APIs simulated."
+    },
+    {
+      "name": "field-follow",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 93,
+      "lastLine": "PASS 93 field follow, physical flags, bounded map reuse, custom IDs and obstacle/antitrap safety assertions; native APIs simulated."
+    },
+    {
+      "name": "follow-bounded",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 943,
+      "lastLine": "PASS 943 R196 bounded Navi, packet watchdog, floors, transport and incremental planner checks; game APIs simulated."
+    },
+    {
+      "name": "follow-distant",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 15,
+      "lastLine": "PASS 15 distant route budgets, cached-actor ownership and committed moving-target recovery checks; APIs simulated."
+    },
+    {
+      "name": "follow-same-floor-stairs",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 155,
+      "lastLine": "PASS 155 coordinate-aware multi-floor routes, direct preference, native Follow handoff, legacy trail and integrated stair execution checks; APIs simulated."
+    },
+    {
+      "name": "follow-strict-iterator",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 48,
+      "lastLine": "PASS 48 strict-sandbox iterator, bounded resumable scan and actual Combo recovery checks; map/game APIs simulated."
+    },
+    {
+      "name": "heal-client-items",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 260,
+      "lastLine": "PASS 260 real HealBot/vlib, native multi-use, defaults and event-timing checks; widgets/game API are simulated."
+    },
+    {
+      "name": "hold-executor",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 4,
+      "lastLine": "PASS 4 reference executor ordering, exact fixed deadline, native sandbox and duplicate-suppression assertions; game/clock APIs simulated."
+    },
+    {
+      "name": "hold-fixed",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 49,
+      "lastLine": "PASS 49 exact fixed-two-second dispatch, native/bar independence, late/missing confirmation, fairness, native sandbox/stale clock, reload, safety, healing opportunity and local-rejection assertions; game/UI APIs simulated."
+    },
+    {
+      "name": "hold-push",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 5,
+      "lastLine": "PASS 5 actual Push Max/extrasPvp explicit-item-coordination and pending-push safety assertions; game/UI APIs simulated."
+    },
+    {
+      "name": "hold-reaction",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 15,
+      "lastLine": "PASS 15 deferred native tile-state reaction, 20 ms fallback, burst coalescing, clear/PZ, exact fixed cadence, variant and bounded marked-tile work assertions; APIs simulated."
+    },
+    {
+      "name": "hold-variants",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 33,
+      "lastLine": "PASS 33 known MW variants, current tile eligibility, Wild Growth selection, quiet operation and manual status assertions; game/UI APIs simulated."
+    },
+    {
+      "name": "hunt-combat",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 13,
+      "lastLine": "PASS 13 real AttackBot/Target/AutoExplorer integration assertions; game and UI APIs simulated."
+    },
+    {
+      "name": "hunt-route",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 163,
+      "lastLine": "PASS 163 route coverage, stored-map planning, wall separation, bounded work and native-walking assertions; game APIs simulated."
+    },
+    {
+      "name": "icons-helper",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 42,
+      "lastLine": "PASS: 42 actual Helper callbacks, hidden-Supplies geometry and TargetBot/AttackBot handoff assertions."
+    },
+    {
+      "name": "icons-palette",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 133,
+      "lastLine": "PASS 133 total icon and palette assertions (simulated)."
+    },
+    {
+      "name": "imbuements-counts",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 47,
+      "lastLine": "PASS 47 compact Imbuement, live counts, profile and renewal assertions (simulated)."
+    },
+    {
+      "name": "imbuements-removal",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 39,
+      "lastLine": "PASS 39 effect-removal, persistence, compaction and save-guard assertions (simulated)."
+    },
+    {
+      "name": "inmortal",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 86,
+      "lastLine": "PASS 86 Main BP routing, real pouch-exchange rejection, asynchronous inventory acknowledgement and compatibility checks (simulated)"
+    },
+    {
+      "name": "migration",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 20847,
+      "lastLine": "PASS 20847 actual candidate protocol/hash/previous-version/full-install/boot/personal-data assertions; no native game actions."
+    },
+    {
+      "name": "navi-fallback",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 38,
+      "lastLine": "PASS 38 actual Combo fallback, Sabuezo lookup, connection status, freshness and name-switch assertions; game/UI simulated."
+    },
+    {
+      "name": "navi-floor-links",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 17,
+      "lastLine": "PASS 17 actual Navi service persistence, protocol, validation and socket-generation checks; sockets simulated."
+    },
+    {
+      "name": "navi-listeners",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 16,
+      "lastLine": "PASS 16 actual Navi listener initialization, optional topic failures and snapshot independence assertions; relay/UI simulated."
+    },
+    {
+      "name": "navi-service",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 28,
+      "lastLine": "PASS 28 actual Navi route-service and member-prefix assertions; transport simulated."
+    },
+    {
+      "name": "party-coordination",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 203,
+      "lastLine": "PASS 203 integrated actual Combo/AttackBot/Target assertions; native movement and UI simulated."
+    },
+    {
+      "name": "purchases",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 38,
+      "lastLine": "38 integration scenarios passed"
+    },
+    {
+      "name": "reconnect-withdrawal",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 49,
+      "lastLine": "PASS 49 withdrawal, singleton shutdown, exact official-file retirement, native decrypt avoidance, user-data preservation and idempotence checks; APIs/filesystem simulated."
+    },
+    {
+      "name": "route-safety",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 10,
+      "lastLine": "PASS 10 pure route-safety assertions on real Antitrap/Target modules; game APIs simulated."
+    },
+    {
+      "name": "scripts",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 90,
+      "lastLine": "PASS 90 script panels, loaded/running separation, native-context bindings, event guards, persistence and real pets-cleanup assertions (simulated)."
+    },
+    {
+      "name": "scripts-helper",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 11,
+      "lastLine": "PASS 11 actual Helper resize and geometry-hook integration assertions (simulated)."
+    },
+    {
+      "name": "scripts-layout",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 19,
+      "lastLine": "PASS 19 actual workspace sizing, expansion, responsive columns, persistence and unchanged script state assertions (simulated)."
+    },
+    {
+      "name": "target-bootstrap",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 22,
+      "lastLine": "PASS 22 full TargetBot bootstrap, native map omissions and field-target selection assertions; APIs simulated."
+    },
+    {
+      "name": "two-sqm",
+      "status": "PASS",
+      "returncode": 0,
+      "assertions": 92,
+      "lastLine": "PASS 92 actual two-SQM wave/beam dispatch, cooldown, geometry, Follow, safety and legacy assertions; game/UI simulated."
+    }
+  ],
+  "assertions": 25749,
+  "migrationOrigins": [
+    "3.1.0",
+    "3.1.1",
+    "3.1.2",
+    "3.1.3",
+    "3.1.4",
+    "3.1.5",
+    "3.1.6",
+    "3.1.7",
+    "3.1.8",
+    "3.1.9",
+    "3.1.10",
+    "3.1.11",
+    "3.1.12",
+    "3.1.13",
+    "3.1.14",
+    "classic-3.0.31",
+    "local-R191",
+    "local-R192",
+    "local-R193",
+    "local-R194",
+    "local-R195",
+    "local-R196",
+    "local-R197",
+    "local-R198",
+    "local-R199",
+    "local-R200",
+    "local-R202",
+    "local-R204-Rod Master",
+    "local-R204-Sabuezo"
+  ],
+  "nativeClientTested": false,
+  "nativeFollowConfirmationPending": true,
+  "reconnectRemoved": true,
+  "nativeStartupFailureConfirmedByUser": true,
+  "nativeStartupFixConfirmationPending": true,
+  "nativePlaintextModuleInstallationRemoved": true,
+  "olderMovementFixturesReplacedByBoundedAndStairsSuites": true,
+  "personalSettingsPreservedInMigration": true,
+  "officialFiles": 337,
+  "changedSources": [
+    "_Loader.lua",
+    "vBot/Helper.otui",
+    "vBot/SabuezoChangelog.fallback.txt",
+    "vBot/helper_home.lua"
+  ],
+  "migrationAssertions": 20847,
+  "privateDataIncluded": false,
+  "automaticUpdatesPreserved": true,
+  "developmentLockRespected": true,
+  "classicBridgeAndBootstrapUnchanged": true,
+  "fixedHoldMwCooldownMs": 2000,
+  "nativeFollowFixConfirmationPending": true,
+  "nativeReconnectConfirmationPending": false,
+  "homeRestoredToBeforeReconnect": true,
+  "plaintextNativeModuleInstallationRemoved": true,
+  "restartIsNotCapabilityFix": true,
+  "followPriorityDefaultOn": true,
+  "waveBeamMaxSteps": 2,
+  "waveBeamMaxDisplacementSqm": 2,
+  "preservesLaterCustomFavorites": true
+}

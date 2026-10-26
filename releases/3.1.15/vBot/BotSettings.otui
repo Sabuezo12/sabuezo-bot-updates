@@ -1,0 +1,183 @@
+BotSettingsScrollBar < Panel
+  height: 46
+  margin-top: 4
+  HelperThemeLabel
+    id: text
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    height: 22
+    text-align: left
+  HorizontalScrollBar
+    id: scroll
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: text.bottom
+    margin-top: 6
+    minimum: 0
+    maximum: 10
+    step: 1
+
+BotSettingsTextEdit < Panel
+  height: 50
+  margin-top: 4
+  HelperThemeLabel
+    id: text
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    height: 22
+    text-align: left
+  HelperThemeInput
+    id: textEdit
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: text.bottom
+    margin-top: 4
+    text-align: left
+
+BotSettingsItem < Panel
+  height: 38
+  margin-top: 3
+  HelperThemeLabel
+    id: text
+    anchors.left: parent.left
+    anchors.right: item.left
+    anchors.verticalCenter: parent.verticalCenter
+    height: 22
+    margin-right: 8
+    text-align: left
+  BotItem
+    id: item
+    anchors.verticalCenter: parent.verticalCenter
+    anchors.right: parent.right
+    size: 36 36
+
+BotSettingsCheckBox < HelperThemeToggle
+  height: 28
+  margin-top: 3
+
+BotSettingsSection < Panel
+  anchors.left: parent.left
+  anchors.right: parent.right
+  anchors.top: sectionTabs.bottom
+  anchors.bottom: separator.top
+  margin-top: 10
+  margin-bottom: 8
+  HelperThemeLabel
+    id: leftTitle
+    anchors.left: parent.left
+    anchors.right: parent.horizontalCenter
+    anchors.top: parent.top
+    margin-left: 12
+    margin-right: 8
+    height: 24
+    color: #50d7d4
+    text-align: left
+  HelperThemeLabel
+    id: rightTitle
+    anchors.left: parent.horizontalCenter
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-left: 20
+    height: 24
+    color: #50d7d4
+    text-align: left
+  VerticalScrollBar
+    id: contentScroll
+    anchors.top: leftTitle.bottom
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    step: 35
+    pixels-scroll: true
+    margin-top: 4
+  HelperThemeScroll
+    id: content
+    anchors.top: contentScroll.top
+    anchors.left: parent.left
+    anchors.right: contentScroll.left
+    anchors.bottom: parent.bottom
+    margin-right: 6
+    vertical-scrollbar: contentScroll
+    HelperThemeCard
+      id: left
+      anchors.top: parent.top
+      anchors.left: parent.left
+      anchors.right: parent.horizontalCenter
+      margin-right: 6
+      padding: 8
+      layout:
+        type: verticalBox
+        fit-children: true
+        spacing: 2
+    HelperThemeCard
+      id: right
+      anchors.top: parent.top
+      anchors.left: parent.horizontalCenter
+      anchors.right: parent.right
+      margin-left: 6
+      padding: 8
+      layout:
+        type: verticalBox
+        fit-children: true
+        spacing: 2
+
+BotSettingsWindow < HelperThemeWindow
+  text: Ajustes
+  size: 620 440
+  @onEscape: self:hide()
+  Panel
+    id: sectionTabs
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    height: 30
+    layout:
+      type: horizontalBox
+      spacing: 6
+    HelperThemeButton
+      id: basic
+      text: General
+      size: 110 26
+    HelperThemeButton
+      id: cave
+      text: Cave y Target
+      size: 140 26
+    HelperThemeButton
+      id: pvp
+      text: PvP
+      size: 90 26
+  BotSettingsSection
+    id: caveSection
+  BotSettingsSection
+    id: basicSection
+    visible: false
+  BotSettingsSection
+    id: pvpSection
+    visible: false
+  HelperThemeDivider
+    id: separator
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: closeButton.top
+    margin-bottom: 8
+  ResizeBorder
+    id: bottomResizeBorder
+    anchors.fill: separator
+    height: 3
+    minimum: 340
+    maximum: 700
+    background: #00000000
+  HelperThemeLabel
+    anchors.bottom: parent.bottom
+    anchors.left: parent.left
+    anchors.right: closeButton.left
+    height: 26
+    color: #a9bbc6
+    text: Los cambios se guardan al ajustar cada control.
+  HelperThemeButton
+    id: closeButton
+    text: Volver
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 90 26

@@ -1,12 +1,21 @@
 # RinoBot - MythicOT
 
-Versión estable: **3.1.14**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.14). Puente clásico: **3.0.31**.
+Versión estable: **3.1.15**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.15). Puente clásico: **3.0.31**.
 
 ## Actualización
 
 Recarga el bot o espera su comprobación automática cada cinco minutos. Conserva perfiles, rutas, scripts, heals y supplies; después de instalar y verificar vuelve a Helper. Puedes elegir clásico manualmente hasta la siguiente actualización. Se respetan development.lock, recuperación de versiones fallidas y protección contra downgrades.
 
 Versiones antiguas con Auto OFF necesitan adoptar el nuevo updater una primera vez desde su panel. Si no hay Updater, usa la instalación inicial.
+
+## Cambios de 3.1.15
+
+- Reconect retirado por completo: boton, servicio, carga y archivos oficiales.
+- Inicio vuelve a Mantener montura a todo el ancho, como antes de Reconect.
+- La actualizacion detiene instancias anteriores y limpia los restos propios reconocidos.
+- Todas las mejoras de Follow/Navi y los demas motores se conservan.
+
+337 archivos oficiales y 138 Lua compilados. [Notas de retirada](rinobot/3.1.15-notas.md) e [informe de validacion](rinobot/3.1.15-validacion.json). Perfiles, rutas y scripts personales preservados.
 
 ## Cambios de 3.1.14
 

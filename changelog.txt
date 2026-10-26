@@ -1,3 +1,9 @@
+3.1.15 - Reconect retirado e Inicio restaurado
+- Reconect eliminado por completo: sin boton, script ni servicio de reconexion.
+- Inicio recupera Mantener montura a todo el ancho como antes de Reconect.
+- La actualizacion detiene una instancia anterior y retira solo sus archivos oficiales reconocidos.
+- Conserva todas las mejoras de Follow/Navi y los demas motores, perfiles, rutas y scripts personales.
+
 3.1.14 - Correccion de arranque de Reconect
 - Corrige el error fatal al descifrar el modulo de Reconect instalado sin cifrar.
 - Reconect ya no instala ni descubre modulos nativos; usa servicio en memoria solo con temporizador compatible.
