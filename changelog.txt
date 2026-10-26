@@ -1,3 +1,10 @@
+3.1.14 - Correccion de arranque de Reconect
+- Corrige el error fatal al descifrar el modulo de Reconect instalado sin cifrar.
+- Reconect ya no instala ni descubre modulos nativos; usa servicio en memoria solo con temporizador compatible.
+- Retira el descriptor propio antiguo si la actualizacion se ejecuta con el cliente abierto, sin leerlo con el cargador cifrado.
+- Sin soporte nativo muestra incompatibilidad, conserva preferencias y permite apagar una instancia existente.
+- Conserva Follow/Navi, las mejoras anteriores y las configuraciones personales.
+
 3.1.13 - Reconect propio y Follow/Navi continuo
 - Reconect propio: reintentos de conexion con el mismo personaje y control junto a Montura.
 - Follow/Navi calcula por tramos acotados y recupera el avance cuando un paquete se queda detenido.

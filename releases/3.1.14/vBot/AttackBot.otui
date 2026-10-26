@@ -1,0 +1,790 @@
+AttackEntry < UIWidget
+  background-color: alpha
+  text-offset: 35 1
+  focusable: true
+  height: 16
+  font: verdana-11px-antialised
+  text-align: left
+
+  HelperThemeCheck
+    id: enabled
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    width: 15
+    height: 15
+    margin-top: 2
+    margin-left: 3
+
+  UIItem
+    id: id
+    anchors.left: prev.right
+    anchors.verticalCenter: parent.verticalCenter
+    size: 16 16
+    focusable: false
+    visible: false
+
+  UIWidget
+    id: spell
+    anchors.left: enabled.right
+    anchors.verticalCenter: parent.verticalCenter
+    size: 12 12
+    margin-left: 1
+    image-source: /images/game/dangerous
+
+  $focus:
+    background-color: #00000055
+
+  HelperThemeButton
+    id: remove
+    !text: tr('x')
+    anchors.right: parent.right
+    margin-right: 15
+    width: 15
+    height: 15
+
+AttackBotBotPanel < Panel
+  height: 38
+
+  HelperThemePower
+    id: title
+    anchors.top: parent.top
+    anchors.left: parent.left
+    text-align: center
+    width: 130
+    !text: tr('AttackBot')
+
+  HelperThemeButton
+    id: settings
+    anchors.top: prev.top
+    anchors.left: prev.right
+    anchors.right: parent.right
+    margin-left: 3
+    height: 17
+    text: Setup
+
+  HelperThemeLabel
+    id: name
+    anchors.top: title.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    text-align: center
+    margin-top: 4
+    height: 17
+    text: Principal
+    background: #292A2A
+
+CategoryLabel < Panel
+  size: 315 15
+  image-source:
+  image-border: 5
+  padding: 1
+
+  HelperThemeLabel
+    id: description
+    anchors.fill: parent
+    text-align: center
+    text: Area Rune (avalanche, great fireball, etc)
+    font: verdana-11px-antialised
+    background: #363636
+
+SourceLabel < Panel
+  size: 105 15
+  image-source:
+  image-border: 5
+  padding: 1
+
+  HelperThemeLabel
+    id: description
+    anchors.fill: parent
+    text-align: center
+    text: Monster Name
+    font: verdana-11px-antialised
+    background: #363636
+
+RangeLabel < Panel
+  size: 323 15
+  image-source:
+  image-border: 5
+  padding: 1
+
+  HelperThemeLabel
+    id: description
+    anchors.fill: parent
+    text-align: center
+    text: 5 Sqm
+    font: verdana-11px-antialised
+    background: #363636
+
+PreButton < PreviousButton
+  background: #363636
+  height: 15
+
+NexButton < NextButton
+  background: #363636
+  height: 15
+
+AttackBotPanel < Panel
+  size: 500 200
+  image-source:
+  image-border: 5
+  padding: 5
+
+  HelperThemeList
+    id: entryList
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-top: 3
+    size: 430 100
+    vertical-scrollbar: entryListScrollBar
+
+  VerticalScrollBar
+    id: entryListScrollBar
+    anchors.top: entryList.top
+    anchors.bottom: entryList.bottom
+    anchors.right: entryList.right
+    step: 14
+    pixels-scroll: true
+
+  PreButton
+    id: previousCategory
+    anchors.left: entryList.left
+    anchors.top: entryList.bottom
+    margin-top: 8
+
+  NexButton
+    id: nextCategory
+    anchors.left: category.right
+    anchors.top: entryList.bottom
+    margin-top: 8
+    margin-left: 2
+
+  CategoryLabel
+    id: category
+    anchors.top: entryList.bottom
+    anchors.left: previousCategory.right
+    anchors.verticalCenter: previousCategory.verticalCenter
+    margin-left: 3
+
+  PreButton
+    id: previousSource
+    anchors.left: entryList.left
+    anchors.top: category.bottom
+    margin-top: 8
+
+  NexButton
+    id: nextSource
+    anchors.left: source.right
+    anchors.top: category.bottom
+    margin-top: 8
+    margin-left: 2
+
+  SourceLabel
+    id: source
+    anchors.top: category.bottom
+    anchors.left: previousSource.right
+    anchors.verticalCenter: previousSource.verticalCenter
+    margin-left: 3
+
+  PreButton
+    id: previousRange
+    anchors.left: nextSource.right
+    anchors.verticalCenter: nextSource.verticalCenter
+    margin-left: 8
+
+  NexButton
+    id: nextRange
+    anchors.left: range.right
+    anchors.verticalCenter: range.verticalCenter
+    margin-left: 2
+
+  RangeLabel
+    id: range
+    anchors.left: previousRange.right
+    anchors.verticalCenter: previousRange.verticalCenter
+    margin-left: 3
+
+  HelperThemeInput
+    id: monsters
+    anchors.left: entryList.left
+    anchors.top: range.bottom
+    margin-top: 5
+    size: 405 15
+    placeholder: Monstruos (vacio: todos)
+    font: verdana-11px-antialised
+    background: #363636
+
+  HelperThemeLabel
+    anchors.left: prev.left
+    anchors.top: prev.bottom
+    margin-top: 6
+    margin-left: 3
+    text-align: center
+    text: Mana%:
+    font: verdana-11px-antialised
+  
+  HelperThemeSpin
+    id: manaPercent
+    anchors.verticalCenter: prev.verticalCenter
+    anchors.left: prev.right
+    margin-left: 4
+    size: 30 20
+    minimum: 0
+    maximum: 99
+    step: 1
+    editable: true
+    focusable: true
+
+  HelperThemeLabel
+    anchors.left: prev.right
+    margin-left: 7
+    anchors.verticalCenter: prev.verticalCenter
+    text: Creatures: 
+    font: verdana-11px-antialised
+
+  HelperThemeSpin
+    id: creatures
+    anchors.verticalCenter: prev.verticalCenter
+    anchors.left: prev.right
+    margin-left: 4
+    size: 30 20
+    minimum: 1
+    maximum: 99
+    step: 1
+    editable: true
+    focusable: true
+
+  HelperThemeCheck
+    id: orMore
+    anchors.verticalCenter: prev.verticalCenter
+    anchors.left: prev.right
+    margin-left: 3
+    tooltip: or more creatures
+
+  HelperThemeLabel
+    anchors.left: prev.right
+    margin-left: 7
+    anchors.verticalCenter: prev.verticalCenter
+    text: HP: 
+    font: verdana-11px-antialised
+
+  HelperThemeSpin
+    id: minHp
+    anchors.verticalCenter: prev.verticalCenter
+    anchors.left: prev.right
+    margin-left: 4
+    size: 40 20
+    minimum: 0
+    maximum: 99
+    value: 0
+    editable: true
+    focusable: true
+
+  HelperThemeLabel
+    anchors.left: prev.right
+    margin-left: 4
+    anchors.verticalCenter: prev.verticalCenter
+    text: - 
+    font: verdana-11px-antialised
+
+  HelperThemeSpin
+    id: maxHp
+    anchors.verticalCenter: prev.verticalCenter
+    anchors.left: prev.right
+    margin-left: 4
+    size: 40 20
+    minimum: 1
+    maximum: 100
+    value: 100
+    editable: true
+    focusable: true
+
+  HelperThemeLabel
+    anchors.left: prev.right
+    margin-left: 7
+    anchors.verticalCenter: prev.verticalCenter
+    text: CD: 
+    font: verdana-11px-antialised
+
+  HelperThemeSpin
+    id: cooldown
+    anchors.verticalCenter: prev.verticalCenter
+    anchors.left: prev.right
+    margin-left: 4
+    size: 60 20
+    minimum: 0
+    maximum: 999999
+    step: 100
+    value: 0
+    editable: true
+    focusable: true
+
+  HelperThemeButton
+    id: up
+    anchors.right: parent.right
+    anchors.top: entryList.bottom
+    size: 60 17
+    text: Move Up
+    text-align: center
+    font: verdana-11px-antialised
+    margin-top: 7
+    margin-right: 8
+
+  HelperThemeButton
+    id: down
+    anchors.right: prev.left
+    anchors.verticalCenter: prev.verticalCenter
+    size: 60 17
+    margin-right: 5
+    text: Move Down
+    text-align: center
+    font: verdana-11px-antialised
+  
+  HelperThemeButton
+    id: addEntry
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 40 19
+    text-align: center
+    text: New
+    font: verdana-11px-antialised
+
+  BotItem
+    id: itemId
+    anchors.right: addEntry.left
+    margin-right: 5
+    anchors.bottom: parent.bottom
+    margin-bottom: 2
+    tooltip: drag item here on press to open window
+
+  HelperThemeInput
+    id: spellName
+    anchors.top: monsters.top
+    anchors.left: monsters.right
+    anchors.right: parent.right
+    margin-left: 5
+    height: 15
+    text: spell name
+    background: #363636
+    font: verdana-11px-antialised
+    visible: false
+
+SettingsPanel < Panel
+  size: 500 200
+  image-source:
+  image-border: 5
+  padding: 10
+
+  HelperThemeVerticalDivider
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    anchors.left: Visible.right
+    margin-left: 10
+    margin-top: 5
+    margin-bottom: 5
+
+  HelperThemeLabel
+    anchors.top: parent.top
+    anchors.left: prev.right
+    anchors.right: parent.right
+    margin-left: 10
+    text-align: center
+    font: verdana-11px-antialised
+    text: Profile:
+
+  HelperThemeInput
+    id: profileName
+    anchors.top: prev.bottom
+    margin-top: 3
+    anchors.left: prev.left
+    anchors.right: prev.right
+    margin-left: 20
+    margin-right: 20
+
+  HelperThemeCheck
+    id: OldSchool
+    anchors.top: prev.bottom
+    anchors.left: prev.left
+    margin-top: 8
+    width: 245
+    text: Old School Mode (No Hotkeys)
+    !tooltip: tr('Items Must be Visible')
+
+  HelperThemeCheck
+    id: ClientCooldowns
+    anchors.top: OldSchool.bottom
+    anchors.left: OldSchool.left
+    margin-top: 8
+    width: 245
+    text: Usar cooldowns del cliente
+    tooltip: Usa los iconos del spell y sus grupos de exhaust. Si no conoce el icono, usa el CD configurado. Activa Check spell cooldowns.
+
+  HelperThemeButton
+    id: resetSettings
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    text-align: center
+    text: Reset Settings
+
+  HelperThemeCheck
+    id: IgnoreMana
+    anchors.top: parent.top
+    anchors.left: parent.left
+    margin-top: 5
+    width: 200
+    text: Check RL Tibia conditions
+
+  HelperThemeCheck
+    id: Kills
+    anchors.top: prev.bottom
+    anchors.left: prev.left
+    margin-top: 8
+    width: 200
+    height: 22
+    text: Don't use area attacks if less than kills to red skull
+    text-wrap: true
+    text-align: left
+
+  HelperThemeSpin
+    id: KillsAmount
+    anchors.top: prev.top
+    anchors.bottom: prev.bottom
+    anchors.left: prev.right
+    text-align: left
+    width: 30
+    minimum: 1
+    maximum: 10
+    focusable: true 
+    margin-left: 5
+
+  HelperThemeCheck
+    id: Rotate
+    anchors.top: Kills.bottom
+    anchors.left: Kills.left
+    margin-top: 8
+    width: 220
+    text: Directional spell positioning
+    tooltip: Gira al objetivo. Se mueve hasta 2 SQM solo para una wave o beam listo, con CaveBot/AutoExplorer o Follow quieto.
+
+  HelperThemeCheck
+    id: Cooldown
+    anchors.top: prev.bottom
+    anchors.left: prev.left
+    margin-top: 8
+    width: 220
+    text: Check spell cooldowns
+
+  HelperThemeCheck
+    id: Visible
+    anchors.top: prev.bottom
+    anchors.left: prev.left
+    margin-top: 8
+    width: 245
+    text: Items must be visible (recommended)
+
+  HelperThemeCheck
+    id: PvpMode
+    anchors.top: prev.bottom
+    anchors.left: prev.left
+    margin-top: 8
+    width: 245
+    text: PVP mode
+
+  HelperThemeCheck
+    id: PvpSafe
+    anchors.top: prev.bottom
+    anchors.left: prev.left
+    margin-top: 8
+    width: 245
+    text: PVP safe
+
+  HelperThemeCheck
+    id: Training
+    anchors.top: prev.bottom
+    anchors.left: prev.left
+    margin-top: 8
+    width: 245
+    text: Stop when attacking trainers
+
+  HelperThemeCheck
+    id: BlackListSafe
+    anchors.top: prev.bottom
+    anchors.left: prev.left
+    margin-top: 8
+    width: 200
+    height: 18
+    text: Stop if Anti-RS player in range
+
+  HelperThemeSpin
+    id: AntiRsRange
+    anchors.top: prev.top
+    anchors.bottom: prev.bottom
+    anchors.left: prev.right
+    text-align: center
+    width: 50
+    minimum: 1
+    maximum: 10
+    focusable: true 
+    margin-left: 5
+
+AttackBotWindow < HelperThemeWindow
+  size: 535 332
+  padding: 15
+  text: AttackBot v2
+  @onEscape: self:hide()
+
+  HelperThemeLabel
+    id: mainLabel
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: vocation.bottom
+    margin-top: 8
+    margin-left: 2
+    text: PvE: seleccion automatica por area, cooldown y vocacion
+    text-align: left
+    font: verdana-11px-antialised
+    color: #aeaeae  
+
+  HelperThemeLabel
+    id: vocationLabel
+    anchors.top: parent.top
+    anchors.left: parent.left
+    margin-top: 5
+    width: 70
+    text: Vocacion:
+
+  AttackProfileVocationBox
+    id: vocation
+    anchors.left: vocationLabel.right
+    anchors.verticalCenter: vocationLabel.verticalCenter
+    width: 145
+
+  HelperThemeLabel
+    id: vocationHint
+    anchors.left: vocation.right
+    anchors.right: parent.right
+    anchors.verticalCenter: vocation.verticalCenter
+    margin-left: 10
+    font: verdana-11px-antialised
+    text: Rotaciones por vocacion
+
+  SettingsPanel
+    id: settingsPanel
+    anchors.top: mainLabel.bottom
+    margin-top: 10
+    anchors.left: parent.left
+    margin-left: 2
+
+  HelperThemeLabel
+    id: settingsLabel
+    anchors.verticalCenter: prev.top
+    anchors.left: prev.left
+    margin-left: 3
+    text: Settings
+    color: #fe4400
+    font: verdana-11px-antialised
+
+  AttackBotPanel
+    id: mainPanel
+    anchors.top: mainLabel.bottom
+    margin-top: 10
+    anchors.left: parent.left
+    margin-left: 2
+    visible: false    
+
+  HelperThemeLabel
+    id: shooterLabel
+    anchors.verticalCenter: prev.top
+    anchors.left: prev.left
+    margin-left: 3
+    text: Spell Shooter
+    color: #fe4400
+    font: verdana-11px-antialised
+    visible: false    
+
+  HelperThemeDivider
+    anchors.left: parent.left
+    anchors.right: parent.right 
+    anchors.bottom: closeButton.top
+    margin-bottom: 10
+
+  HelperThemeButton
+    id: closeButton
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 45 21
+    text: Close
+    font: verdana-11px-antialised
+
+  HelperThemeButton
+    id: settings
+    anchors.left: parent.left
+    anchors.verticalCenter: prev.verticalCenter
+    size: 50 21
+    font: verdana-11px-antialised
+    text: Settings
+
+  HelperThemeButton
+    id: spellCatalog
+    anchors.left: settings.right
+    anchors.verticalCenter: settings.verticalCenter
+    margin-left: 8
+    size: 100 21
+    font: verdana-11px-antialised
+    text: Nuevos spells
+
+AttackSpellVocationBoxPopupMenu < HelperThemeComboPopupMenu
+AttackSpellVocationBoxPopupMenuButton < HelperThemeComboPopupMenuButton
+AttackSpellVocationBox < HelperThemeCombo
+  @onSetup: |
+    self:addOption("Paladin")
+    self:addOption("Monk")
+    self:addOption("Sorcerer")
+    self:addOption("Druid")
+    self:addOption("Knight")
+
+AttackProfileVocationBoxPopupMenu < HelperThemeComboPopupMenu
+AttackProfileVocationBoxPopupMenuButton < HelperThemeComboPopupMenuButton
+AttackProfileVocationBox < HelperThemeCombo
+  @onSetup: |
+    self:addOption("Paladin")
+    self:addOption("Monk")
+    self:addOption("Sorcerer")
+    self:addOption("Druid")
+    self:addOption("Knight")
+    self:addOption("Personalizado")
+
+AttackSpellChoiceBoxPopupMenu < HelperThemeComboPopupMenu
+AttackSpellChoiceBoxPopupMenuButton < HelperThemeComboPopupMenuButton
+AttackSpellChoiceBox < HelperThemeCombo
+
+AttackSpellCatalogWindow < HelperThemeWindow
+  size: 485 390
+  text: AttackBot - Nuevos spells
+  @onEscape: self:hide()
+
+  AttackSpellVocationBox
+    id: vocation
+    anchors.top: parent.top
+    anchors.left: parent.left
+    width: 105
+
+  AttackSpellChoiceBox
+    id: spellChoice
+    anchors.top: vocation.top
+    anchors.left: vocation.right
+    anchors.right: parent.right
+    margin-left: 8
+
+  HelperThemeLabel
+    id: details
+    anchors.top: vocation.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 10
+    height: 132
+    text-wrap: true
+    text-align: top-left
+    font: verdana-11px-antialised
+
+  HelperThemeLabel
+    anchors.top: details.bottom
+    anchors.left: parent.left
+    text: Rango inicial:
+    width: 85
+
+  HelperThemeSpin
+    id: spellRange
+    anchors.top: prev.top
+    anchors.left: prev.right
+    width: 40
+    minimum: 1
+    maximum: 10
+    value: 7
+    editable: true
+
+  HelperThemeLabel
+    anchors.top: spellRange.top
+    anchors.left: spellRange.right
+    margin-left: 12
+    width: 108
+    text: Harmony minimo:
+
+  HelperThemeSpin
+    id: minimumHarmony
+    anchors.top: prev.top
+    anchors.left: prev.right
+    width: 40
+    minimum: 0
+    maximum: 5
+    value: 0
+    editable: true
+    tooltip: 0 permite lanzar sin comprobar Harmony. Un minimo mayor requiere getHarmony en el cliente.
+
+  HelperThemeLabel
+    anchors.top: spellRange.bottom
+    anchors.left: parent.left
+    margin-top: 8
+    width: 85
+    text: Max. cadena:
+
+  HelperThemeSpin
+    id: chainTargets
+    anchors.top: prev.top
+    anchors.left: prev.right
+    width: 40
+    minimum: 1
+    maximum: 20
+    value: 1
+    editable: true
+
+  HelperThemeLabel
+    anchors.top: chainTargets.top
+    anchors.left: chainTargets.right
+    margin-left: 12
+    width: 108
+    text: Rango del salto:
+
+  HelperThemeSpin
+    id: chainJump
+    anchors.top: prev.top
+    anchors.left: prev.right
+    width: 40
+    minimum: 1
+    maximum: 10
+    value: 1
+    editable: true
+
+  HelperThemeLabel
+    id: status
+    anchors.top: chainTargets.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 10
+    height: 50
+    text-wrap: true
+    font: verdana-11px-antialised
+    text: Se agregan desactivados al perfil actual. Activa los que conoces y ajusta CD/patron con doble clic. Las areas de cadena son estimadas.
+
+  HelperThemeButton
+    id: addSelected
+    anchors.bottom: closeButton.top
+    anchors.left: parent.left
+    margin-bottom: 8
+    width: 140
+    text: Aplicar seleccionado
+
+  HelperThemeButton
+    id: addVocation
+    anchors.bottom: addSelected.bottom
+    anchors.left: addSelected.right
+    margin-left: 8
+    width: 140
+    text: Completar lista
+
+  HelperThemeButton
+    id: closeButton
+    anchors.bottom: parent.bottom
+    anchors.right: parent.right
+    width: 65
+    text: Cerrar

@@ -1,0 +1,529 @@
+IconEditorRow < UIWidget
+  height: 34
+  focusable: true
+  background-color: alpha
+  $focus:
+    background-color: #1b4650
+  HelperThemeCheck
+    id: visible
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    size: 16 16
+    margin-left: 2
+    tooltip: Mostrar u ocultar el icono; conserva el estado de la funcion.
+  UIItem
+    id: item
+    anchors.left: visible.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 4
+    size: 26 26
+    phantom: true
+  HelperThemeLabel
+    id: name
+    anchors.left: item.right
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-left: 5
+    margin-right: 4
+    margin-top: 2
+    height: 18
+    text-align: left
+    text-auto-resize: false
+  HelperThemeLabel
+    id: coords
+    anchors.left: name.left
+    anchors.right: name.right
+    anchors.top: name.bottom
+    height: 14
+    color: #87979e
+    text-align: left
+
+IconEditorModeComboBoxPopupMenu < HelperThemeComboPopupMenu
+IconEditorModeComboBoxPopupMenuButton < HelperThemeComboPopupMenuButton
+IconEditorModeComboBox < HelperThemeCombo
+  @onSetup: |
+    self:addOption("Icono")
+    self:addOption("Barra")
+
+IconEditorFilterComboBoxPopupMenu < HelperThemeComboPopupMenu
+IconEditorFilterComboBoxPopupMenuButton < HelperThemeComboPopupMenuButton
+IconEditorFilterComboBox < HelperThemeCombo
+  @onSetup: |
+    self:addOption("Todo")
+    self:addOption("Mis iconos")
+    self:addOption("Bot")
+    self:addOption("Mis scripts")
+    self:addOption("Macros")
+
+IconEditorWindow < HelperThemeWindow
+  id: IconEditorWindow
+  text: Iconos
+  size: 580 360
+  @onEscape: self:hide()
+
+  HelperThemeInput
+    id: search
+    anchors.top: parent.top
+    anchors.left: parent.left
+    width: 210
+    height: 24
+    placeholder: Buscar funcion o script...
+  IconEditorFilterComboBox
+    id: filter
+    anchors.top: search.bottom
+    anchors.left: parent.left
+    width: 210
+    height: 22
+    margin-top: 4
+  HelperThemeLabel
+    id: listTitle
+    anchors.top: filter.bottom
+    anchors.left: parent.left
+    width: 210
+    height: 20
+    margin-top: 3
+    text: Funciones
+    color: #50d7d4
+  HelperThemeScroll
+    id: iconList
+    anchors.top: listTitle.bottom
+    anchors.left: parent.left
+    anchors.right: iconListScrollBar.left
+    anchors.bottom: iconStatus.top
+    margin-right: 3
+    margin-bottom: 6
+    padding: 2
+    vertical-scrollbar: iconListScrollBar
+    layout: verticalBox
+    background-color: #0f1920
+  VerticalScrollBar
+    id: iconListScrollBar
+    anchors.top: listTitle.bottom
+    anchors.bottom: iconStatus.top
+    anchors.left: parent.left
+    margin-bottom: 6
+    margin-left: 198
+    width: 12
+    step: 34
+    pixels-scroll: true
+  HelperThemeLabel
+    id: emptySearch
+    anchors.top: iconList.top
+    anchors.left: iconList.left
+    anchors.right: iconList.right
+    height: 22
+    text: Sin coincidencias
+    text-align: center
+    color: #87979e
+    visible: false
+    phantom: true
+
+  HelperThemeLabel
+    id: selectedTitle
+    anchors.left: search.right
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-left: 12
+    height: 20
+    text: Selecciona una funcion
+    color: #50d7d4
+  HelperThemeLabel
+    id: source
+    anchors.left: selectedTitle.left
+    anchors.right: selectedTitle.right
+    anchors.top: selectedTitle.bottom
+    height: 16
+    color: #87979e
+  HelperThemeCheck
+    id: selectedVisible
+    anchors.left: selectedTitle.left
+    anchors.right: selectedTitle.right
+    anchors.top: source.bottom
+    margin-top: 2
+    height: 20
+    text: Mostrar icono
+  HelperThemeLabel
+    id: nameLabel
+    anchors.left: selectedTitle.left
+    anchors.top: selectedVisible.bottom
+    margin-top: 3
+    width: 55
+    height: 22
+    text: Nombre
+  HelperThemeInput
+    id: selectedName
+    anchors.left: nameLabel.right
+    anchors.right: selectedTitle.right
+    anchors.top: nameLabel.top
+    margin-left: 3
+    height: 22
+    tooltip: Usa / para separar dos lineas.
+  HelperThemeLabel
+    id: itemLabel
+    anchors.left: selectedTitle.left
+    anchors.top: selectedName.bottom
+    margin-top: 4
+    width: 55
+    height: 32
+    text: Imagen
+  UIItem
+    id: selectedItem
+    anchors.left: itemLabel.right
+    anchors.top: itemLabel.top
+    margin-left: 3
+    size: 32 32
+    virtual: true
+    tooltip: Arrastra un objeto para usarlo como imagen.
+  HelperThemeLabel
+    id: styleLabel
+    anchors.left: selectedItem.right
+    anchors.top: itemLabel.top
+    margin-left: 12
+    width: 55
+    height: 24
+    text: Formato
+  IconEditorModeComboBox
+    id: selectedVisualMode
+    anchors.left: styleLabel.right
+    anchors.right: selectedTitle.right
+    anchors.top: itemLabel.top
+    margin-left: 3
+    height: 24
+  HelperThemeLabel
+    id: onLabel
+    anchors.left: selectedTitle.left
+    anchors.top: selectedItem.bottom
+    margin-top: 4
+    width: 55
+    height: 22
+    text: Activo
+    tooltip: Color del texto cuando la funcion esta activada.
+  HelperThemeInput
+    id: onColorHex
+    anchors.left: onLabel.right
+    anchors.top: onLabel.top
+    margin-left: 3
+    width: 60
+    height: 22
+    max-length: 7
+    tooltip: Color personalizado opcional. Pulsa el cuadro de al lado para abrir la paleta.
+  HelperThemeButton
+    id: onColorPick
+    anchors.left: onColorHex.right
+    anchors.top: onLabel.top
+    margin-left: 3
+    size: 22 22
+    tooltip: Elegir el color del texto activo.
+  HelperThemeLabel
+    id: offLabel
+    anchors.left: onColorPick.right
+    anchors.top: onLabel.top
+    margin-left: 12
+    width: 58
+    height: 22
+    text: Inactivo
+    tooltip: Color del texto cuando la funcion esta desactivada.
+  HelperThemeInput
+    id: offColorHex
+    anchors.left: offLabel.right
+    anchors.right: offColorPick.left
+    anchors.top: onLabel.top
+    margin-left: 3
+    margin-right: 3
+    height: 22
+    max-length: 7
+    tooltip: Color personalizado opcional. Pulsa el cuadro de al lado para abrir la paleta.
+  HelperThemeButton
+    id: offColorPick
+    anchors.right: selectedTitle.right
+    anchors.top: offLabel.top
+    margin-left: 3
+    size: 22 22
+    tooltip: Elegir el color del texto inactivo.
+  HelperThemeLabel
+    id: xLabel
+    anchors.left: selectedTitle.left
+    anchors.top: onColorHex.bottom
+    margin-top: 4
+    width: 20
+    height: 22
+    text: X
+  SpinBox
+    id: selectedX
+    anchors.left: xLabel.right
+    anchors.top: xLabel.top
+    margin-left: 3
+    width: 118
+    height: 22
+    minimum: 0
+    maximum: 10000
+  HelperThemeLabel
+    id: yLabel
+    anchors.left: selectedX.right
+    anchors.top: xLabel.top
+    margin-left: 12
+    width: 20
+    height: 22
+    text: Y
+  SpinBox
+    id: selectedY
+    anchors.left: yLabel.right
+    anchors.right: selectedTitle.right
+    anchors.top: xLabel.top
+    margin-left: 3
+    height: 22
+    minimum: 0
+    maximum: 10000
+  HelperThemeLabel
+    id: sourceHint
+    anchors.left: selectedTitle.left
+    anchors.right: selectedTitle.right
+    anchors.top: selectedX.bottom
+    margin-top: 5
+    height: 30
+    text-wrap: true
+    color: #a9bbc6
+  HelperThemeButton
+    id: applyIcon
+    anchors.left: selectedTitle.left
+    anchors.top: sourceHint.bottom
+    margin-top: 3
+    width: 150
+    height: 22
+    text: Guardar icono
+  HelperThemeButton
+    id: resetIcon
+    anchors.right: selectedTitle.right
+    anchors.top: applyIcon.top
+    width: 150
+    height: 22
+    text: Restablecer aspecto
+  HelperThemeButton
+    id: openSource
+    anchors.left: selectedTitle.left
+    anchors.right: selectedTitle.right
+    anchors.top: applyIcon.bottom
+    margin-top: 3
+    height: 22
+    text: Abrir configuracion del origen
+
+  HelperThemeLabel
+    id: iconStatus
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: moveIcons.top
+    margin-bottom: 3
+    height: 28
+    text: Elige una funcion y marca Mostrar icono. Arrastra cada icono por separado.
+    text-wrap: true
+    color: #a9bbc6
+  HelperThemeCheck
+    id: moveIcons
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    width: 210
+    height: 22
+    text: Mover iconos fuera del editor
+  HelperThemeButton
+    id: closeButton
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    width: 70
+    height: 22
+    text: Cerrar
+  HelperThemeButton
+    id: helperSetup
+    anchors.right: closeButton.left
+    anchors.bottom: parent.bottom
+    margin-right: 6
+    width: 74
+    height: 22
+    text: Helper
+  HelperThemeButton
+    id: undo
+    anchors.right: helperSetup.left
+    anchors.bottom: parent.bottom
+    margin-right: 6
+    width: 78
+    height: 22
+    text: Deshacer
+    enabled: false
+
+IconEditorColorSwatch < HelperThemeButton
+  anchors.left: parent.left
+  anchors.top: parent.top
+  size: 30 26
+  border-width: 1
+  border-color: #87979e
+
+IconEditorColorWindow < HelperThemeWindow
+  id: IconEditorColorWindow
+  text:
+  size: 300 260
+  padding-top: 8
+  @onEscape: self:hide()
+
+  HelperThemeLabel
+    id: heading
+    anchors.left: parent.left
+    anchors.right: closeButton.left
+    anchors.top: parent.top
+    margin-right: 8
+    height: 22
+    text: Color del texto
+  HelperThemeButton
+    id: closeButton
+    anchors.right: parent.right
+    anchors.top: parent.top
+    size: 22 22
+    text: X
+  HelperThemeLabel
+    id: instruction
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: heading.bottom
+    margin-top: 4
+    height: 18
+    text: Elige un color para el nombre del icono.
+  HelperThemeLabel
+    id: preview
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-top: 142
+    height: 24
+    background-color: #0f1920
+    text-align: center
+    text: Vista previa del texto
+  HelperThemeLabel
+    id: customLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-top: 172
+    size: 90 22
+    text: Personalizado
+  HelperThemeInput
+    id: colorHex
+    anchors.left: customLabel.right
+    anchors.right: parent.right
+    anchors.top: customLabel.top
+    margin-left: 4
+    height: 22
+    max-length: 7
+    tooltip: Opcional: un color exacto en formato #RRGGBB.
+  HelperThemeLabel
+    id: feedback
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: colorHex.bottom
+    margin-top: 4
+    height: 18
+    text: Elige un color de la paleta.
+  HelperThemeButton
+    id: useColor
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    size: 134 22
+    text: Usar color
+  HelperThemeButton
+    id: cancel
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 134 22
+    text: Cancelar
+  IconEditorColorSwatch
+    id: color1
+    margin-left: 0
+    margin-top: 48
+  IconEditorColorSwatch
+    id: color2
+    margin-left: 34
+    margin-top: 48
+  IconEditorColorSwatch
+    id: color3
+    margin-left: 68
+    margin-top: 48
+  IconEditorColorSwatch
+    id: color4
+    margin-left: 102
+    margin-top: 48
+  IconEditorColorSwatch
+    id: color5
+    margin-left: 136
+    margin-top: 48
+  IconEditorColorSwatch
+    id: color6
+    margin-left: 170
+    margin-top: 48
+  IconEditorColorSwatch
+    id: color7
+    margin-left: 204
+    margin-top: 48
+  IconEditorColorSwatch
+    id: color8
+    margin-left: 238
+    margin-top: 48
+  IconEditorColorSwatch
+    id: color9
+    margin-left: 0
+    margin-top: 78
+  IconEditorColorSwatch
+    id: color10
+    margin-left: 34
+    margin-top: 78
+  IconEditorColorSwatch
+    id: color11
+    margin-left: 68
+    margin-top: 78
+  IconEditorColorSwatch
+    id: color12
+    margin-left: 102
+    margin-top: 78
+  IconEditorColorSwatch
+    id: color13
+    margin-left: 136
+    margin-top: 78
+  IconEditorColorSwatch
+    id: color14
+    margin-left: 170
+    margin-top: 78
+  IconEditorColorSwatch
+    id: color15
+    margin-left: 204
+    margin-top: 78
+  IconEditorColorSwatch
+    id: color16
+    margin-left: 238
+    margin-top: 78
+  IconEditorColorSwatch
+    id: color17
+    margin-left: 0
+    margin-top: 108
+  IconEditorColorSwatch
+    id: color18
+    margin-left: 34
+    margin-top: 108
+  IconEditorColorSwatch
+    id: color19
+    margin-left: 68
+    margin-top: 108
+  IconEditorColorSwatch
+    id: color20
+    margin-left: 102
+    margin-top: 108
+  IconEditorColorSwatch
+    id: color21
+    margin-left: 136
+    margin-top: 108
+  IconEditorColorSwatch
+    id: color22
+    margin-left: 170
+    margin-top: 108
+  IconEditorColorSwatch
+    id: color23
+    margin-left: 204
+    margin-top: 108
+  IconEditorColorSwatch
+    id: color24
+    margin-left: 238
+    margin-top: 108
