@@ -1,0 +1,417 @@
+ImbuementScrollPanel < Panel
+  height: 38
+
+  HelperThemeButton
+    id: settings
+    anchors.top: parent.top
+    anchors.right: parent.right
+    size: 45 18
+    text: Setup
+
+  HelperThemePower
+    id: title
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: settings.left
+    margin-right: 3
+    height: 18
+    text: Imbuement Scrolls
+    text-align: center
+
+  HelperThemeLabel
+    id: status
+    anchors.top: title.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 3
+    height: 17
+    text: Desactivado
+    text-align: center
+    font: verdana-11px-antialised
+    color: #aaaaaa
+
+ImbuementScrollSlot < BotItem
+  size: 32 32
+  border-width: 0
+  $on:
+    image-source: /images/ui/item
+  $checked:
+    border-width: 1
+    border-color: #FABD02
+
+ImbuementScrollTrackerEffect < Panel
+  size: 34 34
+  image-source: /images/game/imbuing/slot_inactive
+  image-clip: 0 0 64 64
+  image-smooth: false
+
+  HelperThemeLabel
+    id: duration
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 2
+    height: 13
+    text-align: center
+    font: verdana-11px-antialised
+    color: #ffffff
+    phantom: true
+
+ImbuementScrollEquipmentRow < Panel
+  height: 34
+  anchors.left: parent.left
+  anchors.right: parent.right
+  anchors.top: parent.top
+
+  ImbuementScrollSlot
+    id: gear
+    size: 34 34
+    anchors.left: parent.left
+    anchors.top: parent.top
+
+  ImbuementScrollTrackerEffect
+    id: buff1
+    anchors.left: gear.right
+    anchors.top: parent.top
+    margin-left: 3
+
+  ImbuementScrollTrackerEffect
+    id: buff2
+    anchors.left: buff1.right
+    anchors.top: parent.top
+    margin-left: 3
+
+  ImbuementScrollTrackerEffect
+    id: buff3
+    anchors.left: buff2.right
+    anchors.top: parent.top
+    margin-left: 3
+
+ImbuementScrollEquipment < HelperThemeCard
+  width: 174
+  padding: 8
+
+  HelperThemeLabel
+    id: title
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    height: 18
+    text: Equipo
+    text-align: left
+    color: #03C04A
+    font: verdana-11px-antialised
+
+  VerticalScrollBar
+    id: scrollbar
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    anchors.right: parent.right
+    margin-top: 22
+    margin-bottom: 28
+    width: 10
+    step: 37
+    pixels-scroll: true
+
+  HelperThemeScroll
+    id: list
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    anchors.left: parent.left
+    anchors.right: scrollbar.left
+    margin-top: 22
+    margin-bottom: 28
+    margin-right: 3
+    vertical-scrollbar: scrollbar
+    layout: anchor
+
+  HelperThemeLabel
+    id: selectedPiece
+    visible: false
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    margin-bottom: 31
+    height: 18
+    text: Pieza: Casco
+    text-align: center
+    font: verdana-11px-antialised
+    color: #FABD02
+
+  HelperThemeButton
+    id: cloneEq
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    margin-bottom: 4
+    height: 21
+    text: Copiar equipo actual
+    tooltip: Copia todo tu equipo. Selecciona una pieza de la lista para configurar sus scrolls.
+
+
+ImbuementScrollEffect < Panel
+  height: 48
+
+  HelperThemeCheck
+    id: enabled
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-top: 8
+    size: 15 15
+    tooltip: Mantener este efecto
+
+  BotItem
+    id: scroll
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-top: 1
+    margin-right: 8
+    size: 32 32
+    tooltip: Arrastra el scroll de este efecto
+
+  HelperThemeCombo
+    id: effect
+    anchors.left: enabled.right
+    anchors.right: remove.left
+    anchors.top: parent.top
+    margin-left: 5
+    margin-right: 4
+    margin-top: 4
+    height: 22
+    font: verdana-11px-antialised
+
+  HelperThemeButton
+    id: remove
+    anchors.right: remaining.left
+    anchors.top: parent.top
+    margin-right: 6
+    margin-top: 4
+    size: 18 22
+    text: X
+    tooltip: Quitar este efecto de la configuracion. Pulsa Guardar para conservar el cambio.
+
+  HelperThemeLabel
+    id: duration
+    anchors.left: effect.left
+    anchors.right: remaining.left
+    anchors.top: parent.top
+    margin-right: 8
+    margin-top: 27
+    height: 18
+    text: Sin configurar
+    text-align: left
+    font: verdana-11px-antialised
+    color: #aaaaaa
+
+  HelperThemeLabel
+    id: remaining
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-top: 33
+    size: 48 14
+    text: -
+    text-align: center
+    font: verdana-11px-antialised
+    color: #aaaaaa
+    tooltip: Scrolls visibles en inventario y mochilas abiertas.
+
+ImbuementScrollPiece < HelperThemeCard
+  padding: 8
+
+  HelperThemeLabel
+    id: title
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 18
+    text: Casco
+    text-align: left
+    font: verdana-11px-antialised
+    color: #FABD02
+
+  HelperThemeLabel
+    id: instructions
+    anchors.left: parent.left
+    anchors.right: scrollHeading.left
+    anchors.top: parent.top
+    margin-top: 18
+    height: 18
+    text: Efecto a mantener
+    text-align: left
+    font: verdana-11px-antialised
+
+  HelperThemeLabel
+    id: scrollHeading
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-top: 18
+    size: 48 18
+    text: Scrolls
+    text-align: center
+    font: verdana-11px-antialised
+
+  ImbuementScrollEffect
+    id: effect1
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-top: 36
+
+  ImbuementScrollEffect
+    id: effect2
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-top: 86
+
+  ImbuementScrollEffect
+    id: effect3
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-top: 136
+
+  HelperThemeLabel
+    id: status
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    height: 26
+    text: Copia tu equipo y arrastra sus scrolls.
+    text-align: left
+    text-wrap: true
+    font: verdana-11px-antialised
+    color: #9dd1ce
+
+ImbuementScrollWindow < HelperThemeWindow
+  size: 440 360
+  fixed-size: true
+  text: Auto Imbuements - Sabuezo
+  @onEscape: self:hide()
+
+  HelperThemeButton
+    id: removeProfile
+    anchors.right: parent.right
+    anchors.top: parent.top
+    size: 65 21
+    text: Borrar
+
+  HelperThemeButton
+    id: addProfile
+    anchors.right: removeProfile.left
+    anchors.top: parent.top
+    margin-right: 5
+    size: 65 21
+    text: Nuevo
+
+  HelperThemeLabel
+    id: profileLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-top: 3
+    size: 52 18
+    text: Perfil:
+    text-align: left
+
+  HelperThemeCombo
+    id: profiles
+    anchors.left: parent.left
+    anchors.right: addProfile.left
+    anchors.top: parent.top
+    margin-left: 58
+    margin-right: 8
+    height: 22
+    font: verdana-11px-antialised
+
+  HelperThemeButton
+    id: saveProfile
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-top: 26
+    size: 88 21
+    text: Guardar
+    tooltip: Guardar todo el equipo y sus scrolls en este perfil
+
+  HelperThemeLabel
+    id: nameLabel
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-top: 29
+    size: 52 18
+    text: Nombre:
+    text-align: left
+
+  HelperThemeInput
+    id: name
+    anchors.left: parent.left
+    anchors.right: saveProfile.left
+    anchors.top: parent.top
+    margin-left: 58
+    margin-right: 8
+    margin-top: 26
+    height: 21
+
+  ImbuementScrollEquipment
+    id: setup
+    anchors.left: parent.left
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    margin-top: 56
+    margin-bottom: 32
+
+  ImbuementScrollPiece
+    id: piece
+    anchors.left: setup.right
+    anchors.right: parent.right
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    margin-left: 8
+    margin-top: 56
+    margin-bottom: 32
+
+  HelperThemeDivider
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    margin-bottom: 29
+
+  HelperThemeCheck
+    id: onlyPz
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    margin-bottom: 2
+    size: 94 18
+    text: Solo en PZ
+
+  HelperThemePower
+    id: enabled
+    anchors.left: onlyPz.right
+    anchors.bottom: parent.bottom
+    margin-left: 6
+    size: 74 21
+    text: Activar
+
+  HelperThemeButton
+    id: refresh
+    anchors.left: enabled.right
+    anchors.bottom: parent.bottom
+    margin-left: 6
+    size: 72 21
+    text: Releer
+    tooltip: Pedir al cliente los tiempos de los imbuements
+
+  HelperThemeButton
+    id: retry
+    anchors.left: refresh.right
+    anchors.bottom: parent.bottom
+    margin-left: 6
+    size: 80 21
+    text: Reintentar
+    tooltip: Reiniciar los intentos de los efectos de esta pieza
+
+  HelperThemeButton
+    id: close
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 60 21
+    text: Cerrar

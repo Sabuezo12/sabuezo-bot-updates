@@ -1,0 +1,87 @@
+{
+  "version": "3.1.16",
+  "officialFiles": 352,
+  "compiledLuaFiles": 151,
+  "historicalReleaseInventoriesAccepted": 18,
+  "historicalFileHashesAccepted": 4984,
+  "installerMigrations": [
+    {
+      "origin": "aurera-original",
+      "changed": 22,
+      "personalFiles": 106,
+      "preserved": true
+    },
+    {
+      "origin": "valkaris-original",
+      "changed": 103,
+      "personalFiles": 18,
+      "preserved": true
+    },
+    {
+      "origin": "stable-3.1.15",
+      "changed": 64,
+      "personalFiles": 0,
+      "preserved": true
+    },
+    {
+      "origin": "aurera-installed",
+      "changed": 22,
+      "personalFiles": 106,
+      "preserved": true
+    },
+    {
+      "origin": "valkaris-installed",
+      "changed": 2,
+      "personalFiles": 22,
+      "preserved": true
+    }
+  ],
+  "nativeTransactionSimulation": "PASS; real Lua updater engines, in-memory filesystem",
+  "nativeClientTests": {
+    "aurera": {
+      "exitCode": 0,
+      "codeFilesVerified": 352,
+      "adapter": "aurera",
+      "startup": true,
+      "interface": true,
+      "lootFallback860": true,
+      "savedSettingsReloaded": true
+    },
+    "valkarisOTC": {
+      "exitCode": 0,
+      "codeFilesVerified": 352,
+      "adapter": "valkaris",
+      "startup": true,
+      "interface": true,
+      "nativeQuickLootFeature": 83,
+      "renderedSpellEffectWidgets": 74,
+      "verifiedTileAnchors": 37,
+      "savedSettingsReloaded": true
+    }
+  },
+  "liveClientsReloaded": false,
+  "privateDataIncluded": false,
+  "existingDevelopmentLocksPreserved": true,
+  "classicBridgeUnchanged": true,
+  "limitations": [
+    "Native clients run offline in isolated data directories; no live-server gameplay confirmation.",
+    "Valkaris RTC is not supported by the OTC adapter.",
+    "Valkaris has no verified party member kick API.",
+    "Unknown clients may require another adapter and tests."
+  ],
+  "unitTestGroups": {
+    "lootModesAndPolicy": 23,
+    "clientRegistry": 5,
+    "autoParty": 20,
+    "tileAnchorCases": 42,
+    "installer": 5,
+    "updateTransactions": 9
+  },
+  "nativeApiSimulationUsed": true,
+  "realServerActionsSent": false,
+  "nativeKnownBaselineDiagnostic": "/json/proficiencies.json is absent from the Valkaris client resources; same diagnostic before this Helper release.",
+  "packageSha256": "15c97e575a499d95d95f455c3a83f987936aafb277ec964d83c3544a38b9dfd4",
+  "packageSize": 3404228,
+  "changedFilesFromStable315": 64,
+  "classicBridgeAndBootstrapUnchanged": true
+}

@@ -1,12 +1,23 @@
-# RinoBot - MythicOT
+# RinoBot / Helper - Aurera, Valkaris y adaptadores por cliente
 
-Versión estable: **3.1.15**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.15). Puente clásico: **3.0.31**.
+Versión estable: **3.1.16**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.16). Puente clásico: **3.0.31**.
 
 ## Actualización
 
-Recarga el bot o espera su comprobación automática cada cinco minutos. Conserva perfiles, rutas, scripts, heals y supplies; después de instalar y verificar vuelve a Helper. Puedes elegir clásico manualmente hasta la siguiente actualización. Se respetan development.lock, recuperación de versiones fallidas y protección contra downgrades.
+En Actualizaciones, busca la versión 3.1.16, instala y recarga Helper al terminar la verificación. En el núcleo adaptado, la instalación y la recarga son manuales. Se conservan perfiles, rutas, scripts, heals y supplies; también se respetan development.lock, recuperación de versiones fallidas y protección contra downgrades. Para copias protegidas por development.lock, utiliza el instalador externo del ZIP y conserva el respaldo.
 
 Versiones antiguas con Auto OFF necesitan adoptar el nuevo updater una primera vez desde su panel. Si no hay Updater, usa la instalación inicial.
+
+## Cambios de 3.1.16
+
+- Una base comun con adaptadores separados para Aurera y Valkaris OTC; conserva perfiles, rutas y preferencias locales.
+- TargetBot integra categorias de loot, filtros y destinos, con Automatico, Quick Loot nativo y Tradicional para clientes sin soporte.
+- AttackBot prioriza el mayor requisito de monstruos que puede lanzar y muestra una escena del hechizo con personaje y efectos alineados.
+- Auto Party corrige Pass Leader y observa 60 segundos continuos sin compartir experiencia; expulsar requiere soporte real del servidor.
+- Los iconos admiten arrastrar un objeto o escribir su ID; bless y dummy reconocen las confirmaciones de Aurera.
+- Actualizacion manual en clientes adaptados, con hashes, respaldo, recuperacion y proteccion de archivos personales.
+
+352 archivos oficiales. [Notas y limites de compatibilidad](rinobot/3.1.16-notas.md) e [informe de validacion](rinobot/3.1.16-validacion.json).
 
 ## Cambios de 3.1.15
 
