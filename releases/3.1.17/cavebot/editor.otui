@@ -1,0 +1,392 @@
+CaveBotZonePZWindow < HelperThemeWindow
+  text: ZonaPZ
+  size: 360 188
+  padding: 10
+
+  HelperThemeLabel
+    id: coordinatesTitle
+    anchors.left: parent.left
+    anchors.top: parent.top
+    width: 83
+    height: 22
+    text: Punto (x,y,z)
+
+  HelperThemeInput
+    id: coordinates
+    anchors.left: coordinatesTitle.right
+    anchors.right: parent.right
+    anchors.top: coordinatesTitle.top
+    margin-left: 6
+
+  HelperThemeLabel
+    id: minutesTitle
+    anchors.left: parent.left
+    anchors.top: coordinatesTitle.bottom
+    margin-top: 8
+    width: 130
+    height: 22
+    text: Espera en PZ (min)
+
+  HelperThemeInput
+    id: minutes
+    anchors.left: minutesTitle.right
+    anchors.top: minutesTitle.top
+    margin-left: 6
+    width: 68
+    text: 0
+
+  HelperThemeLabel
+    id: help
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: minutesTitle.bottom
+    margin-top: 7
+    height: 32
+    text-wrap: true
+    text: Solo tras huida PvP, al confirmar PZ. 0: sin espera. En ruta normal continua sin esperar.
+
+  HelperThemeLabel
+    id: feedback
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: help.bottom
+    margin-top: 3
+    height: 25
+    text-wrap: true
+    color: #ffcd80
+
+  HelperThemeButton
+    id: cancel
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    width: 82
+    text: Cancelar
+
+  HelperThemeButton
+    id: ok
+    anchors.right: cancel.left
+    anchors.bottom: parent.bottom
+    margin-right: 6
+    width: 90
+    text: Guardar
+
+CaveBotWaitStaminaWindow < HelperThemeWindow
+  text: Wait stamina
+  size: 450 202
+  padding: 10
+
+  HelperThemeLabel
+    id: minimumTitle
+    anchors.left: parent.left
+    anchors.top: parent.top
+    height: 22
+    width: 50
+    text: Minima
+    tooltip: Por debajo de esta stamina empieza la espera o el desvio. Por defecto 39:00.
+
+  HelperThemeInput
+    id: minimum
+    anchors.left: minimumTitle.right
+    anchors.top: minimumTitle.top
+    margin-left: 4
+    width: 66
+    tooltip: Horas:minutos de stamina, no hora del reloj. Ejemplo 39:00; escribir 39 equivale a 39:00. Si baja de aqui, queda esperando hasta la maxima.
+
+  HelperThemeLabel
+    id: maximumTitle
+    anchors.left: minimum.right
+    anchors.top: minimum.top
+    margin-left: 12
+    width: 50
+    height: 22
+    text: Maxima
+    tooltip: Stamina para terminar una espera ya iniciada. Por defecto 42:00.
+
+  HelperThemeInput
+    id: maximum
+    anchors.left: maximumTitle.right
+    anchors.top: maximumTitle.top
+    margin-left: 4
+    width: 66
+    tooltip: Una espera iniciada por bajar de la minima solo termina al alcanzar esta maxima. Debe ser igual o mayor que la minima y no superar 42:00.
+
+  HelperThemeInput
+    id: interval
+    anchors.right: parent.right
+    anchors.top: minimum.top
+    width: 54
+    tooltip: Segundos entre comprobaciones mientras espera o falta un label. De 0.1 a 3600; admite decimales. No cambia la velocidad de las demas acciones.
+
+  HelperThemeLabel
+    id: intervalTitle
+    anchors.right: interval.left
+    anchors.top: interval.top
+    margin-right: 5
+    width: 114
+    height: 22
+    text: Comprobar (s)
+    text-align: right
+
+  HelperThemeLabel
+    id: belowTitle
+    anchors.left: parent.left
+    anchors.top: minimum.bottom
+    margin-top: 10
+    width: 64
+    height: 22
+    text: Si baja
+    tooltip: Se usa al bajar de la minima y sigue aplicandose hasta alcanzar la maxima, incluso si ya paso la minima.
+
+  HelperThemeCombo
+    id: belowMode
+    anchors.left: belowTitle.right
+    anchors.top: belowTitle.top
+    margin-left: 5
+    width: 166
+    tooltip: Esperar mantiene este waypoint hasta la maxima. Ir a un label desvia la ruta; si vuelve a esta accion antes de la maxima, conserva la espera.
+
+  HelperThemeCombo
+    id: belowLabel
+    anchors.left: belowMode.right
+    anchors.right: parent.right
+    anchors.top: belowMode.top
+    margin-left: 6
+    tooltip: Destino cuando falta stamina. Solo se usa si eliges Ir a un label. Si el label desaparece, CaveBot espera aqui y avisa.
+
+  HelperThemeLabel
+    id: readyTitle
+    anchors.left: parent.left
+    anchors.top: belowTitle.bottom
+    margin-top: 6
+    width: 64
+    height: 22
+    text: Al seguir
+    tooltip: Se usa al alcanzar la maxima, o entre minima y maxima si no habia empezado a esperar. No libera una espera al pasar la minima.
+
+  HelperThemeCombo
+    id: readyMode
+    anchors.left: readyTitle.right
+    anchors.top: readyTitle.top
+    margin-left: 5
+    width: 166
+    tooltip: Al poder continuar, sigue con el proximo waypoint o salta al label elegido. Una espera iniciada solo termina en la maxima.
+
+  HelperThemeCombo
+    id: readyLabel
+    anchors.left: readyMode.right
+    anchors.right: parent.right
+    anchors.top: readyMode.top
+    margin-left: 6
+    tooltip: Destino con stamina suficiente. Los nombres corresponden a los labels de esta ruta; se guardan con el waypoint.
+
+  HelperThemeLabel
+    id: help
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: readyTitle.bottom
+    margin-top: 8
+    height: 32
+    text-wrap: true
+    text: Menos de minima: espera hasta maxima. Entre ambas: sigue si no habia empezado a esperar. Otras funciones siguen activas.
+
+  HelperThemeLabel
+    id: feedback
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: help.bottom
+    margin-top: 3
+    height: 24
+    text-wrap: true
+    color: #ffcd80
+
+  HelperThemeButton
+    id: cancel
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    width: 82
+    text: Cancelar
+
+  HelperThemeButton
+    id: ok
+    anchors.right: cancel.left
+    anchors.bottom: parent.bottom
+    margin-right: 6
+    width: 96
+    text: Guardar
+    tooltip: Guarda ambos resultados dentro de esta accion de ruta. No activa ni desactiva CaveBot.
+
+
+CaveBotEditorButton < HelperThemeButton
+  height: 20
+  text-align: center
+
+CaveBotSetProfileCheckBox < HelperThemeToggle
+  height: 20
+  margin-top: 3
+
+CaveBotDepotModeButton < HelperThemeToggle
+  height: 24
+  margin-top: 4
+  text-align: center
+
+CaveBotDepotActionWindow < HelperThemeWindow
+  text: Depot
+  width: 320
+  height: 235
+  padding: 18
+
+  HelperThemeLabel
+    id: description
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    text-align: center
+    text-wrap: true
+    text-auto-resize: true
+    text: Select what this waypoint should do.
+
+  CaveBotDepotModeButton
+    id: deposit
+    anchors.top: description.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 12
+    text: Deposit
+
+  CaveBotDepotModeButton
+    id: withdraw
+    anchors.top: deposit.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    text: Withdraw
+
+  CaveBotDepotModeButton
+    id: all
+    anchors.top: withdraw.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    text: Deposit + Withdraw
+
+  HelperThemeLabel
+    id: preview
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: ok.top
+    margin-bottom: 10
+    height: 32
+    text-align: center
+    text-wrap: true
+    text: -
+
+  HelperThemeButton
+    id: ok
+    !text: tr('Ok')
+    anchors.bottom: parent.bottom
+    anchors.right: next.left
+    margin-right: 10
+    width: 60
+
+  HelperThemeButton
+    id: cancel
+    !text: tr('Cancel')
+    anchors.bottom: parent.bottom
+    anchors.right: parent.right
+    width: 60
+
+CaveBotSetProfileEditorWindow < HelperThemeWindow
+  text: Set CaveBot profile
+  width: 360
+  height: 380
+  padding: 18
+
+  HelperThemeLabel
+    id: description
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    text-align: center
+    text-wrap: true
+    text-auto-resize: true
+    text: Select one route, or select multiple to choose randomly.
+
+  VerticalScrollBar
+    id: profilesScroll
+    anchors.top: description.bottom
+    anchors.right: parent.right
+    anchors.bottom: preview.top
+    step: 20
+    pixels-scroll: true
+    margin-top: 8
+    margin-bottom: 8
+
+  HelperThemeScroll
+    id: profiles
+    anchors.top: description.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: preview.top
+    vertical-scrollbar: profilesScroll
+    margin-top: 8
+    margin-right: 12
+    margin-bottom: 8
+    padding-right: 2
+    layout:
+      type: verticalBox
+
+  HelperThemeLabel
+    id: preview
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: ok.top
+    margin-bottom: 10
+    height: 34
+    text-align: center
+    text-wrap: true
+    text: -
+
+  HelperThemeButton
+    id: ok
+    !text: tr('Ok')
+    anchors.bottom: parent.bottom
+    anchors.right: next.left
+    margin-right: 10
+    width: 60
+
+  HelperThemeButton
+    id: cancel
+    !text: tr('Cancel')
+    anchors.bottom: parent.bottom
+    anchors.right: parent.right
+    width: 60
+
+
+CaveBotEditorPanel < Panel
+  id: cavebotEditor
+  visible: false
+  layout:
+    type: verticalBox
+    fit-children: true
+  
+  HelperThemeLabel
+    id: pos
+    text-align: center
+    text: -
+    
+  Panel
+    id: buttons
+    margin-top: 2
+    layout:
+      type: grid
+      cell-size: 78 20
+      cell-spacing: 1
+      num-columns: 2
+      fit-children: true
+
+  HelperThemeLabel
+    text: Double click on action from action list to edit it
+    text-align: center
+    text-auto-resize: true
+    text-wrap: true
+    margin-top: 3
+    margin-left: 2
+    margin-right: 2

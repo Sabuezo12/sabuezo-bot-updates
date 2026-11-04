@@ -1,12 +1,22 @@
 # RinoBot / Helper - Aurera, Valkaris y adaptadores por cliente
 
-Versión estable: **3.1.16**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.16). Puente clásico: **3.0.31**.
+Versión estable: **3.1.17**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.17). Puente clásico: **3.0.31**.
 
 ## Actualización
 
-En Actualizaciones, busca la versión 3.1.16, instala y recarga Helper al terminar la verificación. En el núcleo adaptado, la instalación y la recarga son manuales. Se conservan perfiles, rutas, scripts, heals y supplies; también se respetan development.lock, recuperación de versiones fallidas y protección contra downgrades. Para copias protegidas por development.lock, utiliza el instalador externo del ZIP y conserva el respaldo.
+En Actualizaciones, busca la versión 3.1.17, instala y recarga Helper al terminar la verificación. En el núcleo adaptado, la instalación y la recarga son manuales. Se conservan perfiles, rutas, scripts, heals y supplies; también se respetan development.lock, recuperación de versiones fallidas y protección contra downgrades. Para copias protegidas por development.lock, utiliza el instalador externo del ZIP y conserva el respaldo.
 
 Versiones antiguas con Auto OFF necesitan adoptar el nuevo updater una primera vez desde su panel. Si no hay Updater, usa la instalación inicial.
+
+## Cambios de 3.1.17
+
+- Corrige el cierre de Valkaris al reabrir mochilas y restaurar sus ventanas entre paneles.
+- Restaura el panel con setParent y valida ventanas, contenedores e indices vivos antes de reordenar.
+- Cancela los ajustes diferidos de tamano/minimizado cuando se cierra o reemplaza una ventana o se apaga el gestor.
+- Container Manager envia posiciones validas al ordenar objetos, incluido el destino infinito.
+- Conserva los adaptadores de Aurera y Valkaris OTC, perfiles, rutas, listas y preferencias. No activa un gestor apagado.
+
+[Notas de la correccion](rinobot/3.1.17-notas.md) e [informe de validacion](rinobot/3.1.17-validacion.json).
 
 ## Cambios de 3.1.16
 

@@ -1,0 +1,87 @@
+{
+  "version": "3.1.17",
+  "officialFiles": 352,
+  "compiledLuaFiles": 151,
+  "historicalReleaseInventoriesAccepted": 19,
+  "historicalFileHashesAccepted": 5336,
+  "installerMigrations": [
+    {
+      "origin": "aurera-original",
+      "changed": 24,
+      "personalFiles": 106,
+      "preserved": true
+    },
+    {
+      "origin": "valkaris-original",
+      "changed": 104,
+      "personalFiles": 18,
+      "preserved": true
+    },
+    {
+      "origin": "stable-3.1.16",
+      "changed": 4,
+      "personalFiles": 1,
+      "preserved": true
+    },
+    {
+      "origin": "aurera-installed",
+      "changed": 24,
+      "personalFiles": 106,
+      "preserved": true
+    },
+    {
+      "origin": "valkaris-installed",
+      "changed": 4,
+      "personalFiles": 399,
+      "preserved": true
+    }
+  ],
+  "nativeTransactionSimulation": "PASS; real Lua updater engines, in-memory filesystem",
+  "nativeClientTests": {
+    "aurera": {
+      "exitCode": 0,
+      "startup": true,
+      "savedSettingsReloaded": true,
+      "releaseFilesVerified": 352
+    },
+    "valkarisOTC": {
+      "exitCode": 0,
+      "startup": true,
+      "savedSettingsReloaded": true,
+      "releaseFilesVerified": 352
+    }
+  },
+  "liveClientsReloaded": false,
+  "privateDataIncluded": false,
+  "existingDevelopmentLocksPreserved": true,
+  "classicBridgeUnchanged": true,
+  "limitations": [
+    "Native clients run offline in isolated data directories; no live-server gameplay confirmation.",
+    "Valkaris RTC is not supported by the OTC adapter.",
+    "Valkaris has no verified party member kick API.",
+    "Unknown clients may require another adapter and tests."
+  ],
+  "containerRegressionTests": 13,
+  "lootRegressionTestGroups": 23,
+  "originalClientCrashReproducedOffline": {
+    "exitCode": 3221226356,
+    "hex": "0xC0000374",
+    "source": "ContainerLayout3.1.16 restore across parents",
+    "connectedToServer": false
+  },
+  "nativeInvalidIndexObserved": {
+    "crossParentAddChild": -1,
+    "crossParentSetParent": 1
+  },
+  "patchedNativeRestores": {
+    "genericWindows": 80,
+    "realContainerWindows": 80,
+    "processExit": 0
+  },
+  "clientExecutableSha256": "9a04a0a02142e018c319f45c832a05c77041fb27fc17df49e2639f630590d14c",
+  "rootCause": "Cross-parent addChild resets the native cached child index to -1; later reordering dereferences an invalid child. setParent detaches first and preserves a valid cached index.",
+  "realServerActionsSent": false,
+  "classicBridgeAndBootstrapUnchanged": true,
+  "packageSha256": "13a7b49ac6988b2159007b6da74bc355d3d595fca6b4f2c9346c7aab0226a6f6",
+  "packageSize": 3405091
+}
