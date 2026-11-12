@@ -1,0 +1,29 @@
+{
+  "version": "3.1.19",
+  "officialFiles": 373,
+  "filesChanged": 3,
+  "compiledLuaFiles": 168,
+  "manualInstallerMigrations": {
+    "3.1.18": 3,
+    "3.1.17": 81,
+    "3.1.16": 81
+  },
+  "automaticInstallAndReloadSimulation": true,
+  "scheduledFiveMinuteCheckSimulation": true,
+  "locksCustomFilesDowngradeAndFailedVersionSimulation": true,
+  "actualUpdaterTransactionTests": "PASS",
+  "nativeClientTests": {
+    "aurera": {
+      "offlineStartup": true,
+      "offlineReload": true,
+      "automaticModeOn": true
+    },
+    "valkaris": {
+      "offlineStartup": true,
+      "offlineReload": true,
+      "automaticModeOn": true
+    }
+  },
+  "packageSha256": "b1a52b220c5632c764a11579647fcd7cf5b96b6ddf7ee025f63b38ca52327875",
+  "packageSize": 3548975
+}

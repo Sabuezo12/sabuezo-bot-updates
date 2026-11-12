@@ -1,3 +1,9 @@
+3.1.19 - Actualizaciones automaticas del Helper
+- El Updater comprueba el canal estable al arrancar y cada cinco minutos mientras el Helper esta activo.
+- Descarga, instala y recarga el Helper automaticamente en los clientes con el Updater de esta version.
+- Conserva la verificacion de archivos, el respaldo y la recuperacion si falla el arranque.
+- Instala 3.1.19 y recarga manualmente una vez desde 3.1.18 o una version anterior en modo manual.
+
 3.1.18 - Next Gen, Reconect, AutoForge y perfiles privados
 - Reconect busca al personaje desde los 250 ms, reintenta cada 4 s y conserva su interruptor entre sesiones. Las caidas seguidas ya no lo bloquean.
 - Al volver, Reconect limpia los cuadros de login y solicita la recarga si Helper seguia On con el panel vacio.
