@@ -1,0 +1,258 @@
+CustomHotkeyTypeBoxPopupMenu < HelperThemeComboPopupMenu
+CustomHotkeyTypeBoxPopupMenuButton < HelperThemeComboPopupMenuButton
+CustomHotkeyTypeBox < HelperThemeCombo
+  height: 20
+  font: verdana-11px-antialised
+  @onSetup: |
+    self:addOption("Say")
+    self:addOption("Usar objeto")
+    self:addOption("Usar en mi")
+    self:addOption("Usar en objetivo")
+    self:addOption("Funcion")
+    self:addOption("Script")
+
+CustomHotkeyFunctionBoxPopupMenu < HelperThemeComboPopupMenu
+CustomHotkeyFunctionBoxPopupMenuButton < HelperThemeComboPopupMenuButton
+CustomHotkeyFunctionBox < HelperThemeCombo
+  height: 20
+  font: verdana-11px-antialised
+  @onSetup: |
+    self:addOption("Pausar Bot")
+    self:addOption("Reanudar Bot")
+    self:addOption("Pausar/Reanudar Bot")
+    self:addOption("Cave ON")
+    self:addOption("Cave OFF")
+    self:addOption("Cave ON/OFF")
+    self:addOption("Target ON")
+    self:addOption("Target OFF")
+    self:addOption("Target ON/OFF")
+
+CustomHotkeyRow < Panel
+  height: 32
+  margin-top: 2
+  background-color: #101b1d88
+  border-width: 1
+  border-color: #314246
+
+  HelperThemeCheck
+    id: enabled
+    text:
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 6
+    width: 16
+    height: 20
+    tooltip: Activar esta hotkey
+
+  HelperThemeButton
+    id: key
+    anchors.left: enabled.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 6
+    width: 132
+    height: 20
+    text: Sin tecla
+
+  CustomHotkeyTypeBox
+    id: kind
+    anchors.left: key.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 4
+    width: 112
+    height: 20
+
+  HelperThemeButton
+    id: remove
+    text: X
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 5
+    width: 22
+    height: 20
+    tooltip: Borrar esta hotkey
+
+  HelperThemeInput
+    id: value
+    anchors.left: kind.right
+    anchors.right: remove.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 4
+    margin-right: 4
+    height: 20
+
+  CustomHotkeyFunctionBox
+    id: func
+    anchors.left: kind.right
+    anchors.right: remove.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 4
+    margin-right: 4
+    height: 20
+    visible: false
+
+  HelperThemeButton
+    id: script
+    text: Editar script (Lua)
+    anchors.left: kind.right
+    anchors.right: remove.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 4
+    margin-right: 4
+    height: 20
+    visible: false
+
+  Panel
+    id: itemBox
+    anchors.left: kind.right
+    anchors.right: remove.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 4
+    margin-right: 4
+    height: 28
+    visible: false
+
+    BotItem
+      id: item
+      anchors.left: parent.left
+      anchors.verticalCenter: parent.verticalCenter
+      size: 26 26
+
+    HelperThemeInput
+      id: itemId
+      anchors.left: item.right
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 6
+      width: 58
+      height: 20
+
+    HelperThemeLabel
+      id: itemName
+      anchors.left: itemId.right
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 6
+      height: 18
+      text-align: left
+      color: #8aa0ad
+      text: Arrastra aqui un objeto de tu mochila, o escribe su ID
+
+CustomHotkeysWindow < HelperThemeWindow
+  id: CustomHotkeysWindow
+  text: Hotkeys
+  size: 600 400
+  @onEscape: self:hide()
+
+  HelperThemeCheck
+    id: master
+    text: Hotkeys activadas
+    anchors.left: parent.left
+    anchors.top: parent.top
+    width: 150
+    height: 20
+
+  HelperThemeButton
+    id: add
+    text: Crear hotkey
+    anchors.right: parent.right
+    anchors.top: parent.top
+    width: 104
+    height: 22
+
+  HelperThemeLabel
+    id: summary
+    anchors.left: master.right
+    anchors.right: add.left
+    anchors.verticalCenter: master.verticalCenter
+    margin-left: 10
+    margin-right: 6
+    height: 18
+    text-align: left
+    color: #9dd1ce
+    text: Sin hotkeys
+
+  HelperThemeLabel
+    id: colKey
+    anchors.left: parent.left
+    anchors.top: master.bottom
+    margin-top: 6
+    margin-left: 32
+    width: 100
+    height: 14
+    text-align: left
+    color: #8aa0ad
+    text: Tecla o boton
+
+  HelperThemeLabel
+    id: colKind
+    anchors.left: parent.left
+    anchors.top: colKey.top
+    margin-left: 172
+    width: 100
+    height: 14
+    text-align: left
+    color: #8aa0ad
+    text: Accion
+
+  HelperThemeLabel
+    id: colValue
+    anchors.left: parent.left
+    anchors.top: colKey.top
+    margin-left: 288
+    width: 140
+    height: 14
+    text-align: left
+    color: #8aa0ad
+    text: Que hace
+
+  HelperThemeScroll
+    id: list
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: colKey.bottom
+    anchors.bottom: last.top
+    margin-top: 2
+    margin-bottom: 4
+    margin-right: 14
+    padding: 2
+    layout: verticalBox
+    vertical-scrollbar: listScrollBar
+
+  HelperThemeLabel
+    id: empty
+    anchors.horizontalCenter: list.horizontalCenter
+    anchors.verticalCenter: list.verticalCenter
+    width: 320
+    height: 30
+    text-align: center
+    color: #888888
+    text: No hay hotkeys. Pulsa Crear hotkey.
+
+  VerticalScrollBar
+    id: listScrollBar
+    anchors.top: list.top
+    anchors.bottom: list.bottom
+    anchors.right: parent.right
+    step: 20
+    pixels-scroll: true
+
+  HelperThemeLabel
+    id: last
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: hint.top
+    margin-bottom: 2
+    height: 16
+    text-align: left
+    color: #9dd1ce
+    text:
+
+  HelperThemeLabel
+    id: hint
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    height: 56
+    text-wrap: true
+    text-align: left
+    color: #a9bbc6
+    text: Clic en la tecla y pulsa la nueva. Para la rueda o un boton del raton, ponlos con el cursor sobre ese mismo boton. Esc cancela. En Usar objeto, Usar en mi y Usar en objetivo, arrastra el objeto desde tu mochila a la casilla. Las hotkeys no actuan mientras escribes en un campo de texto (las F1 a F12 y las que llevan Ctrl o Alt si).

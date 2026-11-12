@@ -1,0 +1,51 @@
+{
+  "version": "3.1.18",
+  "sourceCommit": "c3896188b0b07b9c2c29b7b116260a4c4cb981e3",
+  "officialFiles": 373,
+  "filesChanged": 80,
+  "newFiles": 21,
+  "retainedPublicFiles": [
+    "vBot/mythic_opcode_diagnostic.lua",
+    "vBot/mythic_opcode_diagnostic.otui",
+    "vBot/mythic_opcode_local_control.lua",
+    "zPaidScripts/zMacroAvoidTraps0614.lua"
+  ],
+  "historicalInventories": 20,
+  "compiledLuaFiles": 168,
+  "historicalFileHashesChecked": 5688,
+  "installerMigrations": {
+    "3.1.17": 80,
+    "3.1.16": 80,
+    "3.1.15": 115,
+    "3.1.13": 115,
+    "desarrollo": 6,
+    "instalacion-nueva": 373
+  },
+  "updaterTransactions": "PASS",
+  "privateFilesPreserved": true,
+  "privateDataIncluded": false,
+  "nativeClientTests": {
+    "Aurera": {
+      "offlineStartup": true,
+      "offlineReload": true
+    },
+    "Valkaris OTC": {
+      "offlineStartup": true,
+      "offlineReload": true
+    }
+  },
+  "additionalSimulations": {
+    "Reconect": 14,
+    "Relog with native Next Gen cleanup": 6,
+    "AutoForge with native Next Gen conversion and simulated balances": 10
+  },
+  "stableHotfixPreserved": true,
+  "classicBridgeUnchanged": true,
+  "limitations": [
+    "The release payload was started and reloaded offline in Aurera and Valkaris OTC.",
+    "Reconect and AutoForge were confirmed on the local development installation of Valkaris Next Gen.",
+    "Live relog cleanup, Sell All exclusions and Navi stability remain pending confirmation."
+  ],
+  "packageSha256": "d4a115863017922ef08d6187b3981ab0c2d22b8fb559935b13388e113b45f654",
+  "packageSize": 3550332
+}

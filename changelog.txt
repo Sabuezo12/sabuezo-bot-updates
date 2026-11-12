@@ -1,3 +1,40 @@
+3.1.18 - Next Gen, Reconect, AutoForge y perfiles privados
+- Reconect busca al personaje desde los 250 ms, reintenta cada 4 s y conserva su interruptor entre sesiones. Las caidas seguidas ya no lo bloquean.
+- Al volver, Reconect limpia los cuadros de login y solicita la recarga si Helper seguia On con el panel vacio.
+- AutoForge usa el Forge nativo de Next Gen y espera cambios de saldo en las conversiones de 60 dust a 3 slivers y de 50 slivers a 1 core.
+- Deteccion de Valkaris Next Gen y su servidor, API de compatibilidad y diagnostico de modulos, recursos y llamadas del cliente.
+- Perfiles con opciones de copiar y renombrar. Pausar Bot pausa los modulos que actuan.
+- CaveBot guarda rutas privadas por perfil. Permite renombrarlas, traerlas de otro perfil y editarlas por lineas o como texto.
+- CaveBot agrega excepciones a Sell All, panel compacto, botones de grabar y ver waypoints, y mas datos para diagnosticar compras sin confirmar.
+- WaitStamina actua bajo el minimo, Travel confirma el viaje y CaveBot retoma la ruta cerca de tu posicion al recargar.
+- TargetBot vuelve a ser privado por perfil. La regla Todo anterior se conserva como Todo_anterior cuando difiere y queda respaldada.
+- AttackBot ajusta el giro para waves y beams, lanza Divine Grenade en tu casilla y mejora el catalogo y la vista de hechizos. TargetBot ajusta el anti-rodeo.
+- Curas y Recovery pueden seguir durante la pausa de combate. Friend Healer da prioridad a Mas Res urgente y comprueba su cooldown.
+- Comida muestra opciones compactas, corrige la lista predeterminada y permite decir un texto tras 15 s sin comida.
+- Hotkeys por perfil para teclado, botones y rueda. Permiten Say, objetos arrastrados desde la mochila, acciones y scripts. Las hotkeys existentes de Hechizo pasan a Say.
+- Captura de teclas por pulsacion en Push Max, Bug Map, Extras, Extras PvP, Equipper y el acceso al Helper.
+- FPS Relog puede enviar !fps a intervalos en un momento seguro y mide el regreso.
+- Navi registra el estado de la conexion y de los participantes y espera a que el socket abra para enviar la presencia inicial.
+- Container Manager conserva la reapertura segura y agrega control de espacio, diagnostico y pausa de aperturas repetidas.
+- Inicio ajusta el retrato para Next Gen y permite elegir entre ocho formas de pintarlo. Los iconos usan los colores del editor.
+- Recarga mas rapida y diagnostico de arranque, macros con errores, tirones e indicadores de memoria.
+- En instalaciones limpias, Helper crea la carpeta de diagnostico antes de guardar el inventario de modulos.
+
+3.1.17 - Container Manager: reapertura de mochilas sin cierre del cliente
+- Corrige el cierre de Valkaris al reabrir mochilas y restaurar sus ventanas entre paneles.
+- Restaura el panel con setParent y valida ventanas, contenedores e indices vivos antes de reordenar.
+- Cancela los ajustes diferidos de tamano/minimizado cuando se cierra o reemplaza una ventana o se apaga el gestor.
+- Container Manager envia posiciones validas al ordenar objetos, incluido el destino infinito.
+- Conserva los adaptadores de Aurera y Valkaris OTC, perfiles, rutas, listas y preferencias. No activa un gestor apagado.
+
+3.1.16 - Base comun compatible con Aurera y Valkaris OTC
+- Una base comun con adaptadores separados para Aurera y Valkaris OTC; conserva perfiles, rutas y preferencias locales.
+- TargetBot integra categorias de loot, filtros y destinos, con Automatico, Quick Loot nativo y Tradicional para clientes sin soporte.
+- AttackBot prioriza el mayor requisito de monstruos que puede lanzar y muestra una escena del hechizo con personaje y efectos alineados.
+- Auto Party corrige Pass Leader y observa 60 segundos continuos sin compartir experiencia; expulsar requiere soporte real del servidor.
+- Los iconos admiten arrastrar un objeto o escribir su ID; bless y dummy reconocen las confirmaciones de Aurera.
+- Actualizacion manual en clientes adaptados, con hashes, respaldo, recuperacion y proteccion de archivos personales.
+
 3.1.15 - Reconect retirado e Inicio restaurado
 - Reconect eliminado por completo: sin boton, script ni servicio de reconexion.
 - Inicio recupera Mantener montura a todo el ancho como antes de Reconect.

@@ -1,12 +1,23 @@
 # RinoBot / Helper - Aurera, Valkaris y adaptadores por cliente
 
-Versión estable: **3.1.17**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.17). Puente clásico: **3.0.31**.
+Versión estable: **3.1.18**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.18). Puente clásico: **3.0.31**.
 
 ## Actualización
 
-En Actualizaciones, busca la versión 3.1.17, instala y recarga Helper al terminar la verificación. En el núcleo adaptado, la instalación y la recarga son manuales. Se conservan perfiles, rutas, scripts, heals y supplies; también se respetan development.lock, recuperación de versiones fallidas y protección contra downgrades. Para copias protegidas por development.lock, utiliza el instalador externo del ZIP y conserva el respaldo.
+En Actualizaciones, busca la versión 3.1.18, instala y recarga Helper al terminar la verificación. En el núcleo adaptado, la instalación y la recarga son manuales. Se conservan perfiles, rutas, scripts, heals y supplies; también se respetan development.lock, recuperación de versiones fallidas y protección contra downgrades. Para copias protegidas por development.lock, utiliza el instalador externo del ZIP y conserva el respaldo.
 
 Versiones antiguas con Auto OFF necesitan adoptar el nuevo updater una primera vez desde su panel. Si no hay Updater, usa la instalación inicial.
+
+## Cambios de 3.1.18
+
+- Reconect busca al personaje desde los 250 ms, reintenta cada 4 s y conserva su interruptor entre sesiones. Las caidas seguidas ya no lo bloquean.
+- Al volver, Reconect limpia los cuadros de login y solicita la recarga si Helper seguia On con el panel vacio.
+- AutoForge usa el Forge nativo de Next Gen y espera cambios de saldo en las conversiones de 60 dust a 3 slivers y de 50 slivers a 1 core.
+- Deteccion de Valkaris Next Gen y su servidor, API de compatibilidad y diagnostico de modulos, recursos y llamadas del cliente.
+- Perfiles con opciones de copiar y renombrar. Pausar Bot pausa los modulos que actuan.
+- CaveBot guarda rutas privadas por perfil. Permite renombrarlas, traerlas de otro perfil y editarlas por lineas o como texto.
+
+[Notas completas](rinobot/3.1.18-notas.md) e [informe de validación](rinobot/3.1.18-validacion.json).
 
 ## Cambios de 3.1.17
 
