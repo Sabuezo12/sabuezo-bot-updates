@@ -1,0 +1,84 @@
+{
+  "version": "3.1.21",
+  "officialFiles": 375,
+  "filesChanged": 21,
+  "compiledLuaFiles": 171,
+  "sourceCommit": "f45ae23a89ed36671dcba9e3bd7086ec305ac432",
+  "manualInstallerMigrations": {
+    "3.1.20": 21,
+    "3.1.19": 37,
+    "3.1.18": 38,
+    "3.1.17": 93,
+    "3.1.16": 93
+  },
+  "luaCompilation": "PASS",
+  "automaticInstallReloadAndFiveMinuteCheck": "PASS",
+  "followRegression": "PASS",
+  "updaterTransactions": "PASS",
+  "manifestAndPayloadHashes": "PASS",
+  "historicalFileHashesChecked": 6796,
+  "privateFilesPreserved": true,
+  "excludedUntrackedFiles": [
+    "vBot/mythic_opcode_diagnostic.lua",
+    "vBot/mythic_opcode_diagnostic.otui",
+    "vBot/mythic_opcode_local_control.lua"
+  ],
+  "removedFromPreviousManifest": [
+    "vBot/mythic_opcode_diagnostic.lua",
+    "vBot/mythic_opcode_diagnostic.otui",
+    "vBot/mythic_opcode_local_control.lua"
+  ],
+  "overall": "PASS",
+  "changedFiles": [
+    "_Loader.lua",
+    "cavebot/walking.lua",
+    "targetbot/creature_attack.lua",
+    "targetbot/creature_editor.lua",
+    "targetbot/looting.lua",
+    "targetbot/unified.lua",
+    "vBot/AttackBot.lua",
+    "vBot/BotServer.lua",
+    "vBot/ClientDetector.lua",
+    "vBot/HelperProfileCatalogs.lua",
+    "vBot/SabuezoChangelog.fallback.txt",
+    "vBot/attack_alignment.lua",
+    "vBot/attack_editor.lua",
+    "vBot/attack_rotation.lua",
+    "vBot/attack_spell_catalog.lua",
+    "vBot/attack_spell_preview.lua",
+    "vBot/client_registry.lua",
+    "vBot/combo_plus.lua",
+    "vBot/follow_route.lua",
+    "vBot/helper_home.lua",
+    "vBot/party_threat.lua"
+  ],
+  "publishedOverlaysIdenticalTo3120": "PASS",
+  "sourceHeadPinned": "f45ae23a89ed36671dcba9e3bd7086ec305ac432",
+  "aureraSmokeAttempts": [
+    {
+      "attempt": "concurrent-first-attempt",
+      "result": "FAIL: Helper UI incomplete before startup completed",
+      "logSha256": "649d40561e4f4447cfc0aa58a74ddbcc9dc9452d8e8b9da00b59519e0066291f",
+      "lastLoadTotalMs": 5390
+    },
+    {
+      "attempt": "clean-isolated-serial-1",
+      "result": "PASS",
+      "logSha256": "528fc5ece8dbe994c65d3116f349b50e0b6875438e2d19b8eaa27fa91108e01f",
+      "lastLoadTotalMs": 3130
+    },
+    {
+      "attempt": "clean-isolated-serial-2",
+      "result": "PASS",
+      "logSha256": "a0bdce40b32485114b2f1439626e996b3715be0933a95c126025e2bcf5b16f6e",
+      "lastLoadTotalMs": 3138
+    }
+  ],
+  "aureraSmokeResolution": "Unchanged fixture and payload passed twice from clean isolated folders when run serially. Concurrent run exceeded the 4500 ms UI inspection delay (5390 ms startup); source and assertions were not changed.",
+  "nativeClientTests": {
+    "Valkaris Next Gen": "offline startup and reload",
+    "Aurera": "offline startup and reload"
+  },
+  "packageSha256": "1dcdd19ce9b8209c722dd6be18cb63ce7a2975070890fef298f2696e85d14eef",
+  "packageSize": 3597412
+}
