@@ -1,0 +1,505 @@
+TimerExecutorActionTypeBoxPopupMenu < HelperThemeComboPopupMenu
+TimerExecutorActionTypeBoxPopupMenuButton < HelperThemeComboPopupMenuButton
+TimerExecutorActionTypeBox < HelperThemeCombo
+  height: 20
+  font: verdana-11px-antialised
+  @onSetup: |
+    self:addOption("Say")
+    self:addOption("Cast")
+    self:addOption("Use Item")
+    self:addOption("Use Self")
+    self:addOption("Use Target")
+    self:addOption("Use Tile")
+    self:addOption("Lua")
+    self:addOption("Cave ON")
+    self:addOption("Cave OFF")
+    self:addOption("Target ON")
+    self:addOption("Target OFF")
+    self:addOption("Dummy ON")
+    self:addOption("Dummy OFF")
+
+TimerExecutorActionRow < Panel
+  height: 86
+  margin-top: 3
+  background-color: #101b1d88
+  border-width: 1
+  border-color: #314246
+  HelperThemeCheck
+    id: enabled
+    text: 
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 6
+    margin-top: 4
+    width: 16
+    height: 20
+    tooltip: Activar esta accion
+  HelperThemeInput
+    id: name
+    anchors.left: enabled.right
+    anchors.top: enabled.top
+    margin-left: 4
+    width: 178
+    height: 20
+    tooltip: Nombre de la accion
+  HelperThemeButton
+    id: remove
+    text: X
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-right: 6
+    margin-top: 4
+    width: 22
+    height: 20
+    tooltip: Eliminar accion
+  HelperThemeButton
+    id: run
+    text: Ejecutar
+    anchors.right: remove.left
+    anchors.top: remove.top
+    margin-right: 4
+    width: 60
+    height: 20
+  HelperThemeLabel
+    id: status
+    anchors.right: run.left
+    anchors.verticalCenter: run.verticalCenter
+    margin-right: 6
+    width: 110
+    height: 18
+    text-align: right
+    color: #9dd1ce
+    text: -
+  TimerExecutorActionTypeBox
+    id: actionType
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 6
+    margin-top: 30
+    width: 108
+    height: 20
+  HelperThemeSpin
+    id: interval
+    anchors.left: actionType.right
+    anchors.top: actionType.top
+    margin-left: 4
+    width: 64
+    height: 20
+    minimum: 1
+    maximum: 86400
+    step: 1
+    editable: true
+    focusable: true
+    tooltip: Segundos entre ejecuciones
+  HelperThemeLabel
+    id: secondsLabel
+    anchors.left: interval.right
+    anchors.verticalCenter: interval.verticalCenter
+    margin-left: 3
+    width: 12
+    height: 16
+    text: s
+  BotItem
+    id: item
+    anchors.left: secondsLabel.right
+    anchors.verticalCenter: actionType.verticalCenter
+    margin-left: 4
+    size: 28 28
+  HelperThemeInput
+    id: value
+    anchors.left: item.right
+    anchors.right: parent.right
+    anchors.top: actionType.top
+    margin-left: 6
+    margin-right: 6
+    height: 20
+    tooltip: Texto, hechizo, offset x,y o codigo Lua
+  HelperThemeCheck
+    id: skipPz
+    text: Evitar PZ
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 6
+    margin-top: 60
+    width: 76
+    height: 20
+  HelperThemeCheck
+    id: skipAttack
+    text: Sin atacar
+    anchors.left: skipPz.right
+    anchors.top: skipPz.top
+    margin-left: 4
+    width: 88
+    height: 20
+    tooltip: No ejecutar mientras atacas
+  HelperThemeCheck
+    id: runOnStart
+    text: Al iniciar
+    anchors.left: skipAttack.right
+    anchors.top: skipPz.top
+    margin-left: 4
+    width: 76
+    height: 20
+  HelperThemeCheck
+    id: once
+    text: Una vez
+    anchors.left: runOnStart.right
+    anchors.top: skipPz.top
+    margin-left: 4
+    width: 70
+    height: 20
+  HelperThemeButton
+    id: duplicate
+    text: Duplicar
+    anchors.right: parent.right
+    anchors.top: parent.top
+    margin-right: 6
+    margin-top: 60
+    width: 62
+    height: 20
+  HelperThemeButton
+    id: filters
+    text: Cond. (0)
+    anchors.right: duplicate.left
+    anchors.top: parent.top
+    margin-right: 4
+    margin-top: 60
+    width: 88
+    height: 20
+    tooltip: Configurar condiciones
+
+TimerExecutorWindow < HelperThemeWindow
+  id: TimerExecutorWindow
+  text: Timer Executor
+  size: 560 190
+  @onEscape: self:hide()
+  HelperThemeLabel
+    id: summary
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    height: 18
+    text-align: left
+    color: #9dd1ce
+    text: Sin acciones activas
+  HelperThemeScroll
+    id: list
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: summary.bottom
+    anchors.bottom: bottomSep.top
+    margin-top: 4
+    margin-bottom: 6
+    margin-right: 14
+    padding: 2
+    layout: verticalBox
+    vertical-scrollbar: listScrollBar
+  HelperThemeLabel
+    id: empty
+    anchors.horizontalCenter: list.horizontalCenter
+    anchors.verticalCenter: list.verticalCenter
+    width: 220
+    height: 30
+    text-align: center
+    color: #888888
+    text: No hay acciones programadas
+  VerticalScrollBar
+    id: listScrollBar
+    anchors.top: list.top
+    anchors.bottom: list.bottom
+    anchors.right: parent.right
+    step: 20
+    pixels-scroll: true
+  HelperThemeDivider
+    id: bottomSep
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: add.top
+    margin-bottom: 6
+  HelperThemeButton
+    id: add
+    text: Nueva
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    width: 64
+    height: 21
+  HelperThemeButton
+    id: reset
+    text: Reiniciar
+    anchors.left: add.right
+    anchors.bottom: parent.bottom
+    margin-left: 5
+    width: 72
+    height: 21
+  HelperThemePower
+    id: master
+    anchors.left: reset.right
+    anchors.bottom: parent.bottom
+    margin-left: 6
+    width: 100
+    height: 21
+    text: Executor
+  HelperThemeButton
+    id: closeButton
+    text: Cerrar
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    width: 62
+    height: 21
+    @onClick: self:getParent():hide()
+
+TimerConditionRange < Panel
+  height: 24
+  HelperThemeCheck
+    id: enabled
+    text: 
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    width: 82
+    height: 20
+  HelperThemeInput
+    id: minimum
+    anchors.left: enabled.right
+    anchors.verticalCenter: parent.verticalCenter
+    width: 48
+    height: 22
+  HelperThemeLabel
+    id: dash
+    anchors.left: minimum.right
+    anchors.verticalCenter: parent.verticalCenter
+    width: 12
+    height: 16
+    text-align: center
+    text: a
+  HelperThemeInput
+    id: maximum
+    anchors.left: dash.right
+    anchors.verticalCenter: parent.verticalCenter
+    width: 48
+    height: 22
+
+TimerConditionItem < Panel
+  height: 56
+  HelperThemeCheck
+    id: enabled
+    text: Items
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-top: 2
+    width: 100
+    height: 20
+  BotItem
+    id: item
+    anchors.right: parent.right
+    anchors.top: parent.top
+    size: 26 26
+    tooltip: Arrastra el item que quieres contar
+  HelperThemeInput
+    id: minimum
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-top: 28
+    width: 80
+    height: 22
+  HelperThemeLabel
+    id: dash
+    anchors.left: minimum.right
+    anchors.verticalCenter: minimum.verticalCenter
+    width: 14
+    height: 16
+    text-align: center
+    text: a
+  HelperThemeInput
+    id: maximum
+    anchors.left: dash.right
+    anchors.top: minimum.top
+    width: 80
+    height: 22
+
+TimerExecutorConditionsWindow < HelperThemeWindow
+  id: TimerExecutorConditionsWindow
+  text: Timer Executor | Condiciones
+  size: 410 270
+  @onEscape: self:hide()
+  HelperThemeLabel
+    id: caption
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    height: 18
+    color: #00ffff
+  HelperThemeLabel
+    id: help
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: caption.bottom
+    height: 18
+    text: HH:MM en stamina/horario. Se cumplen todos.
+  Panel
+    id: fields
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: help.bottom
+    anchors.bottom: preview.top
+    margin-top: 4
+    margin-bottom: 4
+    TimerConditionRange
+      id: stamina
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-top: 0
+      width: 190
+    TimerConditionRange
+      id: hp
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-top: 24
+      width: 190
+    TimerConditionRange
+      id: mana
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-top: 48
+      width: 190
+    TimerConditionRange
+      id: capacity
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-top: 72
+      width: 190
+    TimerConditionRange
+      id: monsters
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-top: 96
+      width: 190
+    TimerConditionRange
+      id: clock
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-top: 120
+      width: 190
+    Panel
+      id: pz
+      anchors.right: parent.right
+      anchors.top: parent.top
+      margin-top: 0
+      width: 190
+      height: 24
+      HelperThemeLabel
+        id: caption
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+        width: 64
+        height: 20
+        text: PZ
+      HelperThemeCombo
+        id: value
+        anchors.left: caption.right
+        anchors.verticalCenter: parent.verticalCenter
+        width: 126
+        height: 22
+        @onSetup: |
+          self:addOption("Cualquiera")
+          self:addOption("En PZ")
+          self:addOption("Fuera de PZ")
+    Panel
+      id: combat
+      anchors.right: parent.right
+      anchors.top: parent.top
+      margin-top: 24
+      width: 190
+      height: 24
+      HelperThemeLabel
+        id: caption
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+        width: 64
+        height: 20
+        text: Ataque
+      HelperThemeCombo
+        id: value
+        anchors.left: caption.right
+        anchors.verticalCenter: parent.verticalCenter
+        width: 126
+        height: 22
+        @onSetup: |
+          self:addOption("Cualquiera")
+          self:addOption("Atacando")
+          self:addOption("Sin atacar")
+    Panel
+      id: cave
+      anchors.right: parent.right
+      anchors.top: parent.top
+      margin-top: 48
+      width: 190
+      height: 24
+      HelperThemeLabel
+        id: caption
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+        width: 64
+        height: 20
+        text: CaveBot
+      HelperThemeCombo
+        id: value
+        anchors.left: caption.right
+        anchors.verticalCenter: parent.verticalCenter
+        width: 126
+        height: 22
+        @onSetup: |
+          self:addOption("Cualquiera")
+          self:addOption("ON")
+          self:addOption("OFF")
+    Panel
+      id: target
+      anchors.right: parent.right
+      anchors.top: parent.top
+      margin-top: 72
+      width: 190
+      height: 24
+      HelperThemeLabel
+        id: caption
+        anchors.left: parent.left
+        anchors.verticalCenter: parent.verticalCenter
+        width: 64
+        height: 20
+        text: TargetBot
+      HelperThemeCombo
+        id: value
+        anchors.left: caption.right
+        anchors.verticalCenter: parent.verticalCenter
+        width: 126
+        height: 22
+        @onSetup: |
+          self:addOption("Cualquiera")
+          self:addOption("ON")
+          self:addOption("OFF")
+    TimerConditionItem
+      id: items
+      anchors.right: parent.right
+      anchors.top: parent.top
+      margin-top: 100
+      width: 190
+  HelperThemeLabel
+    id: preview
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: closeButton.top
+    margin-bottom: 4
+    height: 20
+    color: #ffd166
+  HelperThemeButton
+    id: clear
+    text: Limpiar filtros
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    width: 100
+    height: 20
+  HelperThemeButton
+    id: closeButton
+    text: Cerrar
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    width: 68
+    height: 20

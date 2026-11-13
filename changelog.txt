@@ -1,3 +1,8 @@
+3.1.22 - Updater: progreso de la descarga y motivo al detenerse
+- El Updater muestra el porcentaje de la descarga segun el tamano de los archivos, y cuantos archivos y KB faltan.
+- Si la actualizacion se detiene, el titulo dice el motivo (por ejemplo, un archivo modificado a mano) en vez de solo Actualizacion detenida.
+- Conserva las actualizaciones automaticas, las rutas y las preferencias personales.
+
 3.1.21 - Thornia, Follow con puesto fijo y Exeta Res en party
 - Thornia: el bot reconoce el cliente y muestra al personaje en Inicio. Aurera y los clientes desconocidos ya no se toman por Valkaris.
 - AttackBot en Combo Follow: con el leader quieto, el seguidor se acomoda una vez en la fila o columna del leader a la separacion del Follow, se queda ahi y tira los waves hacia el leader.

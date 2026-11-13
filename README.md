@@ -1,12 +1,18 @@
 # RinoBot / Helper - Aurera, Valkaris y adaptadores por cliente
 
-Versión estable: **3.1.21**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.21). Puente clásico: **3.0.31**.
+Versión estable: **3.1.22**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.22). Puente clásico: **3.0.31**.
 
 ## Actualización
 
 Si estás en 3.1.18 o en una versión anterior en modo manual, instala la 3.1.19 desde Actualizaciones y recarga Helper una vez. A partir de la 3.1.19, el bot comprueba al iniciar y cada cinco minutos, instala la actualización y se recarga automáticamente. Se conservan perfiles, rutas, scripts y preferencias.
 
 Versiones antiguas con Auto OFF necesitan adoptar el nuevo updater una primera vez desde su panel. Si no hay Updater, usa la instalación inicial.
+
+## Cambios de 3.1.22
+
+El Updater calcula el progreso por bytes y muestra los archivos y KB pendientes. Cuando se detiene, el titulo muestra el motivo.
+
+[Notas completas](rinobot/3.1.22-notas.md) e [informe de validación](rinobot/3.1.22-validacion.json).
 
 ## Cambios de 3.1.21
 

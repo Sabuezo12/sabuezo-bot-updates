@@ -1,0 +1,44 @@
+{
+  "version": "3.1.22",
+  "officialFiles": 375,
+  "filesChanged": 3,
+  "compiledLuaFiles": 171,
+  "sourceCommit": "7bb1cbaf73202e0d641d1be582b6cf5fccf256dc",
+  "manualInstallerMigrations": {
+    "3.1.21": 3,
+    "3.1.20": 22,
+    "3.1.19": 38,
+    "3.1.18": 38,
+    "3.1.17": 93,
+    "3.1.16": 93
+  },
+  "changedFiles": [
+    "_Loader.lua",
+    "vBot/SabuezoChangelog.fallback.txt",
+    "vBot/Updater.lua"
+  ],
+  "sourceWorktreeClean": "PASS",
+  "luaCompilation": "PASS",
+  "automaticInstallReloadAndFiveMinuteCheck": "PASS",
+  "currentUpdaterAutomaticInstallReloadAndFiveMinuteCheck": "PASS",
+  "previousUpdaterSelfInstall": "PASS",
+  "currentUpdaterSelfInstallAndRender": "PASS",
+  "followRegression": "PASS",
+  "updaterTransactions": "PASS",
+  "manifestAndPayloadHashes": "PASS",
+  "historicalFileHashesChecked": 7171,
+  "privateFilesPreserved": true,
+  "excludedUntrackedFiles": [
+    "vBot/mythic_opcode_diagnostic.lua",
+    "vBot/mythic_opcode_diagnostic.otui",
+    "vBot/mythic_opcode_local_control.lua"
+  ],
+  "removedFromPreviousManifest": [],
+  "overall": "PASS",
+  "nativeClientTests": {
+    "Valkaris Next Gen": "offline startup and reload",
+    "Aurera": "offline startup and reload"
+  },
+  "packageSha256": "b2889889b7ef617101dd1010f99017d8fcb2b06e5157751722943bd7a4188d73",
+  "packageSize": 3597617
+}
