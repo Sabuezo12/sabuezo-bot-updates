@@ -1,0 +1,22 @@
+{
+  "version": "3.1.20",
+  "officialFiles": 377,
+  "filesChanged": 28,
+  "compiledLuaFiles": 172,
+  "sourceCommit": "656aac6f6acf285500c536b332890b906f84dda2",
+  "manualInstallerMigrations": {
+    "3.1.19": 28,
+    "3.1.18": 29,
+    "3.1.17": 92,
+    "3.1.16": 92
+  },
+  "updaterTransactions": "PASS",
+  "automaticInstallReloadAndFiveMinuteCheck": "PASS",
+  "followRegression": "PASS",
+  "nativeClientTests": {
+    "Valkaris Next Gen": "offline startup and reload",
+    "Aurera": "offline startup and reload"
+  },
+  "packageSha256": "decbf97c8293896de8f81681d5da67ef92220f0ef3bdd9c32948d2c8bce99e4d",
+  "packageSize": 3587910
+}

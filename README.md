@@ -1,12 +1,18 @@
 # RinoBot / Helper - Aurera, Valkaris y adaptadores por cliente
 
-Versión estable: **3.1.19**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.19). Puente clásico: **3.0.31**.
+Versión estable: **3.1.20**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.20). Puente clásico: **3.0.31**.
 
 ## Actualización
 
 Si estás en 3.1.18 o en una versión anterior en modo manual, instala la 3.1.19 desde Actualizaciones y recarga Helper una vez. A partir de la 3.1.19, el bot comprueba al iniciar y cada cinco minutos, instala la actualización y se recarga automáticamente. Se conservan perfiles, rutas, scripts y preferencias.
 
 Versiones antiguas con Auto OFF necesitan adoptar el nuevo updater una primera vez desde su panel. Si no hay Updater, usa la instalación inicial.
+
+## Cambios de 3.1.20
+
+Follow recupera escaleras y coordina compras con el líder. AttackBot prioriza waves y beams, Sell All completa las ventas y Next Gen conserva los perfiles y filtros de Quick Loot.
+
+[Notas completas](rinobot/3.1.20-notas.md) e [informe de validación](rinobot/3.1.20-validacion.json).
 
 ## Cambios de 3.1.19
 

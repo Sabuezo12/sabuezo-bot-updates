@@ -1,3 +1,17 @@
+3.1.20 - Follow, AttackBot, Sell All y perfiles de Next Gen
+- Combo Follow responde mas rapido y mantiene la separacion de 1 a 5 SQM. Navi prepara tramos mientras camina y usa pasos rectos a larga distancia para 2 a 5 SQM.
+- Follow busca el acceso al subir o bajar, usa escaleras de clic y puede regresar si el seguidor cambia de piso por error.
+- Navi muestra el puntero nativo de companeros y puede seguir viajes en barco con rutas Travel conocidas de CaveBot.
+- Cuando el leader usa Buy Supplies, los seguidores pueden comprar con los maximos de su propio perfil y retomar Follow, aunque su CaveBot este apagado.
+- Sell All reconoce Loot Buyer en el comercio de Next Gen, verifica cada lote por inventario y termina de vender en la misma conversacion.
+- AttackBot para knight agrega Exeta Res para atraer monstruos adyacentes con un miembro de la party cerca.
+- Con el leader quieto, los magos en Combo Follow priorizan waves y beams y buscan lados libres de la cruz segun la cobertura. Incluye Strong Ice Wave con la Rueda.
+- La vista previa animada alinea los efectos, muestra un muneco de entrenamiento y deja 1.5 s de pausa entre animaciones.
+- Next Gen guarda los perfiles de hotkeys y las listas de Quick Loot por personaje al reloguear.
+- Imbuements usa scrolls por ID y puede buscar en mochilas cerradas. Container Manager ayuda a abrirlas sin reemplazar las ya abiertas.
+- AutoForge empieza activado por defecto. Los perfiles nuevos usan las posiciones y formatos de los iconos de Sabuezo.
+- Conserva las actualizaciones automaticas de la 3.1.19, las rutas y las preferencias personales.
+
 3.1.19 - Actualizaciones automaticas del Helper
 - El Updater comprueba el canal estable al arrancar y cada cinco minutos mientras el Helper esta activo.
 - Descarga, instala y recarga el Helper automaticamente en los clientes con el Updater de esta version.

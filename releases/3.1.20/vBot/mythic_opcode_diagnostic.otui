@@ -1,0 +1,117 @@
+MythicOpcodeDiagnosticWindow < MainWindow
+  id: mythicOpcodeDiagnostic
+  text: Opcode - MythicOT
+  size: 450 440
+  @onEscape: self:hide()
+
+  Label
+    id: identity
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 18
+    text-align: center
+
+  Label
+    id: instructions
+    anchors.top: identity.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 5
+    height: 34
+    text-wrap: true
+    text: Ambos en este PC y misma clave de Navi. Rod Master: Escuchar. Sabuezo: iniciar prueba. Funciona sin WebSocket.
+
+  Button
+    id: prepare
+    anchors.top: instructions.bottom
+    anchors.left: parent.left
+    margin-top: 7
+    size: 118 24
+    text: Escuchar
+
+  ComboBox
+    id: format
+    anchors.top: prepare.top
+    anchors.left: prepare.right
+    anchors.right: parent.right
+    margin-left: 7
+    height: 24
+
+  Button
+    id: single
+    anchors.top: prepare.bottom
+    anchors.left: parent.left
+    margin-top: 7
+    size: 122 24
+    text: Probar 201
+
+  Button
+    id: upper
+    anchors.top: single.top
+    anchors.left: single.right
+    margin-left: 7
+    size: 133 24
+    text: Probar 200-255
+
+  Button
+    id: all
+    anchors.top: single.top
+    anchors.left: upper.right
+    anchors.right: parent.right
+    margin-left: 7
+    height: 24
+    text: Probar 8-255
+
+  Label
+    id: status
+    anchors.top: single.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 8
+    height: 28
+    text-wrap: true
+    text-align: center
+    background-color: #20282c
+
+  Label
+    id: result
+    anchors.top: status.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 10
+    height: 143
+    text-wrap: true
+    text-align: topLeft
+
+  Label
+    id: note
+    anchors.top: result.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 36
+    text-wrap: true
+    color: #d9c47b
+    text: Omite callbacks ocupados. 1 intento cada 2.5 s. Los archivos locales solo coordinan; confirma por opcode.
+
+  Button
+    id: stop
+    anchors.bottom: parent.bottom
+    anchors.left: parent.left
+    size: 125 24
+    text: Detener
+
+  Button
+    id: copy
+    anchors.bottom: parent.bottom
+    anchors.left: stop.right
+    margin-left: 7
+    size: 145 24
+    text: Copiar resultado
+
+  Button
+    id: close
+    anchors.bottom: parent.bottom
+    anchors.right: parent.right
+    size: 125 24
+    text: Cerrar
