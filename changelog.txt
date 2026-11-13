@@ -1,3 +1,8 @@
+3.1.23 - CaveBot: la grabacion de rutas ignora las runas
+- CaveBot: al grabar una ruta ya no guarda las runas que lanza el bot (Avalanche y demas) como acciones use.
+- Las escaleras, sogas, palas, puertas y palancas que uses a mano se siguen grabando.
+- Conserva las actualizaciones automaticas, las rutas y las preferencias personales.
+
 3.1.22 - Updater: progreso de la descarga y motivo al detenerse
 - El Updater muestra el porcentaje de la descarga segun el tamano de los archivos, y cuantos archivos y KB faltan.
 - Si la actualizacion se detiene, el titulo dice el motivo (por ejemplo, un archivo modificado a mano) en vez de solo Actualizacion detenida.

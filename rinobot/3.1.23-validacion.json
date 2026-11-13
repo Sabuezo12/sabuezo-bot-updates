@@ -1,0 +1,46 @@
+{
+  "version": "3.1.23",
+  "officialFiles": 375,
+  "filesChanged": 3,
+  "compiledLuaFiles": 171,
+  "sourceCommit": "35f020ec25034ec588b030abc41c4490b7755c65",
+  "manualInstallerMigrations": {
+    "3.1.22": 3,
+    "3.1.21": 4,
+    "3.1.20": 23,
+    "3.1.19": 39,
+    "3.1.18": 39,
+    "3.1.17": 94,
+    "3.1.16": 94
+  },
+  "changedFiles": [
+    "_Loader.lua",
+    "cavebot/recorder.lua",
+    "vBot/SabuezoChangelog.fallback.txt"
+  ],
+  "sourceWorktreeClean": "PASS",
+  "luaCompilation": "PASS",
+  "automaticInstallReloadAndFiveMinuteCheck": "PASS",
+  "currentUpdaterAutomaticInstallReloadAndFiveMinuteCheck": "PASS",
+  "previousUpdaterSelfInstall": "PASS",
+  "currentUpdaterSelfInstallAndRender": "PASS",
+  "cavebotRecorderSkipsRunes": "PASS",
+  "followRegression": "PASS",
+  "updaterTransactions": "PASS",
+  "manifestAndPayloadHashes": "PASS",
+  "historicalFileHashesChecked": 7546,
+  "privateFilesPreserved": true,
+  "excludedUntrackedFiles": [
+    "vBot/mythic_opcode_diagnostic.lua",
+    "vBot/mythic_opcode_diagnostic.otui",
+    "vBot/mythic_opcode_local_control.lua"
+  ],
+  "removedFromPreviousManifest": [],
+  "overall": "PASS",
+  "nativeClientTests": {
+    "Valkaris Next Gen": "offline startup and reload",
+    "Aurera": "offline startup and reload"
+  },
+  "packageSha256": "b1a8aaa4bb4228913c888d682913f86071e38747c1d0db1ec7b7b77d5a1623b0",
+  "packageSize": 3598504
+}
