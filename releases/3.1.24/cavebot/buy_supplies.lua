@@ -1,0 +1,1306 @@
+CaveBot.Extensions.BuySupplies = {}
+local buySupplies = CaveBot.Extensions.BuySupplies
+local followerVisit
+local visitSequence = 0
+
+local function purchaseDelay(ms)
+  if followerVisit then
+    followerVisit.nextAt = math.max(followerVisit.nextAt, (now or 0) + ms)
+  else
+    CaveBot.delay(ms)
+  end
+end
+
+-- Classic v15 support is opt-in; Helper can detect an open native v15 shop.
+-- Purchases never switch CaveBot off. Uncertain batches expire and are not
+-- replayed during the same visit; later visits recount before buying again.
+local CLIENT_MAX_TRADE_QUANTITY = 65535
+local BUY_SUPPLIES_BUILD = "20261104-bulk1"
+CaveBot.Extensions.BuySupplies.build = BUY_SUPPLIES_BUILD
+local MODAL_CONFIRM_TIMEOUT = 20
+local PARTIAL_SETTLE_SECONDS = 3
+local RECOVERED_INVENTORY_GRACE_SECONDS = 6
+local MAX_PARTIAL_BATCHES = 6
+local CATEGORY_SHOP_TIMEOUT = 8
+local STALE_PENDING_SECONDS = 60
+local UNCONFIRMED_COOLDOWN_SECONDS = 60
+
+local tradeRequest = { key = nil, lastRetry = nil, attempts = 0 }
+
+local function resetTradeRequest(key, retries)
+  if retries == 0 or tradeRequest.key ~= key then
+    tradeRequest.key = key
+    tradeRequest.lastRetry = nil
+    tradeRequest.revision = nil
+    tradeRequest.announceUntil = nil
+    tradeRequest.announceAt = nil
+    tradeRequest.visitId = nil
+    tradeRequest.attempts = 0
+    tradeRequest.autoModal = false
+    tradeRequest.activeFilter = nil
+    tradeRequest.filtersTried = {}
+    tradeRequest.categoryWaiting = false
+    tradeRequest.categoryRequestedAt = nil
+    tradeRequest.categoryBaseline = nil
+    tradeRequest.partialBatches = {}
+    tradeRequest.skippedItems = {}
+    tradeRequest.inventoryObservations = {}
+    tradeRequest.legacyRemaining = {}
+  end
+end
+
+-- MythicOTC can display its NPC shop without exposing the OTCv8 npcWindow
+-- used by NPC.isTrading(). Track the protocol event that opens the shop.
+local npcTrade = { open = false, items = {}, goods = {} }
+local tradeWatcherConnected = false
+local tradeWatcherError = nil
+local tradeBridge = nil
+
+-- Buy Supplies and Sell All use the same native trade event stream.
+function CaveBot.getNpcTrade()
+  return npcTrade, tradeWatcherConnected
+end
+
+-- What the server and the NPC answer while a purchase request is pending. A request that never
+-- arrives (no gold, no capacity, no room in the backpack, a refused item...) leaves no trace in the
+-- item counts, so the bot could only say "sin confirmar". Those lines are kept for the failure report.
+local MAX_SERVER_MESSAGES = 10
+local serverMessages = {}
+
+local function noteServerMessage(source, text)
+  if type(storage.sabuezoBuySuppliesPending) ~= "table" then return end
+  text = tostring(text or ""):gsub("%s+", " ")
+  if text == "" or text == " " then return end
+  local previous = serverMessages[#serverMessages]
+  if previous and previous.text == text and previous.at == os.time() then return end
+  serverMessages[#serverMessages + 1] = {at = os.time(), source = tostring(source or ""), text = text:sub(1, 140)}
+  while #serverMessages > MAX_SERVER_MESSAGES do table.remove(serverMessages, 1) end
+end
+
+local function clearNpcTrade()
+  npcTrade.open = false
+  npcTrade.items = {}
+  npcTrade.sellItems = {}
+  npcTrade.goods = {}
+  npcTrade.goodsReceived = false
+end
+
+local function readTradeIdentity(entry)
+  if type(entry) ~= "table" then return nil end
+  local item = entry.ptr or entry.item or entry[1]
+  local id = tonumber(entry.id or entry.itemId)
+  if not id and item then
+    local ok, result = pcall(function() return item:getId() end)
+    if ok then id = tonumber(result) end
+  end
+  if not id and type(item) == "number" then id = item end
+  if id and type(item) == "number" and Item and Item.create then
+    item = Item.create(id)
+  end
+  return id, item
+end
+
+local function readBuyItem(entry)
+  local id, item = readTradeIdentity(entry)
+  if not id or not item then return nil end
+  local price = tonumber(entry.buyPrice or entry.price or entry[4])
+  if not price or price <= 0 then return nil end
+  local weight = tonumber(entry.weight)
+  if not weight then weight = (tonumber(entry[3]) or 0) / 100 end
+  return { id = id, item = item, price = price, weight = weight }
+end
+
+local function onOpenNpcTrade(items)
+  clearNpcTrade()
+  npcTrade.open = true
+  npcTrade.openedAt = os.time()
+  npcTrade.revision = (npcTrade.revision or 0) + 1
+  if type(items) ~= "table" then return end
+  for _, entry in pairs(items) do
+    local item = readBuyItem(entry)
+    if item then npcTrade.items[#npcTrade.items + 1] = item end
+    if type(entry) == "table" and (tonumber(entry.sellPrice or entry[5]) or 0) > 0 then
+      local id, sellItem = readTradeIdentity(entry)
+      if id and sellItem then npcTrade.sellItems[id] = sellItem end
+    end
+  end
+end
+
+local function onPlayerGoods(_, items)
+  if not npcTrade.open or type(items) ~= "table" then return end
+  local goods = {}
+  for _, entry in pairs(items) do
+    local item = type(entry) == "table" and (entry.ptr or entry.item or entry[1])
+    local count = type(entry) == "table" and tonumber(entry.count or entry.amount or entry[2])
+    if item and count and count >= 0 then
+      local id = type(item) == "number" and item or nil
+      if not id then
+        local ok, value = pcall(function() return item:getId() end)
+        if ok then id = tonumber(value) end
+      end
+      if id then goods[id] = (goods[id] or 0) + count end
+    end
+  end
+  npcTrade.goods, npcTrade.goodsReceived = goods, true
+end
+
+local function getOpenBuyItems()
+  if npcTrade.open then
+    if #npcTrade.items > 0 then return npcTrade.items end
+    local trade = modules.game_npctrade
+    local list = trade and trade.tradeItems and trade.tradeItems[trade.BUY]
+    local items = {}
+    if type(list) == "table" then
+      for _, entry in pairs(list) do
+        local item = readBuyItem(entry)
+        if item then items[#items + 1] = item end
+      end
+    end
+    return items
+  end
+  -- With a native watcher, only a new protocol response proves the shop is
+  -- open. The bot's NPC helper can retain a previous NPC's item list.
+  if tradeWatcherConnected then return nil end
+  if NPC.isTrading() then return NPC.getBuyItems() end
+  return nil
+end
+
+local function safeWidgetValue(widget, method)
+  local ok, value = pcall(function() return widget[method](widget) end)
+  if ok then return value end
+  return nil
+end
+
+local function safeWidgetProperty(widget, name)
+  local ok, value = pcall(function() return widget[name] end)
+  if ok then return value end
+  return nil
+end
+
+local function childById(parent, id)
+  if not parent then return nil end
+  local ok, child = pcall(function() return parent:recursiveGetChildById(id) end)
+  if ok then return child end
+  return nil
+end
+
+-- Opening/closing or paging backpacks can change visible counts without a
+-- purchase. Only reconcile a partial batch against the same inventory view.
+local function inventoryViewSignature()
+  if not g_game or type(g_game.getContainers) ~= "function" then return nil end
+  local ok, containers = pcall(g_game.getContainers)
+  if not ok or type(containers) ~= "table" then return nil end
+  local parts = {}
+  for id, container in pairs(containers) do
+    local item = safeWidgetValue(container, "getContainerItem")
+    parts[#parts + 1] = tostring(id) .. ":" ..
+      tostring(item and safeWidgetValue(item, "getId")) .. ":" ..
+      tostring(safeWidgetValue(container, "getFirstIndex"))
+  end
+  table.sort(parts)
+  return table.concat(parts, ",")
+end
+CaveBot.getNpcInventoryViewSignature = inventoryViewSignature
+
+-- MythicOTC 15 can keep an old NPC name while replacing the shop contents.
+local function getModalBuyItems(expectedNpc)
+  local root = g_ui and g_ui.getRootWidget and g_ui.getRootWidget()
+  local modal = childById(root, "npcModalWindow")
+  if not modal or safeWidgetValue(modal, "isVisible") ~= true then return nil, "closed" end
+
+  local nameLabel = childById(modal, "npcName")
+  local shownName = tostring(safeWidgetValue(nameLabel, "getText") or "")
+
+  local panel = childById(modal, "npcTradeItemsPanel")
+  if not panel or safeWidgetValue(panel, "isVisible") ~= true then
+    return nil, "items_hidden", shownName
+  end
+
+  local items = {}
+  local rows = safeWidgetValue(panel, "getChildren")
+  if type(rows) == "table" then
+    for _, row in ipairs(rows) do
+      local icon = childById(row, "itemIcon")
+      local item = icon and safeWidgetValue(icon, "getItem")
+      local id = item and tonumber(safeWidgetValue(item, "getId"))
+      if id and id > 0 then
+        items[#items + 1] = { id = id, item = item, row = row, icon = icon }
+      end
+    end
+  end
+  local status = shownName:lower() == tostring(expectedNpc):lower() and
+    "modal" or "label_mismatch"
+  return items, status, shownName, modal
+end
+
+local function usedItemCount(id)
+  local counter = vBot and vBot.ItemCounter
+  if not counter or type(counter.getUsed) ~= "function" then return nil end
+  local ok, used = pcall(counter.getUsed, id)
+  if ok then return tonumber(used) end
+end
+
+local function purchaseCooldowns()
+  if type(storage.sabuezoBuySuppliesCooldowns) ~= "table" then
+    storage.sabuezoBuySuppliesCooldowns = {}
+  end
+  local cooldowns = storage.sabuezoBuySuppliesCooldowns
+  for id, untilAt in pairs(cooldowns) do
+    if not tonumber(untilAt) or tonumber(untilAt) <= os.time() then
+      cooldowns[id] = nil
+    end
+  end
+  return cooldowns
+end
+
+-- Why a purchase request left no trace: what the server said and the character's state at that
+-- moment. Kept in storage because the next shop visit overwrites the diagnostic.
+local function describeUnconfirmed(pending, current, visible, source, nativeCount)
+  local since = (tonumber(pending.requestedAt) or os.time()) - 1
+  local messages = {}
+  for _, entry in ipairs(serverMessages) do
+    if entry.at >= since then messages[#messages + 1] = entry.text end
+  end
+  local freeCapacity = player and tonumber(safeWidgetValue(player, "getFreeCapacity")) or nil
+  storage.sabuezoBuySuppliesLastFailure = {
+    at = os.time(), npc = pending.npc, itemId = pending.itemId, amount = pending.amount,
+    before = pending.before, current = current, visible = visible, source = source,
+    native = nativeCount, freeCapacity = freeCapacity, messages = messages, build = BUY_SUPPLIES_BUILD
+  }
+  local text = "nativo=" .. tostring(nativeCount) .. "; cap libre=" .. tostring(freeCapacity) .. "; " ..
+    (#messages > 0 and ("el servidor dijo: " .. table.concat(messages, " | ")) or "el servidor no dijo nada")
+  if RinoConsole and type(RinoConsole.log) == "function" then
+    pcall(RinoConsole.log, "action", "CaveBot",
+      "Compra sin confirmar: " .. tostring(pending.amount) .. "x " .. tostring(pending.itemId) ..
+        " en " .. tostring(pending.npc), text)
+  end
+  return {messages = messages, text = text}
+end
+
+local function retirePending(pending, reason, protectFromReplay)
+  storage.sabuezoBuySuppliesLastBatch = {
+    npc = pending.npc, itemId = pending.itemId, amount = pending.amount,
+    before = pending.before, requestedAt = pending.requestedAt,
+    finishedAt = os.time(), reason = reason
+  }
+  storage.sabuezoBuySuppliesPending = nil
+  if tradeRequest.inventoryObservations then
+    tradeRequest.inventoryObservations[tostring(pending.itemId)] = nil
+  end
+  if protectFromReplay and tonumber(pending.itemId) then
+    local key = tostring(pending.itemId)
+    purchaseCooldowns()[key] = os.time() + UNCONFIRMED_COOLDOWN_SECONDS
+    tradeRequest.skippedItems = tradeRequest.skippedItems or {}
+    tradeRequest.skippedItems[key] = reason
+  end
+end
+
+local function recoverExpiredPending()
+  local pending = storage.sabuezoBuySuppliesPending
+  if pending == nil then return end
+  if type(pending) ~= "table" then
+    storage.sabuezoBuySuppliesPending = nil
+    return
+  end
+  local requestedAt = tonumber(pending.requestedAt)
+  local valid = tonumber(pending.itemId) and tonumber(pending.itemId) > 0 and
+    tonumber(pending.amount) and tonumber(pending.amount) > 0 and
+    tonumber(pending.before) and tonumber(pending.before) >= 0 and
+    requestedAt and requestedAt > 0 and
+    requestedAt <= os.time() + RECOVERED_INVENTORY_GRACE_SECONDS
+  if not valid or os.time() - requestedAt >= STALE_PENDING_SECONDS then
+    retirePending(pending, valid and "expired" or "invalid", not valid)
+    print("CaveBot[BuySupplies]: solicitud antigua retirada; se recalcularan los supplies actuales")
+  end
+end
+
+-- Every exit closes the conversation, including failures, so the next route
+-- action can walk. Preserve false as the action result without disabling it.
+local function finishPurchaseAction(success, diagnostic)
+  diagnostic.caveBotContinues = true
+  if not success then
+    warn("CaveBot[BuySupplies]: compra omitida (" .. tostring(diagnostic.stage) ..
+      "); CaveBot continua la ruta")
+  end
+  if type(CaveBot.FinishNpcConversation) == "function" then
+    local ok, result = pcall(CaveBot.FinishNpcConversation, 0)
+    if ok and type(result) == "table" then
+      for key, value in pairs(result) do diagnostic[key] = value end
+    elseif not ok then
+      diagnostic.closeError = tostring(result)
+    end
+  else
+    if NPC and type(NPC.say) == "function" then pcall(NPC.say, "bye") end
+  end
+  if type(CaveBot.CloseNpcWindows) == "function" then
+    pcall(CaveBot.CloseNpcWindows)
+  end
+  if NPC and type(NPC.closeTrade) == "function" then pcall(NPC.closeTrade) end
+  local root = g_ui and g_ui.getRootWidget and g_ui.getRootWidget()
+  local modal = childById(root, "npcModalWindow")
+  if modal then pcall(function() modal:hide() end) end
+  clearNpcTrade()
+  purchaseDelay(math.max(500, (tonumber(storage.extras and storage.extras.talkDelay) or 100) * 2))
+  return success
+end
+
+-- Let backpack reopening/paging and the item counter settle before taking a
+-- new baseline. Consumption alone does not keep this wait alive indefinitely.
+local function purchaseInventoryReady(id, current, visible, diagnostic)
+  local key, timestamp = tostring(id), os.time()
+  local observations = tradeRequest.inventoryObservations
+  local previous = observations[key]
+  local view, used = inventoryViewSignature(), usedItemCount(id) or 0
+  if not previous then
+    previous = {firstSeen = timestamp}
+    observations[key] = previous
+  end
+  if previous.view ~= view or previous.stock ~= current + used or
+      previous.visibleStock ~= visible + used then
+    previous.view, previous.stock, previous.visibleStock = view, current + used, visible + used
+    previous.since = timestamp
+  end
+  previous.since = previous.since or timestamp
+  if timestamp - previous.since >= PARTIAL_SETTLE_SECONDS then return true end
+  if timestamp - previous.firstSeen >= RECOVERED_INVENTORY_GRACE_SECONDS then
+    tradeRequest.skippedItems[key] = "inventory_unstable"
+    diagnostic.stage = "inventory_unstable"
+    warn("CaveBot[BuySupplies]: inventario inestable para " .. key ..
+      "; se omite este supply en esta visita")
+    return false
+  end
+  diagnostic.stage = "waiting_for_inventory_baseline"
+  purchaseDelay(500)
+  return "retry"
+end
+
+local function supplyShopCategory(id)
+  local name = nil
+  if vBot and vBot.ItemCounter and vBot.ItemCounter.getName then
+    name = vBot.ItemCounter.getName(id)
+  end
+  if (not name or name == tostring(id)) and Item and Item.create then
+    local ok, item = pcall(Item.create, id)
+    if ok and item then
+      local data = safeWidgetValue(item, "getMarketData")
+      name = data and data.name or name
+    end
+  end
+  name = tostring(name or ""):lower()
+  if name:find("potion", 1, true) then return "potions" end
+  if name:find("rune", 1, true) then return "runes" end
+  return nil
+end
+
+local function shopSignature(items)
+  local ids, seen = {}, {}
+  for _, entry in ipairs(items or {}) do
+    local id = tonumber(entry.id)
+    if id and not seen[id] then
+      seen[id] = true
+      ids[#ids + 1] = id
+    end
+  end
+  table.sort(ids)
+  for i, id in ipairs(ids) do ids[i] = tostring(id) end
+  return table.concat(ids, ",")
+end
+
+-- Xodet exposes smaller catalogs through NPC dialogue. Close the old modal
+-- before asking for another category so an old list cannot be bought as new.
+local function requestCategoryShop(modal, items, category)
+  local ok, err = pcall(function()
+    if type(CaveBot.Conversation) ~= "function" then
+      error("NPC conversation is unavailable")
+    end
+    if NPC and type(NPC.closeTrade) == "function" then NPC.closeTrade() end
+    modal:hide()
+    local _, revision = CaveBot.Conversation("bye", "hi", category)
+    tradeRequest.revision = revision
+  end)
+  if not ok then return false, tostring(err) end
+  tradeRequest.activeFilter = category
+  tradeRequest.categoryBaseline = shopSignature(items)
+  tradeRequest.categoryRequestedAt = os.time()
+  tradeRequest.categoryWaiting = true
+  return true
+end
+
+local function matchesModalIdentity(items, status, shownName, identity)
+  -- The title is informational. Keep the fresh shop's catalog stable while
+  -- selecting Buy, the item and the quantity, including when the title changes.
+  return items and identity and
+    (status == "modal" or status == "label_mismatch") and
+    shopSignature(items) == identity.signature
+end
+
+-- Ask the v15 shop for the full shortfall, then verify the resulting count.
+local function requestModalPurchase(entry, modal, npcName, current, wanted, identity, diagnostic)
+  local npcModule = modules and modules.game_npcmodal
+  local selectBuyMode = npcModule and npcModule.onNpcTradeBuyClick
+  if type(selectBuyMode) ~= "function" then
+    diagnostic.stage = "modal_buy_mode_unavailable"
+    warn("CaveBot[BuySupplies]: client Buy mode is unavailable")
+    return finishPurchaseAction(false, diagnostic)
+  end
+
+  -- This refreshes the item rows, so the entry found before it must be discarded.
+  local modeOk, modeError = pcall(selectBuyMode)
+  if not modeOk then
+    diagnostic.stage = "modal_buy_mode_failed"
+    diagnostic.error = tostring(modeError)
+    return finishPurchaseAction(false, diagnostic)
+  end
+  local refreshedItems, status, shownNpc, refreshedModal = getModalBuyItems(npcName)
+  if refreshedModal ~= modal or
+      not matchesModalIdentity(refreshedItems, status, shownNpc, identity) then
+    diagnostic.stage = "modal_changed_after_buy_mode"
+    diagnostic.shownNpc = shownNpc
+    return finishPurchaseAction(false, diagnostic)
+  end
+  local refreshedEntry
+  for _, candidate in ipairs(refreshedItems) do
+    if candidate.id == entry.id then refreshedEntry = candidate break end
+  end
+  local preview = childById(modal, "item2")
+  local quantity = childById(modal, "userInput")
+  local countSlider = childById(modal, "countScrollBar")
+  local buyButton = childById(modal, "BuySellButton")
+  local modeButton = childById(modal, "buyButton")
+  local sellModeButton = childById(modal, "sellButton")
+  if not refreshedEntry or not preview or not quantity or not countSlider or
+      not buyButton or not modeButton or not sellModeButton then
+    diagnostic.stage = "modal_controls_missing"
+    warn("CaveBot[BuySupplies]: NPC shop controls are incomplete")
+    return finishPurchaseAction(false, diagnostic)
+  end
+
+  diagnostic.selectionAttempts = {}
+  local callback = safeWidgetProperty(refreshedEntry.row, "onMousePress")
+  local selected = false
+  if type(callback) == "function" then
+    local ok, callbackError = pcall(function()
+      callback(refreshedEntry.row,
+        safeWidgetValue(refreshedEntry.row, "getPosition"), MouseLeftButton or 1)
+    end)
+    local previewId = tonumber(safeWidgetValue(preview, "getItemId")) or 0
+    diagnostic.selectionAttempts[1] = {
+      action = "rowLeftPress", ok = ok,
+      error = not ok and tostring(callbackError) or nil, previewId = previewId
+    }
+    selected = ok and previewId == entry.id
+  end
+  if not selected then
+    diagnostic.itemId = entry.id
+    diagnostic.previewId = safeWidgetValue(preview, "getItemId")
+    diagnostic.stage = "modal_selection_failed"
+    warn("CaveBot[BuySupplies]: shop item was not selected; no purchase sent")
+    return finishPurchaseAction(false, diagnostic)
+  end
+
+  local requested = math.min(CLIENT_MAX_TRADE_QUANTITY, math.floor(wanted))
+  local sliderMaximum = tonumber(safeWidgetValue(countSlider, "getMaximum"))
+  diagnostic.sliderMaximum = sliderMaximum
+  diagnostic.requestedAmount = requested
+  -- The native maximum can reflect capacity, money and the per-trade limit.
+  -- Do not overwrite that limit by putting the full shortfall in userInput.
+  if sliderMaximum then requested = math.min(requested, math.floor(sliderMaximum)) end
+  if requested < 1 then
+    diagnostic.stage = "modal_quantity_unavailable"
+    diagnostic.itemId = entry.id
+    warn("CaveBot[BuySupplies]: la tienda no permite comprar mas; revisa cap, oro y espacio en BP")
+    return finishPurchaseAction(false, diagnostic)
+  end
+  local amountSet = pcall(function()
+    countSlider:setValue(requested)
+    quantity:setText(tostring(requested))
+    local onTextChange = safeWidgetProperty(quantity, "onTextChange")
+    if type(onTextChange) == "function" then onTextChange(quantity) end
+  end)
+  local amount = tonumber(safeWidgetValue(quantity, "getText"))
+  diagnostic.acceptedAmount = amount
+  local latestItems, latestStatus, latestName, latestModal = getModalBuyItems(npcName)
+  if not amountSet or not amount or amount < 1 or amount > requested or
+      amount ~= math.floor(amount) or
+      latestModal ~= modal or
+      not matchesModalIdentity(latestItems, latestStatus, latestName, identity) or
+      tonumber(safeWidgetValue(preview, "getItemId")) ~= entry.id or
+      safeWidgetValue(modeButton, "isOn") ~= true or
+      safeWidgetValue(sellModeButton, "isOn") ~= false or
+      safeWidgetValue(buyButton, "isEnabled") ~= true or
+      tostring(safeWidgetValue(buyButton, "getText") or ""):lower() ~= "buy" then
+    diagnostic.stage = "modal_purchase_guard_failed"
+    diagnostic.itemId = entry.id
+    diagnostic.confirmText = safeWidgetValue(buyButton, "getText")
+    diagnostic.buyModeOn = safeWidgetValue(modeButton, "isOn")
+    diagnostic.sellModeOn = safeWidgetValue(sellModeButton, "isOn")
+    diagnostic.quantityText = safeWidgetValue(quantity, "getText")
+    warn("CaveBot[BuySupplies]: shop selection/quantity changed; no purchase sent")
+    return finishPurchaseAction(false, diagnostic)
+  end
+
+  local visibleBefore = player and player:getItemsCount(entry.id) or 0
+  storage.sabuezoBuySuppliesPending = {
+    npc = npcName, itemId = entry.id, amount = amount,
+    before = current, visibleBefore = visibleBefore, requestedAt = os.time(),
+    usedBefore = usedItemCount(entry.id),
+    observedCurrent = current, observedVisible = visibleBefore,
+    lastInventoryChangeAt = os.time(), inventoryView = inventoryViewSignature()
+  }
+  diagnostic.stage = "modal_batch_requested"
+  diagnostic.itemId = entry.id
+  diagnostic.amount = amount
+  diagnostic.visibleBefore = visibleBefore
+  local ok, buyError = pcall(function()
+    -- onConfirmTrade can return silently when its private selected-entry or
+    -- quantity state is stale, even though the modal preview looks correct.
+    -- The selected row provides the same Item passed to g_game.buyItem by the
+    -- client's Buy button. Keep the UI/identity guards above before sending.
+    return g_game.buyItem(refreshedEntry.item, amount, false, false)
+  end)
+  if not ok or buyError == false then
+    retirePending(storage.sabuezoBuySuppliesPending, "request_failed", true)
+    diagnostic.stage = "modal_batch_failed"
+    diagnostic.error = tostring(buyError)
+    warn("CaveBot[BuySupplies]: shop request failed: " .. tostring(buyError))
+    return finishPurchaseAction(false, diagnostic)
+  else
+    print("CaveBot[BuySupplies]: requested " .. amount .. "x " .. entry.id ..
+      "; waiting for inventory confirmation")
+    purchaseDelay(500)
+    return "retry"
+  end
+  return finishPurchaseAction(false, diagnostic)
+end
+
+local function getCounterInfo(id)
+  local visible = player and player:getItemsCount(id) or 0
+  local current = tonumber(itemAmount(id)) or 0
+  local source = "unknown"
+
+  if vBot.ItemCounter and vBot.ItemCounter.getAmountInfo then
+    current, source = vBot.ItemCounter.getAmountInfo(id, visible)
+    current = tonumber(current) or 0
+  end
+
+  local nativeInventory
+  if player and type(player.getInventoryCount) == "function" then
+    local ok, amount = pcall(player.getInventoryCount, player, tonumber(id), 0)
+    amount = ok and tonumber(amount) or nil
+    if amount and amount >= 0 and amount < math.huge then
+      nativeInventory = math.floor(amount)
+      if nativeInventory > current then current, source = nativeInventory, "native_inventory" end
+    end
+  end
+
+  -- The NPC's server snapshot can include stock in closed backpacks. An ID
+  -- absent from that packet is unknown, not zero; retain the normal counter.
+  local serverCount = npcTrade.open and npcTrade.goods[tonumber(id)]
+  if type(serverCount) == "number" then
+    current, source = math.max(tonumber(visible) or 0, nativeInventory or 0, serverCount), "npc_goods"
+  end
+
+  return current, source, visible, nativeInventory
+end
+
+local function standardPurchaseAmount(entry, wanted, diagnostic)
+  local controller = modules and modules.game_npctrade and modules.game_npctrade.controllerNpcTrader
+  local version = g_game and type(g_game.getClientVersion) == "function" and g_game.getClientVersion() or 0
+  local legacy = controller and safeWidgetValue(controller, "isLegacyMode")
+  if legacy == nil and controller then legacy = controller.legacyMode end
+  local limit, modern = 100, false
+  if controller and version >= 1500 and legacy == false then
+    local stackable = entry and safeWidgetValue(entry.item, "isStackable") == true
+    local nativeLimit = tonumber(stackable and controller.MAX_AMOUNT_STACKABLE or controller.MAX_AMOUNT_NORMAL)
+    if nativeLimit and nativeLimit > 0 and nativeLimit < math.huge then
+      limit, modern = math.min(CLIENT_MAX_TRADE_QUANTITY, math.floor(nativeLimit)), true
+    end
+  end
+  diagnostic.batchLimit = limit
+  diagnostic.batchPolicy = modern and "native_standard_shop" or "classic_100"
+  local amount = math.min(wanted, limit)
+  if modern and entry then
+    local money = tonumber(safeWidgetValue(controller, "getPlayerMoney"))
+    local price, weight = tonumber(entry.price), tonumber(entry.weight)
+    local capacity = tonumber(safeWidgetValue(player, "getFreeCapacity"))
+    diagnostic.money, diagnostic.unitPrice, diagnostic.freeCapacity, diagnostic.unitWeight = money, price, capacity, weight
+    if money and money >= 0 and price and price > 0 then
+      local affordable = math.floor(money / price)
+      amount = math.min(amount, affordable)
+      if affordable < 1 then return 0, "not_enough_money" end
+    end
+    if capacity and capacity >= 0 and weight and weight > 0 then
+      local carrying = math.floor(capacity / weight)
+      amount = math.min(amount, carrying)
+      if carrying < 1 then return 0, "not_enough_capacity" end
+    end
+  end
+  return math.max(0, math.floor(amount))
+end
+
+local function trimText(text)
+  return tostring(text or ""):gsub("^%s+", ""):gsub("%s+$", "")
+end
+
+local function parseBuySuppliesValue(value)
+  local data = string.split(value or "", ",")
+  if #data == 0 or #data > 3 then
+    return nil, nil, nil, "incorrect BuySupplies value"
+  end
+
+  local npcName = trimText(data[1])
+  if npcName == "" then
+    return nil, nil, nil, "missing NPC name"
+  end
+
+  local tradeWord = nil
+  local waitVal = nil
+
+  if #data >= 2 then
+    local second = trimText(data[2])
+    if second ~= "" then
+      local secondNumber = tonumber(second)
+      if secondNumber then
+        waitVal = secondNumber
+      else
+        tradeWord = second
+      end
+    end
+  end
+
+  if #data == 3 then
+    local third = trimText(data[3])
+    if third ~= "" then
+      local thirdNumber = tonumber(third)
+      if not thirdNumber then
+        return nil, nil, nil, "incorrect delay value"
+      end
+      if waitVal then
+        return nil, nil, nil, "use NPC, word, delay or NPC, delay"
+      end
+      waitVal = thirdNumber
+    end
+  end
+
+  return npcName, tradeWord, waitVal
+end
+
+local function openNpcTrade(tradeWord)
+  -- Hide any boat/previous shop before requesting a fresh list from the NPC
+  -- reached by this waypoint. Reopening, rather than the title, proves freshness.
+  if type(CaveBot.CloseNpcWindows) == "function" then
+    CaveBot.CloseNpcWindows()
+  else
+    if NPC and type(NPC.closeTrade) == "function" then pcall(NPC.closeTrade) end
+    local root = g_ui and g_ui.getRootWidget and g_ui.getRootWidget()
+    local modal = childById(root, "npcModalWindow")
+    if modal then pcall(function() modal:hide() end) end
+  end
+  clearNpcTrade()
+  tradeWord = trimText(tradeWord)
+  if tradeWord ~= "" then
+    local _, revision = CaveBot.Conversation("hi", tradeWord)
+    tradeRequest.revision = revision
+  else
+    local _, revision = CaveBot.OpenNpcTrade()
+    tradeRequest.revision = revision
+  end
+end
+
+local function announceVisit(npc, name, tradeWord)
+  if followerVisit or not BotServer or not BotServer.announceFollowSupplies then return end
+  local time = now or 0
+  if not tradeRequest.visitId then
+    visitSequence = visitSequence + 1
+    tradeRequest.visitId = tostring(os.time()) .. ":" .. tostring(time) .. ":" .. tostring(visitSequence)
+    tradeRequest.announceUntil = time + 8000
+  end
+  if time > tradeRequest.announceUntil or time < (tradeRequest.announceAt or 0) then return end
+  tradeRequest.announceAt = time + 1000
+  local shop = trimText(tradeWord):lower()
+  if shop ~= "potions" and shop ~= "runes" then shop = nil end
+  pcall(BotServer.announceFollowSupplies, tradeRequest.visitId, name, npc:getPosition(), shop)
+end
+
+local function watchServerMessages()
+  pcall(function()
+    if type(onTextMessage) == "function" then
+      onTextMessage(function(_, text) noteServerMessage("mensaje", text) end)
+    end
+    if type(onTalk) == "function" then
+      onTalk(function(name, _, _, text)
+        local pending = storage.sabuezoBuySuppliesPending
+        if type(pending) == "table" and tostring(name):lower() == tostring(pending.npc):lower() then
+          noteServerMessage(name, text)
+        end
+      end)
+    end
+  end)
+end
+
+CaveBot.Extensions.BuySupplies.setup = function()
+  purchaseCooldowns()
+  recoverExpiredPending()
+  watchServerMessages()
+  local nativeCore = modules and modules.corelib
+  local connectTrade = connect or (nativeCore and nativeCore.connect)
+  local eventGame = nativeCore and nativeCore.g_game or g_game
+  if type(connectTrade) == "function" and eventGame then
+    -- Native connections may outlive a bot reload. Reuse one dispatcher and
+    -- replace its handlers instead of retaining another old bot context.
+    local host = modules and modules.game_bot
+    tradeBridge = (host and host._sabuezoBuySuppliesTradeBridge) or tradeBridge or {}
+    if host then host._sabuezoBuySuppliesTradeBridge = tradeBridge end
+    tradeBridge.onOpen = onOpenNpcTrade
+    tradeBridge.onClose = clearNpcTrade
+    tradeBridge.onGoods = onPlayerGoods
+    local bridge = tradeBridge
+    local connected, connectError = pcall(function()
+      if bridge.connected then return end
+      bridge.events = {
+        onOpenNpcTrade = function(items) bridge.onOpen(items) end,
+        onCloseNpcTrade = function() bridge.onClose() end,
+        onGameEnd = function() bridge.onClose() end
+      }
+      connectTrade(eventGame, bridge.events)
+      bridge.connected = true
+    end)
+    if connected and not bridge.chatCloseConnected then
+      pcall(function()
+        connectTrade(eventGame, {onNpcChatWindowClose = function() bridge.onClose() end})
+        bridge.chatCloseConnected = true
+      end)
+    end
+    if connected and not bridge.goodsConnected then
+      pcall(function()
+        bridge.goodsEvent = function(money, items) bridge.onGoods(money, items) end
+        connectTrade(eventGame, {onPlayerGoods = bridge.goodsEvent})
+        bridge.goodsConnected = true
+      end)
+    end
+    if not connected then
+      tradeWatcherConnected = false
+      tradeWatcherError = tostring(connectError)
+    else
+      tradeWatcherConnected = true
+      tradeWatcherError = nil
+    end
+  else
+    tradeWatcherConnected = false
+    tradeWatcherError = "connect=" .. type(connectTrade) .. ", g_game=" .. type(eventGame)
+  end
+
+  local function step(value, retries)
+    local possibleItems = {}
+    resetTradeRequest(value, retries)
+
+    local npcName, tradeWord, waitVal, parseError
+    if followerVisit then
+      npcName, tradeWord = followerVisit.npc, followerVisit.shop
+    else
+      npcName, tradeWord, waitVal, parseError = parseBuySuppliesValue(value)
+    end
+    if parseError then
+      warn("CaveBot[BuySupplies]: " .. parseError)
+      return finishPurchaseAction(false, {stage = "invalid_action", error = parseError})
+    end
+
+    local diagnostic = {
+      npc = npcName, retries = retries, time = os.time(),
+      build = BUY_SUPPLIES_BUILD,
+      mode = storage.extras and storage.extras.buySuppliesV15 == true and "v15" or "legacy",
+      stage = "starting", shopIds = {}, supplies = {},
+      watcherConnected = tradeWatcherConnected,
+      watcherError = tradeWatcherError
+    }
+    storage.sabuezoBuySuppliesDiagnostic = diagnostic
+
+    recoverExpiredPending()
+    local pending = storage.sabuezoBuySuppliesPending
+    if type(pending) == "table" then
+      local differentShop = tostring(pending.npc):lower() ~= npcName:lower()
+      local current, source, visible, nativeCount = getCounterInfo(pending.itemId)
+      local visibleBefore = tonumber(pending.visibleBefore)
+      local used, usedBefore = usedItemCount(pending.itemId), tonumber(pending.usedBefore)
+      local consumed = used and usedBefore and used >= usedBefore and used - usedBefore or 0
+      local sameView = pending.inventoryView ~= nil and
+        pending.inventoryView == inventoryViewSignature()
+      diagnostic.pending = {
+        npc = pending.npc, differentShop = differentShop,
+        itemId = pending.itemId, before = pending.before,
+        amount = pending.amount, current = current,
+        source = source, visible = visible, visibleBefore = visibleBefore,
+        consumed = consumed, inventoryViewChanged = not sameView
+      }
+      local before = tonumber(pending.before) or 0
+      local amount = tonumber(pending.amount) or 0
+      local expected = math.max(0, before + amount - consumed)
+      -- A refill may be consumed before the next poll. Include recorded uses,
+      -- but never treat opening another backpack as visible purchase evidence.
+      local visibleConfirmed = sameView and visibleBefore and visibleBefore >= 0 and
+        visible + consumed >= visibleBefore + amount
+      if current >= expected or visibleConfirmed then
+        if visibleConfirmed and current < expected and
+            vBot.ItemCounter and vBot.ItemCounter.set then
+          vBot.ItemCounter.set(pending.itemId, expected, "buy")
+        end
+        retirePending(pending, "confirmed", false)
+        diagnostic.stage = "modal_batch_confirmed"
+        print("CaveBot[BuySupplies]: confirmed " .. pending.amount .. "x " .. pending.itemId)
+        purchaseDelay(350)
+        return "retry"
+      end
+      local timestamp = os.time()
+      pending.firstObservedAt = tonumber(pending.firstObservedAt) or timestamp
+      if pending.observedCurrent ~= current or pending.observedVisible ~= visible or
+          pending.observedUsed ~= used then
+        pending.observedCurrent, pending.observedVisible = current, visible
+        pending.observedUsed = used
+        pending.lastInventoryChangeAt = timestamp
+      end
+      local elapsed = timestamp - (tonumber(pending.requestedAt) or timestamp)
+      local settledFor = timestamp - (tonumber(pending.lastInventoryChangeAt) or timestamp)
+      local received = math.max(0, current + consumed - before)
+      diagnostic.pending.received = received
+      diagnostic.pending.settledFor = settledFor
+      -- Wait the entire confirmation interval before accepting a smaller
+      -- batch: ordinary streamed container updates must not trigger a second
+      -- purchase. Require matching real counts, a stable view and a quiet tail.
+      local partialConfirmed = received > 0 and received < amount and
+        visibleBefore == before and current == visible and
+        sameView
+      if elapsed >= MODAL_CONFIRM_TIMEOUT and partialConfirmed and
+          settledFor >= PARTIAL_SETTLE_SECONDS then
+        if pending.source == "legacy" then
+          local key = tostring(pending.itemId)
+          local remaining = tradeRequest.legacyRemaining[key]
+          if remaining then tradeRequest.legacyRemaining[key] = remaining + amount - received end
+        end
+        retirePending(pending, "partial", false)
+        diagnostic.stage = "modal_batch_partially_confirmed"
+        diagnostic.receivedAmount = received
+        tradeRequest.partialBatches = tradeRequest.partialBatches or {}
+        local key = tostring(pending.itemId)
+        tradeRequest.partialBatches[key] = (tradeRequest.partialBatches[key] or 0) + 1
+        print("CaveBot[BuySupplies]: received " .. received .. " of " .. amount ..
+          "x " .. pending.itemId .. "; recounting the remaining supplies")
+        if tradeRequest.partialBatches[key] >= MAX_PARTIAL_BATCHES then
+          diagnostic.stage = "repeated_partial_batches"
+          warn("CaveBot[BuySupplies]: varias compras parciales; revisa cap, oro y espacio en BP")
+          retirePending(pending, "repeated_partial_batches", true)
+        end
+        purchaseDelay(350)
+        return "retry"
+      end
+      if elapsed >= MODAL_CONFIRM_TIMEOUT and
+          (not partialConfirmed or settledFor >= PARTIAL_SETTLE_SECONDS or
+            elapsed >= MODAL_CONFIRM_TIMEOUT + PARTIAL_SETTLE_SECONDS * 2) then
+        diagnostic.stage = "purchase_unconfirmed_skipped"
+        local report = describeUnconfirmed(pending, current, visible, source, nativeCount)
+        diagnostic.serverMessages = report.messages
+        retirePending(pending, "unconfirmed", true)
+        warn("CaveBot[BuySupplies]: compra de " .. tostring(pending.npc) ..
+          " sin confirmar; se omite " .. tostring(pending.itemId) ..
+          " para evitar duplicados y CaveBot continua (" .. BUY_SUPPLIES_BUILD ..
+          "; actual=" .. tostring(current) .. "; visible=" .. tostring(visible) ..
+          "; fuente=" .. tostring(source) .. "; pedido=" .. tostring(amount) ..
+          "; " .. report.text .. ")")
+        purchaseDelay(350)
+        return "retry"
+      end
+      diagnostic.stage = "waiting_for_batch_confirmation"
+      purchaseDelay(500)
+      return "retry"
+    end
+
+    local npc = followerVisit and followerVisit.actor or getCreatureByName(npcName)
+    if not npc then 
+      diagnostic.stage = "npc_missing"
+      print("CaveBot[BuySupplies]: NPC not found")
+      return finishPurchaseAction(false, diagnostic)
+    end
+    
+    if waitVal then
+      delay(waitVal)
+    end
+
+    if retries > 200 then
+      diagnostic.stage = "too_many_retries"
+      print("CaveBot[BuySupplies]: Too many tries, can't buy")
+      if next(tradeRequest.partialBatches or {}) then
+        warn("CaveBot[BuySupplies]: compra incompleta; revisa cap, oro y espacio en BP")
+      end
+      return finishPurchaseAction(false, diagnostic)
+    end
+
+    if not (followerVisit or CaveBot.ReachNPC(npcName)) then
+      diagnostic.stage = "approaching_npc"
+      return "retry"
+    end
+    if not followerVisit and npc.isNpc and npc:isNpc() then announceVisit(npc, npcName, tradeWord) end
+
+    local modalModule = modules and modules.game_npcmodal
+    if diagnostic.mode == "v15" and
+        not (modalModule and type(modalModule.onNpcTradeBuyClick) == "function") then
+      -- Valkaris has its own redesigned standard trade window. A saved v15
+      -- preference must not require Mythic's unrelated NPC modal module.
+      diagnostic.mode = "legacy"
+      diagnostic.modeReason = "standard_trade_api"
+    end
+    if tradeRequest.attempts == 0 then
+      -- Always start this visit's conversation, even when the previous shop
+      -- still reports isTrading() or exposes a cached list of matching items.
+      openNpcTrade(tradeWord)
+      tradeRequest.lastRetry = retries
+      tradeRequest.attempts = 1
+      diagnostic.stage = "waiting_for_target_shop"
+      diagnostic.tradeAttempts = 1
+      purchaseDelay(math.max(500, (tonumber(storage.extras.talkDelay) or 1000) * 2))
+      return "retry"
+    end
+
+    local npcItems, modal, modalName, modalIdentity, tradeSource
+    local helperShop = Helper and Helper.valid() and not (storage.helperUI and storage.helperUI.legacy)
+    local legacyItems = diagnostic.mode == "legacy" and helperShop and getOpenBuyItems() or nil
+    if diagnostic.mode == "legacy" and helperShop then
+      if tradeRequest.autoModal then
+        diagnostic.mode="v15"
+        diagnostic.modeReason="helper_detected_v15_shop"
+      elseif not legacyItems or #legacyItems == 0 then
+        -- Prefer a readable legacy shop. Fall back only after observing the
+        -- native modal and its Buy API; the v15 path still requests a fresh
+        -- target shop and verifies item/quantity/inventory before continuing.
+        local items, status, shownName, nativeModal = getModalBuyItems(npcName)
+        local npcModule=modules and modules.game_npcmodal
+        if items and #items > 0 and nativeModal and npcModule and type(npcModule.onNpcTradeBuyClick) == "function" then
+          tradeRequest.autoModal=true
+          diagnostic.mode="v15"
+          diagnostic.modeReason="helper_detected_v15_shop"
+        end
+      end
+    end
+    if diagnostic.mode == "v15" then
+      if not (modules and modules.game_npcmodal) then
+        diagnostic.stage = "v15_shop_unavailable"
+        warn("CaveBot[BuySupplies]: Buy Supplies v15 is enabled, but this client has no v15 shop")
+        return finishPurchaseAction(false, diagnostic)
+      end
+      local modalStatus
+      npcItems, modalStatus, modalName, modal = getModalBuyItems(npcName)
+      if tradeRequest.attempts == 0 then
+        -- Even a matching title can belong to a previous visit. Always request
+        -- the target's shop once; retries and pending purchases reuse that list.
+        npcItems = nil
+        diagnostic.stage = "waiting_for_target_shop"
+      elseif npcItems then
+        local buyClick = modules.game_npcmodal.onNpcTradeBuyClick
+        local ok, refreshError = pcall(function()
+          if type(buyClick) ~= "function" then error("Buy mode unavailable") end
+          buyClick()
+        end)
+        if not ok then
+          diagnostic.stage = "shop_refresh_failed"
+          diagnostic.error = tostring(refreshError)
+          return finishPurchaseAction(false, diagnostic)
+        end
+        npcItems, modalStatus, modalName, modal = getModalBuyItems(npcName)
+        if npcItems then
+          modalIdentity = { signature = shopSignature(npcItems) }
+          diagnostic.shownNpc = modalName
+          diagnostic.requestedTargetTrade = true
+          diagnostic.labelMismatchAccepted = modalStatus == "label_mismatch"
+          diagnostic.configuredMatches = 0
+          local configured = Supplies.getItemsData()
+          for _, entry in ipairs(npcItems) do
+            if configured[entry.id] or configured[tostring(entry.id)] then
+              diagnostic.configuredMatches = diagnostic.configuredMatches + 1
+            end
+          end
+        end
+      end
+      tradeSource = "modal"
+    else
+      npcItems = legacyItems or getOpenBuyItems()
+      tradeSource = "legacy"
+    end
+    if tradeSource == "modal" and tradeRequest.categoryWaiting then
+      local changed = npcItems and #npcItems > 0 and
+        shopSignature(npcItems) ~= tradeRequest.categoryBaseline
+      if changed then
+        tradeRequest.categoryWaiting = false
+        diagnostic.categoryOpened = tradeRequest.activeFilter
+      else
+        diagnostic.category = tradeRequest.activeFilter
+        if os.time() - (tradeRequest.categoryRequestedAt or 0) >= CATEGORY_SHOP_TIMEOUT then
+          diagnostic.stage = "category_shop_not_detected"
+          warn("CaveBot[BuySupplies]: Xodet did not open the requested " ..
+            tostring(tradeRequest.activeFilter) .. " shop")
+          return finishPurchaseAction(false, diagnostic)
+        end
+        diagnostic.stage = "waiting_for_category_shop"
+        purchaseDelay(500)
+        return "retry"
+      end
+    end
+    if not npcItems then
+      if diagnostic.stage ~= "waiting_for_target_shop" then
+        diagnostic.stage = "waiting_for_trade"
+      end
+      diagnostic.tradeAttempts = tradeRequest.attempts
+      if tradeRequest.attempts >= 2 and retries - tradeRequest.lastRetry >= 5 then
+        diagnostic.stage = "trade_not_detected"
+        warn("CaveBot[BuySupplies]: a fresh NPC shop was not detected; stopping repeated trade messages")
+        return finishPurchaseAction(false, diagnostic)
+      end
+      if tradeRequest.attempts == 0 or retries - tradeRequest.lastRetry >= 5 then
+        openNpcTrade(tradeWord)
+        tradeRequest.lastRetry = retries
+        tradeRequest.attempts = tradeRequest.attempts + 1
+      end
+      purchaseDelay(math.max(500, (tonumber(storage.extras.talkDelay) or 1000) * 2))
+      return "retry"
+    end
+
+    if #npcItems == 0 then
+      diagnostic.stage = "shop_items_unreadable"
+      warn("CaveBot[BuySupplies]: trade opened, but no buy items were readable")
+      return finishPurchaseAction(false, diagnostic)
+    end
+    if tradeSource == "legacy" and tradeBridge and tradeBridge.goodsConnected and
+        npcTrade.open and not npcTrade.goodsReceived and
+        os.time() - (npcTrade.openedAt or os.time()) < PARTIAL_SETTLE_SECONDS then
+      diagnostic.stage = "waiting_for_shop_inventory"
+      purchaseDelay(350)
+      return "retry"
+    end
+
+    diagnostic.stage = "checking_shop"
+    diagnostic.tradeSource = tradeSource
+    diagnostic.shopTotal = #npcItems
+    for i,v in pairs(npcItems) do
+      table.insert(possibleItems, v.id)
+      if #diagnostic.shopIds < 80 then
+        diagnostic.shopIds[#diagnostic.shopIds + 1] = v.id
+      end
+    end
+
+    local matches = 0
+    for id, values in pairs(Supplies.getItemsData()) do
+      id = tonumber(id)
+      if id then
+        local available = not not table.find(possibleItems, id)
+        local max = tonumber(values.max) or 0
+        local current, source, visible, nativeInventory = getCounterInfo(id)
+        -- Use the counter result and retain its source for diagnostics.
+        current = tonumber(current) or 0
+        diagnostic.supplies[tostring(id)] = {
+          max = max, current = current, source = source,
+          visible = visible, nativeInventory = nativeInventory, available = available
+        }
+        local key = tostring(id)
+        local cooldown = purchaseCooldowns()[key]
+        local skipped = tradeRequest.skippedItems[key] or (cooldown and "confirmation_cooldown")
+        diagnostic.supplies[key].skipped = skipped
+        if available then matches = matches + 1 end
+        if available and not skipped then
+          if vBot.ItemCounter and vBot.ItemCounter.registerItemId then
+            if vBot.ItemCounter.registerSupplyItem then
+              vBot.ItemCounter.registerSupplyItem(id, values)
+            else
+              vBot.ItemCounter.registerItemId(id)
+            end
+          end
+
+          local toBuy = max - current
+          local matchedEntry
+          for _, entry in pairs(npcItems) do
+            if entry.id == id then matchedEntry = entry break end
+          end
+          if tradeSource ~= "modal" then
+            -- Track the visit's remaining shortfall across deliveries instead
+            -- of restarting it when a container/quiver move lowers visibility.
+            local remaining = tradeRequest.legacyRemaining[key]
+            if remaining == nil then
+              remaining = math.max(0, toBuy)
+              tradeRequest.legacyRemaining[key] = remaining
+            end
+            toBuy = math.min(toBuy, remaining)
+            if toBuy > 0 then
+              local reason
+              toBuy, reason = standardPurchaseAmount(matchedEntry, toBuy, diagnostic)
+              if reason then
+                tradeRequest.skippedItems[key], diagnostic.supplies[key].skipped = reason, reason
+                warn("CaveBot[BuySupplies]: no se puede comprar " .. id ..
+                  (reason == "not_enough_money" and ": oro insuficiente" or ": capacidad insuficiente"))
+              end
+            end
+            if toBuy <= 0 and current < max then
+              tradeRequest.skippedItems[key] = tradeRequest.skippedItems[key] or "purchase_limit_reached"
+              diagnostic.supplies[key].skipped = tradeRequest.skippedItems[key]
+            end
+          end
+
+          if toBuy > 0 then
+            if tradeSource == "modal" then
+              local ready = purchaseInventoryReady(id, current, visible, diagnostic)
+              if ready ~= true then return "retry" end
+              local matchedEntry
+              for _, entry in ipairs(npcItems) do
+                if entry.id == id then matchedEntry = entry break end
+              end
+              return requestModalPurchase(matchedEntry, modal, npcName, current,
+                toBuy, modalIdentity, diagnostic)
+            end
+            local matchedItem = matchedEntry and (matchedEntry.item or matchedEntry.ptr)
+            -- Ammo is counted from visible inventory, not an optimistic buy
+            -- estimate. Keep one batch in flight until real stock confirms it.
+            storage.sabuezoBuySuppliesPending = {
+              npc = npcName, itemId = id, amount = toBuy,
+              before = current, visibleBefore = visible, requestedAt = os.time(),
+              usedBefore = usedItemCount(id),
+              observedCurrent = current, observedVisible = visible,
+              lastInventoryChangeAt = os.time(), inventoryView = inventoryViewSignature(),
+              source = tradeSource
+            }
+            local ok, buyError = pcall(function()
+              if matchedItem then
+                return g_game.buyItem(matchedItem, toBuy, false, false)
+              else
+                return NPC.buy(id, toBuy)
+              end
+            end)
+            if not ok or buyError == false then
+              retirePending(storage.sabuezoBuySuppliesPending, "request_failed", true)
+              diagnostic.stage = "buy_request_failed"
+              diagnostic.itemId = id
+              warn("CaveBot[BuySupplies]: buy request failed for " .. id .. ": " .. tostring(buyError))
+              return finishPurchaseAction(false, diagnostic)
+            end
+            diagnostic.stage = "buy_requested"
+            diagnostic.itemId = id
+            diagnostic.amount = toBuy
+            tradeRequest.legacyRemaining[key] = tradeRequest.legacyRemaining[key] - toBuy
+            print("CaveBot[BuySupplies]: requested " .. toBuy .. "x " .. id ..
+              "; waiting for inventory confirmation")
+            purchaseDelay(math.max(500, tonumber(storage.extras.talkDelay) or 1000))
+            return "retry"
+          end
+        end
+      end
+    end
+
+    diagnostic.matches = matches
+    if tradeSource == "modal" and modal and npcName:lower() == "xodet" then
+      -- First evaluate a category after its rows have refreshed on a retry.
+      if tradeRequest.activeFilter then
+        tradeRequest.filtersTried[tradeRequest.activeFilter] = true
+      end
+      local neededCategories = {}
+      for key, info in pairs(diagnostic.supplies) do
+        if info.current < info.max and not info.available and not info.skipped then
+          local category = supplyShopCategory(tonumber(key))
+          if category and not tradeRequest.filtersTried[category] then
+            neededCategories[category] = true
+          end
+        end
+      end
+      local nextFilter = neededCategories.potions and "potions" or
+        (neededCategories.runes and "runes" or nil)
+      if nextFilter then
+        local applied, filterError = requestCategoryShop(modal, npcItems, nextFilter)
+        diagnostic.filter = nextFilter
+        diagnostic.filterError = filterError
+        if applied then
+          diagnostic.stage = "requesting_shop_category"
+          purchaseDelay(math.max(1000, (tonumber(storage.extras.talkDelay) or 1000) * 3))
+          return "retry"
+        end
+        diagnostic.stage = "shop_category_request_failed"
+        warn("CaveBot[BuySupplies]: could not request Xodet's " ..
+          nextFilter .. " shop: " .. tostring(filterError))
+        return finishPurchaseAction(false, diagnostic)
+      end
+    end
+    if tradeSource == "modal" then
+      storage.sabuezoBuySuppliesLastShop = {
+        npc = npcName, shownName = modalName,
+        signature = shopSignature(npcItems), time = os.time()
+      }
+    end
+    local missing, skipped = 0, 0
+    for _, info in pairs(diagnostic.supplies) do
+      if info.skipped then skipped = skipped + 1 end
+      if info.current < info.max and not info.available then
+        missing = missing + 1
+      end
+    end
+    if skipped > 0 then
+      diagnostic.stage = "supplies_skipped"
+      diagnostic.skippedCount = skipped
+    elseif tradeSource == "modal" and missing > 0 then
+      diagnostic.stage = "configured_items_unavailable_here"
+      diagnostic.unavailableCount = missing
+      print("CaveBot[BuySupplies]: " .. missing .. " configured supply items were not found in " .. npcName .. "'s shop")
+    elseif matches == 0 then
+      diagnostic.stage = "no_matching_ids"
+      warn("CaveBot[BuySupplies]: none of the configured supply IDs are sold by " .. npcName)
+    else
+      diagnostic.stage = "configured_items_at_max"
+      print("CaveBot[BuySupplies]: configured shop items are already at max")
+    end
+    return finishPurchaseAction(skipped == 0, diagnostic)
+  end
+
+  CaveBot.registerAction("BuySupplies", "#C300FF", step)
+
+  function buySupplies.beginFollowVisit(npc, actor, shop)
+    if followerVisit then return false end
+    followerVisit = {npc = npc, actor = actor, shop = shop, retries = 0, nextAt = 0}
+    return true
+  end
+
+  function buySupplies.cancelFollowVisit()
+    local visit = followerVisit
+    if not visit then return end
+    followerVisit = nil
+    local revision = visit.revision
+    if revision and CaveBot.IsNpcConversationCurrent(revision) then
+      pcall(CaveBot.FinishNpcConversation, 0, revision)
+      CaveBot.CancelNpcConversation()
+      clearNpcTrade()
+    end
+  end
+
+  function buySupplies.stepFollowVisit()
+    local visit = followerVisit
+    if not visit then return false end
+    local time = now or 0
+    if time < visit.nextAt then return "retry" end
+    if visit.revision and not CaveBot.IsNpcConversationCurrent(visit.revision) then
+      followerVisit = nil
+      clearNpcTrade()
+      return false
+    end
+    visit.nextAt = time + 300
+    local ok, result = pcall(step, visit.npc, visit.retries)
+    visit.revision = tradeRequest.revision
+    if ok and result == "retry" then
+      visit.retries = visit.retries + 1
+      return result
+    end
+    if not ok then
+      warn("CaveBot[BuySupplies]: " .. tostring(result))
+      buySupplies.cancelFollowVisit()
+      return false
+    end
+    followerVisit = nil
+    return result
+  end
+
+ CaveBot.Editor.registerAction("buysupplies", "buy supplies", {
+  multiline=false,
+  value="NPC name",
+  title="Buy Supplies",
+  description="NPC name, word(optional), delay(in ms, optional)",
+ })
+end

@@ -1,12 +1,18 @@
 # RinoBot / Helper - Aurera, Valkaris y adaptadores por cliente
 
-Versión estable: **3.1.23**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.23). Puente clásico: **3.0.31**.
+Versión estable: **3.1.24**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.24). Puente clásico: **3.0.31**.
 
 ## Actualización
 
 Si estás en 3.1.18 o en una versión anterior en modo manual, instala la 3.1.19 desde Actualizaciones y recarga Helper una vez. A partir de la 3.1.19, el bot comprueba al iniciar y cada cinco minutos, instala la actualización y se recarga automáticamente. Se conservan perfiles, rutas, scripts y preferencias.
 
 Versiones antiguas con Auto OFF necesitan adoptar el nuevo updater una primera vez desde su panel. Si no hay Updater, usa la instalación inicial.
+
+## Cambios de 3.1.24
+
+Los perfiles nuevos incluyen curas, pociones y rotacion por nivel. Navi sigue viajes de barco y los seguidores pueden usar las escaleras y objetos que avise el lider.
+
+[Notas completas](rinobot/3.1.24-notas.md) e [informe de validación](rinobot/3.1.24-validacion.json).
 
 ## Cambios de 3.1.23
 

@@ -1,0 +1,91 @@
+AutoForgePanel < Panel
+  height: 41
+
+  HelperThemePower
+    id: title
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: settings.left
+    margin-right: 3
+    height: 20
+    text: Auto Forge
+
+  HelperThemeButton
+    id: settings
+    anchors.top: parent.top
+    anchors.right: parent.right
+    size: 70 20
+    text: Configurar
+
+  HelperThemeLabel
+    id: status
+    anchors.top: title.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 3
+    height: 18
+    text: Desactivado
+
+AutoForgeWindow < HelperThemeWindow
+  text: Auto Forge
+  size: 420 296
+  padding: 12
+  padding-top: 30
+
+  HelperThemeLabel
+    id: resources
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 24
+    text: Dust: - | Slivers: - | Cores: -
+
+  HelperThemePower
+    id: enabled
+    anchors.top: resources.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 4
+    height: 24
+    text: Convertir recursos automaticamente
+
+  HelperThemeLabel
+    id: conversions
+    anchors.top: enabled.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 10
+    height: 42
+    text: 60 dust = 3 slivers\n50 slivers = 1 exalted core
+
+  HelperThemeLabel
+    id: status
+    anchors.top: conversions.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 6
+    height: 44
+    text-wrap: true
+    text: Desactivado
+
+  HelperThemeLabel
+    id: confirmed
+    anchors.top: status.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 22
+    text: Conversiones confirmadas: 0 | Cores: 0
+
+  HelperThemeButton
+    id: review
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    width: 230
+    text: Restablecer tras revisar Forge
+
+  HelperThemeButton
+    id: closeButton
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    width: 92
+    text: Cerrar

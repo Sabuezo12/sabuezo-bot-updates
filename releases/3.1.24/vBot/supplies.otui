@@ -1,0 +1,333 @@
+ProfileLabel < UIWidget
+  background-color: alpha
+  color: #e4edf3
+  text-offset: 3 0
+  focusable: true
+  height: 22
+  font: verdana-11px-antialised
+  text-align: left
+  $focus:
+    background-color: #18434a
+
+  HelperThemeButton
+    id: remove
+    text: X
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 3
+    size: 18 18
+    tooltip: Eliminar este perfil.
+
+SupplySpinBox < HelperThemeSpin
+  height: 22
+  margin-left: 4
+  width: 65
+  minimum: 0
+  maximum: 9999
+  text-align: center
+  text-offset: 0 0
+  padding: 0
+  padding-left: 2
+  padding-right: 13
+  focusable: true
+  text: 0
+
+ItemPanel < Panel
+  height: 34
+  margin-bottom: 3
+
+  BotItem
+    id: id
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    size: 32 32
+
+  SupplySpinBox
+    id: min
+    anchors.left: id.right
+    anchors.verticalCenter: parent.verticalCenter
+
+  SupplySpinBox
+    id: max
+    anchors.left: min.right
+    anchors.verticalCenter: parent.verticalCenter
+
+  SupplySpinBox
+    id: avg
+    anchors.left: max.right
+    anchors.verticalCenter: parent.verticalCenter
+    width: 48
+
+  HelperThemeButton
+    id: alias
+    anchors.left: avg.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 4
+    size: 38 22
+    text: Log
+    tooltip: Nombre del item como aparece en Server Log.
+
+  HelperThemeInput
+    id: aliasValue
+    size: 1 1
+    visible: false
+
+SuppliesWindow < HelperThemeWindow
+  text: Supplies
+  size: 580 390
+  @onEscape: self:hide()
+
+  HelperThemeVerticalDivider
+    id: sep
+    anchors.top: parent.top
+    anchors.bottom: bottomSep.top
+    anchors.right: parent.right
+    margin-right: 220
+    margin-bottom: 6
+    visible: false
+
+  HelperThemeSection
+    id: itemsFrame
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: sep.left
+    anchors.bottom: bottomSep.top
+    margin-right: 8
+    margin-bottom: 6
+    phantom: true
+
+  HelperThemeSectionTitle
+    id: itemTitle
+    anchors.left: itemsFrame.left
+    anchors.right: itemsFrame.right
+    anchors.top: itemsFrame.top
+    text: Items del perfil
+
+  HelperThemeLabel
+    id: itemHelp
+    anchors.left: itemsFrame.left
+    anchors.right: itemsFrame.right
+    anchors.top: itemTitle.bottom
+    margin: 5
+    height: 18
+    text: Selecciona un item en la fila vacia.
+
+  Panel
+    id: columns
+    anchors.left: itemsFrame.left
+    anchors.right: itemsFrame.right
+    anchors.top: itemHelp.bottom
+    margin-left: 5
+    height: 18
+
+    HelperThemeLabel
+      anchors.left: parent.left
+      anchors.top: parent.top
+      width: 32
+      text: Item
+
+    HelperThemeLabel
+      id: minTitle
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 36
+      width: 65
+      text: Minimo
+      text-align: center
+      tooltip: Cantidad para salir a refill.
+
+    HelperThemeLabel
+      id: maxTitle
+      anchors.left: minTitle.right
+      anchors.top: parent.top
+      margin-left: 4
+      width: 65
+      text: Compra
+      text-align: center
+      tooltip: Cantidad maxima para comprar.
+
+    HelperThemeLabel
+      id: avgTitle
+      anchors.left: maxTitle.right
+      anchors.top: parent.top
+      margin-left: 4
+      width: 48
+      text: Prom.
+      text-align: center
+      tooltip: Consumo promedio por vuelta.
+
+    HelperThemeLabel
+      anchors.left: avgTitle.right
+      anchors.top: parent.top
+      margin-left: 4
+      width: 38
+      text: Alias
+      text-align: center
+
+  VerticalScrollBar
+    id: itemsScrollBar
+    anchors.top: columns.bottom
+    anchors.bottom: itemsFrame.bottom
+    anchors.right: itemsFrame.right
+    margin: 5
+    step: 37
+    pixels-scroll: true
+
+  HelperThemeScroll
+    id: items
+    anchors.top: columns.bottom
+    anchors.left: itemsFrame.left
+    anchors.right: itemsScrollBar.left
+    anchors.bottom: itemsFrame.bottom
+    margin: 5
+    vertical-scrollbar: itemsScrollBar
+    layout:
+      type: verticalBox
+
+  HelperThemeSection
+    id: conditionsFrame
+    anchors.left: sep.right
+    anchors.right: parent.right
+    anchors.top: parent.top
+    height: 151
+    phantom: true
+
+  HelperThemeSectionTitle
+    id: conditionsTitle
+    anchors.left: conditionsFrame.left
+    anchors.right: conditionsFrame.right
+    anchors.top: conditionsFrame.top
+    text: Condiciones de regreso
+
+  HelperThemeToggle
+    id: SoftBoots
+    anchors.left: conditionsFrame.left
+    anchors.right: conditionsFrame.right
+    anchors.top: conditionsTitle.bottom
+    margin: 5
+    height: 22
+    text: Soft boots
+    tooltip: Volver a refill cuando no hay Soft Boots activas.
+
+  HelperThemeInput
+    id: capValue
+    anchors.right: SoftBoots.right
+    anchors.top: SoftBoots.bottom
+    margin-top: 5
+    size: 54 22
+    padding: 0
+    padding-left: 3
+    padding-right: 3
+    padding-top: 1
+    padding-bottom: 1
+    text-offset: 0 0
+    text-align: center
+
+  HelperThemeToggle
+    id: capSwitch
+    anchors.left: SoftBoots.left
+    anchors.right: capValue.left
+    anchors.top: capValue.top
+    margin-right: 5
+    height: 22
+    text: Capacidad <
+    tooltip: Volver a refill si la capacidad baja de este valor.
+
+  HelperThemeInput
+    id: staminaValue
+    anchors.right: SoftBoots.right
+    anchors.top: capValue.bottom
+    margin-top: 5
+    size: 62 22
+    padding: 0
+    padding-left: 3
+    padding-right: 3
+    padding-top: 1
+    padding-bottom: 1
+    text-offset: 0 0
+    text-align: center
+    tooltip: Stamina en horas:minutos. Por defecto 39:00; rango 00:00 a 42:00.
+
+  HelperThemeToggle
+    id: staminaSwitch
+    anchors.left: SoftBoots.left
+    anchors.right: staminaValue.left
+    anchors.top: staminaValue.top
+    margin-right: 5
+    height: 22
+    text: Stamina <
+    tooltip: Volver a refill cuando la stamina baja de estas horas:minutos. 39:00 equivale a 2340 minutos.
+
+  HelperThemeToggle
+    id: imbues
+    anchors.left: SoftBoots.left
+    anchors.right: SoftBoots.right
+    anchors.top: staminaValue.bottom
+    margin-top: 5
+    height: 22
+    text: Imbue mana
+    tooltip: Volver a refill cuando termina el imbue de mana.
+
+  HelperThemeSection
+    id: profilesFrame
+    anchors.left: conditionsFrame.left
+    anchors.right: conditionsFrame.right
+    anchors.top: conditionsFrame.bottom
+    anchors.bottom: itemsFrame.bottom
+    margin-top: 8
+    phantom: true
+
+  HelperThemeSectionTitle
+    id: profilesTitle
+    anchors.left: profilesFrame.left
+    anchors.right: profilesFrame.right
+    anchors.top: profilesFrame.top
+    text: Perfiles de supplies
+
+  HelperThemeButton
+    id: newProfile
+    anchors.left: profilesFrame.left
+    anchors.bottom: profilesFrame.bottom
+    margin: 5
+    size: 88 22
+    text: Nuevo perfil
+
+  VerticalScrollBar
+    id: profilesScrollBar
+    anchors.top: profilesTitle.bottom
+    anchors.bottom: newProfile.top
+    anchors.right: profilesFrame.right
+    margin: 5
+    step: 22
+    pixels-scroll: true
+
+  HelperThemeList
+    id: profiles
+    anchors.top: profilesTitle.bottom
+    anchors.bottom: newProfile.top
+    anchors.left: profilesFrame.left
+    anchors.right: profilesScrollBar.left
+    margin: 5
+    vertical-scrollbar: profilesScrollBar
+
+  HelperThemeDivider
+    id: bottomSep
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: closeButton.top
+    margin-bottom: 6
+
+  HelperThemeButton
+    id: closeButton
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 80 22
+    text: Volver
+
+  HelperThemeButton
+    id: saveButton
+    anchors.right: closeButton.left
+    anchors.bottom: parent.bottom
+    margin-right: 6
+    size: 80 22
+    text: Guardar

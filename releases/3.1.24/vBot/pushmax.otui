@@ -1,0 +1,163 @@
+PushMaxWindow < HelperThemeWindow
+  !text: tr('Pushmax Settings')
+  size: 350 270
+  @onEscape: self:hide()
+
+  BotLabel
+    id: delayText
+    height: 16
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    text-align: center
+
+  HorizontalScrollBar
+    id: delay
+    height: 14
+    anchors.left: delayText.left
+    anchors.right: delayText.right
+    anchors.top: delayText.bottom
+    margin-top: 5
+    minimum: 80
+    maximum: 2000
+    step: 10
+
+  HelperThemeLabel
+    id: label3
+    anchors.top: delay.bottom
+    anchors.left: parent.left
+    margin-left: 0
+    margin-top: 6
+    size: 64 16
+    text-align: center
+    text: AntiPush
+
+  BotItem
+    id: runeId
+    anchors.top: label3.bottom
+    anchors.horizontalCenter: label3.horizontalCenter
+    margin-top: 2
+    size: 32 32
+
+  HelperThemeLabel
+    id: label2
+    anchors.top: delay.bottom
+    anchors.left: parent.left
+    margin-left: 66
+    margin-top: 6
+    size: 64 16
+    text-align: center
+    text: MW obj.
+
+  BotItem
+    id: mwallId
+    anchors.top: label2.bottom
+    anchors.horizontalCenter: label2.horizontalCenter
+    margin-top: 2
+    size: 32 32
+
+  HelperThemeLabel
+    id: label4
+    anchors.top: delay.bottom
+    anchors.left: parent.left
+    margin-left: 132
+    margin-top: 6
+    size: 64 16
+    text-align: center
+    text: MW final
+
+  BotItem
+    id: finalMwallRuneId
+    anchors.top: label4.bottom
+    anchors.horizontalCenter: label4.horizontalCenter
+    margin-top: 2
+    size: 32 32
+
+  HelperThemeLabel
+    id: destroyRuneLabel
+    anchors.top: delay.bottom
+    anchors.left: parent.left
+    margin-left: 198
+    margin-top: 6
+    size: 64 16
+    text-align: center
+    text: Destroy
+
+  BotItem
+    id: destroyRuneId
+    anchors.top: destroyRuneLabel.bottom
+    anchors.horizontalCenter: destroyRuneLabel.horizontalCenter
+    margin-top: 2
+    size: 32 32
+
+  HelperThemeLabel
+    id: disintegrateLabel
+    anchors.top: delay.bottom
+    anchors.left: parent.left
+    margin-left: 264
+    margin-top: 6
+    size: 64 16
+    text-align: center
+    text: Disint.
+
+  BotItem
+    id: disintegrateRuneId
+    anchors.top: disintegrateLabel.bottom
+    anchors.horizontalCenter: disintegrateLabel.horizontalCenter
+    margin-top: 2
+    size: 32 32
+
+  HelperThemeLabel
+    id: label5
+    height: 16
+    anchors.top: destroyRuneId.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    text-align: center
+    text: Destroy Field IDs
+    margin-top: 10
+
+  HelperThemeInput
+    id: destroyFieldIds
+    height: 22
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: label5.bottom
+    margin-top: 5
+    text-align: center
+
+  HelperThemeLabel
+    id: label1
+    height: 16
+    anchors.top: destroyFieldIds.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 10
+    text-align: center
+    text: Hotkey for PUSHMAX
+
+  HelperThemeInput
+    id: hotkey
+    height: 22
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: label1.bottom
+    margin-top: 5
+    text-align: center
+
+  HelperThemeDivider
+    id: separator
+    anchors.right: parent.right
+    anchors.left: parent.left
+    anchors.bottom: closeButton.top
+    margin-bottom: 8
+
+  HelperThemeButton
+    id: closeButton
+    !text: tr('Close')
+    font: verdana-11px-antialised
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 45 21
+    margin-top: 15
+    margin-right: 5

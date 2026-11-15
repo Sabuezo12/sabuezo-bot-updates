@@ -1,3 +1,11 @@
+3.1.24 - Perfiles nuevos, HealBot por nivel y mejoras de Follow
+- Perfiles: menu de clic derecho para copiar, renombrar, sobrescribir y eliminar. Los cambios hechos desde dos clientes ya no pisan el indice anterior.
+- Los perfiles nuevos incluyen curas y pociones por vocacion, AttackBot y TargetBot activados, Friend Healer para Druid y Monk, y los ajustes iniciales de iconos, Haste, Comida, Container Manager, AutoForge y Dummy Smart.
+- HealBot usa la cura mas fuerte que cumpla el nivel, mana y condiciones, y la pocion de mayor nivel disponible. Una cura superior que no se puede lanzar deja pasar el respaldo.
+- AttackBot con rotacion por nivel usa el ataque basico si el superior no cumple la cantidad de monstruos o no se puede lanzar.
+- Combo Follow puede seguir un barco sin una ruta Travel cuando Navi recibe el destino del lider. Tambien permite seguir el uso de objetos con Ctrl+Shift+clic derecho y limpia las ordenes pendientes al apagarlo.
+- Se conservan las actualizaciones automaticas, las rutas y las reglas personales de los perfiles existentes.
+
 3.1.23 - CaveBot: la grabacion de rutas ignora las runas
 - CaveBot: al grabar una ruta ya no guarda las runas que lanza el bot (Avalanche y demas) como acciones use.
 - Las escaleras, sogas, palas, puertas y palancas que uses a mano se siguen grabando.
