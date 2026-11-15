@@ -1,0 +1,55 @@
+{
+  "version": "3.1.25",
+  "officialFiles": 376,
+  "filesChanged": 7,
+  "compiledLuaFiles": 172,
+  "sourceCommit": "2da3724bb76fed6356d58b511a4354717b6991a3",
+  "manualInstallerMigrations": {
+    "3.1.24": 7,
+    "3.1.23": 25,
+    "3.1.22": 26,
+    "3.1.21": 27,
+    "3.1.20": 39,
+    "3.1.19": 51,
+    "3.1.18": 51,
+    "3.1.17": 98,
+    "3.1.16": 98
+  },
+  "changedFiles": [
+    "_Loader.lua",
+    "vBot/AttackBot.lua",
+    "vBot/ContainerManager.lua",
+    "vBot/HelperAppearance.lua",
+    "vBot/ImbuementScrolls.lua",
+    "vBot/SabuezoChangelog.fallback.txt",
+    "vBot/container_layout.lua"
+  ],
+  "sourceWorktreeClean": "PASS",
+  "thorniaAimingContainerAndImbuementRegression": "PASS",
+  "luaCompilation": "PASS",
+  "automaticInstallReloadAndFiveMinuteCheck": "PASS",
+  "currentUpdaterAutomaticInstallReloadAndFiveMinuteCheck": "PASS",
+  "previousUpdaterSelfInstall": "PASS",
+  "currentUpdaterSelfInstallAndRender": "PASS",
+  "cavebotRecorderSkipsRunes": "PASS",
+  "followRegression": "PASS",
+  "profileHealAttackNaviAndFollowUseRegression": "PASS",
+  "updaterTransactions": "PASS",
+  "manifestAndPayloadHashes": "PASS",
+  "historicalFileHashesChecked": 8297,
+  "privateFilesPreserved": true,
+  "excludedUntrackedFiles": [
+    "vBot/mythic_opcode_diagnostic.lua",
+    "vBot/mythic_opcode_diagnostic.otui",
+    "vBot/mythic_opcode_local_control.lua"
+  ],
+  "removedFromPreviousManifest": [],
+  "overall": "PASS",
+  "nativeClientTests": {
+    "Valkaris Next Gen": "offline startup and reload, profile template and exclusive index lock",
+    "Aurera": "offline startup and reload, profile template and exclusive index lock"
+  },
+  "thorniaClientTests": "offline native aim, container refresh and layout, and imbuement regression",
+  "packageSha256": "9731d91cfefbced44cac2b0092b983eb9edcdd0e327df5fb0bae39551e9aca79",
+  "packageSize": 3624365
+}

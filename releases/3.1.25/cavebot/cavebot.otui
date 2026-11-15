@@ -1,0 +1,172 @@
+CaveBotAction < HelperThemeLabel
+  background-color: alpha
+  text-offset: 48 0
+  focusable: true
+
+  HelperThemeLabel
+    id: waypointNumber
+    anchors.left: parent.left
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    width: 43
+    text-align: right
+    color: #a9bbc6
+    phantom: true
+
+  $focus:
+    background-color: #00000055
+
+
+CaveBotPanel < Panel
+  layout:
+    type: verticalBox
+    fit-children: true
+
+  HelperThemePower
+    id: autoRecording
+    text: Auto Recording
+    margin-bottom: 2      
+
+  HelperThemePower
+    id: showWaypoints
+    margin-bottom: 2
+    $on:
+      text: Waypoints en mapa ON
+    $!on:
+      text: Waypoints en mapa OFF
+
+  HelperThemeSection
+    id: autoExplorer
+    margin-bottom: 6
+    padding: 4
+    layout:
+      type: verticalBox
+      fit-children: true
+
+    HelperThemePower
+      id: enabled
+      text: Auto Explorer
+      margin-bottom: 2
+
+    Panel
+      id: statusRow
+      height: 20
+
+      HelperThemeInput
+        id: radiusEdit
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: 38
+
+      HelperThemeLabel
+        text: Radio
+        anchors.right: radiusEdit.left
+        anchors.verticalCenter: radiusEdit.verticalCenter
+        margin-right: 3
+
+      HelperThemeLabel
+        id: statusLabel
+        text: Off
+        anchors.left: parent.left
+        anchors.right: prev.left
+        anchors.verticalCenter: parent.verticalCenter
+        margin-left: 4
+        margin-right: 3
+
+    Panel
+      id: perimeterRow
+      height: 16
+      margin-bottom: 2
+
+      HorizontalScrollBar
+        id: perimeterSlider
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+        margin-left: 4
+        margin-right: 4
+        minimum: 20
+        maximum: 120
+        step: 1
+
+    Panel
+      id: optionsRow
+      height: 20
+
+      HelperThemePower
+        id: previewSwitch
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: 82
+
+        $on:
+          text: Radio ON
+
+        $!on:
+          text: Radio OFF
+
+      HelperThemeButton
+        id: resetButton
+        text: Limpiar
+        anchors.left: previewSwitch.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        margin-left: 3
+        width: 55
+
+      HelperThemePower
+        id: floorSwitch
+        anchors.left: resetButton.right
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        margin-left: 3
+
+        $on:
+          text: Piso On
+
+        $!on:
+          text: Piso Off
+
+  HelperThemeDivider
+    margin-top: 2
+    margin-bottom: 1
+    
+  Panel
+    id: listPanel
+    height: 130
+    margin-top: 2
+
+    HelperThemeList
+      id: list
+      anchors.fill: parent
+      vertical-scrollbar: listScrollbar
+      margin-right: 15
+      focusable: false
+      auto-focus: first
+      background-color: #585860
+      
+    VerticalScrollBar
+      id: listScrollbar
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      anchors.right: parent.right
+      pixels-scroll: true
+      step: 10  
+    
+  HelperThemePower
+    id: showEditor
+    margin-top: 2
+    
+    $on:
+      text: Hide waypoints editor
+      
+    $!on:
+      text: Show waypoints editor
+
+  HelperThemeButton
+    id: showConfig
+    margin-top: 2
+    text: CaveBot Config

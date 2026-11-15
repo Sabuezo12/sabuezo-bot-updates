@@ -1,3 +1,11 @@
+3.1.25 - AttackBot de Thornia y Container Manager
+- AttackBot usa el apuntado de Thornia para Divine Barrage, Ethereal Barrage, Death Echo y Thousand Fist Blows.
+- Container Manager abre la mochila equipada y las BPs con reglas activas. Purse y Quiver conservan sus casillas.
+- Al mover items en Thornia, las BPs conservan su tamano y estado. ReOpen al iniciar conserva las ventanas abiertas.
+- La ventana de Container Manager es mas compacta y muestra los botones debajo del nombre de cada BP.
+- Quiver puede rellenar la municion con su ventana cerrada.
+- Imbuements respeta Main BP al buscar scrolls, conserva el intento por ID y deja cerrado el quiver durante la busqueda.
+
 3.1.24 - Perfiles nuevos, HealBot por nivel y mejoras de Follow
 - Perfiles: menu de clic derecho para copiar, renombrar, sobrescribir y eliminar. Los cambios hechos desde dos clientes ya no pisan el indice anterior.
 - Los perfiles nuevos incluyen curas y pociones por vocacion, AttackBot y TargetBot activados, Friend Healer para Druid y Monk, y los ajustes iniciales de iconos, Haste, Comida, Container Manager, AutoForge y Dummy Smart.
