@@ -1,0 +1,8 @@
+Font
+  name: rinobot-title-20
+  texture: rinobot-title-20
+  height: 26
+  glyph-size: 32 32
+  first-glyph: 32
+  spacing: 1 0
+  space-width: 5

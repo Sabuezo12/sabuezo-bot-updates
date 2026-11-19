@@ -1,3 +1,15 @@
+3.1.26 - Monk, AutoForge y regreso a la ruta
+- CaveBot recuerda la casilla exacta donde se perdio la ruta, vuelve por escaleras o soga y retoma el waypoint pendiente.
+- AttackBot vuelve a comprobar la cobertura en cada paso y lanza cuando cumple el minimo, aunque no haya terminado de reposicionarse.
+- Monk puede girar y lanzar durante la marcha de CaveBot o AutoExplorer, con control de Armonia, cooldown y alcance.
+- Friend Healer agrega las curas de Monk, permite apagar Gran Sio y exige un companero de party herido dentro del area para la cura grupal.
+- AutoForge convierte con los saldos y costes nativos de Thornia. Permite elegir umbrales de dust, slivers y la meta del limite de dust.
+- Agrupar cercanos busca salidas antes del rodeo y puede usar un paso intermedio para abrir espacio.
+- Pausa dinamica mantiene la marcha hasta que la manada se queda atras y deja paso a las maniobras de escape.
+- Buy Supplies compra lotes amplios cuando el cliente los admite y confirma lo recibido antes del siguiente pedido.
+- Sell All completa los lotes en una conversacion y conserva las excepciones y los objetos equipados.
+- La visualizacion de hechizos muestra los efectos de Monk con las clases nativas de Thornia.
+
 3.1.25 - AttackBot de Thornia y Container Manager
 - AttackBot usa el apuntado de Thornia para Divine Barrage, Ethereal Barrage, Death Echo y Thousand Fist Blows.
 - Container Manager abre la mochila equipada y las BPs con reglas activas. Purse y Quiver conservan sus casillas.
