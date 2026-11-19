@@ -1,3 +1,9 @@
+3.1.27 - CaveBot: caminata anterior y jugadores bloqueadores
+- CaveBot vuelve a su caminata anterior y retira la recuperacion automatica por caidas y las nuevas busquedas entre pisos que provocaban bloqueos y bucles.
+- Si un jugador tapa el paso, intenta apartarlo a una casilla libre y espera la confirmacion del servidor para continuar el mismo waypoint.
+- Si el push no se puede completar, conserva el waypoint y reintenta; mantiene el ataque a monstruos que obstruyen el paso.
+- La correccion conserva las compras, las ventas, las curas, AutoForge, AttackBot, Follow, los perfiles y las rutas guardadas.
+
 3.1.26 - Monk, AutoForge y regreso a la ruta
 - CaveBot recuerda la casilla exacta donde se perdio la ruta, vuelve por escaleras o soga y retoma el waypoint pendiente.
 - AttackBot vuelve a comprobar la cobertura en cada paso y lanza cuando cumple el minimo, aunque no haya terminado de reposicionarse.
