@@ -1,3 +1,9 @@
+3.1.28 - CaveBot: regreso de piso y correccion de Divine Grenade
+- CaveBot puede regresar tras una caida o un cambio de piso accidental, buscando escaleras, huecos, soga o accesos de la ruta y del minimapa sin cambiar la caminata normal.
+- La opcion Volver si cambio de piso se guarda por personaje: encendida en perfiles nuevos y opcional en los existentes. Incluye avisos de la causa probable, exani tera sin soga y un freno contra cruces repetidos.
+- AttackBot corrige Divine Grenade en Thornia: admite su apuntado nativo y conserva la cantidad de monstruos, las condiciones y los cooldowns configurados.
+- Incluye conjuntamente los cambios 123, 124 y 125 de Claude, la correccion de Codex y las mejoras anteriores; conserva perfiles, rutas y configuraciones personales.
+
 3.1.27 - CaveBot: caminata anterior y jugadores bloqueadores
 - CaveBot vuelve a su caminata anterior y retira la recuperacion automatica por caidas y las nuevas busquedas entre pisos que provocaban bloqueos y bucles.
 - Si un jugador tapa el paso, intenta apartarlo a una casilla libre y espera la confirmacion del servidor para continuar el mismo waypoint.

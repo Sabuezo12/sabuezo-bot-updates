@@ -1,0 +1,1865 @@
+{
+  "schema": 1,
+  "storage": {
+    "extras": {
+      "pathfinding": true,
+      "talkDelay": 1000,
+      "looting": 7,
+      "lootDelay": 200,
+      "huntRoutes": 300,
+      "killUnder": 1,
+      "gotoMaxDistance": 90,
+      "caveFloorReturn": true,
+      "quickLootCorpses": false,
+      "buySuppliesV15": true,
+      "lootLast": true,
+      "joinBot": false,
+      "reachable": true,
+      "stake": false,
+      "suppliesControl": false,
+      "showTargetPriority": false,
+      "rope": 3003,
+      "shovel": 3457,
+      "machete": 3308,
+      "scythe": 3453,
+      "maxUseDist": 2,
+      "useAll": "|",
+      "title": true,
+      "separatePm": true,
+      "antiKick": true,
+      "oberon": false,
+      "autoOpenDoors": true,
+      "bless": true,
+      "reUse": false,
+      "checkPlayer": true,
+      "highlightTarget": false,
+      "hideAurasAndPets": false
+    },
+    "newHealer": {
+      "version": 2,
+      "enabled": false,
+      "customPlayers": [],
+      "vocations": {},
+      "groups": {},
+      "priorities": [
+        {
+          "name": "Exura Gran Sio",
+          "enabled": true,
+          "strong": true
+        },
+        {
+          "name": "Exura Sio",
+          "enabled": true,
+          "normal": true
+        },
+        {
+          "name": "Exura Gran Mas Res",
+          "enabled": true,
+          "area": true
+        },
+        {
+          "name": "Custom Spell",
+          "enabled": false,
+          "custom": true
+        },
+        {
+          "name": "Health Item",
+          "enabled": false,
+          "health": true
+        },
+        {
+          "name": "Mana Item",
+          "enabled": false,
+          "mana": true
+        }
+      ],
+      "settings": [
+        {
+          "type": "HealScroll",
+          "text": "Item Range: ",
+          "value": 6
+        },
+        {
+          "type": "HealItem",
+          "text": "Health Item ",
+          "value": 0
+        },
+        {
+          "type": "HealScroll",
+          "text": "Mas Res Players: ",
+          "value": 3
+        },
+        {
+          "type": "HealScroll",
+          "text": "Friend HP < %: ",
+          "value": 80
+        },
+        {
+          "type": "HealScroll",
+          "text": "Gran Sio HP < %: ",
+          "value": 30
+        },
+        {
+          "type": "HealScroll",
+          "text": "If MY HP < %: ",
+          "value": 20
+        },
+        {
+          "type": "HealScroll",
+          "text": "If MY MP < %: ",
+          "value": 30
+        },
+        {
+          "type": "HealItem",
+          "text": "Mana Item ",
+          "value": 0
+        },
+        {
+          "type": "HealScroll",
+          "text": "Friend MP < %: ",
+          "value": 50
+        }
+      ],
+      "conditions": {
+        "knights": true,
+        "paladins": true,
+        "druids": true,
+        "sorcerers": true,
+        "monks": true,
+        "party": true,
+        "guild": true,
+        "friends": true,
+        "customPlayers": true
+      }
+    },
+    "cManager": {
+      "openBack": true,
+      "openPurse": true,
+      "reopenAtLogin": true,
+      "openQuiver": false,
+      "sortItems": true,
+      "rememberPositions": false,
+      "qtdFullAfk": 1,
+      "onFullAfk": false,
+      "pausedCave": false,
+      "inmortalSupplies": {
+        "mightContainerId": 0,
+        "ssaContainerId": 0
+      },
+      "list": [],
+      "windowLayouts": [],
+      "windowLayoutObserverVersion": 2
+    },
+    "playerList": {
+      "enemyList": [],
+      "friendList": [],
+      "blackList": [],
+      "vocations": {},
+      "guildMembers": {},
+      "manualFriendList": [],
+      "manualFriendListInitialized": true,
+      "guildName": "",
+      "groupMembers": true,
+      "autoGuildMembers": true,
+      "autoDetectGuild": true,
+      "outfits": false,
+      "vocationOutfits": false,
+      "marks": true,
+      "highlight": false,
+      "autoAdd": true
+    },
+    "helperAutoForge": {
+      "enabled": true
+    },
+    "iconEditor": {
+      "icons": {
+        "AntiPushIcon": {
+          "visualMode": "bar",
+          "y": 334,
+          "x": 1463
+        },
+        "InmortalIcon": {
+          "visualMode": "classic",
+          "y": 121,
+          "x": 1509
+        },
+        "PullItemsIcon": {
+          "visualMode": "bar",
+          "y": 300,
+          "x": 354
+        },
+        "TimerExecutorIcon": {
+          "visualMode": "bar",
+          "y": 304,
+          "x": 1464
+        },
+        "HoldTargetIcon": {
+          "visualMode": "classic",
+          "y": 406,
+          "x": 1513
+        },
+        "ExivaLastIcon": {
+          "visualMode": "bar",
+          "y": 238,
+          "x": 354
+        },
+        "ExivaTargetIcon": {
+          "visualMode": "bar",
+          "y": 269,
+          "x": 354
+        },
+        "TargetIcon": {
+          "visualMode": "classic",
+          "y": 152,
+          "x": 352
+        },
+        "AutoBuffIcon": {
+          "visualMode": "classic",
+          "visible": false,
+          "y": 368,
+          "x": 346
+        },
+        "KeepWallIcon": {
+          "visualMode": "classic",
+          "y": 358,
+          "x": 1519
+        },
+        "FireBombIcon": {
+          "visualMode": "classic",
+          "y": 202,
+          "x": 1514
+        },
+        "SpyLevelIcon": {
+          "visualMode": "classic",
+          "y": 484,
+          "x": 1509
+        },
+        "RinoIcon_bot_636f6d626f5f706c7573": {
+          "onColor": "#00d43a",
+          "y": 527,
+          "text": "Combo",
+          "x": 1465,
+          "itemId": 3053,
+          "visible": true,
+          "visualMode": "bar",
+          "offColor": "#ff3b3b"
+        },
+        "RecogeTodoIcon": {
+          "visualMode": "bar",
+          "y": 330,
+          "x": 354
+        },
+        "BugMapIcon": {
+          "visualMode": "bar",
+          "y": 273,
+          "x": 1463
+        },
+        "AlarmsIcon": {
+          "onColor": "#00d43a",
+          "y": 430,
+          "text": "Alarmas",
+          "x": 352,
+          "itemId": 3456,
+          "visible": true,
+          "visualMode": "bar",
+          "offColor": "#ff3b3b"
+        },
+        "FriendHealerIcon": {
+          "visualMode": "classic",
+          "y": 367,
+          "x": 347
+        },
+        "CavebotIcon": {
+          "visualMode": "classic",
+          "y": 105,
+          "x": 345
+        }
+      },
+      "bindings": {
+        "AutoBuffIcon": {
+          "name": "Auto Buff",
+          "kind": "bot",
+          "key": "zautobuff"
+        },
+        "AlarmsIcon": {
+          "name": "Alarmas",
+          "kind": "bot",
+          "key": "alarms"
+        },
+        "RinoIcon_bot_636f6d626f5f706c7573": {
+          "key": "combo_plus",
+          "kind": "bot",
+          "name": "Combo"
+        }
+      },
+      "layout": {
+        "visualMode": "classic",
+        "holdToMove": false,
+        "barOpacity": 70
+      }
+    },
+    "_icons": {
+      "AntiPushIcon": {
+        "x": 0.11,
+        "y": 0.05,
+        "enabled": false
+      },
+      "InmortalIcon": {
+        "x": 0.01,
+        "y": 0.25,
+        "enabled": false
+      },
+      "PullItemsIcon": {
+        "x": 0.11,
+        "y": 0.25,
+        "enabled": false
+      },
+      "TimerExecutorIcon": {
+        "x": 0.31,
+        "y": 0.05,
+        "enabled": false
+      },
+      "HoldTargetIcon": {
+        "x": 0.11,
+        "y": 0.85,
+        "enabled": false
+      },
+      "ExivaLastIcon": {
+        "x": 0.21,
+        "y": 0.25,
+        "enabled": false
+      },
+      "ExivaTargetIcon": {
+        "x": 0.21,
+        "y": 0.05,
+        "enabled": false
+      },
+      "TargetIcon": {
+        "x": 0.01,
+        "y": 0.65,
+        "enabled": false
+      },
+      "AutoBuffIcon": {
+        "x": 0.11,
+        "y": 0.65,
+        "enabled": false
+      },
+      "KeepWallIcon": {
+        "x": 0.21,
+        "y": 0.85,
+        "enabled": false
+      },
+      "FireBombIcon": {
+        "x": 0.21,
+        "y": 0.45,
+        "enabled": false
+      },
+      "SpyLevelIcon": {
+        "x": 0.31,
+        "y": 0.45,
+        "enabled": false
+      },
+      "RinoIcon_bot_636f6d626f5f706c7573": {
+        "x": 0.01,
+        "y": 0.05,
+        "enabled": false
+      },
+      "AlarmsIcon": {
+        "x": 0.31,
+        "y": 0.25,
+        "enabled": false
+      },
+      "RecogeTodoIcon": {
+        "x": 0.01,
+        "y": 0.85,
+        "enabled": false
+      },
+      "BugMapIcon": {
+        "x": 0.21,
+        "y": 0.65,
+        "enabled": false
+      },
+      "aI": {
+        "x": 0.01,
+        "y": 0.05
+      },
+      "FriendHealerIcon": {
+        "x": 0.11,
+        "y": 0.45,
+        "enabled": false
+      },
+      "CavebotIcon": {
+        "x": 0.01,
+        "y": 0.45,
+        "enabled": false
+      }
+    },
+    "_macros": {
+      "Eat Food": true,
+      "Container Manager": true
+    },
+    "itemCounter": {
+      "enabled": false,
+      "items": {},
+      "watch": [],
+      "watchItems": {},
+      "visibleOnlyItems": [],
+      "supplyItems": [],
+      "defaultWatchVersion": 1
+    },
+    "Dummy Train Smart": {
+      "enabled": true,
+      "id2": 28559,
+      "dummies": [
+        {
+          "enabled": true,
+          "id": 28559
+        }
+      ],
+      "waitSeconds": 30,
+      "retrySeconds": 3,
+      "id": 28557,
+      "range": 7,
+      "onlyPz": false,
+      "items": [
+        {
+          "enabled": true,
+          "id": 28557
+        }
+      ]
+    },
+    "_configs": {
+      "targetbot_configs": {
+        "enabled": true,
+        "selected": "Todo"
+      }
+    }
+  },
+  "configs": {
+    "heal": {
+      "healbot": [
+        {
+          "enabled": true,
+          "spellTable": [],
+          "itemTable": [],
+          "name": "Profile #1",
+          "Visible": false,
+          "OldSchool": false,
+          "Cooldown": true,
+          "Interval": false,
+          "Conditions": true,
+          "Delay": false,
+          "MessageDelay": false
+        },
+        {
+          "enabled": false,
+          "spellTable": [],
+          "itemTable": [],
+          "name": "Profile #2",
+          "Visible": true,
+          "OldSchool": false,
+          "Cooldown": true,
+          "Interval": true,
+          "Conditions": true,
+          "Delay": true,
+          "MessageDelay": false
+        },
+        {
+          "enabled": false,
+          "spellTable": [],
+          "itemTable": [],
+          "name": "Profile #3",
+          "Visible": true,
+          "OldSchool": false,
+          "Cooldown": true,
+          "Interval": true,
+          "Conditions": true,
+          "Delay": true,
+          "MessageDelay": false
+        },
+        {
+          "enabled": false,
+          "spellTable": [],
+          "itemTable": [],
+          "name": "Profile #4",
+          "Visible": true,
+          "OldSchool": false,
+          "Cooldown": true,
+          "Interval": true,
+          "Conditions": true,
+          "Delay": true,
+          "MessageDelay": false
+        },
+        {
+          "enabled": false,
+          "spellTable": [],
+          "itemTable": [],
+          "name": "Profile #5",
+          "Visible": true,
+          "OldSchool": false,
+          "Cooldown": true,
+          "Interval": true,
+          "Conditions": true,
+          "Delay": true,
+          "MessageDelay": false
+        }
+      ],
+      "currentHealBotProfile": 1,
+      "ConditionPanel": {
+        "enabled": true,
+        "curePoison": false,
+        "poisonCost": 20,
+        "cureCurse": false,
+        "curseCost": 80,
+        "cureBleed": false,
+        "bleedCost": 45,
+        "cureBurn": false,
+        "burnCost": 30,
+        "cureElectrify": false,
+        "electrifyCost": 22,
+        "cureParalyse": false,
+        "paralyseCost": 40,
+        "paralyseSpell": "utani gran hur",
+        "paralyseUseHasteFallback": false,
+        "holdHaste": true,
+        "hasteCost": 60,
+        "hasteSpell": "utani hur",
+        "holdUtamo": false,
+        "utamoCost": 40,
+        "holdUtana": false,
+        "utanaCost": 440,
+        "holdUtura": false,
+        "uturaType": "Utura",
+        "uturaCost": 100,
+        "ignoreInPz": false,
+        "pauseWhileAttacking": true
+      }
+    },
+    "atk": {
+      "newProfileVocation": "Personalizado"
+    },
+    "supply": {}
+  },
+  "vocationDefaults": {
+    "Knight": {
+      "spells": [
+        {
+          "spell": "exura gran ico",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 35,
+          "cost": 200,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 80,
+          "index": 1
+        },
+        {
+          "spell": "exura med ico",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 85,
+          "cost": 90,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 300,
+          "tierGroup": "heal",
+          "tierRank": 3,
+          "index": 2
+        },
+        {
+          "spell": "exura ico",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 85,
+          "cost": 40,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 8,
+          "tierGroup": "heal",
+          "tierRank": 2,
+          "index": 3
+        },
+        {
+          "spell": "exura infir ico",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 85,
+          "cost": 10,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 1,
+          "tierGroup": "heal",
+          "tierRank": 1,
+          "index": 4
+        }
+      ],
+      "conditions": {
+        "enabled": true,
+        "curePoison": true,
+        "cureParalyse": true,
+        "paralyseSpell": "exura ico",
+        "paralyseCost": 40,
+        "paralyseUseHasteFallback": true,
+        "hasteSpell": "utani hur",
+        "hasteCost": 60,
+        "ignoreInPz": true,
+        "cureCurse": false,
+        "cureBleed": true,
+        "cureBurn": false,
+        "cureElectrify": false,
+        "holdHaste": true
+      },
+      "items": [
+        {
+          "index": 1,
+          "item": 23375,
+          "origin": "HP%",
+          "sign": "<",
+          "value": 60,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 200,
+          "tierGroup": "health",
+          "tierRank": 6,
+          "vocations": [
+            "Knight"
+          ]
+        },
+        {
+          "index": 2,
+          "item": 7643,
+          "origin": "HP%",
+          "sign": "<",
+          "value": 60,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 130,
+          "tierGroup": "health",
+          "tierRank": 5,
+          "vocations": [
+            "Knight"
+          ]
+        },
+        {
+          "index": 3,
+          "item": 239,
+          "origin": "HP%",
+          "sign": "<",
+          "value": 60,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 80,
+          "tierGroup": "health",
+          "tierRank": 4,
+          "vocations": [
+            "Knight"
+          ]
+        },
+        {
+          "index": 4,
+          "item": 236,
+          "origin": "HP%",
+          "sign": "<",
+          "value": 60,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 50,
+          "tierGroup": "health",
+          "tierRank": 3,
+          "vocations": [
+            "Knight",
+            "Paladin",
+            "Monk"
+          ]
+        },
+        {
+          "index": 5,
+          "item": 266,
+          "origin": "HP%",
+          "sign": "<",
+          "value": 60,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 1,
+          "tierGroup": "health",
+          "tierRank": 2
+        },
+        {
+          "index": 6,
+          "item": 7876,
+          "origin": "HP%",
+          "sign": "<",
+          "value": 60,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 1,
+          "tierGroup": "health",
+          "tierRank": 1
+        },
+        {
+          "index": 7,
+          "item": 53164,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 40,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 200,
+          "tierGroup": "mana",
+          "tierRank": 7
+        },
+        {
+          "index": 8,
+          "item": 53163,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 40,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 130,
+          "tierGroup": "mana",
+          "tierRank": 5
+        },
+        {
+          "index": 9,
+          "item": 238,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 40,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 80,
+          "tierGroup": "mana",
+          "tierRank": 3
+        },
+        {
+          "index": 10,
+          "item": 237,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 40,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 50,
+          "tierGroup": "mana",
+          "tierRank": 2
+        },
+        {
+          "index": 11,
+          "item": 268,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 40,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 1,
+          "tierGroup": "mana",
+          "tierRank": 1
+        }
+      ]
+    },
+    "Paladin": {
+      "spells": [
+        {
+          "spell": "exura gran san",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 50,
+          "cost": 210,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 60,
+          "index": 1
+        },
+        {
+          "spell": "exura san",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 80,
+          "cost": 160,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 35,
+          "tierGroup": "heal",
+          "tierRank": 4,
+          "index": 2
+        },
+        {
+          "spell": "exura gran",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 80,
+          "cost": 70,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 20,
+          "tierGroup": "heal",
+          "tierRank": 3,
+          "index": 3
+        },
+        {
+          "spell": "exura",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 80,
+          "cost": 20,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 8,
+          "tierGroup": "heal",
+          "tierRank": 2,
+          "index": 4
+        },
+        {
+          "spell": "exura infir",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 80,
+          "cost": 6,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 1,
+          "tierGroup": "heal",
+          "tierRank": 1,
+          "index": 5
+        }
+      ],
+      "conditions": {
+        "enabled": true,
+        "curePoison": true,
+        "cureParalyse": true,
+        "paralyseSpell": "exura",
+        "paralyseCost": 20,
+        "paralyseUseHasteFallback": true,
+        "hasteSpell": "utani hur",
+        "hasteCost": 60,
+        "ignoreInPz": true,
+        "cureCurse": true,
+        "cureBleed": false,
+        "cureBurn": false,
+        "cureElectrify": false,
+        "holdHaste": true
+      },
+      "items": [
+        {
+          "index": 1,
+          "item": 23374,
+          "origin": "HP%",
+          "sign": "<",
+          "value": 55,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 130,
+          "tierGroup": "health",
+          "tierRank": 5,
+          "vocations": [
+            "Paladin",
+            "Monk"
+          ]
+        },
+        {
+          "index": 2,
+          "item": 7642,
+          "origin": "HP%",
+          "sign": "<",
+          "value": 55,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 80,
+          "tierGroup": "health",
+          "tierRank": 4,
+          "vocations": [
+            "Paladin",
+            "Monk"
+          ]
+        },
+        {
+          "index": 3,
+          "item": 236,
+          "origin": "HP%",
+          "sign": "<",
+          "value": 55,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 50,
+          "tierGroup": "health",
+          "tierRank": 3,
+          "vocations": [
+            "Knight",
+            "Paladin",
+            "Monk"
+          ]
+        },
+        {
+          "index": 4,
+          "item": 266,
+          "origin": "HP%",
+          "sign": "<",
+          "value": 55,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 1,
+          "tierGroup": "health",
+          "tierRank": 2
+        },
+        {
+          "index": 5,
+          "item": 7876,
+          "origin": "HP%",
+          "sign": "<",
+          "value": 55,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 1,
+          "tierGroup": "health",
+          "tierRank": 1
+        },
+        {
+          "index": 6,
+          "item": 53164,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 45,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 200,
+          "tierGroup": "mana",
+          "tierRank": 7
+        },
+        {
+          "index": 7,
+          "item": 53163,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 45,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 130,
+          "tierGroup": "mana",
+          "tierRank": 5
+        },
+        {
+          "index": 8,
+          "item": 53162,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 45,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 100,
+          "tierGroup": "mana",
+          "tierRank": 4,
+          "vocations": [
+            "Paladin",
+            "Monk",
+            "Sorcerer",
+            "Druid"
+          ]
+        },
+        {
+          "index": 9,
+          "item": 238,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 45,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 80,
+          "tierGroup": "mana",
+          "tierRank": 3
+        },
+        {
+          "index": 10,
+          "item": 237,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 45,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 50,
+          "tierGroup": "mana",
+          "tierRank": 2
+        },
+        {
+          "index": 11,
+          "item": 268,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 45,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 1,
+          "tierGroup": "mana",
+          "tierRank": 1
+        }
+      ]
+    },
+    "Sorcerer": {
+      "spells": [
+        {
+          "spell": "exura max vita",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 50,
+          "cost": 260,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 300,
+          "index": 1
+        },
+        {
+          "spell": "exura vita",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 75,
+          "cost": 160,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 30,
+          "tierGroup": "heal",
+          "tierRank": 4,
+          "index": 2
+        },
+        {
+          "spell": "exura gran",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 75,
+          "cost": 70,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 20,
+          "tierGroup": "heal",
+          "tierRank": 3,
+          "index": 3
+        },
+        {
+          "spell": "exura",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 75,
+          "cost": 20,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 8,
+          "tierGroup": "heal",
+          "tierRank": 2,
+          "index": 4
+        },
+        {
+          "spell": "exura infir",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 75,
+          "cost": 6,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 1,
+          "tierGroup": "heal",
+          "tierRank": 1,
+          "index": 5
+        }
+      ],
+      "conditions": {
+        "enabled": true,
+        "curePoison": true,
+        "cureParalyse": true,
+        "paralyseSpell": "exura",
+        "paralyseCost": 20,
+        "paralyseUseHasteFallback": true,
+        "hasteSpell": "utani gran hur",
+        "hasteCost": 100,
+        "ignoreInPz": true,
+        "cureCurse": false,
+        "cureBleed": false,
+        "cureBurn": false,
+        "cureElectrify": false,
+        "holdHaste": true
+      },
+      "items": [
+        {
+          "index": 1,
+          "item": 266,
+          "origin": "HP%",
+          "sign": "<",
+          "value": 35,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 1,
+          "tierGroup": "health",
+          "tierRank": 2
+        },
+        {
+          "index": 2,
+          "item": 7876,
+          "origin": "HP%",
+          "sign": "<",
+          "value": 35,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 1,
+          "tierGroup": "health",
+          "tierRank": 1
+        },
+        {
+          "index": 3,
+          "item": 53164,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 60,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 200,
+          "tierGroup": "mana",
+          "tierRank": 7
+        },
+        {
+          "index": 4,
+          "item": 23373,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 60,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 130,
+          "tierGroup": "mana",
+          "tierRank": 6,
+          "vocations": [
+            "Sorcerer",
+            "Druid"
+          ]
+        },
+        {
+          "index": 5,
+          "item": 53163,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 60,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 130,
+          "tierGroup": "mana",
+          "tierRank": 5
+        },
+        {
+          "index": 6,
+          "item": 53162,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 60,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 100,
+          "tierGroup": "mana",
+          "tierRank": 4,
+          "vocations": [
+            "Paladin",
+            "Monk",
+            "Sorcerer",
+            "Druid"
+          ]
+        },
+        {
+          "index": 7,
+          "item": 238,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 60,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 80,
+          "tierGroup": "mana",
+          "tierRank": 3
+        },
+        {
+          "index": 8,
+          "item": 237,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 60,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 50,
+          "tierGroup": "mana",
+          "tierRank": 2
+        },
+        {
+          "index": 9,
+          "item": 268,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 60,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 1,
+          "tierGroup": "mana",
+          "tierRank": 1
+        }
+      ]
+    },
+    "Druid": {
+      "spells": [
+        {
+          "spell": "exura max vita",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 50,
+          "cost": 260,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 300,
+          "index": 1
+        },
+        {
+          "spell": "exura vita",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 75,
+          "cost": 160,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 30,
+          "tierGroup": "heal",
+          "tierRank": 4,
+          "index": 2
+        },
+        {
+          "spell": "exura gran",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 75,
+          "cost": 70,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 20,
+          "tierGroup": "heal",
+          "tierRank": 3,
+          "index": 3
+        },
+        {
+          "spell": "exura",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 75,
+          "cost": 20,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 8,
+          "tierGroup": "heal",
+          "tierRank": 2,
+          "index": 4
+        },
+        {
+          "spell": "exura infir",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 75,
+          "cost": 6,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 1,
+          "tierGroup": "heal",
+          "tierRank": 1,
+          "index": 5
+        },
+        {
+          "spell": "exura gran mas res",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 75,
+          "cost": 150,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 36,
+          "index": 6
+        }
+      ],
+      "conditions": {
+        "enabled": true,
+        "curePoison": true,
+        "cureParalyse": true,
+        "paralyseSpell": "exura",
+        "paralyseCost": 20,
+        "paralyseUseHasteFallback": true,
+        "hasteSpell": "utani gran hur",
+        "hasteCost": 100,
+        "ignoreInPz": true,
+        "cureCurse": false,
+        "cureBleed": true,
+        "cureBurn": true,
+        "cureElectrify": true,
+        "holdHaste": true
+      },
+      "items": [
+        {
+          "index": 1,
+          "item": 266,
+          "origin": "HP%",
+          "sign": "<",
+          "value": 35,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 1,
+          "tierGroup": "health",
+          "tierRank": 2
+        },
+        {
+          "index": 2,
+          "item": 7876,
+          "origin": "HP%",
+          "sign": "<",
+          "value": 35,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 1,
+          "tierGroup": "health",
+          "tierRank": 1
+        },
+        {
+          "index": 3,
+          "item": 53164,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 60,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 200,
+          "tierGroup": "mana",
+          "tierRank": 7
+        },
+        {
+          "index": 4,
+          "item": 23373,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 60,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 130,
+          "tierGroup": "mana",
+          "tierRank": 6,
+          "vocations": [
+            "Sorcerer",
+            "Druid"
+          ]
+        },
+        {
+          "index": 5,
+          "item": 53163,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 60,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 130,
+          "tierGroup": "mana",
+          "tierRank": 5
+        },
+        {
+          "index": 6,
+          "item": 53162,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 60,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 100,
+          "tierGroup": "mana",
+          "tierRank": 4,
+          "vocations": [
+            "Paladin",
+            "Monk",
+            "Sorcerer",
+            "Druid"
+          ]
+        },
+        {
+          "index": 7,
+          "item": 238,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 60,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 80,
+          "tierGroup": "mana",
+          "tierRank": 3
+        },
+        {
+          "index": 8,
+          "item": 237,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 60,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 50,
+          "tierGroup": "mana",
+          "tierRank": 2
+        },
+        {
+          "index": 9,
+          "item": 268,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 60,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 1,
+          "tierGroup": "mana",
+          "tierRank": 1
+        }
+      ],
+      "storage": {
+        "newHealer": {
+          "enabled": true
+        }
+      }
+    },
+    "Monk": {
+      "spells": [
+        {
+          "spell": "exura gran tio",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 80,
+          "cost": 210,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 80,
+          "tierGroup": "heal",
+          "tierRank": 4,
+          "index": 1
+        },
+        {
+          "spell": "exura gran",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 80,
+          "cost": 70,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 20,
+          "tierGroup": "heal",
+          "tierRank": 3,
+          "index": 2
+        },
+        {
+          "spell": "exura",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 80,
+          "cost": 20,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 8,
+          "tierGroup": "heal",
+          "tierRank": 2,
+          "index": 3
+        },
+        {
+          "spell": "exura infir",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 80,
+          "cost": 6,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 1,
+          "tierGroup": "heal",
+          "tierRank": 1,
+          "index": 4
+        },
+        {
+          "spell": "exura mas nia",
+          "origin": "HP%",
+          "sign": "<",
+          "value": 80,
+          "cost": 400,
+          "enabled": true,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 150,
+          "index": 5
+        }
+      ],
+      "conditions": {
+        "enabled": true,
+        "curePoison": true,
+        "cureParalyse": true,
+        "paralyseSpell": "exura",
+        "paralyseCost": 20,
+        "paralyseUseHasteFallback": true,
+        "hasteSpell": "utani gran hur",
+        "hasteCost": 100,
+        "ignoreInPz": true,
+        "cureCurse": false,
+        "cureBleed": false,
+        "cureBurn": false,
+        "cureElectrify": false,
+        "holdHaste": true
+      },
+      "items": [
+        {
+          "index": 1,
+          "item": 23374,
+          "origin": "HP%",
+          "sign": "<",
+          "value": 55,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 130,
+          "tierGroup": "health",
+          "tierRank": 5,
+          "vocations": [
+            "Paladin",
+            "Monk"
+          ]
+        },
+        {
+          "index": 2,
+          "item": 7642,
+          "origin": "HP%",
+          "sign": "<",
+          "value": 55,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 80,
+          "tierGroup": "health",
+          "tierRank": 4,
+          "vocations": [
+            "Paladin",
+            "Monk"
+          ]
+        },
+        {
+          "index": 3,
+          "item": 236,
+          "origin": "HP%",
+          "sign": "<",
+          "value": 55,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 50,
+          "tierGroup": "health",
+          "tierRank": 3,
+          "vocations": [
+            "Knight",
+            "Paladin",
+            "Monk"
+          ]
+        },
+        {
+          "index": 4,
+          "item": 266,
+          "origin": "HP%",
+          "sign": "<",
+          "value": 55,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 1,
+          "tierGroup": "health",
+          "tierRank": 2
+        },
+        {
+          "index": 5,
+          "item": 7876,
+          "origin": "HP%",
+          "sign": "<",
+          "value": 55,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 1,
+          "tierGroup": "health",
+          "tierRank": 1
+        },
+        {
+          "index": 6,
+          "item": 53164,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 45,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 200,
+          "tierGroup": "mana",
+          "tierRank": 7
+        },
+        {
+          "index": 7,
+          "item": 53163,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 45,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 130,
+          "tierGroup": "mana",
+          "tierRank": 5
+        },
+        {
+          "index": 8,
+          "item": 53162,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 45,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 100,
+          "tierGroup": "mana",
+          "tierRank": 4,
+          "vocations": [
+            "Paladin",
+            "Monk",
+            "Sorcerer",
+            "Druid"
+          ]
+        },
+        {
+          "index": 9,
+          "item": 238,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 45,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 80,
+          "tierGroup": "mana",
+          "tierRank": 3
+        },
+        {
+          "index": 10,
+          "item": 237,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 45,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 50,
+          "tierGroup": "mana",
+          "tierRank": 2
+        },
+        {
+          "index": 11,
+          "item": 268,
+          "origin": "MP%",
+          "sign": "<",
+          "value": 45,
+          "enabled": true,
+          "subType": 0,
+          "cooldown": 0,
+          "extraEnabled": false,
+          "extraRelation": "and",
+          "minLevel": 1,
+          "tierGroup": "mana",
+          "tierRank": 1
+        }
+      ],
+      "storage": {
+        "newHealer": {
+          "enabled": true
+        }
+      }
+    }
+  }
+}
