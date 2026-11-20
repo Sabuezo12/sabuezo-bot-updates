@@ -1,0 +1,19 @@
+ReconnectPanel < Panel
+  height: 41
+
+  HelperThemePower
+    id: title
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 20
+    text: Reconect
+
+  HelperThemeLabel
+    id: status
+    anchors.top: title.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 3
+    height: 18
+    text: Desactivado

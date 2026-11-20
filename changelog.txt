@@ -1,3 +1,11 @@
+3.1.29 - Monk, funciones, perfiles y grietas del CaveBot
+- Monk gira y lanza ataques direccionales en el mismo tick, tambien caminando, con sus condiciones, Armonia y cooldowns.
+- CaveBot resalta el waypoint actual y agrega editor Lua con plantillas, comprobacion, prueba sin actuar y reglas visuales ampliadas compatibles con las anteriores.
+- Perfiles crea una copia del indice, recupera ajustes si se pierde o cambia la carpeta del Helper y deja el diagnostico en perfiles.txt.
+- CaveBot recuerda las grietas donde cae y puede rodearlas; conserva la caminata normal y los cambios de piso previstos.
+- La revision corrige Probar para que no ejecute reglas visuales ni guarde cambios de storage, y evita confundir escaleras del historial o cruces de otra ruta con grietas.
+- Incluye los cambios 126-130 de Claude, la revision de Codex y todas las mejoras anteriores; mantiene perfiles, rutas y configuraciones personales.
+
 3.1.28 - CaveBot: regreso de piso y correccion de Divine Grenade
 - CaveBot puede regresar tras una caida o un cambio de piso accidental, buscando escaleras, huecos, soga o accesos de la ruta y del minimapa sin cambiar la caminata normal.
 - La opcion Volver si cambio de piso se guarda por personaje: encendida en perfiles nuevos y opcional en los existentes. Incluye avisos de la causa probable, exani tera sin soga y un freno contra cruces repetidos.

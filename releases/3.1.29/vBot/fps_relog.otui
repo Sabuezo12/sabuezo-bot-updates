@@ -1,0 +1,230 @@
+FpsRelogPanel < Panel
+  height: 41
+
+  HelperThemePower
+    id: title
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: settings.left
+    margin-right: 3
+    height: 20
+    text: FPS Relog
+
+  HelperThemeButton
+    id: settings
+    anchors.top: parent.top
+    anchors.right: parent.right
+    size: 70 20
+    text: Configurar
+
+  HelperThemeLabel
+    id: status
+    anchors.top: title.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 3
+    height: 18
+    text: Desactivado
+
+FpsRelogWindow < HelperThemeWindow
+  text: FPS Relog
+  size: 430 500
+  padding: 12
+  padding-top: 30
+
+  HelperThemeLabel
+    id: status
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 36
+    text-wrap: true
+    text: Desactivado
+
+  HelperThemePower
+    id: enabled
+    anchors.top: status.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 4
+    height: 24
+    text: Enviar el comando automaticamente
+
+  HelperThemeLabel
+    id: intervalLabel
+    anchors.top: enabled.bottom
+    anchors.left: parent.left
+    anchors.right: interval.left
+    margin-top: 10
+    margin-right: 6
+    height: 20
+    text: Enviar cada (minutos):
+
+  HelperThemeSpin
+    id: interval
+    anchors.top: enabled.bottom
+    anchors.right: parent.right
+    margin-top: 10
+    size: 64 20
+    minimum: 1
+    maximum: 720
+    step: 1
+    editable: true
+    focusable: true
+
+  HelperThemeLabel
+    id: commandLabel
+    anchors.top: intervalLabel.bottom
+    anchors.left: parent.left
+    anchors.right: command.left
+    margin-top: 8
+    margin-right: 6
+    height: 22
+    text: Comando:
+
+  HelperThemeInput
+    id: command
+    anchors.top: intervalLabel.bottom
+    anchors.right: parent.right
+    margin-top: 8
+    size: 120 22
+
+  HelperThemeLabel
+    id: safeTitle
+    anchors.top: commandLabel.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 12
+    height: 18
+    text: Momento seguro: no lo envia hasta que se cumpla todo
+
+  HelperThemeCheck
+    id: safeMonsters
+    anchors.top: safeTitle.bottom
+    anchors.left: parent.left
+    anchors.right: monsterRadius.left
+    margin-top: 6
+    margin-right: 6
+    height: 20
+    text: Sin monstruos a (casillas):
+
+  HelperThemeSpin
+    id: monsterRadius
+    anchors.top: safeTitle.bottom
+    anchors.right: parent.right
+    margin-top: 6
+    size: 64 20
+    minimum: 1
+    maximum: 15
+    step: 1
+    editable: true
+    focusable: true
+
+  HelperThemeLabel
+    id: minHpLabel
+    anchors.top: safeMonsters.bottom
+    anchors.left: parent.left
+    anchors.right: minHp.left
+    margin-top: 8
+    margin-right: 6
+    height: 20
+    text: HP minimo % (0 = no comprobar):
+
+  HelperThemeSpin
+    id: minHp
+    anchors.top: safeMonsters.bottom
+    anchors.right: parent.right
+    margin-top: 8
+    size: 64 20
+    minimum: 0
+    maximum: 99
+    step: 1
+    editable: true
+    focusable: true
+
+  HelperThemeLabel
+    id: playersLabel
+    anchors.top: minHpLabel.bottom
+    anchors.left: parent.left
+    anchors.right: playerRadius.left
+    margin-top: 8
+    margin-right: 6
+    height: 20
+    text: Sin jugadores a (casillas, 0 = no):
+
+  HelperThemeSpin
+    id: playerRadius
+    anchors.top: minHpLabel.bottom
+    anchors.right: parent.right
+    margin-top: 8
+    size: 64 20
+    minimum: 0
+    maximum: 15
+    step: 1
+    editable: true
+    focusable: true
+
+  HelperThemeLabel
+    id: waitLabel
+    anchors.top: playersLabel.bottom
+    anchors.left: parent.left
+    anchors.right: waitSec.left
+    margin-top: 8
+    margin-right: 6
+    height: 20
+    text: Esperar hasta (segundos, 0 = sin limite):
+
+  HelperThemeSpin
+    id: waitSec
+    anchors.top: playersLabel.bottom
+    anchors.right: parent.right
+    margin-top: 8
+    size: 64 20
+    minimum: 0
+    maximum: 600
+    step: 5
+    editable: true
+    focusable: true
+
+  HelperThemeCheck
+    id: force
+    anchors.top: waitLabel.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 6
+    height: 20
+    text: Enviar igualmente si se agota la espera
+
+  HelperThemeLabel
+    id: stats
+    anchors.top: force.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 10
+    height: 36
+    text-wrap: true
+    text: -
+
+  HelperThemeLabel
+    id: lastEvent
+    anchors.top: stats.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 6
+    height: 52
+    text-wrap: true
+    text: -
+
+  HelperThemeButton
+    id: sendNow
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    width: 130
+    text: Enviar ahora
+
+  HelperThemeButton
+    id: closeButton
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    width: 92
+    text: Cerrar

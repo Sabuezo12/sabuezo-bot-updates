@@ -1,0 +1,302 @@
+ScriptControlRow < Panel
+  height: 34
+
+  HelperThemeLabel
+    id: name
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: power.left
+    margin-right: 6
+    height: 16
+    text-align: left
+
+  HelperThemeLabel
+    id: source
+    anchors.top: name.bottom
+    anchors.left: parent.left
+    anchors.right: power.left
+    margin-right: 6
+    height: 14
+    font: verdana-11px-antialised
+    color: #a9bbc6
+    text-align: left
+
+  HelperThemePower
+    id: power
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    size: 50 22
+    text: OFF
+    text-align: center
+
+ScriptControlsPanel < HelperThemeCard
+  height: 190
+  padding: 8
+
+  HelperThemeLabel
+    id: heading
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 18
+    text: Paneles de tus scripts
+    color: #50d7d4
+    text-align: left
+
+  HelperThemeInput
+    id: search
+    anchors.top: heading.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 3
+    height: 22
+    placeholder: Buscar script o macro...
+
+  VerticalScrollBar
+    id: scroll
+    anchors.top: search.bottom
+    anchors.bottom: empty.top
+    anchors.right: parent.right
+    margin-top: 4
+    margin-bottom: 4
+    width: 10
+    step: 34
+    pixels-scroll: true
+
+  HelperThemeList
+    id: list
+    anchors.top: search.bottom
+    anchors.left: parent.left
+    anchors.right: scroll.left
+    anchors.bottom: empty.top
+    margin-top: 4
+    margin-right: 4
+    margin-bottom: 4
+    vertical-scrollbar: scroll
+
+  HelperThemeLabel
+    id: emptyState
+    anchors.top: search.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: empty.top
+    margin-top: 14
+    margin-bottom: 8
+    text: Marca un script en la lista para mostrar su panel ON/OFF.
+    text-align: center
+    text-wrap: true
+    color: #a9bbc6
+    phantom: true
+
+  HelperThemeLabel
+    id: empty
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    height: 28
+    font: verdana-11px-antialised
+    text-align: left
+    text-wrap: true
+    color: #a9bbc6
+    text: Casilla: disponible. ON/OFF: encender o apagar.
+
+InGameScriptRow < UIWidget
+  background-color: alpha
+  focusable: true
+  height: 22
+  font: verdana-11px-antialised
+
+  $focus:
+    background-color: #00000066
+
+  HelperThemeCheck
+    id: enabled
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 4
+    size: 15 15
+    tooltip: Dejar este script disponible en sus paneles. Para ejecutarlo pulsa ON.
+
+  HelperThemeLabel
+    id: name
+    anchors.left: enabled.right
+    anchors.right: edit.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 5
+    margin-right: 5
+    height: 16
+    text-align: left
+    text-auto-resize: false
+
+  HelperThemeButton
+    id: edit
+    anchors.right: remove.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 3
+    size: 48 18
+    text: Editar
+    tooltip: Editar el codigo de este script.
+
+  HelperThemeButton
+    id: remove
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 2
+    size: 20 18
+    text: X
+    tooltip: Eliminar este script y crear un respaldo.
+
+ScriptsWorkspace < HelperThemeWindow
+  id: InGameScriptManagerWindow
+  size: 660 360
+  fixed-size: true
+  padding: 8
+  padding-top: 8
+  @onEscape: self:hide()
+
+  HelperThemeButton
+    id: layoutButton
+    anchors.top: parent.top
+    anchors.right: parent.right
+    size: 82 22
+    text: Ampliar
+    tooltip: Ampliar scripts y paneles.
+
+  HelperThemeButton
+    id: addButton
+    anchors.top: parent.top
+    anchors.right: layoutButton.left
+    margin-right: 8
+    size: 58 22
+    text: Nuevo
+    tooltip: Crear un script con el nombre escrito.
+
+  HelperThemeButton
+    id: renameButton
+    anchors.top: parent.top
+    anchors.right: addButton.left
+    margin-right: 4
+    size: 72 22
+    text: Renombrar
+    tooltip: Cambiar el nombre del script seleccionado.
+
+  HelperThemeInput
+    id: scriptName
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: renameButton.left
+    margin-right: 4
+    height: 22
+    placeholder: Nombre del script
+    tooltip: Nombre del script nuevo o seleccionado.
+
+  HelperThemeLabel
+    id: status
+    anchors.top: scriptName.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 4
+    height: 18
+    text: Marca los scripts que quieras tener disponibles.
+    text-align: left
+    color: #b8c7cc
+
+  UIWidget
+    id: workspaceSplit
+    anchors.left: parent.horizontalCenter
+    anchors.top: status.bottom
+    margin-top: 115
+    size: 1 1
+    visible: false
+    phantom: true
+
+  HelperThemeCard
+    id: filesCard
+    anchors.top: status.bottom
+    anchors.left: parent.left
+    anchors.right: workspaceSplit.left
+    anchors.bottom: closeButton.top
+    margin-top: 6
+    margin-right: 6
+    margin-bottom: 8
+    padding: 0
+    phantom: true
+
+  HelperThemeLabel
+    id: filesHeading
+    anchors.top: filesCard.top
+    anchors.left: filesCard.left
+    anchors.right: filesCard.right
+    margin-top: 8
+    margin-left: 8
+    margin-right: 8
+    height: 18
+    text: Tus scripts
+    text-align: left
+    color: #50d7d4
+
+  VerticalScrollBar
+    id: scriptListScrollBar
+    anchors.top: filesHeading.bottom
+    anchors.bottom: filesCard.bottom
+    anchors.right: filesCard.right
+    margin-top: 4
+    margin-bottom: 8
+    margin-right: 8
+    width: 10
+    step: 22
+    pixels-scroll: true
+
+  HelperThemeList
+    id: scriptList
+    anchors.top: filesHeading.bottom
+    anchors.left: filesCard.left
+    anchors.right: scriptListScrollBar.left
+    anchors.bottom: filesCard.bottom
+    margin-top: 4
+    margin-left: 8
+    margin-right: 4
+    margin-bottom: 8
+    vertical-scrollbar: scriptListScrollBar
+
+  ScriptControlsPanel
+    id: liveControls
+    anchors.top: status.bottom
+    anchors.left: workspaceSplit.right
+    anchors.right: parent.right
+    anchors.bottom: closeButton.top
+    margin-top: 6
+    margin-left: 6
+    margin-bottom: 8
+
+  HelperThemeDivider
+    id: separator
+    anchors.top: parent.top
+    anchors.left: parent.left
+    size: 1 1
+    visible: false
+
+  HelperThemeLabel
+    id: workspaceHint
+    anchors.bottom: parent.bottom
+    anchors.left: parent.left
+    anchors.right: closeButton.left
+    margin-right: 8
+    height: 22
+    text: Casilla: disponible. Panel: ON/OFF.
+    text-align: left
+    font: verdana-11px-antialised
+
+  HelperThemeButton
+    id: closeButton
+    anchors.bottom: parent.bottom
+    anchors.right: parent.right
+    size: 70 22
+    text: Cerrar
+    @onClick: self:getParent():hide()
+
+InGameScriptManagerWindow < ScriptsWorkspace
+  !text: tr('In-Game Scripts')
+
+HelperScriptsCompact < ScriptsWorkspace
+  text:

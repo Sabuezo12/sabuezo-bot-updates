@@ -1,0 +1,270 @@
+CaveBotRuleWindow < HelperThemeWindow
+  text: Function - Regla visual
+  size: 580 470
+  padding: 10
+
+  HelperThemeLabel
+    id: conditionTitle
+    text: Condicion
+    size: 100 22
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeCombo
+    id: condition
+    anchors.top: conditionTitle.top
+    anchors.left: conditionTitle.right
+    anchors.right: parent.right
+    margin-left: 6
+
+  HelperThemeLabel
+    id: itemTitle
+    text: Objeto (ID)
+    size: 100 22
+    anchors.top: conditionTitle.bottom
+    anchors.left: parent.left
+    margin-top: 8
+
+  HelperThemeInput
+    id: itemId
+    width: 90
+    anchors.top: itemTitle.top
+    anchors.left: itemTitle.right
+    margin-left: 6
+
+  HelperThemeLabel
+    id: thresholdTitle
+    text: Umbral (<)
+    size: 100 22
+    anchors.top: itemTitle.top
+    anchors.left: itemId.right
+    margin-left: 16
+
+  HelperThemeInput
+    id: threshold
+    anchors.top: itemTitle.top
+    anchors.left: thresholdTitle.right
+    anchors.right: parent.right
+    margin-left: 6
+
+  HelperThemeLabel
+    id: teamTitle
+    text: Equipo
+    size: 100 22
+    anchors.top: itemTitle.bottom
+    anchors.left: parent.left
+    margin-top: 6
+
+  HelperThemeInput
+    id: names
+    anchors.top: teamTitle.top
+    anchors.left: teamTitle.right
+    anchors.right: range.left
+    margin-left: 6
+    margin-right: 6
+    tooltip: Nombres separados por comas. Equipo: todos deben estar en el mismo piso y dentro del rango. Monstruos: solo cuenta esos nombres (vacio = todos).
+
+  HelperThemeInput
+    id: range
+    width: 55
+    anchors.top: teamTitle.top
+    anchors.right: parent.right
+    tooltip: Rango en SQM, de 1 a 10.
+
+  HelperThemeLabel
+    id: joinTitle
+    text: Y ademas
+    size: 100 22
+    anchors.top: teamTitle.bottom
+    anchors.left: parent.left
+    margin-top: 6
+
+  HelperThemeCombo
+    id: join
+    width: 120
+    anchors.top: joinTitle.top
+    anchors.left: joinTitle.right
+    margin-left: 6
+    tooltip: Una segunda condicion opcional. Y: deben cumplirse las dos. O: basta con una.
+
+  HelperThemeCombo
+    id: condition2
+    anchors.top: joinTitle.top
+    anchors.left: join.right
+    anchors.right: threshold2.left
+    margin-left: 6
+    margin-right: 6
+
+  HelperThemeInput
+    id: threshold2
+    width: 70
+    anchors.top: joinTitle.top
+    anchors.right: param2.left
+    margin-right: 6
+    tooltip: Valor de la segunda condicion.
+
+  HelperThemeInput
+    id: param2
+    width: 55
+    anchors.top: joinTitle.top
+    anchors.right: parent.right
+
+  HelperThemeLabel
+    id: intervalTitle
+    text: Comprobar (s)
+    size: 100 22
+    anchors.top: joinTitle.bottom
+    anchors.left: parent.left
+    margin-top: 6
+
+  HelperThemeInput
+    id: interval
+    width: 90
+    anchors.top: intervalTitle.top
+    anchors.left: intervalTitle.right
+    margin-left: 6
+
+  HelperThemeLabel
+    id: yesTitle
+    text: Si se cumple
+    size: 100 22
+    anchors.top: intervalTitle.bottom
+    anchors.left: parent.left
+    margin-top: 10
+
+  HelperThemeCombo
+    id: yesMode
+    width: 200
+    anchors.top: yesTitle.top
+    anchors.left: yesTitle.right
+    margin-left: 6
+
+  HelperThemeCombo
+    id: yesLabel
+    anchors.top: yesTitle.top
+    anchors.left: yesMode.right
+    anchors.right: parent.right
+    margin-left: 6
+
+  HelperThemeInput
+    id: yesText
+    anchors.top: yesTitle.top
+    anchors.left: yesMode.right
+    anchors.right: parent.right
+    margin-left: 6
+    visible: false
+    tooltip: Texto que se dice, o el aviso de la alarma.
+
+  HelperThemeLabel
+    id: noTitle
+    text: Si no se cumple
+    size: 100 22
+    anchors.top: yesTitle.bottom
+    anchors.left: parent.left
+    margin-top: 6
+
+  HelperThemeCombo
+    id: noMode
+    width: 200
+    anchors.top: noTitle.top
+    anchors.left: noTitle.right
+    margin-left: 6
+
+  HelperThemeCombo
+    id: noLabel
+    anchors.top: noTitle.top
+    anchors.left: noMode.right
+    anchors.right: parent.right
+    margin-left: 6
+
+  HelperThemeInput
+    id: noText
+    anchors.top: noTitle.top
+    anchors.left: noMode.right
+    anchors.right: parent.right
+    margin-left: 6
+    visible: false
+    tooltip: Texto que se dice, o el aviso de la alarma.
+
+  HelperThemeLabel
+    id: preview
+    anchors.top: noTitle.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 10
+    height: 70
+    text-wrap: true
+    text-align: topLeft
+    color: #a9d8d4
+
+  HelperThemeLabel
+    id: feedback
+    anchors.bottom: ok.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-bottom: 6
+    height: 30
+    text-wrap: true
+    color: #ffcd80
+
+  HelperThemeButton
+    id: advanced
+    text: Lua avanzado
+    width: 115
+    anchors.bottom: parent.bottom
+    anchors.left: parent.left
+
+  HelperThemeButton
+    id: cancel
+    text: Cancelar
+    width: 82
+    anchors.bottom: parent.bottom
+    anchors.right: parent.right
+
+  HelperThemeButton
+    id: ok
+    text: Guardar
+    width: 90
+    anchors.bottom: parent.bottom
+    anchors.right: cancel.left
+    margin-right: 6
+
+CaveBotValidationWindow < HelperThemeWindow
+  text: Revisar ruta
+  size: 560 350
+  padding: 10
+
+  HelperThemeScroll
+    id: reportPanel
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: closeReport.top
+    margin-bottom: 10
+    margin-right: 16
+    vertical-scrollbar: reportScroll
+
+    HelperThemeLabel
+      id: report
+      anchors.top: parent.top
+      anchors.left: parent.left
+      anchors.right: parent.right
+      height: 240
+      text-wrap: true
+      text-align: topLeft
+
+  VerticalScrollBar
+    id: reportScroll
+    anchors.right: parent.right
+    anchors.top: parent.top
+    anchors.bottom: closeReport.top
+    margin-bottom: 10
+    pixels-scroll: true
+    step: 14
+
+  HelperThemeButton
+    id: closeReport
+    text: Cerrar
+    width: 82
+    anchors.bottom: parent.bottom
+    anchors.right: parent.right

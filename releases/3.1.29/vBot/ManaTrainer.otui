@@ -1,0 +1,253 @@
+ManaTrainerInput < HelperThemeInput
+  height: 22
+  padding: 0
+  padding-left: 5
+  padding-right: 5
+  text-offset: 0 0
+  text-align: left
+
+ManaTrainerSpin < HelperThemeSpin
+  height: 22
+  padding: 0
+  padding-left: 5
+  padding-right: 16
+  text-offset: 0 0
+  text-align: left
+
+ManaTrainerSpellRow < Panel
+  height: 24
+  margin-top: 2
+  background-color: #00000022
+
+  HelperThemeCheck
+    id: enabled
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 2
+    width: 16
+    height: 16
+    tooltip: Activar este hechizo
+
+  ManaTrainerInput
+    id: spell
+    anchors.left: enabled.right
+    anchors.right: mana.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 2
+    margin-right: 3
+    height: 22
+    font: verdana-11px-antialised
+    tooltip: Palabras del hechizo
+
+  ManaTrainerSpin
+    id: mana
+    anchors.right: percent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 2
+    width: 56
+    height: 22
+    minimum: 1
+    maximum: 100
+    step: 1
+    editable: true
+    focusable: true
+    tooltip: Lanzar cuando el mana sea igual o mayor a este porcentaje
+
+  HelperThemeLabel
+    id: percent
+    height: 22
+    anchors.right: remove.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 5
+    width: 12
+    text: %
+    font: verdana-11px-antialised
+
+  HelperThemeButton
+    id: remove
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-right: 0
+    width: 20
+    height: 22
+    text: X
+    tooltip: Quitar este hechizo
+
+ManaTrainerWindow < HelperThemeWindow
+  padding-bottom: 8
+  padding-top: 8
+  !text: tr('Mana Trainer')
+  size: 408 274
+  padding: 8
+  @onEscape: self:hide()
+
+  HelperThemeLabel
+    height: 22
+    width: 98
+    margin-top: 0
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: creaturesLabel
+    text: Criaturas
+    font: verdana-11px-antialised
+    color: #9dd1ce
+
+  ManaTrainerInput
+    width: 288
+    margin-top: 0
+    margin-left: 104
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: creatures
+    height: 22
+    font: verdana-11px-antialised
+    tooltip: Separa los nombres con comas. Puedes usar * como comodín.
+
+  HelperThemeLabel
+    margin-top: 28
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: delayLabel
+    width: 98
+    height: 22
+    text: Espera (ms)
+    font: verdana-11px-antialised
+
+  ManaTrainerSpin
+    margin-top: 28
+    margin-left: 104
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: castDelay
+    width: 76
+    height: 22
+    minimum: 250
+    maximum: 60000
+    step: 250
+    editable: true
+    focusable: true
+
+  HelperThemeCheck
+    margin-top: 56
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: pauseAttackBot
+    width: 134
+    height: 22
+    text: Pausar AttackBot
+    tooltip: Pausar AttackBot mientras atacas una de las criaturas configuradas.
+
+  HelperThemeCheck
+    margin-top: 56
+    margin-left: 140
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: pauseHealBot
+    width: 120
+    height: 22
+    text: Pausar HealBot
+    tooltip: Pausar HealBot mientras atacas una de las criaturas configuradas.
+
+  HelperThemeCheck
+    margin-top: 56
+    margin-left: 266
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: manaOnly
+    width: 126
+    height: 22
+    text: Solo mana
+    tooltip: Entrenar usando solo el porcentaje de mana, sin necesitar un objetivo.
+
+  HelperThemeLabel
+    width: 392
+    margin-top: 84
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: spellsLabel
+    height: 18
+    text: Hechizos
+    text-align: center
+    font: verdana-11px-antialised
+    color: #9dd1ce
+
+  HelperThemeScroll
+    height: 112
+    width: 374
+    margin-top: 106
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: spellList
+    padding: 2
+    vertical-scrollbar: spellListScrollBar
+    layout: verticalBox
+
+  VerticalScrollBar
+    height: 112
+    width: 12
+    margin-top: 106
+    margin-left: 380
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: spellListScrollBar
+    step: 26
+    pixels-scroll: true
+
+  HelperThemeDivider
+    height: 1
+    width: 392
+    margin-top: 224
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: bottomSep
+
+  HelperThemeButton
+    margin-top: 232
+    margin-left: 0
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: addSpell
+    width: 60
+    height: 22
+    text: Nuevo
+    tooltip: Agregar un hechizo
+
+  HelperThemeButton
+    margin-top: 232
+    margin-left: 66
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: resetTimers
+    width: 76
+    height: 22
+    text: Reiniciar
+    tooltip: Reiniciar la espera y el orden de los hechizos
+
+  HelperThemeLabel
+    height: 22
+    width: 174
+    margin-top: 232
+    margin-left: 148
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: summary
+    text-align: center
+    font: verdana-11px-antialised
+    color: #cfd3d7
+
+  HelperThemeButton
+    margin-top: 232
+    margin-left: 328
+    anchors.top: parent.top
+    anchors.left: parent.left
+    id: closeButton
+    width: 64
+    height: 22
+    text: Cerrar
+    @onClick: self:getParent():hide()
