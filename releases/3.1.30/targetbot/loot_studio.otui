@@ -1,0 +1,435 @@
+LootStudioCategoryRow < Panel
+  width: 398
+  height: 26
+  HelperThemeLabel
+    id: name
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 4
+    width: 130
+    height: 18
+    text: 
+    font: verdana-9px
+  BotItem
+    id: item
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 132
+    margin-top: 1
+    width: 22
+    height: 22
+    virtual: true
+  HelperThemeCombo
+    id: destination
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 158
+    margin-top: 1
+    width: 182
+    height: 22
+  HelperThemeLabel
+    id: free
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 344
+    margin-top: 4
+    width: 28
+    height: 18
+    text: --
+    text-align: center
+  HelperThemeButton
+    id: remove
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 374
+    margin-top: 1
+    width: 22
+    height: 22
+    text: X
+
+LootStudioItemRow < Panel
+  width: 362
+  height: 24
+  BotItem
+    id: item
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 0
+    width: 22
+    height: 22
+    virtual: true
+  HelperThemeLabel
+    id: name
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 28
+    margin-top: 2
+    width: 230
+    height: 20
+    text: 
+  HelperThemeLabel
+    id: number
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 258
+    margin-top: 4
+    width: 66
+    height: 18
+    text: 
+    font: verdana-9px
+    text-align: right
+  HelperThemeButton
+    id: remove
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 334
+    margin-top: 0
+    width: 22
+    height: 22
+    text: X
+
+LootStudioOverrideRow < Panel
+  width: 362
+  height: 26
+  BotItem
+    id: item
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 1
+    width: 22
+    height: 22
+    virtual: true
+  HelperThemeLabel
+    id: name
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 26
+    margin-top: 4
+    width: 124
+    height: 18
+    text: 
+    font: verdana-9px
+  HelperThemeCombo
+    id: destination
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 154
+    margin-top: 1
+    width: 178
+    height: 22
+  HelperThemeButton
+    id: remove
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 336
+    margin-top: 1
+    width: 22
+    height: 22
+    text: X
+
+LootStudioRoot < Panel
+  width: 820
+  height: 394
+  HelperThemeCheck
+    id: fallback
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 2
+    margin-top: 0
+    width: 318
+    height: 22
+    text: Mochila principal como respaldo
+  HelperThemeCombo
+    id: main
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 324
+    margin-top: 0
+    width: 264
+    height: 22
+  HelperThemeCombo
+    id: method
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 594
+    margin-top: 0
+    width: 226
+    height: 22
+  HelperThemeLabel
+    id: note
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 2
+    margin-top: 27
+    width: 606
+    height: 26
+    text: 
+    font: verdana-9px
+    text-wrap: true
+  HelperThemeButton
+    id: native
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 632
+    margin-top: 26
+    width: 186
+    height: 22
+    text: Configurar nativo...
+  HelperThemeCard
+    id: categories
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 0
+    margin-top: 58
+    width: 420
+    height: 286
+    padding: 5
+    HelperThemeLabel
+      id: heading
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 0
+      margin-top: 0
+      width: 300
+      height: 20
+      text: Categorias y destinos
+      color: #50d7d4
+    HelperThemeButton
+      id: refresh
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 312
+      margin-top: 0
+      width: 92
+      height: 22
+      text: Actualizar
+    HelperThemeLabel
+      id: categoryTitle
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 0
+      margin-top: 25
+      width: 134
+      height: 18
+      text: Categoria
+    HelperThemeLabel
+      id: destinationTitle
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 158
+      margin-top: 25
+      width: 182
+      height: 18
+      text: Mochila destino
+    HelperThemeLabel
+      id: freeTitle
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 343
+      margin-top: 25
+      width: 38
+      height: 18
+      text: Libres
+      font: verdana-9px
+    HelperThemeScroll
+      id: rows
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 0
+      margin-top: 47
+      width: 396
+      height: 225
+      vertical-scrollbar: rowsScroll
+      layout: verticalBox
+    VerticalScrollBar
+      id: rowsScroll
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 398
+      margin-top: 47
+      width: 10
+      height: 225
+      pixels-scroll: true
+      step: 24
+  HelperThemeCard
+    id: filters
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 428
+    margin-top: 58
+    width: 392
+    height: 202
+    padding: 5
+    HelperThemeLabel
+      id: heading
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 0
+      margin-top: 0
+      width: 376
+      height: 18
+      text: Filtro de objetos
+      color: #50d7d4
+    HelperThemeLabel
+      id: listTitle
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 0
+      margin-top: 65
+      width: 126
+      height: 20
+      text: Aceptados
+      font: verdana-9px
+    HelperThemeInput
+      id: search
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 132
+      margin-top: 63
+      width: 244
+      height: 22
+      placeholder: Buscar nombre o ID...
+    HelperThemeScroll
+      id: items
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 0
+      margin-top: 88
+      width: 364
+      height: 66
+      vertical-scrollbar: itemsScroll
+      layout: verticalBox
+    VerticalScrollBar
+      id: itemsScroll
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 366
+      margin-top: 88
+      width: 10
+      height: 66
+      pixels-scroll: true
+      step: 24
+    BotItem
+      id: drop
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 0
+      margin-top: 166
+      width: 22
+      height: 22
+      virtual: true
+    HelperThemeLabel
+      id: dropHint
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 26
+      margin-top: 168
+      width: 24
+      height: 18
+      text: +
+    HelperThemeButton
+      id: add
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 54
+      margin-top: 165
+      width: 108
+      height: 22
+      text: Agregar IDs...
+    HelperThemeButton
+      id: clear
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 168
+      margin-top: 165
+      width: 132
+      height: 22
+      text: Vaciar lista
+  HelperThemeCheck
+    id: skip
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 440
+    margin-top: 84
+    width: 370
+    height: 20
+    text: Todo excepto ignorados
+  HelperThemeCheck
+    id: accept
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 440
+    margin-top: 106
+    width: 370
+    height: 20
+    text: Solo aceptados
+  HelperThemeCard
+    id: overrides
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 428
+    margin-top: 266
+    width: 392
+    height: 78
+    padding: 5
+    HelperThemeLabel
+      id: heading
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 0
+      margin-top: 0
+      width: 270
+      height: 18
+      text: Destinos por objeto
+      color: #50d7d4
+    HelperThemeButton
+      id: add
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 288
+      margin-top: 0
+      width: 88
+      height: 22
+      text: + Regla
+    HelperThemeScroll
+      id: items
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 0
+      margin-top: 25
+      width: 364
+      height: 40
+      vertical-scrollbar: itemsScroll
+      layout: verticalBox
+    VerticalScrollBar
+      id: itemsScroll
+      anchors.left: parent.left
+      anchors.top: parent.top
+      margin-left: 366
+      margin-top: 25
+      width: 10
+      height: 40
+      pixels-scroll: true
+      step: 24
+  HelperThemeLabel
+    id: status
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 2
+    margin-top: 350
+    width: 810
+    height: 18
+    text: Loot global compartido entre perfiles de TargetBot.
+    font: verdana-9px
+  HelperThemeButton
+    id: settings
+    anchors.left: parent.left
+    anchors.top: parent.top
+    margin-left: 2
+    margin-top: 373
+    width: 160
+    height: 22
+    text: Limites de loot...

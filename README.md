@@ -1,12 +1,18 @@
-# RinoBot / Helper - Aurera, Valkaris y adaptadores por cliente
+# RinoBot / Helper - Aurera y Thornia
 
-Versión estable: **3.1.29**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.29). Puente clásico: **3.0.31**.
+Versión estable: **3.1.30**. [Notas de la actualización](https://github.com/Sabuezo12/sabuezo-bot-updates/releases/tag/v3.1.30). Puente clásico: **3.0.31**.
 
 ## Actualización
 
 Si estás en 3.1.18 o en una versión anterior en modo manual, instala la 3.1.19 desde Actualizaciones y recarga Helper una vez. A partir de la 3.1.19, el bot comprueba al iniciar y cada cinco minutos, instala la actualización y se recarga automáticamente. Se conservan perfiles, rutas, scripts y preferencias.
 
 Versiones antiguas con Auto OFF necesitan adoptar el nuevo updater una primera vez desde su panel. Si no hay Updater, usa la instalación inicial.
+
+## Cambios de 3.1.30
+
+CaveBot mejora grabacion, obstaculos, Follow, funciones y Supreme Cube; AttackBot agiliza ataques direccionales y Navi, Auto Party y la interfaz mejoran el trabajo de equipo y la carga.
+
+[Notas completas](rinobot/3.1.30-notas.md) e [informe de validacion](rinobot/3.1.30-validacion.json).
 
 ## Cambios de 3.1.29
 
