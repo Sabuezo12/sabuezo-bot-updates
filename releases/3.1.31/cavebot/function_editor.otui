@@ -1,0 +1,155 @@
+CaveBotFunctionItem < HelperThemeLabel
+  height: 18
+  text-offset: 4 1
+  text-align: left
+  focusable: true
+  background-color: alpha
+  $focus:
+    background-color: #18434a
+    color: #dcffff
+
+CaveBotFunctionWindow < HelperThemeWindow
+  text: Function - Editor de Lua
+  size: 820 500
+  padding: 10
+  padding-top: 32
+
+  HelperThemeInput
+    id: search
+    anchors.top: parent.top
+    anchors.left: parent.left
+    width: 222
+    tooltip: Busca plantillas y funciones por nombre o descripcion.
+
+  HelperThemeCombo
+    id: category
+    anchors.top: search.bottom
+    anchors.left: parent.left
+    width: 222
+    margin-top: 6
+
+  HelperThemeScroll
+    id: itemList
+    anchors.top: category.bottom
+    anchors.left: parent.left
+    anchors.bottom: help.top
+    width: 208
+    margin-top: 6
+    margin-bottom: 8
+    vertical-scrollbar: itemScroll
+    layout:
+      type: verticalBox
+
+  VerticalScrollBar
+    id: itemScroll
+    anchors.top: itemList.top
+    anchors.bottom: itemList.bottom
+    anchors.left: itemList.right
+    margin-left: 2
+    width: 12
+    pixels-scroll: true
+    step: 18
+
+  HelperThemeMultiline
+    id: code
+    anchors.top: parent.top
+    anchors.left: itemScroll.right
+    anchors.right: codeScroll.left
+    anchors.bottom: status.top
+    margin-left: 10
+    margin-bottom: 6
+    text-wrap: true
+    text-align: topLeft
+    vertical-scrollbar: codeScroll
+
+  VerticalScrollBar
+    id: codeScroll
+    anchors.top: parent.top
+    anchors.right: parent.right
+    anchors.bottom: status.top
+    margin-bottom: 6
+    width: 12
+    pixels-scroll: true
+    step: 14
+
+  HelperThemeLabel
+    id: status
+    anchors.left: parent.left
+    margin-left: 232
+    anchors.right: parent.right
+    anchors.bottom: help.top
+    margin-bottom: 4
+    height: 34
+    text-wrap: true
+    text-align: topLeft
+    color: #a9d8d4
+
+  HelperThemeLabel
+    id: help
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: ok.top
+    margin-bottom: 8
+    height: 34
+    text-wrap: true
+    text-align: topLeft
+    color: #c8c8c8
+
+  HelperThemeButton
+    id: check
+    text: Comprobar
+    width: 92
+    anchors.bottom: parent.bottom
+    anchors.left: parent.left
+    tooltip: Revisa la sintaxis y que los labels de gotoLabel existan en esta ruta.
+
+  HelperThemeButton
+    id: dryRun
+    text: Probar
+    width: 72
+    anchors.bottom: parent.bottom
+    anchors.left: check.right
+    margin-left: 6
+    tooltip: Ejecuta la funcion una vez sin actuar (no camina, no habla, no salta de label ni apaga bots) y dice que haria.
+
+  HelperThemeButton
+    id: saveTemplate
+    text: Guardar como plantilla
+    width: 150
+    anchors.bottom: parent.bottom
+    anchors.left: dryRun.right
+    margin-left: 6
+    tooltip: Guarda este codigo en Mis plantillas para usarlo en otras rutas de este personaje.
+
+  HelperThemeButton
+    id: deleteTemplate
+    text: Borrar plantilla
+    width: 112
+    anchors.bottom: parent.bottom
+    anchors.left: saveTemplate.right
+    margin-left: 6
+    tooltip: Borra la plantilla propia seleccionada en la lista.
+
+  HelperThemeButton
+    id: visual
+    text: Regla visual
+    width: 100
+    anchors.bottom: parent.bottom
+    anchors.left: deleteTemplate.right
+    margin-left: 6
+    tooltip: Abre el editor de reglas sin Lua. Si guardas alli, la regla reemplaza este codigo.
+
+  HelperThemeButton
+    id: cancel
+    text: Cancelar
+    width: 82
+    anchors.bottom: parent.bottom
+    anchors.right: parent.right
+
+  HelperThemeButton
+    id: ok
+    text: Guardar
+    width: 90
+    anchors.bottom: parent.bottom
+    anchors.right: cancel.left
+    margin-right: 6

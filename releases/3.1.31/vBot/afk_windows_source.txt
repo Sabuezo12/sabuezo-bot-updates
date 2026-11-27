@@ -1,0 +1,263 @@
+// RinoBot AFK companion. Compiled locally using the installed .NET Framework.
+// No network, elevation, registry changes or process suspension.
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading;
+using System.Windows.Forms;
+
+internal static class Native {
+ [StructLayout(LayoutKind.Sequential)] internal struct Power { public uint Version, ControlMask, StateMask; }
+ [StructLayout(LayoutKind.Sequential)] internal struct Input { public uint Size, Time; }
+ [StructLayout(LayoutKind.Sequential)] internal struct Rect { public int Left,Top,Right,Bottom; }
+ [DllImport("kernel32.dll", SetLastError=true)] internal static extern IntPtr OpenProcess(uint access,bool inherit,int pid);
+ [DllImport("kernel32.dll")] internal static extern bool CloseHandle(IntPtr h);
+ [DllImport("kernel32.dll", SetLastError=true)] internal static extern bool GetProcessInformation(IntPtr h,int cls,ref Power data,uint size);
+ [DllImport("kernel32.dll", SetLastError=true)] internal static extern bool SetProcessInformation(IntPtr h,int cls,ref Power data,uint size);
+ [DllImport("kernel32.dll")] internal static extern uint GetPriorityClass(IntPtr h);
+ [DllImport("kernel32.dll")] internal static extern bool SetPriorityClass(IntPtr h,uint value);
+ [DllImport("kernel32.dll")] internal static extern bool GetProcessTimes(IntPtr h,out long created,out long exited,out long kernel,out long user);
+ [DllImport("kernel32.dll")] internal static extern bool GetExitCodeProcess(IntPtr h,out uint code);
+ [DllImport("kernel32.dll",CharSet=CharSet.Unicode)] internal static extern bool QueryFullProcessImageName(IntPtr h,uint flags,StringBuilder text,ref uint size);
+ internal delegate bool EnumProc(IntPtr h,IntPtr param);
+ [DllImport("user32.dll")] internal static extern bool EnumWindows(EnumProc fn,IntPtr param);
+ [DllImport("user32.dll")] internal static extern uint GetWindowThreadProcessId(IntPtr h,out uint pid);
+ [DllImport("user32.dll")] internal static extern IntPtr GetForegroundWindow();
+ [DllImport("user32.dll")] internal static extern bool GetLastInputInfo(ref Input data);
+ [DllImport("user32.dll")] internal static extern bool GetWindowRect(IntPtr h,out Rect r);
+ [DllImport("user32.dll")] internal static extern bool IsWindow(IntPtr h);
+ [DllImport("user32.dll")] internal static extern bool IsWindowVisible(IntPtr h);
+ [DllImport("user32.dll")] internal static extern bool IsZoomed(IntPtr h);
+ [DllImport("user32.dll")] internal static extern bool IsIconic(IntPtr h);
+ [StructLayout(LayoutKind.Sequential)] private struct Placement { public int Length,Flags,ShowCmd,MinX,MinY,MaxX,MaxY,Left,Top,Right,Bottom; }
+ [DllImport("user32.dll")] private static extern bool GetWindowPlacement(IntPtr h,ref Placement p);
+ [DllImport("user32.dll")] internal static extern IntPtr GetWindow(IntPtr h,uint cmd);
+ [DllImport("user32.dll")] internal static extern bool ShowWindow(IntPtr h,int mode);
+ [DllImport("user32.dll")] internal static extern bool SetForegroundWindow(IntPtr h);
+ [DllImport("user32.dll",SetLastError=true)] private static extern IntPtr SendMessageTimeout(IntPtr h,uint message,IntPtr wParam,IntPtr lParam,uint flags,uint timeout,out IntPtr result);
+ [DllImport("user32.dll",EntryPoint="GetClassLongPtrW")] private static extern IntPtr GetClassLongPtr64(IntPtr h,int index);
+ [DllImport("user32.dll",EntryPoint="GetClassLongW")] private static extern uint GetClassLong32(IntPtr h,int index);
+ internal static long Now { get { return DateTime.UtcNow.Ticks/TimeSpan.TicksPerSecond-62135596800L; } }
+ internal static uint Tick { get { return unchecked((uint)Environment.TickCount); } }
+ internal static bool Alive(IntPtr h) { uint code;return h!=IntPtr.Zero&&GetExitCodeProcess(h,out code)&&code==259; }
+ internal static long Created(IntPtr h) { long c,e,k,u;return GetProcessTimes(h,out c,out e,out k,out u)?c:0; }
+ // A minimized window is not zoomed, but Windows remembers whether it
+ // returns maximized (WPF_RESTORETOMAXIMIZED). Hidden windows keep both states.
+ internal static bool Maximized(IntPtr h) {
+  if(IsZoomed(h))return true;if(!IsIconic(h))return false;
+  var p=new Placement();p.Length=Marshal.SizeOf(typeof(Placement));
+  return GetWindowPlacement(h,ref p)&&(p.Flags&2)!=0;
+ }
+ // Tray restore: back to the size it had before minimizing (3 maximized,
+ // 9 restore, 5 as is). Automatic wakes keep the current state unfocused (8).
+ // Never SW_SHOWNORMAL: it unmaximizes, and the client then shrinks its UI.
+ internal static int ShowCommand(IntPtr h,bool user) {
+  if(!user)return 8;
+  if(Maximized(h))return 3;
+  return IsIconic(h)?9:5;
+ }
+ private static string ImagePath(IntPtr h) {
+  var text=new StringBuilder(32768);uint size=32768;
+  return h!=IntPtr.Zero&&QueryFullProcessImageName(h,0,text,ref size)?text.ToString():"";
+ }
+ internal static string ClientName(IntPtr h) {
+  string name=Path.GetFileName(ImagePath(h)).ToLowerInvariant();
+  return name.StartsWith("aurera")?"Aurera":name.StartsWith("thornia")?"Thornia":"OTClient";
+ }
+ internal static Icon ClientIcon(IntPtr window,IntPtr process) {
+  // Window icons belong to the client. Clone them; never destroy its handles.
+  if(window!=IntPtr.Zero&&IsWindow(window)) {
+   foreach(int size in new int[]{2,0,1})try {
+    IntPtr icon;
+    if(SendMessageTimeout(window,0x7F,new IntPtr(size),IntPtr.Zero,2,200,out icon)!=IntPtr.Zero&&icon!=IntPtr.Zero)
+     using(var borrowed=Icon.FromHandle(icon))return(Icon)borrowed.Clone();
+   }catch{}
+   foreach(int index in new int[]{-34,-14})try {
+    IntPtr icon=IntPtr.Size==8?GetClassLongPtr64(window,index):new IntPtr(unchecked((int)GetClassLong32(window,index)));
+    if(icon!=IntPtr.Zero)using(var borrowed=Icon.FromHandle(icon))return(Icon)borrowed.Clone();
+   }catch{}
+  }
+  try{string path=ImagePath(process);if(path!=""){var icon=Icon.ExtractAssociatedIcon(path);if(icon!=null)return icon;}}catch{}
+  return(Icon)SystemIcons.Application.Clone();
+ }
+ internal static IntPtr Open(int pid) {
+  IntPtr h=OpenProcess(0x1000|0x200,false,pid);if(h==IntPtr.Zero)h=OpenProcess(0x1000,false,pid);if(h==IntPtr.Zero)return h;
+  string name=Path.GetFileName(ImagePath(h)).ToLowerInvariant();
+  if(!name.StartsWith("thornia")&&!name.StartsWith("aurera")&&!name.StartsWith("otclient")){CloseHandle(h);return IntPtr.Zero;}
+  return h;
+ }
+ internal static IntPtr Window(int pid,bool visible) {
+  // The client window is unowned (IME helpers are owned). A minimized one
+  // measures 160x28, so compare its restored size, not its taskbar rect.
+  IntPtr found=IntPtr.Zero;long largest=0;
+  EnumWindows(delegate(IntPtr h,IntPtr p){uint n;GetWindowThreadProcessId(h,out n);Rect r;
+   if(n==pid&&GetWindow(h,4)==IntPtr.Zero&&(!visible||IsWindowVisible(h))&&GetWindowRect(h,out r)){
+    if(IsIconic(h)){var w=new Placement();w.Length=Marshal.SizeOf(typeof(Placement));if(GetWindowPlacement(h,ref w)){r.Left=w.Left;r.Top=w.Top;r.Right=w.Right;r.Bottom=w.Bottom;}}
+    long area=(long)Math.Max(0,r.Right-r.Left)*Math.Max(0,r.Bottom-r.Top);if(area>largest){found=h;largest=area;}}return true;},IntPtr.Zero);
+  return found;
+ }
+ internal static bool ReadPower(IntPtr h,out Power p) {
+  p=new Power();p.Version=1;
+  try{return GetProcessInformation(h,4,ref p,12);}catch(EntryPointNotFoundException){return false;}catch(DllNotFoundException){return false;}
+ }
+ internal static bool PowerBits(IntPtr h,uint control,uint state) {
+  try { var p=new Power();p.Version=1;
+   if(!GetProcessInformation(h,4,ref p,12))return false;
+   p.Version=1;p.ControlMask=(p.ControlMask&~1U)|(control&1);p.StateMask=(p.StateMask&~1U)|(state&1);
+   return SetProcessInformation(h,4,ref p,12);
+  } catch(EntryPointNotFoundException){return false;}catch(DllNotFoundException){return false;}
+ }
+ internal static void Write(string path,string text) { using(var f=new FileStream(path,FileMode.Create,FileAccess.Write,FileShare.ReadWrite))using(var w=new StreamWriter(f,new UTF8Encoding(false)))w.Write(text); }
+}
+
+internal sealed class Client : IDisposable {
+ internal readonly int Pid;internal readonly string Token;internal readonly IntPtr Handle;internal readonly long Created;
+ internal string State="active",Label;internal long Seq=-1;internal int Minutes;internal uint LastActivity=Native.Tick,Prepared;
+ internal IntPtr Window;internal uint Priority;internal Native.Power OriginalPower;internal bool CanPower,Powered,Hidden,WasMaximized;internal string EcoState="off";
+ internal NotifyIcon Icon;private System.Drawing.Icon trayImage;private readonly Manager owner;private uint lastInput;
+ internal Client(Manager owner,int pid,string token,string label) {
+  this.owner=owner;Pid=pid;Token=token;Label=label;Handle=Native.Open(pid);Created=Native.Created(Handle);
+  var input=new Native.Input();input.Size=8;Native.GetLastInputInfo(ref input);lastInput=input.Time;
+ }
+ internal string Base {get{return Path.Combine(owner.Root,Pid.ToString());}}
+ internal bool Valid {get{return Native.Alive(Handle)&&Created!=0;}}
+ internal void Status() {Native.Write(Base+".status","1\n"+Token+"\n"+Process.GetCurrentProcess().Id+"\n"+State+"\n"+Native.Now+"\n"+EcoState+"\n"+Window.ToInt64()+"\n");}
+ internal void Prepare() {
+  if(State!="active")return;Window=Native.Window(Pid,true);if(Window==IntPtr.Zero)return;
+  WasMaximized=Native.Maximized(Window);Priority=Native.GetPriorityClass(Handle);
+  if(Priority==0)return;
+  CanPower=Native.ReadPower(Handle,out OriginalPower);
+  Icon=new NotifyIcon();trayImage=Native.ClientIcon(Window,Handle);Icon.Icon=trayImage;
+  string title=Native.ClientName(Handle)+": "+Label;
+  Icon.Text=title.Substring(0,Math.Min(63,title.Length));
+  // Wake disposes this icon and menu: run it after the click event returns.
+  var menu=new ContextMenuStrip();menu.Items.Add("Restaurar "+Label,null,delegate { owner.Later(delegate { if(owner.Has(this))Wake(true,false); }); });
+  menu.Items.Add("Desactivar modo AFK",null,delegate { owner.Later(delegate { if(owner.Has(this))Wake(true,true); }); });
+  menu.Items.Add("Restaurar todos",null,delegate { owner.Later(owner.WakeAll); });
+  Icon.ContextMenuStrip=menu;Icon.DoubleClick+=delegate { owner.Later(delegate { if(owner.Has(this))Wake(true,false); }); };Icon.Visible=true;
+  // Persist recovery before any hiding or power changes. A replacement
+  // companion can recover windows after an abrupt termination.
+  Native.Write(Base+".recovery","1\n"+Pid+"\n"+Created+"\n"+Priority+"\n"+(WasMaximized?3:1)+"\n"+OriginalPower.ControlMask+"\n"+OriginalPower.StateMask+"\n");
+  Prepared=Native.Tick;State="prepare";Status();
+ }
+ internal void Ready() {
+  if(State!="prepare"||unchecked(Native.Tick-Prepared)>5000)return;
+  Powered=CanPower&&Native.PowerBits(Handle,1,1);EcoState=Powered?"on":"unsupported";
+  if(Powered)Native.SetPriorityClass(Handle,0x4000);
+  if(Native.IsWindow(Window)){Native.ShowWindow(Window,0);Hidden=true;}
+  State="afk";Status();
+ }
+ internal void Relax() {
+  if(Powered){Native.PowerBits(Handle,OriginalPower.ControlMask,OriginalPower.StateMask);if(Native.GetPriorityClass(Handle)==0x4000)Native.SetPriorityClass(Handle,Priority);Powered=false;}
+  EcoState="latency";Status();
+ }
+ internal void Wake(bool focus,bool pause) {
+  if(Powered){Native.PowerBits(Handle,OriginalPower.ControlMask,OriginalPower.StateMask);if(Native.GetPriorityClass(Handle)==0x4000)Native.SetPriorityClass(Handle,Priority);Powered=false;}
+  EcoState="off";
+  if((Hidden||State=="prepare"||State=="afk")&&Window!=IntPtr.Zero&&Native.IsWindow(Window)){Native.ShowWindow(Window,Native.ShowCommand(Window,focus));if(focus)Native.SetForegroundWindow(Window);}
+  Window=IntPtr.Zero;Hidden=false;ClearIcon();
+  try{File.Delete(Base+".recovery");}catch{}
+  LastActivity=Native.Tick;State=pause?"paused":"wake";Status();
+ }
+ internal void Command(string command,long seq,int minutes) {
+  if(seq<=Seq)return;Seq=seq;Minutes=minutes;
+  if(command=="release"){Wake(false,true);return;}
+  if(command=="ready"){Ready();return;}
+  if(command=="relax"){if(State=="afk")Relax();return;}
+  if(command=="wake"){Wake(false,false);return;}
+  if(command=="afk"){Prepare();return;}
+  if(command=="auto"){if(State=="wake"||State=="paused"){State="active";LastActivity=Native.Tick;}Status();}
+ }
+ internal void Tick() {
+  if(!Valid)return;
+  uint now=Native.Tick;
+  if(State=="prepare"&&unchecked(now-Prepared)>5000){Wake(false,false);return;}
+  if(State=="afk") {
+   // Windows may restore a window without granting it foreground focus.
+   // Any visible AFK window must return to normal rendering and power policy.
+   if(Native.IsWindowVisible(Window))Wake(false,false);
+   return;
+  }
+  if(State!="active")return;
+  var input=new Native.Input();input.Size=8;
+  if(Native.GetLastInputInfo(ref input)&&input.Time!=lastInput) {
+   lastInput=input.Time;uint pid;Native.GetWindowThreadProcessId(Native.GetForegroundWindow(),out pid);
+   if(pid==Pid)LastActivity=now;
+  }
+  if(unchecked(now-LastActivity)>Minutes*60000U)Prepare();
+ }
+ private void ClearIcon(){if(Icon!=null){Icon.Visible=false;if(Icon.ContextMenuStrip!=null)Icon.ContextMenuStrip.Dispose();Icon.Dispose();Icon=null;}if(trayImage!=null){trayImage.Dispose();trayImage=null;}}
+ public void Dispose(){try{if(Valid)Wake(false,true);}catch{}ClearIcon();if(Handle!=IntPtr.Zero)Native.CloseHandle(Handle);}
+}
+
+internal sealed class Manager : ApplicationContext {
+ internal readonly string Root;private readonly Dictionary<int,Client> clients=new Dictionary<int,Client>();
+ private readonly System.Windows.Forms.Timer timer=new System.Windows.Forms.Timer();private uint beat,empty;private int faults;private bool closing;
+ internal Manager(string root){Root=root;Recover();timer.Interval=250;timer.Tick+=delegate{Tick();};timer.Start();Tick();}
+ internal void WakeAll(){foreach(var c in new List<Client>(clients.Values))try{if(clients.ContainsKey(c.Pid))c.Wake(true,false);}catch{}}
+ internal bool Has(Client c){Client x;return clients.TryGetValue(c.Pid,out x)&&x==c;}
+ internal void Later(Action action){
+  // Same UI thread, once the current click event has returned.
+  var once=new System.Windows.Forms.Timer();once.Interval=1;
+  once.Tick+=delegate { once.Stop();once.Dispose();try{if(!closing)action();}catch{} };
+  once.Start();
+ }
+ private void Recover() {
+  foreach(string path in Directory.GetFiles(Root,"*.recovery"))try {
+   string[] p=File.ReadAllLines(path);int pid;long created;uint priority;int show;uint control=0,state=0;
+   if(p.Length<5||p[0]!="1"||!Int32.TryParse(p[1],out pid)||!Int64.TryParse(p[2],out created)||!UInt32.TryParse(p[3],out priority)||!Int32.TryParse(p[4],out show))continue;
+   if(p.Length>=7){UInt32.TryParse(p[5],out control);UInt32.TryParse(p[6],out state);}
+   IntPtr h=Native.Open(pid);if(h!=IntPtr.Zero)try {
+    if(Native.Alive(h)&&Native.Created(h)==created){Native.PowerBits(h,control,state);if(Native.GetPriorityClass(h)==0x4000)Native.SetPriorityClass(h,priority);IntPtr w=Native.Window(pid,false);if(w!=IntPtr.Zero)Native.ShowWindow(w,Native.ShowCommand(w,false));}
+   }finally{Native.CloseHandle(h);}File.Delete(path);
+  }catch{}
+ }
+ private void Tick() {
+  if(closing)return;
+  try {
+   foreach(string path in Directory.GetFiles(Root,"*.control"))try {
+    string[] p=File.ReadAllLines(path);int pid,minutes;long seq;
+    if(p.Length!=7||p[0]!="1"||p[1].Length<8||p[1].Length>96||!Int32.TryParse(p[2],out pid)||pid<=0||
+       Path.GetFileName(path)!=pid+".control"||!Int32.TryParse(p[3],out minutes)||minutes<1||minutes>240||!Int64.TryParse(p[5],out seq))continue;
+    Client c;
+    if(clients.TryGetValue(pid,out c)&&c.Token!=p[1]){c.Dispose();clients.Remove(pid);c=null;}
+    if(c==null){if(p[4]=="release")continue;c=new Client(this,pid,p[1],p[6]);if(!c.Valid||File.GetLastWriteTimeUtc(path).ToFileTimeUtc()<c.Created){c.Dispose();continue;}clients.Add(pid,c);c.Status();}
+    c.Command(p[4],seq,minutes);
+    if(p[4]=="release"){c.Dispose();clients.Remove(pid);}
+   }catch{}
+   // One client's error (a locked file, a closed window) must not close the
+   // companion for every other client.
+   foreach(var c in new List<Client>(clients.Values))try{
+    if(!c.Valid){c.Dispose();clients.Remove(c.Pid);try{File.Delete(c.Base+".control");}catch{}continue;}
+    if(!File.Exists(c.Base+".control")){c.Dispose();clients.Remove(c.Pid);continue;}
+    c.Tick();
+   }catch{}
+   uint now=Native.Tick;
+   if(beat==0||unchecked(now-beat)>3000){try{Native.Write(Path.Combine(Root,"heartbeat"),Process.GetCurrentProcess().Id+"|"+Native.Now);beat=now;}catch{}}
+   if(clients.Count==0){if(empty==0)empty=now;if(unchecked(now-empty)>15000)ExitThread();}else empty=0;
+   faults=0;
+  }catch{if(++faults>20)ExitThread();}
+ }
+ private void Cleanup(){if(closing)return;closing=true;timer.Stop();foreach(var c in clients.Values)c.Dispose();clients.Clear();try{File.Delete(Path.Combine(Root,"heartbeat"));}catch{}}
+ protected override void ExitThreadCore(){Cleanup();base.ExitThreadCore();}
+ protected override void Dispose(bool disposing){if(disposing){Cleanup();timer.Dispose();}base.Dispose(disposing);}
+}
+
+internal static class Program {
+ [STAThread] private static void Main(string[] args) {
+  if(args.Length!=1)return;string root=Path.GetFullPath(args[0]);if(!Directory.Exists(root))return;
+  uint hash=2166136261;foreach(char c in root.TrimEnd('\\','/').ToUpperInvariant())hash=unchecked((hash^c)*16777619);
+  string name="Local\\RinoBotAfk-"+hash.ToString("x8");bool created;
+  using(var mutex=new Mutex(true,name,out created)){
+   if(!created)return;
+   // An error in a tray click must not show the .NET dialog or close the companion.
+   try{Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);Application.ThreadException+=delegate { };
+    Application.EnableVisualStyles();Application.SetCompatibleTextRenderingDefault(false);using(var app=new Manager(root))Application.Run(app);}catch{}
+   finally{try{mutex.ReleaseMutex();}catch{}}
+  }
+ }
+}

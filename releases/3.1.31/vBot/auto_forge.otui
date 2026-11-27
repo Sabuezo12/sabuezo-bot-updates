@@ -1,0 +1,171 @@
+AutoForgePanel < Panel
+  height: 41
+
+  HelperThemePower
+    id: title
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: settings.left
+    margin-right: 3
+    height: 20
+    text: Auto Forge
+
+  HelperThemeButton
+    id: settings
+    anchors.top: parent.top
+    anchors.right: parent.right
+    size: 70 20
+    text: Configurar
+
+  HelperThemeLabel
+    id: status
+    anchors.top: title.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 3
+    height: 18
+    text: Desactivado
+
+AutoForgeWindow < HelperThemeWindow
+  text: Auto Forge
+  size: 430 393
+  padding: 12
+  padding-top: 30
+
+  HelperThemeLabel
+    id: resources
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 24
+    text: Dust: - | Slivers: - | Cores: -
+
+  HelperThemePower
+    id: enabled
+    anchors.top: resources.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 4
+    height: 24
+    text: Automatizar Forge
+
+  HelperThemeLabel
+    id: dustLabel
+    anchors.top: enabled.bottom
+    anchors.left: parent.left
+    anchors.right: dustThreshold.left
+    margin-top: 12
+    margin-right: 8
+    height: 22
+    text: Convertir dust a slivers desde
+
+  HelperThemeInput
+    id: dustThreshold
+    anchors.top: enabled.bottom
+    anchors.right: parent.right
+    margin-top: 12
+    size: 72 22
+
+  HelperThemeLabel
+    id: sliverLabel
+    anchors.top: dustLabel.bottom
+    anchors.left: parent.left
+    anchors.right: sliverThreshold.left
+    margin-top: 6
+    margin-right: 8
+    height: 22
+    text: Convertir slivers a core desde
+
+  HelperThemeInput
+    id: sliverThreshold
+    anchors.top: dustLabel.bottom
+    anchors.right: parent.right
+    margin-top: 6
+    size: 72 22
+
+  HelperThemeLabel
+    id: limitLabel
+    anchors.top: sliverLabel.bottom
+    anchors.left: parent.left
+    anchors.right: dustLimitTarget.left
+    margin-top: 6
+    margin-right: 8
+    height: 22
+    text: Subir primero el limite de dust hasta
+
+  HelperThemeInput
+    id: dustLimitTarget
+    anchors.top: sliverLabel.bottom
+    anchors.right: parent.right
+    margin-top: 6
+    size: 72 22
+
+  HelperThemeLabel
+    id: limitInfo
+    anchors.top: limitLabel.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 5
+    height: 18
+    color: #a9bbc6
+
+  HelperThemeLabel
+    id: conversions
+    anchors.top: limitInfo.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 3
+    height: 20
+    color: #a9bbc6
+    text: 60 dust = 3 slivers   |   50 slivers = 1 exalted core
+
+  HelperThemeLabel
+    id: rulesFeedback
+    anchors.top: conversions.bottom
+    anchors.left: parent.left
+    anchors.right: apply.left
+    margin-top: 8
+    margin-right: 8
+    height: 34
+    text-wrap: true
+
+  HelperThemeButton
+    id: apply
+    anchors.top: conversions.bottom
+    anchors.right: parent.right
+    margin-top: 8
+    size: 94 22
+    text: Aplicar
+
+  HelperThemeLabel
+    id: status
+    anchors.top: rulesFeedback.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 6
+    height: 38
+    text-wrap: true
+    text: Desactivado
+
+  HelperThemeLabel
+    id: confirmed
+    anchors.top: status.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 4
+    height: 22
+    text: Conversiones confirmadas: 0 | Cores: 0
+
+  HelperThemeButton
+    id: review
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    width: 230
+    text: Restablecer tras revisar Forge
+
+  HelperThemeButton
+    id: closeButton
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    width: 92
+    text: Cerrar

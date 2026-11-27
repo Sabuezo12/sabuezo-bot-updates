@@ -1,0 +1,338 @@
+AutoPartyName < HelperThemeLabel
+  background-color: alpha
+  text-offset: 2 0
+  focusable: true
+  height: 18
+  $focus:
+    background-color: #18434a
+  HelperThemeButton
+    id: remove
+    text: x
+    anchors.right: parent.right
+    width: 18
+    height: 17
+
+AutoPartyListWindow < HelperThemeWindow
+  text: Auto Party
+  size: 480 650
+  padding: 10
+  @onEscape: self:hide()
+
+  HelperThemeLabel
+    id: partySummary
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-right: 100
+    height: 28
+    text-wrap: true
+    text: Sin party.
+
+  HelperThemeCheck
+    id: autoEnabled
+    anchors.top: parent.top
+    anchors.right: parent.right
+    size: 90 20
+    text: Activado
+
+  HelperThemeLabel
+    id: membersTitle
+    anchors.top: partySummary.bottom
+    anchors.left: parent.left
+    margin-top: 4
+    height: 22
+    text: Miembros actuales
+
+  HelperThemeButton
+    id: partyInfo
+    anchors.top: partySummary.bottom
+    anchors.right: parent.right
+    margin-top: 4
+    size: 100 22
+    text: Info !party
+    tooltip: Solicita la informacion de miembros, niveles y experiencia al servidor.
+
+  HelperThemeCombo
+    id: currentMember
+    anchors.top: partyInfo.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 4
+
+  HelperThemeButton
+    id: kickMember
+    anchors.top: currentMember.bottom
+    anchors.left: parent.left
+    margin-top: 4
+    size: 110 22
+    text: Expulsar
+    tooltip: Expulsa al miembro seleccionado. Requiere ser lider. El servidor confirma la accion.
+
+  HelperThemeButton
+    id: passMember
+    anchors.top: currentMember.bottom
+    anchors.left: kickMember.right
+    margin-left: 6
+    margin-top: 4
+    size: 140 22
+    text: Pasar liderazgo
+    tooltip: Solicita pasar liderazgo al miembro seleccionado, visible y en tu party.
+
+  HelperThemeButton
+    id: leaveParty
+    anchors.top: currentMember.bottom
+    anchors.right: parent.right
+    margin-top: 4
+    size: 130 22
+    text: Salir y pausar
+    tooltip: Sale y desactiva Auto Party para que no vuelvas a entrar automaticamente.
+
+  HorizontalSeparator
+    id: managementSeparator
+    anchors.top: kickMember.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 7
+
+  HelperThemeLabel
+    id: lblLeader
+    anchors.top: managementSeparator.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 4
+    height: 18
+    text: Lideres de confianza (separados por coma)
+
+  HelperThemeInput
+    id: txtLeader
+    anchors.top: lblLeader.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 3
+    tooltip: Acepta invitaciones de estos lideres. Quedan protegidos de la expulsion automatica.
+
+  HelperThemeLabel
+    id: lblParty
+    anchors.top: txtLeader.bottom
+    anchors.left: parent.left
+    margin-top: 4
+    height: 22
+    text: Lista para invitar
+    tooltip: Invita a estos jugadores al verlos. Si fueron expulsados estando visibles, deben salir de pantalla y volver para reinvitarlos.
+
+  HelperThemeButton
+    id: addTeam
+    anchors.top: txtLeader.bottom
+    anchors.right: parent.right
+    margin-top: 4
+    size: 150 22
+    text: Agregar party actual
+    tooltip: Agrega a tus companeros actuales a la lista, sin duplicados ni tu propio personaje.
+
+  HelperThemeList
+    id: lstAutoParty
+    anchors.top: lblParty.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-right: 14
+    margin-top: 3
+    height: 82
+    padding: 1
+    vertical-scrollbar: AutoPartyListListScrollBar
+
+  VerticalScrollBar
+    id: AutoPartyListListScrollBar
+    anchors.top: lstAutoParty.top
+    anchors.bottom: lstAutoParty.bottom
+    anchors.right: parent.right
+    width: 12
+    step: 18
+    pixels-scroll: true
+
+  HelperThemeInput
+    id: playerName
+    anchors.top: lstAutoParty.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-right: 86
+    margin-top: 4
+    tooltip: Nombre que quieres agregar a la lista de invitaciones automaticas.
+
+  HelperThemeButton
+    id: addPlayer
+    anchors.top: lstAutoParty.bottom
+    anchors.right: parent.right
+    margin-top: 4
+    size: 80 22
+    text: Agregar
+
+  HorizontalSeparator
+    id: optionsSeparator
+    anchors.top: playerName.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 6
+
+  HelperThemeCheck
+    id: inviteMsg
+    anchors.top: optionsSeparator.bottom
+    anchors.left: parent.left
+    margin-top: 6
+    size: 230 20
+    text: Invitar/aceptar con frase
+
+  HelperThemeInput
+    id: inviteTxt
+    anchors.top: optionsSeparator.bottom
+    anchors.right: parent.right
+    margin-top: 6
+    width: 200
+    tooltip: Frase exacta, sin distinguir mayusculas. Para aceptar debe invitarte un lider de confianza.
+
+  HelperThemeCheck
+    id: messageListOnly
+    anchors.top: inviteMsg.bottom
+    anchors.left: parent.left
+    width: 340
+    margin-top: 2
+    height: 18
+    text: Frase solo para lista y lideres
+
+  HelperThemeCheck
+    id: autoShare
+    anchors.top: inviteMsg.bottom
+    anchors.right: parent.right
+    margin-top: 2
+    size: 100 18
+    text: Auto XP
+
+  HelperThemeCheck
+    id: kickNoShare
+    anchors.top: messageListOnly.bottom
+    anchors.left: parent.left
+    margin-top: 3
+    size: 340 20
+    text: Expulsar sin compartir XP (seg.)
+    tooltip: Usa el estado de !party para expulsar tambien a miembros lejanos que no comparten. Respeta la espera y los nombres protegidos.
+
+  HelperThemeInput
+    id: kickNoShareMinutes
+    anchors.top: messageListOnly.bottom
+    anchors.right: parent.right
+    margin-top: 3
+    width: 64
+    tooltip: Segundos continuos sin compartir: de 15 a 3600. Valor inicial: 60.
+
+  HelperThemeLabel
+    id: protectedTitle
+    anchors.top: kickNoShare.bottom
+    anchors.left: parent.left
+    margin-top: 4
+    size: 100 22
+    text: Protegidos:
+
+  HelperThemeInput
+    id: protectedNames
+    anchors.top: kickNoShare.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-left: 104
+    margin-top: 4
+    tooltip: Nombres separados por coma. Nunca se expulsan automaticamente; tus lideres tambien estan protegidos.
+
+  HelperThemeCheck
+    id: serverCommands
+    anchors.top: protectedNames.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 4
+    height: 18
+    text: Usar !partykick / !partyexit
+    tooltip: Usa los comandos del servidor para expulsar por nombre y salir. Expulsar y salir se muestran en NPCs; las consultas !party quedan ocultas.
+
+  HelperThemeCheck
+    id: passLeader
+    anchors.top: serverCommands.bottom
+    anchors.left: parent.left
+    margin-top: 4
+    size: 250 20
+    text: Pasar liderazgo automaticamente
+
+  HelperThemeInput
+    id: passLeaderName
+    anchors.top: serverCommands.bottom
+    anchors.right: parent.right
+    margin-top: 4
+    width: 200
+    tooltip: Destinatario exacto, visible y dentro de la party. No se confunde solicitud con confirmacion.
+
+  HorizontalSeparator
+    id: relaySeparator
+    anchors.top: passLeaderName.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 7
+
+  HelperThemeCheck
+    id: leaderRelay
+    anchors.top: relaySeparator.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 6
+    height: 20
+    text: Relevo al ir a refill (activalo en todos tus personajes)
+    tooltip: Cuando el supply check del CaveBot te manda a refill: si eres lider pasas el liderazgo a un miembro (primero los de tu lista que esten en pantalla) y sales de la party; si eres miembro solo sales. Al llegar otra vez a la etiqueta de caza del supply check vuelves a entrar. El que se queda de lider invita al que salio y devuelve el liderazgo a sus lideres de confianza.
+
+  HelperThemeLabel
+    id: relayHint
+    anchors.top: leaderRelay.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-left: 22
+    margin-top: 1
+    height: 28
+    text-wrap: true
+    color: #c0cdd6
+    text: El lider pasa el liderazgo y sale; al volver a la caza entra de nuevo y lo recupera. Asi la party no se deshace.
+
+  HorizontalSeparator
+    id: separator
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: closeButton.top
+    margin-bottom: 5
+
+  HelperThemeLabel
+    id: partyStatus
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: separator.top
+    height: 36
+    margin-bottom: 4
+    text-wrap: true
+    text: Auto Party desactivado.
+
+  HelperThemeButton
+    id: info
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    size: 65 22
+    text: Creditos
+    tooltip: Script original: Lee; modificaciones originales: F.Almeida.
+    @onClick: g_platform.openUrl("https://www.paypal.com/donate/?business=8XSU4KTS2V9PN&no_recurring=0&item_name=OTC+AND+OTS+SCRIPTS&currency_code=USD")
+
+  HelperThemeButton
+    id: reinviteList
+    anchors.left: info.right
+    anchors.bottom: parent.bottom
+    margin-left: 8
+    size: 140 22
+    text: Reinvitar lista
+    tooltip: Reactiva Auto Party y permite volver a invitar a los miembros expulsados de tu lista.
+
+  HelperThemeButton
+    id: closeButton
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 80 22
+    text: Cerrar

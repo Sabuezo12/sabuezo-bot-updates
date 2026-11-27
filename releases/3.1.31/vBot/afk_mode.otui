@@ -1,0 +1,93 @@
+AfkModePanel < Panel
+  height: 41
+  HelperThemePower
+    id: title
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: settings.left
+    margin-right: 3
+    height: 20
+    text: Modo AFK
+  HelperThemeButton
+    id: settings
+    anchors.top: parent.top
+    anchors.right: parent.right
+    size: 70 20
+    text: Configurar
+  HelperThemeLabel
+    id: status
+    anchors.top: title.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 3
+    height: 18
+    text: Desactivado
+
+AfkModeWindow < HelperThemeWindow
+  text: Modo AFK
+  size: 410 285
+  padding: 12
+  padding-top: 30
+  HelperThemePower
+    id: enabled
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 24
+    text: Activar ahorro automatico
+  HelperThemeLabel
+    id: minutesLabel
+    anchors.top: enabled.bottom
+    anchors.left: parent.left
+    anchors.right: minutes.left
+    height: 22
+    margin-top: 10
+    text: Entrar tras minutos sin usar el cliente:
+  HelperThemeSpin
+    id: minutes
+    anchors.top: enabled.bottom
+    anchors.right: parent.right
+    margin-top: 10
+    size: 65 22
+    minimum: 1
+    maximum: 240
+    editable: true
+    focusable: true
+  HelperThemeLabel
+    id: description
+    anchors.top: minutesLabel.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 58
+    margin-top: 10
+    text-wrap: true
+    text: El personaje sigue jugando. Reduce el trabajo visual y envia el cliente a la bandeja cuando esta disponible. Restaura la ventana desde su icono.
+  HelperThemeLabel
+    id: status
+    anchors.top: description.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 42
+    margin-top: 6
+    text-wrap: true
+    text: Desactivado
+  HelperThemeButton
+    id: enterNow
+    anchors.left: parent.left
+    anchors.bottom: closeButton.top
+    margin-bottom: 8
+    size: 180 24
+    text: Entrar en AFK ahora
+  HelperThemeButton
+    id: wake
+    anchors.right: parent.right
+    anchors.bottom: closeButton.top
+    margin-bottom: 8
+    size: 180 24
+    text: Volver al modo normal
+  HelperThemeButton
+    id: closeButton
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    size: 85 24
+    text: Cerrar

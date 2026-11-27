@@ -1,0 +1,759 @@
+local cavebotMacro = nil
+local config = nil
+local botConfigName = modules.game_bot.contentsPanel.config:getCurrentOption().text
+
+-- ui
+dofile('/cavebot/waypoints.lua')
+dofile('/cavebot/route_resume.lua')
+dofile('/cavebot/function_rules.lua')
+dofile('/cavebot/route_validation.lua')
+dofile('/cavebot/route_tools.lua')
+dofile('/cavebot/player_blocker.lua')
+dofile('/cavebot/floor_return.lua')
+dofile('/cavebot/route_guard.lua')
+dofile('/cavebot/function_helpers.lua')
+dofile('/cavebot/function_editor.lua')
+local configWidget = Helper and UI.createWidget("HelperCaveRouteConfig") or UI.Config()
+local ui = UI.createWidget(Helper and "HelperCaveBotPanel" or "CaveBotPanel")
+
+ui.list = ui.listPanel.list -- shortcut
+CaveBot.actionList = ui.list
+CaveBot.Waypoints.setup(ui)
+CaveBot.Diagnostics = CaveBot.Diagnostics or {}
+CaveBot.Diagnostics.supplyStatus = CaveBot.Diagnostics.supplyStatus or "-"
+CaveBot.Diagnostics.supplyColor = CaveBot.Diagnostics.supplyColor or "#c8c8c8"
+
+CaveBot.Diagnostics.setSupplyStatus = function(text, color)
+  CaveBot.Diagnostics.supplyStatus = tostring(text or "-")
+  CaveBot.Diagnostics.supplyColor = color or "#ffffff"
+end
+
+if CaveBot.Editor then
+  CaveBot.Editor.setup()
+end
+if CaveBot.Config then
+  CaveBot.Config.setup()
+end
+if CaveBot.AutoExplorer and CaveBot.AutoExplorer.setupMainPanel then
+  CaveBot.AutoExplorer.setupMainPanel(ui.autoExplorer)
+end
+for extension, callbacks in pairs(CaveBot.Extensions) do
+  if callbacks.setup then
+    callbacks.setup()
+  end
+end
+
+-- main loop, controlled by config
+local actionRetries = 0
+local prevActionResult = true
+local lastConfig = ""
+
+-- >> route-resume
+-- A reload used to restart the route at waypoint 1 whatever the position was, so a
+-- character that was already in the hunting area walked back to a Travel NPC it could
+-- not reach. The route now continues near where the character stands, using the
+-- waypoint it was at before the reload when that is remembered (cavebot/route_resume.lua).
+local resumeState = {done = false, pending = false, tries = 0}
+local lastRemembered = {index = 0, route = "", at = 0}
+
+local function routeLog(message, detail)
+  if RinoConsole and type(RinoConsole.log) == "function" then
+    pcall(RinoConsole.log, "action", "CaveBot", message, detail)
+  end
+end
+
+local function playerPosition()
+  local ok, pos = pcall(function() return player and player:getPosition() end)
+  if ok and type(pos) == "table" and pos.x then return pos end
+end
+
+-- Remember which action runs next, so a reload can tell the way out from the way back.
+local function rememberRoute(index)
+  if lastConfig == "" or not index or index < 1 then return end
+  local at = os.time()
+  if lastRemembered.index == index and lastRemembered.route == lastConfig and at - lastRemembered.at < 10 then return end
+  local pos = playerPosition()
+  storage._cavebotResume = {route = lastConfig, index = index, count = ui.list:getChildCount(), at = at,
+    x = pos and pos.x or nil, y = pos and pos.y or nil, z = pos and pos.z or nil}
+  lastRemembered = {index = index, route = lastConfig, at = at}
+end
+
+local function pickWaypoint(pos, opts)
+  local entries = {}
+  for i, child in ipairs(ui.list:getChildren()) do entries[i] = {action = child.action, value = child.value} end
+  opts.maxDist = tonumber(storage.extras.gotoMaxDistance) or 24
+  opts.route = lastConfig
+  opts.now = os.time()
+  opts.hasPath = function(wp)
+    if wp.x == pos.x and wp.y == pos.y and wp.z == pos.z then return true end
+    local ok, path = pcall(findPath, pos, wp, 40, {ignoreNonPathable = true, allowUnseen = true, allowOnlyVisibleTiles = false})
+    return ok and path ~= nil
+  end
+  return CaveBot.RouteResume.pick(entries, pos, opts)
+end
+
+-- Follow handed movement back: the character walked with the leader, so the route goes on
+-- near where it stands now; with the leader's waypoint of the same route, on the stretch
+-- that leads to him (cavebot/route_resume.lua, tier "leader").
+local function followResync(request)
+  local pos = playerPosition()
+  if not pos then return end
+  local opts = {}
+  local hint = type(request) == "table" and request.hint
+  if type(hint) == "table" and hint.route == lastConfig and tonumber(hint.count) == ui.list:getChildCount() and
+      (not tonumber(hint.at) or (tonumber(now) or 0) - hint.at <= 60000) then
+    opts.toward = tonumber(hint.index)
+  else
+    -- Without the leader's waypoint, the paused one tells which pass of a corridor walked
+    -- twice we are on, if the character is still around it.
+    local current = ui.list:getChildIndex(ui.list:getFocusedChild())
+    if current and current >= 1 then
+      opts.saved = {route = lastConfig, index = current, count = ui.list:getChildCount(), at = os.time()}
+    end
+  end
+  local ok, pick, why = pcall(pickWaypoint, pos, opts)
+  if ok and pick then
+    ui.list:focusChild(ui.list:getChildByIndex(pick.index))
+    actionRetries = 0
+    prevActionResult = true
+    CaveBot.resetWalking()
+    routeLog(string.format("Follow -> CaveBot: la ruta sigue en el waypoint %d (%d,%d,%d), a %d casillas de ti",
+      pick.index, pick.wp.x, pick.wp.y, pick.wp.z, pick.distance),
+      pick.tier == "leader" and "el tramo de la ruta que lleva hacia el leader" or
+        pick.tier == "guardado" and "cerca del waypoint donde se pauso" or "el mas cercano a tu posicion")
+  else
+    routeLog("Follow -> CaveBot: la ruta sigue en su waypoint", ok and tostring(why) or tostring(pick))
+  end
+end
+
+-- Returns true once finished (resumed, or no waypoint near), false to wait for a position.
+local function tryResume()
+  local pos = playerPosition()
+  if not pos then return false end
+  local ok, pick, why = pcall(pickWaypoint, pos, {saved = storage._cavebotResume})
+  if not ok then
+    routeLog("Ruta desde el principio: no se pudo elegir waypoint (" .. tostring(pick) .. ")")
+    return true
+  end
+  if pick then
+    ui.list:focusChild(ui.list:getChildByIndex(pick.index))
+    actionRetries = 0
+    prevActionResult = true
+    CaveBot.resetWalking()
+    routeLog(string.format("Ruta retomada en el waypoint %d (%d,%d,%d), a %d casillas de ti",
+      pick.index, pick.wp.x, pick.wp.y, pick.wp.z, pick.distance),
+      pick.tier == "guardado" and "cerca del punto donde iba antes de recargar" or
+        pick.tier == "inicio" and "estas junto al inicio de la ruta" or
+        ("el mas cercano a tu posicion" .. (pick.verified and "" or " (camino sin confirmar)")))
+  else
+    routeLog(string.format("Ruta desde el principio: %s (estas en %d,%d,%d)", tostring(why), pos.x, pos.y, pos.z))
+  end
+  return true
+end
+
+-- For an action that finds the character is not where the route assumes. The action must
+-- then return true: the engine advances from the focused action, so the one before is focused.
+CaveBot.resyncRoute = function(reason, opts)
+  opts = opts or {}
+  local pos = playerPosition()
+  if not pos then return false, "sin posicion" end
+  local current = ui.list:getChildIndex(ui.list:getFocusedChild())
+  local ok, pick, why = pcall(pickWaypoint, pos, {
+    saved = {route = lastConfig, index = current, count = ui.list:getChildCount(), at = os.time()},
+    after = opts.forwardOnly and current or nil,
+  })
+  if not ok then return false, tostring(pick) end
+  if not pick then return false, why end
+  local previous = pick.index - 1
+  if previous < 1 then previous = ui.list:getChildCount() end
+  ui.list:focusChild(ui.list:getChildByIndex(previous))
+  routeLog(string.format("%s: la ruta sigue en el waypoint %d (%d,%d,%d), a %d casillas de ti",
+    tostring(reason or "Ruta"), pick.index, pick.wp.x, pick.wp.y, pick.wp.z, pick.distance))
+  return true, pick
+end
+-- << route-resume
+
+local function canRunWhileTargeting(actionWidget)
+  if not actionWidget then return false end
+  if CaveBot.Use and CaveBot.Use.canRunWhileTargeting(actionWidget)then return true end
+  if actionWidget.action == "waitstamina" or actionWidget.action == "zonapz" or actionWidget.action == "stepdirection" or actionWidget.action == "setprofile" then return true end
+  if actionWidget.action ~= "function" then return false end
+  if type(actionWidget.value) ~= "string" then return false end
+
+  return actionWidget.value:find("waitStamina", 1, true) ~= nil or actionWidget.value:find("stepDirection", 1, true) ~= nil or actionWidget.value:find("setHealBot", 1, true) ~= nil
+end
+
+local CAVEBOT_LOOP_INTERVAL = 100
+
+cavebotMacro = macro(CAVEBOT_LOOP_INTERVAL, function()
+  if CaveBot.Flee then
+    CaveBot.Flee.poll()
+    if CaveBot.Flee.blocksCombat() and not CaveBot.Flee.isEscaping() then return end
+  end
+  if HelperPause and HelperPause.isPaused() then return end
+  if CaveBot.FollowControl and not CaveBot.FollowControl.beforeCave() then return end
+  if ComboFollowCombat and ComboFollowCombat.isRestocking and ComboFollowCombat.isRestocking() then return end
+  if PushMax and PushMax.ownsMovement and PushMax.ownsMovement()then CaveBot.resetWalking();return end
+  local actions = ui.list:getChildCount()
+  if actions == 0 then return end
+  if resumeState.pending then
+    -- First time the route runs after the bot loaded: pick where to continue (waits a
+    -- moment if the character's position is not known yet).
+    resumeState.tries = resumeState.tries + 1
+    local finished = tryResume()
+    if finished or resumeState.tries >= 50 then
+      if not finished then routeLog("Ruta desde el principio: no se pudo leer tu posicion") end
+      resumeState.pending, resumeState.done = false, true
+    end
+    return
+  end
+  if resumeState.follow then
+    local request = resumeState.follow
+    resumeState.follow = nil
+    followResync(request)
+  end
+  local currentAction = ui.list:getFocusedChild()
+  if not currentAction then
+    currentAction = ui.list:getFirstChild()
+  end
+
+  if TargetBot and TargetBot.Antitrap and TargetBot.Antitrap.ownsMovement() then
+    CaveBot.resetWalking()
+    return -- Finish the escape step before another route action can move the player.
+  end
+  -- Retry only the adjacent known use behind its bridge/landing waypoints.
+  -- Flee and Antitrap keep ownership; no floor exploration is started here.
+  local retryUse=not CaveBot.Flee.isEscaping()and CaveBot.Use and CaveBot.Use.recover(currentAction)
+  if retryUse then
+    CaveBot.resetWalking();ui.list:focusChild(retryUse);actionRetries=0
+    return
+  end
+  local creature=TargetBot and TargetBot.Creature
+  if not CaveBot.Flee.isEscaping()and creature and creature.isHerdWaiting and creature.isHerdWaiting()then return end
+  if not CaveBot.Flee.isEscaping() and TargetBot and TargetBot.isActive() and not TargetBot.isCaveBotActionAllowed() and not canRunWhileTargeting(currentAction) then
+    CaveBot.resetWalking()
+    return -- target bot or looting is working, wait
+  end
+
+  if not CaveBot.Flee.isEscaping()and CaveBot.PlayerBlocker.isActive()then
+    actionRetries=0
+    if CaveBot.PlayerBlocker.tick(currentAction)then
+      CaveBot.resetWalking()
+      return
+    end
+  end
+  if currentAction.action~="waitstamina" and not CaveBot.Flee.isEscaping() and CaveBot.doWalking() then
+    return -- executing walking3
+  end
+
+  local action = CaveBot.Actions[currentAction.action]  
+  local value = currentAction.value
+  local retry = false
+  if action then
+    local status, result = pcall(function()
+      CaveBot.resetWalking()
+      local fleeResult=CaveBot.Flee.action(currentAction)
+      if fleeResult~=nil then return fleeResult end
+      -- Route guard (cavebot/route_guard.lua): no chains of skipped gotos, and no sale,
+      -- cube or profile change away from its place.
+      local guard=CaveBot.RouteGuard
+      if guard then
+        local checked,held=pcall(guard.before, currentAction, actionRetries)
+        if checked and held~=nil then return held end
+      end
+      local result=action.callback(value, actionRetries, prevActionResult)
+      if guard then pcall(guard.after, currentAction, result) end
+      return result
+    end)
+    if status then
+      if result == "retry" then
+        actionRetries = actionRetries + 1
+        retry = true
+      elseif type(result) == 'boolean' then
+        actionRetries = 0
+        prevActionResult = result
+      else
+        warn("Invalid return from cavebot action (" .. currentAction.action .. "), should be \"retry\", false or true, is: " .. tostring(result))
+      end
+    else
+      warn("warn while executing cavebot action (" .. currentAction.action .. "):\n" .. result)
+    end    
+  else
+    warn("Invalid cavebot action: " .. currentAction.action)
+  end
+
+  if CaveBot._profileChangedByAction then
+    CaveBot._profileChangedByAction = false
+    actionRetries = 0
+    prevActionResult = true
+    return
+  end
+  
+  if retry then
+    rememberRoute(ui.list:getChildIndex(currentAction)) -- keeps the memory fresh during a long action
+    return
+  end
+
+  if currentAction ~= ui.list:getFocusedChild() then
+    -- focused child can change durring action, get it again and reset state
+    currentAction = ui.list:getFocusedChild() or ui.list:getFirstChild()
+    actionRetries = 0
+    prevActionResult = true
+  end
+  local nextAction = ui.list:getChildIndex(currentAction) + 1
+  if nextAction > actions then
+    nextAction = 1
+    if CaveBot.FunctionRuntime and CaveBot.FunctionRuntime.lapCompleted then CaveBot.FunctionRuntime.lapCompleted() end
+  end
+  ui.list:focusChild(ui.list:getChildByIndex(nextAction))
+  rememberRoute(nextAction)
+end)
+
+-- Emergency movement discards a hunt action's old retry/delay state.
+CaveBot.wakeRoute=function(resetState)
+  if resetState~=false then actionRetries=0;prevActionResult=true end
+  CaveBot.resetWalking()
+  if cavebotMacro then cavebotMacro.delay=nil end
+end
+
+-- Save the recording before Config refresh reloads the route from disk.
+local function stopRecording()
+  local recording=CaveBot.Recorder.isOn()
+  if recording then CaveBot.Recorder.disable() end
+  ui.autoRecording:setOn(false)
+  return recording
+end
+CaveBot.stopRecording=stopRecording
+
+-- config, its callback is called immediately, data can be nil
+config = Config.setup("cavebot_configs", configWidget, "cfg", function(name, enabled, data)
+  CaveBot.PlayerBlocker.reset()
+  if CaveBot.FloorReturn then CaveBot.FloorReturn.reset() end
+  if CaveBot.RouteGuard then CaveBot.RouteGuard.reset() end
+  if enabled and CaveBot.FunctionRuntime and CaveBot.FunctionRuntime.routeStarted then CaveBot.FunctionRuntime.routeStarted() end
+  if enabled and stopRecording() and name then
+    -- A direct native switch callback already loaded data before stopping.
+    -- Read the saved recording instead of restoring its stale snapshot.
+    data=Config.load("cavebot_configs",name)
+  end
+
+  local currentActionIndex = ui.list:getChildIndex(ui.list:getFocusedChild())
+  CaveBot.Waypoints.clear()
+  CaveBot.Waypoints.changed()
+  ui.list:destroyChildren()
+  if not data then return cavebotMacro.setOff() end
+  
+  local cavebotConfig = nil
+  for k,v in ipairs(data) do
+    if type(v) == "table" and #v == 2 then
+      if v[1] == "config" then
+        local status, result = pcall(function()
+          return json.decode(v[2])
+        end)
+        if not status then
+          warn("warn while parsing CaveBot extensions from config:\n" .. result)
+        else
+          cavebotConfig = result
+        end
+      elseif v[1] == "extensions" then
+        local status, result = pcall(function()
+          return json.decode(v[2])
+        end)
+        if not status then
+          warn("warn while parsing CaveBot extensions from config:\n" .. result)
+        else
+          for extension, callbacks in pairs(CaveBot.Extensions) do
+            if callbacks.onConfigChange then
+              callbacks.onConfigChange(name, enabled, result[extension])
+            end
+          end
+        end
+      else
+        CaveBot.addAction(v[1], v[2])
+      end
+    end
+  end
+
+  CaveBot.Config.onConfigChange(name, enabled, cavebotConfig)
+  CaveBot.RouteValidation.refresh(data,enabled)
+  
+  actionRetries = 0
+  CaveBot.resetWalking()
+  prevActionResult = true
+  cavebotMacro.setOn(enabled)
+  cavebotMacro.delay = nil
+  -- The first time the route is switched on in this bot session it continues near the
+  -- character (a later switch, or a new route, keeps the old behavior).
+  if enabled and not resumeState.done then resumeState.pending, resumeState.tries = true, 0 end
+  if lastConfig == name then
+    -- restore focused child on the action list
+    ui.list:focusChild(ui.list:getChildByIndex(currentActionIndex))
+  end
+  lastConfig = name
+  if CaveBot.Flee then CaveBot.Flee.onRouteLoaded(name) end
+  CaveBot.Waypoints.refresh()
+end)
+
+-- ui callbacks
+ui.showEditor.onClick = function()
+  if not CaveBot.Editor then return end
+  if ui.showEditor:isOn() then
+    CaveBot.Editor.hide()
+    ui.showEditor:setOn(false)
+  else
+    CaveBot.Editor.show()
+    ui.showEditor:setOn(true)
+  end
+end
+
+ui.showConfig.onClick = function()
+  if not CaveBot.Config then return end
+  CaveBot.Config.show()
+end
+
+ui.autoRecording.onClick = function()
+  if CaveBot.Flee and CaveBot.Flee.blocksCombat() then
+    warn('Huida PvP activa: detiene la huida antes de grabar otra ruta.');return
+  end
+  if ui.autoRecording:isOn() then
+    CaveBot.Recorder.disable()
+    ui.autoRecording:setOn(false)
+  else
+    if CaveBot.AutoExplorer and CaveBot.AutoExplorer.isOn and CaveBot.AutoExplorer.isOn() then
+      CaveBot.AutoExplorer.disable()
+    end
+    CaveBot.Recorder.enable()
+    ui.autoRecording:setOn(true)
+  end
+end
+
+-- public function, you can use them in your scripts
+CaveBot.isOn = function()
+  if CaveBot.FollowControl and CaveBot.FollowControl.isPaused() then return false end
+  if not config or not config.isOn or not config.isOn() then
+    return false
+  end
+
+  if cavebotMacro and cavebotMacro.isOn then
+    local ok, enabled = pcall(function() return cavebotMacro.isOn() end)
+    if ok then
+      return enabled == true
+    end
+  end
+
+  return true
+end
+
+CaveBot.isOff = function()
+  return not CaveBot.isOn()
+end
+
+CaveBot.setOn = function(val)
+  if val == false then  
+    return CaveBot.setOff(true)
+  end
+  stopRecording()
+  config.setOn()
+end
+
+CaveBot.setOff = function(val)
+  if val == false then  
+    return CaveBot.setOn(true)
+  end
+  config.setOff()
+end
+
+-- The client's macro.setOff also persists unnamed macro state. Follow uses
+-- only a runtime gate: config, macro enabled state and waypoint stay untouched.
+CaveBot.FollowControl.bind({
+  enabled=function()return config and config.isOn and config.isOn()==true end,
+  pause=function()end,
+  stop=function()
+    CaveBot.resetWalking()
+    if player and player.isWalking and player:isWalking() and g_game.stop then pcall(g_game.stop) end
+  end,
+  busy=function()
+    local action=ui.list:getFocusedChild()
+    local protected={buysupplies=true,sellall=true,travel=true,supremecube=true,bank=true,use=true,usewith=true,
+      waitstamina=true,zonapz=true,depot=true,imbuing=true}
+    return action and protected[action.action]==true
+  end,
+  -- Runs on the next CaveBot tick, once CaveBot owns movement again.
+  resume=function(reason,hint)resumeState.follow={reason=reason,hint=hint}end,
+  -- Why this character needs its own refill now, or nil. Only for a route with a supply check.
+  ownRefill=function()
+    local check=CaveBot.Extensions and CaveBot.Extensions.SupplyCheck
+    if not check or not check.needsRefill then return end
+    local found=false
+    for _,child in ipairs(ui.list:getChildren())do
+      if child.action=='supplycheck'then found=true;break end
+    end
+    if not found then return end
+    if check.trip and check.trip.away then return 'viaje de refill en curso' end
+    return check.needsRefill()
+  end
+})
+
+CaveBot.getCurrentProfile = function()
+  return storage._configs.cavebot_configs.selected
+end
+
+CaveBot.lastReachedLabel = function()
+  return vBot.lastLabel
+end
+
+CaveBot.gotoNextWaypointInRange = function()
+  local currentAction = ui.list:getFocusedChild()
+  local index = ui.list:getChildIndex(currentAction)
+  local actions = ui.list:getChildren()
+  local maxDist = tonumber(storage.extras.gotoMaxDistance) or 24
+  local recoveryDist = math.min(maxDist, 24)
+  local candidates = {}
+
+  local function addCandidate(i, child, order)
+    local text = child:getText()
+    if not string.starts(text, "goto:") then return end
+    local re = regexMatch(text, [[(?:goto:)([^,]+),([^,]+),([^,]+)]])
+    if not re[1] then return end
+    local waypoint = {x = tonumber(re[1][2]), y = tonumber(re[1][3]), z = tonumber(re[1][4])}
+    if posz() ~= waypoint.z then return end
+    local distance = distanceFromPlayer(waypoint)
+    if distance <= recoveryDist then
+      table.insert(candidates, {index = i, pos = waypoint, distance = distance, order = order})
+    end
+  end
+
+  local order = 0
+  for i = index + 1, #actions do
+    order = order + 1
+    addCandidate(i, actions[i], order)
+  end
+  for i = 1, index do
+    order = order + 1
+    addCandidate(i, actions[i], order)
+  end
+
+  table.sort(candidates, function(a, b)
+    if a.distance == b.distance then return a.order < b.order end
+    return a.distance < b.distance
+  end)
+
+  local playerPos = player:getPosition()
+  for i = 1, math.min(#candidates, 8) do
+    local candidate = candidates[i]
+    if findPath(playerPos, candidate.pos, recoveryDist, { ignoreNonPathable = true }) then
+      local previousIndex = candidate.index - 1
+      if previousIndex < 1 then previousIndex = #actions end
+      ui.list:focusChild(ui.list:getChildByIndex(previousIndex))
+      return true
+    end
+  end
+
+  -- not found
+  return false
+end
+
+local function reverseTable(t, max)
+  local reversedTable = {}
+  local itemCount = max or #t
+  for i, v in ipairs(t) do
+      reversedTable[itemCount + 1 - i] = v
+  end
+  return reversedTable
+end
+
+function rpairs(t)
+  test()
+	return function(t, i)
+		i = i - 1
+		if i ~= 0 then
+			return i, t[i]
+		end
+	end, t, #t + 1
+end
+
+CaveBot.gotoFirstPreviousReachableWaypoint = function()
+  local currentAction = ui.list:getFocusedChild()
+  local currentIndex = ui.list:getChildIndex(currentAction)
+  local index = ui.list:getChildIndex(currentAction)
+
+  -- check up to 100 childs
+  for i=0,100 do
+    index = index - i
+    if index <= 0 or index > currentIndex or math.abs(index-currentIndex) > 100 then
+      break
+    end
+
+    local child = ui.list:getChildByIndex(index)
+
+    if child then
+      local text = child:getText()
+      if string.starts(text, "goto:") then
+        local re = regexMatch(text, [[(?:goto:)([^,]+),([^,]+),([^,]+)]])
+        local pos = {x = tonumber(re[1][2]), y = tonumber(re[1][3]), z = tonumber(re[1][4])}
+
+        if posz() == pos.z then
+          if distanceFromPlayer(pos) <= storage.extras.gotoMaxDistance/2 then
+            print("found pos, going back "..currentIndex-index.. " waypoints.")
+            return ui.list:focusChild(child)
+          end
+        end
+      end
+    end
+  end
+
+  -- not found
+  print("previous pos not found, proceeding")
+  return false
+end
+
+CaveBot.getFirstWaypointBeforeLabel = function(label)
+  label = "label:"..label
+  label = label:lower()
+  local actions = ui.list:getChildren()
+  local index
+
+  -- find index of label
+  for i, child in pairs(actions) do
+    local name = child:getText():lower()
+    if name == label then
+      index = i
+      break
+    end
+  end
+
+  -- if there's no index then label was not found
+  if not index then return false end
+
+  for i=1,#actions do
+    if index - 1 < 1 then
+      -- did not found any waypoint in range before label 
+      return false
+    end
+
+    local child = ui.list:getChildByIndex(index-i)
+    if child then
+      local text = child:getText()
+      if string.starts(text, "goto:") then
+        local re = regexMatch(text, [[(?:goto:)([^,]+),([^,]+),([^,]+)]])
+        local pos = {x = tonumber(re[1][2]), y = tonumber(re[1][3]), z = tonumber(re[1][4])}
+
+        if posz() == pos.z then
+          if distanceFromPlayer(pos) <= storage.extras.gotoMaxDistance/2 then
+            return ui.list:focusChild(child)
+          end
+        end
+      end
+    end
+  end
+end
+
+CaveBot.getPreviousLabel = function()
+  local actions = ui.list:getChildren()
+  -- check if config is empty
+  if #actions == 0 then return false end
+
+  local currentAction = ui.list:getFocusedChild()
+  --check we made any progress in waypoints, if no focused or first then no point checking
+  if not currentAction or currentAction == ui.list:getFirstChild() then return false end
+
+  local index = ui.list:getChildIndex(currentAction)
+
+  -- if not index then something went wrong and there's no selected child
+  if not index then return false end
+
+  for i=1,#actions do
+    if index - i < 1 then
+      -- did not found any waypoint in range before label 
+      return false
+    end
+
+    local child = ui.list:getChildByIndex(index-i)
+    if child then
+      if child.action == "label" then
+        return child.value
+      end
+    end
+  end
+end
+
+CaveBot.getNextLabel = function()
+  local actions = ui.list:getChildren()
+  -- check if config is empty
+  if #actions == 0 then return false end
+
+  local currentAction = ui.list:getFocusedChild() or ui.list:getFirstChild()
+  local index = ui.list:getChildIndex(currentAction)
+
+  -- if not index then something went wrong
+  if not index then return false end
+
+  for i=1,#actions do
+    if index + i > #actions then
+      -- did not found any waypoint in range before label 
+      return false
+    end
+
+    local child = ui.list:getChildByIndex(index+i)
+    if child then
+      if child.action == "label" then
+        return child.value
+      end
+    end
+  end
+end
+
+CaveBot.setCurrentProfile = function(name)
+  if not Config.fileExists("cavebot_configs", name) then
+    return warn("there is no cavebot profile with that name!")
+  end
+  CaveBot.setOff()
+  storage._configs.cavebot_configs.selected = name
+  CaveBot.setOn()
+end
+
+CaveBot.delay = function(value)
+  cavebotMacro.delay = math.max(cavebotMacro.delay or 0, now + value)
+end
+
+CaveBot.gotoLabel = function(label)
+  label = label:lower()
+  for index, child in ipairs(ui.list:getChildren()) do
+    if child.action == "label" and child.value:lower() == label then    
+      ui.list:focusChild(child)
+      -- A jump skips the label row itself: report it as reached (refill trips).
+      local check = CaveBot.Extensions and CaveBot.Extensions.SupplyCheck
+      if check and check.reachedLabel then pcall(check.reachedLabel, child.value) end
+      return true
+    end
+  end
+  return false
+end
+
+CaveBot.save = function()
+  CaveBot.Waypoints.changed()
+  local data = {}
+  for index, child in ipairs(ui.list:getChildren()) do
+    table.insert(data, {child.action, child.value})
+  end
+  
+  if CaveBot.Config then
+    table.insert(data, {"config", json.encode(CaveBot.Config.save())})
+  end
+  
+  local extension_data = {}
+  for extension, callbacks in pairs(CaveBot.Extensions) do
+    if callbacks.onSave then
+      local ext_data = callbacks.onSave()
+      if type(ext_data) == "table" then
+        extension_data[extension] = ext_data
+      end
+    end
+  end
+  table.insert(data, {"extensions", json.encode(extension_data, 2)})
+  config.save(data)
+end
+
+CaveBotList = function()
+  return ui.list
+end

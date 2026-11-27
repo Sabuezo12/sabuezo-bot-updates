@@ -1,0 +1,122 @@
+CaveBotCubeDestination < HelperThemeLabel
+  height: 22
+  text-offset: 6 2
+  text-align: left
+  focusable: true
+  $focus:
+    background-color: alpha
+  $on:
+    background-color: #18434a
+    color: #dcffff
+
+CaveBotCubeWindow < HelperThemeWindow
+  text: CaveBot | Supreme Cube
+  size: 560 410
+  padding: 10
+  padding-top: 32
+
+  UIItem
+    id: cubeItem
+    anchors.top: parent.top
+    anchors.left: parent.left
+    size: 38 38
+    virtual: true
+    draggable: false
+    show-count: false
+
+  HelperThemeLabel
+    id: intro
+    anchors.top: parent.top
+    anchors.left: cubeItem.right
+    anchors.right: parent.right
+    margin-left: 10
+    height: 38
+    text-wrap: true
+    text: Un destino fijo para este waypoint. El bot usa el cubo y espera la llegada antes de seguir.
+
+  HelperThemeLabel
+    id: categoryTitle
+    anchors.top: cubeItem.bottom
+    anchors.left: parent.left
+    margin-top: 12
+    width: 170
+    height: 20
+    text: 1. Categoria
+
+  HelperThemeLabel
+    id: searchTitle
+    anchors.top: categoryTitle.top
+    anchors.left: categoryTitle.right
+    anchors.right: parent.right
+    margin-left: 10
+    text: 2. Buscar destino
+
+  HelperThemeCombo
+    id: category
+    anchors.top: categoryTitle.bottom
+    anchors.left: parent.left
+    width: 170
+
+  HelperThemeInput
+    id: search
+    anchors.top: category.top
+    anchors.left: category.right
+    anchors.right: parent.right
+    margin-left: 10
+    tooltip: Escribe parte del nombre de una ciudad o un jefe para filtrar la lista.
+
+  HelperThemeScroll
+    id: destinations
+    anchors.top: category.bottom
+    anchors.left: parent.left
+    anchors.right: destinationScroll.left
+    margin-top: 10
+    margin-right: 3
+    height: 150
+    vertical-scrollbar: destinationScroll
+    layout:
+      type: verticalBox
+
+  VerticalScrollBar
+    id: destinationScroll
+    anchors.top: category.bottom
+    anchors.right: parent.right
+    margin-top: 10
+    height: 150
+    width: 12
+    pixels-scroll: true
+    step: 22
+
+  HelperThemeLabel
+    id: selected
+    anchors.top: destinations.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 8
+    height: 24
+    text: Selecciona un destino.
+    color: #85d2c6
+
+  HelperThemeLabel
+    id: help
+    anchors.top: selected.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 46
+    text-wrap: true
+    text: Supreme Cube (31633). Cooldown de viaje: 60 s. El servidor comprueba combate, zona, acceso y cooldowns de bosses.
+
+  HelperThemeButton
+    id: cancel
+    anchors.bottom: parent.bottom
+    anchors.right: parent.right
+    width: 82
+    text: Cancelar
+
+  HelperThemeButton
+    id: ok
+    anchors.bottom: parent.bottom
+    anchors.right: cancel.left
+    margin-right: 6
+    width: 90
+    text: Guardar

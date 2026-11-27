@@ -1,0 +1,304 @@
+CaveBotRuleWindow < HelperThemeWindow
+  text: CaveBot | Funcion sin programar
+  size: 600 560
+  padding: 10
+  padding-top: 32
+
+  HelperThemeLabel
+    id: presetTitle
+    text: Ejemplo
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeCombo
+    id: preset
+    anchors.top: parent.top
+    anchors.left: parent.left
+    tooltip: Rellena el formulario con un ejemplo. Despues puedes cambiar todo.
+
+  HelperThemeLabel
+    id: sec1
+    text: 1. Cuando ocurra...
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeLabel
+    id: conditionTitle
+    text: Condicion
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeCombo
+    id: condition
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeLabel
+    id: condHelp
+    anchors.top: parent.top
+    anchors.left: parent.left
+    text-wrap: true
+    color: #9fb6b3
+
+  HelperThemeLabel
+    id: itemTitle
+    text: Objeto (ID)
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeInput
+    id: itemId
+    anchors.top: parent.top
+    anchors.left: parent.left
+    tooltip: ID numerico del objeto (por ejemplo 268).
+
+  HelperThemeLabel
+    id: thresholdTitle
+    text: Valor
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeInput
+    id: threshold
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeLabel
+    id: teamTitle
+    text: Equipo
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeInput
+    id: names
+    anchors.top: parent.top
+    anchors.left: parent.left
+    tooltip: Nombres separados por comas. Equipo: todos deben estar en el mismo piso y dentro del rango. Monstruos: solo cuenta esos nombres (vacio = todos).
+
+  HelperThemeLabel
+    id: rangeTitle
+    text: Rango (SQM)
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeInput
+    id: range
+    anchors.top: parent.top
+    anchors.left: parent.left
+    tooltip: Rango en SQM, de 1 a 10.
+
+  HelperThemeButton
+    id: moreToggle
+    text: Mas opciones
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeLabel
+    id: joinTitle
+    text: Y ademas
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeCombo
+    id: join
+    anchors.top: parent.top
+    anchors.left: parent.left
+    tooltip: Una segunda condicion opcional. Y: deben cumplirse las dos. O: basta con una.
+
+  HelperThemeCombo
+    id: condition2
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeLabel
+    id: threshold2Title
+    text: Valor
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeInput
+    id: threshold2
+    anchors.top: parent.top
+    anchors.left: parent.left
+    tooltip: Valor de la segunda condicion.
+
+  HelperThemeLabel
+    id: param2Title
+    text: Parametro
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeInput
+    id: param2
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeLabel
+    id: names2Title
+    text: Monstruos (opcional)
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeInput
+    id: names2
+    anchors.top: parent.top
+    anchors.left: parent.left
+    tooltip: Nombres separados por comas (vacio = todos).
+
+  HelperThemeLabel
+    id: intervalTitle
+    text: Comprobar cada (seg)
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeInput
+    id: interval
+    anchors.top: parent.top
+    anchors.left: parent.left
+    tooltip: Cada cuantos segundos se vuelve a comprobar. De 0.1 a 60.
+
+  HelperThemeLabel
+    id: sec2
+    text: 2. Que debe hacer
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeLabel
+    id: yesTitle
+    text: Si se cumple
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeCombo
+    id: yesMode
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeCombo
+    id: yesLabel
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeInput
+    id: yesText
+    anchors.top: parent.top
+    anchors.left: parent.left
+    visible: false
+    tooltip: Texto que se dice, o el aviso de la alarma.
+
+  HelperThemeCombo
+    id: yesBp
+    anchors.top: parent.top
+    anchors.left: parent.left
+    visible: false
+    tooltip: Que BPs se cierran: todas las ventanas o una BP de la lista del Container Manager. El Container Manager las vuelve a abrir desde la de arriba.
+
+  HelperThemeLabel
+    id: noTitle
+    text: Si no se cumple
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeCombo
+    id: noMode
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeCombo
+    id: noLabel
+    anchors.top: parent.top
+    anchors.left: parent.left
+
+  HelperThemeInput
+    id: noText
+    anchors.top: parent.top
+    anchors.left: parent.left
+    visible: false
+    tooltip: Texto que se dice, o el aviso de la alarma.
+
+  HelperThemeCombo
+    id: noBp
+    anchors.top: parent.top
+    anchors.left: parent.left
+    visible: false
+    tooltip: Que BPs se cierran: todas las ventanas o una BP de la lista del Container Manager. El Container Manager las vuelve a abrir desde la de arriba.
+
+  HelperThemeLabel
+    id: preview
+    anchors.top: parent.top
+    anchors.left: parent.left
+    text-wrap: true
+    text-align: topLeft
+    color: #a9d8d4
+
+  HelperThemeLabel
+    id: feedback
+    anchors.bottom: ok.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-bottom: 6
+    height: 30
+    text-wrap: true
+    color: #ffcd80
+
+  HelperThemeButton
+    id: advanced
+    text: Lua avanzado
+    width: 115
+    anchors.bottom: parent.bottom
+    anchors.left: parent.left
+
+  HelperThemeButton
+    id: cancel
+    text: Cancelar
+    width: 82
+    anchors.bottom: parent.bottom
+    anchors.right: parent.right
+
+  HelperThemeButton
+    id: ok
+    text: Guardar
+    width: 90
+    anchors.bottom: parent.bottom
+    anchors.right: cancel.left
+    margin-right: 6
+
+CaveBotValidationWindow < HelperThemeWindow
+  text: Revisar ruta
+  size: 560 350
+  padding: 10
+
+  HelperThemeScroll
+    id: reportPanel
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: closeReport.top
+    margin-bottom: 10
+    margin-right: 16
+    vertical-scrollbar: reportScroll
+
+    HelperThemeLabel
+      id: report
+      anchors.top: parent.top
+      anchors.left: parent.left
+      anchors.right: parent.right
+      height: 240
+      text-wrap: true
+      text-align: topLeft
+
+  VerticalScrollBar
+    id: reportScroll
+    anchors.right: parent.right
+    anchors.top: parent.top
+    anchors.bottom: closeReport.top
+    margin-bottom: 10
+    pixels-scroll: true
+    step: 14
+
+  HelperThemeButton
+    id: closeReport
+    text: Cerrar
+    width: 82
+    anchors.bottom: parent.bottom
+    anchors.right: parent.right
